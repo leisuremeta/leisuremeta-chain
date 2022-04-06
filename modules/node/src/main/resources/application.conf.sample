@@ -1,0 +1,13 @@
+node {
+  network-id = 102
+  port = 8081
+}
+wire {
+  time-window-millis = 1000,
+  localPrivate = "", // local private key (Hex)
+  port = 11111,
+  peers: [
+    dest: "",    // "address:port"
+    address: "", // Peer Address (Hex)
+  ],
+}
