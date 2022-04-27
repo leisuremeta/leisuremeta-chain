@@ -4,6 +4,7 @@ package datatype
 import scodec.bits.ByteVector
 
 import cats.syntax.eq.given
+import io.circe.{Decoder, Encoder}
 
 import failure.UInt256RefineFailure
 
@@ -62,10 +63,10 @@ object UInt256:
       def toBigInt(value: BigInt): BigInt = value
   end Ops
 
-  given io.circe.Encoder[UInt256Bytes] =
-    io.circe.Encoder[String].contramap[UInt256Bytes](_.toBytes.toHex)
-  given io.circe.Decoder[UInt256Bytes] =
-    io.circe.Decoder.decodeString.emap((str: String) =>
+  given uint256bytesCirceEncoder: Encoder[UInt256Bytes] =
+    Encoder[String].contramap[UInt256Bytes](_.toBytes.toHex)
+  given uint256bytesCirceDecoder: Decoder[UInt256Bytes] =
+    Decoder.decodeString.emap((str: String) =>
       for
         bytes   <- ByteVector.fromHexDescriptive(str)
         refined <- UInt256.from(bytes).left.map(_.msg)

@@ -16,8 +16,6 @@ import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
 
 object BigNatTest extends SimpleTestSuite with HedgehogSupport:
 
-  summon[Encoder[BigInt]]
-
   property("roundtrip of bignat byte codec") {
     for
       bignat <- Gen

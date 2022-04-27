@@ -3,7 +3,7 @@ val V = new {
   val ScalaGroup = "3.1"
 
   val catsEffect = "3.3.11"
-  val tapir      = "1.0.0-M6"
+  val tapir      = "1.0.0-M7"
   val sttp       = "3.5.2"
   val circe      = "0.15.0-M1"
   val refined    = "0.9.28"
@@ -47,22 +47,27 @@ val Dependencies = new {
 
   lazy val lib = Seq(
     libraryDependencies ++= Seq(
-      "io.circe"   %% "circe-generic" % V.circe,
-      "io.circe"   %% "circe-parser"  % V.circe,
-      "io.circe"   %% "circe-refined" % V.circe,
-      "eu.timepit" %% "refined"       % V.refined,
-      "org.scodec" %% "scodec-bits"   % V.scodecBits,
-      "com.outr"   %% "scribe"        % V.scribe,
+      "io.circe"      %%% "circe-generic"       % V.circe,
+      "io.circe"      %%% "circe-parser"        % V.circe,
+      "io.circe"      %%% "circe-refined"       % V.circe,
+      "eu.timepit"    %%% "refined"             % V.refined,
+      "org.scodec"    %%% "scodec-bits"         % V.scodecBits,
+      "org.typelevel" %%% "shapeless3-deriving" % V.shapeless,
+      "org.typelevel" %%% "shapeless3-typeable" % V.shapeless,
     ),
   )
 
   lazy val libJVM = Seq(
     libraryDependencies ++= Seq(
       "org.bouncycastle" % "bcprov-jdk15on" % V.bouncycastle,
+      "com.outr"        %% "scribe-slf4j"   % V.scribe,
     ),
   )
 
   lazy val libJS = Seq(
+    libraryDependencies ++= Seq(
+      "com.outr" %%% "scribe" % V.scribe,
+    ),
     Compile / npmDependencies ++= Seq(
       "js-sha3"         -> V.jsSha3,
       "elliptic"        -> V.elliptic,
