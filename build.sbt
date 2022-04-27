@@ -3,7 +3,7 @@ val V = new {
   val ScalaGroup = "3.1"
 
   val catsEffect = "3.3.11"
-  val tapir      = "1.0.0-M7"
+  val tapir      = "1.0.0-M8"
   val sttp       = "3.5.2"
   val circe      = "0.15.0-M1"
   val refined    = "0.9.28"
@@ -14,7 +14,7 @@ val V = new {
   val bouncycastle   = "1.70"
 
   val scribe          = "3.8.2"
-  val hedgehog        = "0.7.0"
+  val hedgehog        = "0.8.0"
   val organiseImports = "0.6.0"
 
   val scalaJavaTime = "2.3.0"
