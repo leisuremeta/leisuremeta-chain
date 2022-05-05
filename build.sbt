@@ -93,7 +93,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 ThisBuild / semanticdbEnabled := true
 
 lazy val root = (project in file("."))
-  .aggregate(node, api.jvm, api.js)
+  .aggregate(node, api.jvm, api.js, lib.jvm, lib.js)
 
 lazy val node = (project in file("modules/node"))
   .settings(Dependencies.node)
