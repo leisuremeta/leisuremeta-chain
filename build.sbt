@@ -3,12 +3,13 @@ val V = new {
   val ScalaGroup = "3.1"
 
   val catsEffect = "3.3.11"
-  val tapir      = "1.0.0-M8"
-  val sttp       = "3.5.2"
+  val tapir      = "1.0.0-M9"
+  val sttp       = "3.6.1"
   val circe      = "0.15.0-M1"
   val refined    = "0.9.28"
   val scodecBits = "1.1.30"
   val shapeless  = "3.0.4"
+  val fs2        = "3.2.7"
 
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
@@ -61,6 +62,7 @@ val Dependencies = new {
     libraryDependencies ++= Seq(
       "org.bouncycastle" % "bcprov-jdk15on" % V.bouncycastle,
       "com.outr"        %% "scribe-slf4j"   % V.scribe,
+      "co.fs2"          %% "fs2-core"       % V.fs2,
     ),
   )
 
