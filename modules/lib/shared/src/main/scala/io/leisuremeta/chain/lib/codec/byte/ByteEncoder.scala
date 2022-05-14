@@ -16,9 +16,9 @@ trait ByteEncoder[A]:
 object ByteEncoder:
   def apply[A: ByteEncoder]: ByteEncoder[A] = summon
 
-  given ByteEncoder[EmptyTuple] = { _ => ByteVector.empty }
+  given ByteEncoder[EmptyTuple] = _ => ByteVector.empty
 
-  given[H, T <: Tuple](using
+  given [H, T <: Tuple](using
       beh: ByteEncoder[H],
       bet: ByteEncoder[T],
   ): ByteEncoder[H *: T] = { case h *: t =>
@@ -30,4 +30,8 @@ object ByteEncoder:
       beb: ByteEncoder[m.MirroredElemTypes],
   ): ByteEncoder[P] = beb contramap Tuple.fromProductTyped
 
-  given[A: UInt256.Ops]: ByteEncoder[UInt256.Refined[A]] = _.toBytes
+  given [A: UInt256.Ops]: ByteEncoder[UInt256.Refined[A]] = _.toBytes
+
+  object ops:
+    extension [A](a: A)
+      def toBytes(implicit be: ByteEncoder[A]): ByteVector = be.encode(a)
