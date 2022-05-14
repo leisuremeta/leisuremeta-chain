@@ -12,12 +12,14 @@ import java.io.FileWriter
 
 import scala.collection.immutable.SortedMap
 
-import cats.{Monad, Id}
+import cats.{~>, Monad, Id}
+import cats.arrow.FunctionK
 import cats.catsInstancesForId
 import cats.data.{EitherT, Kleisli, StateT}
 import cats.implicits.{*, given}
 import cats.syntax.all.{*, given}
 
+import fs2.Stream
 import scodec.bits.{BitVector, ByteVector}
 import scodec.bits.hex
 
@@ -34,7 +36,7 @@ given ByteEncoder[ByteVector] = (bytes: ByteVector) =>
   BigNat.unsafeFromBigInt(bytes.size).toBytes ++ bytes
 
 given ByteDecoder[ByteVector] =
-  ByteDecoder[BigNat].flatMap{ size =>
+  ByteDecoder[BigNat].flatMap { size =>
     ByteDecoder.fromFixedSizeBytes(size.toBigInt.toLong)(identity)
   }
 
@@ -48,6 +50,7 @@ object State:
 case class Get(key: BitVector)
 case class Put(key: BitVector, value: ByteVector)
 case class Remove(key: BitVector)
+case class From(key: BitVector)
 
 given emptyNodeStore[K, V]: NodeStore[Id, K, V] =
   Kleisli { (_: MerkleHash[K, V]) => EitherT.rightT[Id, String](None) }
@@ -144,16 +147,15 @@ def commandRemove: CommandIO[State] = new Command[State, Remove, Boolean]:
   )
   override def execute(env: Environment, i: Remove): Either[String, Boolean] =
     val program = MerkleTrie.remove[Id, K, V](i.key)
-    program.run(merkleTrieState).value.map {
-      case (state1, result) =>
+    program.run(merkleTrieState).value.map { case (state1, result) =>
       merkleTrieState = state1
       result
     }
 
   override def update(s: State, i: Remove, o: Var[Boolean]): State =
-    val current1 = s.current - i.key.bytes
+    val current1  = s.current - i.key.bytes
     val stateRoot = merkleTrieState.root
-    val hashLog1 = s.hashLog + ((current1 -> stateRoot))
+    val hashLog1  = s.hashLog + ((current1 -> stateRoot))
     State(current1, s.hashLog)
 
   override def ensure(
@@ -162,11 +164,57 @@ def commandRemove: CommandIO[State] = new Command[State, Remove, Boolean]:
       s: State,
       i: Remove,
       o: Boolean,
-  ): Result = Result.all(List(
-    s0.current.contains(i.key.bytes) ==== o,
-    s.current.get(i.key.bytes) ==== None,
-  ))
+  ): Result = Result.all(
+    List(
+      s0.current.contains(i.key.bytes) ==== o,
+      s.current.get(i.key.bytes) ==== None,
+    ),
+  )
 
+type S = Stream[EitherT[Id, String, *], (BitVector, V)]
+def commandFrom: CommandIO[State] = new Command[State, From, S]:
+
+  override def gen(s: State): Option[Gen[From]] = Some(
+    (s.current.keys.toList match
+      case Nil => genByteVector
+      case h :: t =>
+        Gen.frequency1(
+          80 -> Gen.element(h, t),
+          20 -> genByteVector,
+        )
+    ).map(bytes => From(bytes.bits)),
+  )
+  override def execute(env: Environment, i: From): Either[String, S] =
+    val program = MerkleTrie.from[Id, K, V](i.key)
+    program.runA(merkleTrieState).value
+
+  override def update(s: State, i: From, o: Var[S]): State = s
+
+  override def ensure(
+      env: Environment,
+      s0: State,
+      s: State,
+      i: From,
+      o: S,
+  ): Result =
+    import fs2.given
+    import cats.implicits.*
+    import cats.effect.unsafe.implicits.global
+
+    val toId = new FunctionK[EitherT[Id, String, *], Id]:
+      override def apply[A](fa: EitherT[Id, String, A]): Id[A] =
+        fa.value.toOption.get
+
+    val expected =
+      s.current.iteratorFrom(i.key.bytes).take(10).toList.map { (k, v) =>
+        (k.bits, v)
+      }
+
+    expected ==== o
+      .take(10)
+      .translate[EitherT[Id, String, *], Id](toId)
+      .compile
+      .toList
 
 object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
   example("put same key value twice expect not to change state") {
@@ -267,8 +315,8 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
       MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
 
     val program = for
-      _ <- putEmptyWithEmpty
-      _ <- put00_00
+      _     <- putEmptyWithEmpty
+      _     <- put00_00
       value <- getEmpty
     yield value ==== Some(ByteVector.empty)
 
@@ -288,15 +336,16 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 
   example("put 00 -> put 0000 -> put empty -> get empty") {
     val initialState = MerkleTrieState.empty[K, V]
-    val put00 = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
+    val put00        = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
     val put0000 = MerkleTrie.put[Id, K, V](hex"0000".bits, ByteVector.empty)
-    val putEmpty = MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
+    val putEmpty =
+      MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
     val getEmpty = MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
 
     val program = for
-      _ <- put00
-      _ <- put0000
-      _ <- putEmpty
+      _     <- put00
+      _     <- put0000
+      _     <- putEmpty
       value <- getEmpty
     yield value ==== Some(ByteVector.empty)
 
@@ -317,15 +366,15 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 
   example("put 0700 -> put 07 -> put 10 -> get empty") {
     val initialState = MerkleTrieState.empty[K, V]
-    val put0700 = MerkleTrie.put[Id, K, V](hex"0700".bits, ByteVector.empty)
-    val put07 = MerkleTrie.put[Id, K, V](hex"07".bits, ByteVector.empty)
-    val put10 = MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
+    val put0700  = MerkleTrie.put[Id, K, V](hex"0700".bits, ByteVector.empty)
+    val put07    = MerkleTrie.put[Id, K, V](hex"07".bits, ByteVector.empty)
+    val put10    = MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
     val getEmpty = MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
 
     val program = for
-      _ <- put0700
-      _ <- put07
-      _ <- put10
+      _     <- put0700
+      _     <- put07
+      _     <- put10
       value <- getEmpty
     yield value ==== None
 
@@ -346,13 +395,13 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 
   example("put 00 -> put 01 -> get 00") {
     val initialState = MerkleTrieState.empty[K, V]
-    val put00 = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
-    val put01 = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
-    val get00 = MerkleTrie.get[Id, K, V](hex"00".bits)
+    val put00        = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
+    val put01        = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
+    val get00        = MerkleTrie.get[Id, K, V](hex"00".bits)
 
     val program = for
-      _ <- put00
-      _ <- put01
+      _     <- put00
+      _     <- put01
       value <- get00
     yield value ==== Some(ByteVector.empty)
 
@@ -372,15 +421,15 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 
   example("put(00, empty) -> put(01, empty) -> put(00, 00) -> get 01") {
     val initialState = MerkleTrieState.empty[K, V]
-    val put00 = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
-    val put01 = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
-    val put00_00 = MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
-    val get01 = MerkleTrie.get[Id, K, V](hex"01".bits)
+    val put00        = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
+    val put01        = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
+    val put00_00     = MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
+    val get01        = MerkleTrie.get[Id, K, V](hex"01".bits)
 
     val program = for
-      _ <- put00
-      _ <- put01
-      _ <- put00_00
+      _     <- put00
+      _     <- put01
+      _     <- put00_00
       value <- get01
     yield value
 
@@ -401,12 +450,13 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
   example("put 50 -> put 5000 -> remove 00") {
     val initialState = MerkleTrieState.empty[K, V]
 
-    def put(key: ByteVector) = MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
+    def put(key: ByteVector) =
+      MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
     def remove(key: ByteVector) = MerkleTrie.remove[Id, K, V](key.bits)
 
     val program = for
-      _ <- put(hex"50")
-      _ <- put(hex"5000")
+      _      <- put(hex"50")
+      _      <- put(hex"5000")
       result <- remove(hex"00")
     yield result
 
@@ -428,7 +478,8 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
   example("put d0 -> put d000 -> put empty -> put 000000 -> remove d000") {
     val initialState = MerkleTrieState.empty[K, V]
 
-    def put(key: ByteVector) = MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
+    def put(key: ByteVector) =
+      MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
     def remove(key: ByteVector) = MerkleTrie.remove[Id, K, V](key.bits)
 
     val program = for
@@ -459,7 +510,7 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
     sequential(
       range = Range.linear(1, 100),
       initial = State.empty,
-      commands = List(commandGet, commandPut, commandRemove),
+      commands = List(commandGet, commandPut, commandRemove, commandFrom),
       cleanup = () => merkleTrieState = MerkleTrieState.empty[K, V],
     )
   }
