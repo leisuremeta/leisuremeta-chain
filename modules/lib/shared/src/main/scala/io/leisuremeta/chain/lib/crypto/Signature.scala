@@ -27,12 +27,11 @@ object Signature:
   given headerEncoder: ByteEncoder[Header] =
     ByteVector `fromByte` _.value.toByte
 
-  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
-  given headerDecoder: ByteDecoder[Header] = bytes =>
-    ByteDecoder[Byte].decode(bytes).flatMap { case DecodeResult(b, remainder) =>
-      refineV[Signature.HeaderRange](b.toInt) match
-        case Left(msg)      => Left(DecodingFailure(msg))
-        case Right(refined) => Right(DecodeResult(refined, remainder))
+  given headerDecoder: ByteDecoder[Header] =
+    ByteDecoder[Byte].decode(_).flatMap { case DecodeResult(b, remainder) =>
+      refineV[Signature.HeaderRange](b.toInt)
+        .map(DecodeResult(_, remainder))
+        .left.map(DecodingFailure(_))
     }
 
   given sigEncoder: ByteEncoder[Signature] = ByteEncoder.genericEncoder
