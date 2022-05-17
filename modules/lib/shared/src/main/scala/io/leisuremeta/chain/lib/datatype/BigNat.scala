@@ -39,6 +39,8 @@ object BigNat:
     case Right(nat) => nat
     case Left(e)    => throw new Exception(e)
 
+  def unsafeFromLong(long: Long): BigNat = unsafeFromBigInt(BigInt(long))
+
   given bignatByteDecoder: ByteDecoder[BigNat] = bytes =>
     Either.cond(bytes.nonEmpty, bytes, DecodingFailure("Empty bytes")).flatMap {
       nonEmptyBytes =>

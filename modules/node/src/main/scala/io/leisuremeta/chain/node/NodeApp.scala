@@ -13,6 +13,11 @@ import api.{LeisureMetaChainApi as Api}
 
 final case class NodeApp[F[_]: Async](config: NodeConfig):
 
+  /** ****************************************************************************
+    * Setup Endpoints
+    * ****************************************************************************
+    */
+
   val getStatusServerEndpoint = Api.getStatusEndpoint.serverLogic { _ =>
     Async[F].delay(Right("Ok"))
   }

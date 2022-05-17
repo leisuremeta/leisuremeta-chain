@@ -13,6 +13,7 @@ val V = new {
 
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
+  val sway           = "0.16.2"
 
   val scribe          = "3.8.2"
   val hedgehog        = "0.8.0"
@@ -32,6 +33,11 @@ val Dependencies = new {
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe"          % V.tapir,
       "com.outr"                    %% "scribe-slf4j"              % V.scribe,
       "com.typesafe" % "config" % V.typesafeConfig,
+      ("io.swaydb"  %% "swaydb" % V.sway).cross(CrossVersion.for3Use2_13),
+    ),
+    excludeDependencies ++= Seq(
+      "org.scala-lang.modules" % "scala-collection-compat_2.13",
+      "org.scala-lang.modules" % "scala-java8-compat_2.13",
     ),
   )
 
@@ -42,6 +48,7 @@ val Dependencies = new {
       "com.softwaremill.sttp.tapir"   %% "tapir-armeria-server-cats" % V.tapir,
       "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"          % V.tapir,
       "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle"   % V.tapir,
+      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui"          % V.tapir,
       "com.softwaremill.sttp.client3" %% "core"                      % V.sttp,
     ),
   )
@@ -55,6 +62,7 @@ val Dependencies = new {
       "org.scodec"    %%% "scodec-bits"         % V.scodecBits,
       "org.typelevel" %%% "shapeless3-deriving" % V.shapeless,
       "org.typelevel" %%% "shapeless3-typeable" % V.shapeless,
+      "co.fs2"        %%% "fs2-core"            % V.fs2,
     ),
   )
 
@@ -62,7 +70,6 @@ val Dependencies = new {
     libraryDependencies ++= Seq(
       "org.bouncycastle" % "bcprov-jdk15on" % V.bouncycastle,
       "com.outr"        %% "scribe-slf4j"   % V.scribe,
-      "co.fs2"          %% "fs2-core"       % V.fs2,
     ),
   )
 
@@ -93,7 +100,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 ThisBuild / semanticdbEnabled := true
 
 lazy val root = (project in file("."))
-  .aggregate(node, api.jvm, api.js)
+  .aggregate(node, api.jvm, api.js, lib.jvm, lib.js)
 
 lazy val node = (project in file("modules/node"))
   .settings(Dependencies.node)
