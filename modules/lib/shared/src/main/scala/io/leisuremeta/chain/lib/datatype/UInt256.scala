@@ -72,3 +72,6 @@ object UInt256:
         refined <- UInt256.from(bytes).left.map(_.msg)
       yield refined,
     )
+
+  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+  val EmptyBytes: UInt256Bytes = UInt256.from(ByteVector.low(32)).toOption.get
