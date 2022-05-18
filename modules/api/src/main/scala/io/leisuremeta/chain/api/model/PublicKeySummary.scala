@@ -9,14 +9,17 @@ import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import scodec.bits.ByteVector
 import sttp.tapir.Schema
 
+import lib.codec.byte.{ByteDecoder, ByteEncoder}
+import lib.crypto.{Hash, PublicKey}
+
 opaque type PublicKeySummary = ByteVector
 
 object PublicKeySummary:
   def apply(bytes: ByteVector): Either[String, PublicKeySummary] =
     Either.cond(
-      bytes.size === 32,
+      bytes.size === 20,
       bytes,
-      "PublicKeySummary must be 32 bytes",
+      "PublicKeySummary must be 20 bytes",
     )
 
   def fromHex(hexString: String): Either[String, PublicKeySummary] =
@@ -24,6 +27,12 @@ object PublicKeySummary:
       bytes <- ByteVector.fromHexDescriptive(hexString)
       summary <- apply(bytes)
     yield summary
+
+  def fromPublicKeyHash(hash: Hash.Value[PublicKey]): PublicKeySummary =
+    hash.toUInt256Bytes.toBytes takeRight 20
+
+  extension (pks: PublicKeySummary)
+    def toBytes: ByteVector = pks
 
   given Decoder[PublicKeySummary] = Decoder.decodeString.emap { (s: String) =>
     val (f, b) = s `splitAt` 2
@@ -43,3 +52,6 @@ object PublicKeySummary:
   given KeyEncoder[PublicKeySummary] = KeyEncoder.encodeKeyString.contramap(_.toString)
 
   given Schema[PublicKeySummary] = Schema.string
+
+  given ByteDecoder[PublicKeySummary] = ByteDecoder.fromFixedSizeBytes(20)(identity)
+  given ByteEncoder[PublicKeySummary] = (bytes: ByteVector) => bytes
