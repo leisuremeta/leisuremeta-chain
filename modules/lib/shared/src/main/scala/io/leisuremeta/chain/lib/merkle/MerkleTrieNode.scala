@@ -59,6 +59,7 @@ sealed trait MerkleTrieNode[K, V]:
     case MerkleTrieNode.BranchWithData(prefix, children, _) =>
       MerkleTrieNode.BranchWithData(prefix, children, value)
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def toString: String =
     val childrenString = getChildren.fold("[]") { (childrenRefined) =>
       val ss = for i <- 0 until 16 yield f"${i}%x: ${childrenRefined.value(i)}"
@@ -105,10 +106,12 @@ object MerkleTrieNode:
   type ChildrenCondition = Size[Equal[16]]
 
   extension [K, V](c: Children[K, V])
+    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
     def updated(i: Int, v: Option[MerkleHash[K, V]]): Children[K, V] =
       refineV[ChildrenCondition](c.value.updated(i, v)).toOption.get
 
   object Children:
+    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
     def empty[K, V]: Children[K, V] = refineV[ChildrenCondition](
       Vector.fill(16)(Option.empty[MerkleHash[K, V]]),
     ).toOption.get
@@ -135,7 +138,7 @@ object MerkleTrieNode:
     val encoded = node match
       case Leaf(_, value) =>
         ByteVector.fromByte(1) ++ encodePrefix ++ encodeValue(value)
-      case Branch(_, children)=>
+      case Branch(_, children) =>
         ByteVector.fromByte(2) ++ encodePrefix ++ encodeChildren(children)
       case BranchWithData(_, children, value) =>
         ByteVector.fromByte(3) ++ encodePrefix ++ encodeChildren(
@@ -171,6 +174,7 @@ object MerkleTrieNode:
             Vector[Option[MerkleHash[K, V]]],
           ]]
           @annotation.tailrec
+          @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
           def loop(
               bits: BitVector,
               bytes: ByteVector,
