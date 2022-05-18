@@ -228,3 +228,5 @@ object MerkleTrieNode:
             value    <- valueDecoder
           yield BranchWithData(prefix, children, value)
       }
+
+  given merkleTrieNodeHash[K, V]: Hash[MerkleTrieNode[K, V]] = Hash.build

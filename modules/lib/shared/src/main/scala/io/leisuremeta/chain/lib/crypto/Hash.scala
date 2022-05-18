@@ -6,7 +6,7 @@ import cats.Contravariant
 import io.circe.{Decoder, Encoder}
 import scodec.bits.ByteVector
 
-import codec.byte.ByteEncoder
+import codec.byte.{ByteDecoder, ByteEncoder}
 import datatype.{UInt256, UInt256Bytes}
 
 trait Hash[A]:
@@ -26,6 +26,13 @@ object Hash:
 
     given circeValueEncoder[A]: Encoder[Value[A]] =
       UInt256.uint256bytesCirceEncoder.contramap[Value[A]](_.toUInt256Bytes)
+
+    given byteValueDecoder[A]: ByteDecoder[Value[A]] =
+      UInt256.uint256bytesByteDecoder.map(Value[A](_))
+
+    given byteValueEncoder[A]: ByteEncoder[Value[A]] =
+      UInt256.uint256bytesByteEncoder.contramap[Value[A]](_.toUInt256Bytes)
+
 
   extension [A](value: Value[A]) def toUInt256Bytes: UInt256Bytes = value
 

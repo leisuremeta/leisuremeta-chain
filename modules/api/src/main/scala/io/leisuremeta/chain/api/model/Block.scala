@@ -30,6 +30,7 @@ object Block:
   object Header:
     given eqHeader: Eq[Header] = Eq.fromUniversalEquals
 
+    given headerHash: Hash[Header] = Hash.build
   object ops:
     extension (blockHash: Hash.Value[Block])
       def toHeaderHash: Hash.Value[Header] =
@@ -38,3 +39,5 @@ object Block:
     extension (headerHash: Hash.Value[Header])
       def toBlockHash: Hash.Value[Block] =
         Hash.Value[Block](headerHash.toUInt256Bytes)
+
+  given blockHash: Hash[Block] = Header.headerHash.contramap(_.header)
