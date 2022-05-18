@@ -37,7 +37,7 @@ object Hash:
       fa.contramap(f)
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  given hash[A: ByteEncoder]: Hash[A] = (a: A) =>
+  def build[A: ByteEncoder]: Hash[A] = (a: A) =>
     val bytes = ByteEncoder[A].encode(a)
     val h     = ByteVector.view(CryptoOps.keccak256(bytes.toArray))
     Value[A](UInt256.from(h).toOption.get)

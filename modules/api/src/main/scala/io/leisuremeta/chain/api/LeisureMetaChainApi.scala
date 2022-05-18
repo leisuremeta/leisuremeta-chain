@@ -6,9 +6,9 @@ import io.circe.generic.auto.*
 import sttp.client3.*
 import sttp.tapir.*
 import sttp.tapir.json.circe.*
-import sttp.tapir.generic.auto.*
+import sttp.tapir.generic.auto.given
 
-import lib.datatype.{BigNat, UInt256Bytes}
+import lib.datatype.{BigNat, UInt256Bytes, Utf8}
 import api.model.Transaction
 
 object LeisureMetaChainApi:
@@ -17,6 +17,7 @@ object LeisureMetaChainApi:
   given Schema[BigNat] = Schema.schemaForBigInt.map[BigNat] {
     (bigint: BigInt) => BigNat.fromBigInt(bigint).toOption
   } { (bignat: BigNat) => bignat.toBigInt }
+  given Schema[Utf8] = Schema.string
   given [K: KeyEncoder, V: Schema]: Schema[Map[K, V]] =
     Schema.schemaForMap[K, V](KeyEncoder[K].apply)
 

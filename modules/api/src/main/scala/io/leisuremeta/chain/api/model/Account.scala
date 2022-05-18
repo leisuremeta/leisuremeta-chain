@@ -21,3 +21,6 @@ object Account:
   given KeyEncoder[Account] = Utf8.utf8CirceKeyEncoder
 
   given Schema[Account] = Schema.string
+
+  given ByteDecoder[Account] = Utf8.utf8ByteDecoder
+  given ByteEncoder[Account] = Utf8.utf8ByteEncoder
