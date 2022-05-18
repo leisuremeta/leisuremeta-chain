@@ -448,12 +448,12 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Token
 
-* TokenDefinitionState: TokenDefinitionID(string)=> TokenDefinitionInfo
-  * TokenDefinitionInfo
+* TokenDefinitionState: TokenDefinitionID(string)=> TokenDefinition
+  * TokenDefinition
     * TokenDefinitionID(string)
     * Name(string)
     * *(optional)* Symbol(string)
-    * *(optional)* AdminGroup: GroupName(string)
+    * *(optional)* AdminGroup: GroupId
     * TotalAmount
     * *(optional)* NftInfo
       * Minter: AccountName(string)

@@ -9,6 +9,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.*
+import api.model.token.{TokenDefinition, TokenDefinitionId}
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
 import lib.datatype.{BigNat, UInt256Bytes}
@@ -85,6 +86,10 @@ object NodeMain extends IOApp:
           given StateRepoStore[IO, (GroupId, Account), Unit] <-
             getStateRepo[(GroupId, Account), Unit](
               Paths.get("sway", "state", "group", "account"),
+            )
+          given StateRepoStore[IO, TokenDefinitionId, TokenDefinition] <-
+            getStateRepo[TokenDefinitionId, TokenDefinition](
+              Paths.get("sway", "state", "token", "definition"),
             )
           given TransactionRepository[IO] <- getTransactionRepo
 

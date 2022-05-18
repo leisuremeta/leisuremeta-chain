@@ -7,6 +7,7 @@ import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
 
 import api.model.{Account, GroupId, GroupData, PublicKeySummary}
+import api.model.token.{TokenDefinition, TokenDefinitionId}
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
@@ -23,9 +24,8 @@ trait StateRepository[F[_], K, V]:
 
 object StateRepository:
 
-  /**
-   * AccountState
-   */
+  /** AccountState
+    */
   trait AccountState[F[_]]:
     def name: StateRepository[F, Account, Option[Account]]
     def key
@@ -54,9 +54,8 @@ object StateRepository:
       : NodeStore[F, (Account, PublicKeySummary), PublicKeySummary.Info] =
     Kleisli(AccountState[F].key.get(_).leftMap(_.msg))
 
-  /**
-   * GroupState
-   */
+  /** GroupState
+    */
   trait GroupState[F[_]]:
     def group: StateRepository[F, GroupId, GroupData]
     def groupAccount: StateRepository[F, (GroupId, Account), Unit]
@@ -71,7 +70,8 @@ object StateRepository:
         ],
     ): GroupState[F] = new GroupState[F]:
       def group: StateRepository[F, GroupId, GroupData] = fromStores
-      def groupAccount: StateRepository[F, (GroupId, Account), Unit] = fromStores
+      def groupAccount: StateRepository[F, (GroupId, Account), Unit] =
+        fromStores
 
   given nodeStoreFromGroup[F[_]: Functor: GroupState]
       : NodeStore[F, GroupId, GroupData] =
@@ -80,6 +80,28 @@ object StateRepository:
       : NodeStore[F, (GroupId, Account), Unit] =
     Kleisli(GroupState[F].groupAccount.get(_).leftMap(_.msg))
 
+  /** TokenState
+    */
+  trait TokenState[F[_]]:
+    def definition: StateRepository[F, TokenDefinitionId, TokenDefinition]
+  object TokenState:
+    def apply[F[_]: TokenState]: TokenState[F] = summon
+    given from[F[_]: Monad](using
+        difinitionKVStroe: MerkleHashStore[
+          F,
+          TokenDefinitionId,
+          TokenDefinition,
+        ],
+    ): TokenState[F] = new TokenState[F]:
+      def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
+        fromStores
+
+  given definitionStoreFromToken[F[_]: Functor: TokenState]
+      : NodeStore[F, TokenDefinitionId, TokenDefinition] =
+    Kleisli(TokenState[F].definition.get(_).leftMap(_.msg))
+
+  /** General
+    */
   given nodeStore[F[_]: Functor, K, V](using
       sr: StateRepository[F, K, V],
   ): NodeStore[F, K, V] = Kleisli(sr.get(_).leftMap(_.msg))
@@ -88,7 +110,7 @@ object StateRepository:
     KeyValueStore[F, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
 
   def fromStores[F[_]: Monad, K, V](using
-      stateKvStore: MerkleHashStore[F, K, V]
+      stateKvStore: MerkleHashStore[F, K, V],
   ): StateRepository[F, K, V] = new StateRepository[F, K, V]:
 
     def get(
