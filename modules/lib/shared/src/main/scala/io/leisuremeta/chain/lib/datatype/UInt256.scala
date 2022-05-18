@@ -6,7 +6,8 @@ import scodec.bits.ByteVector
 import cats.syntax.eq.given
 import io.circe.{Decoder, Encoder}
 
-import failure.UInt256RefineFailure
+import codec.byte.{ByteDecoder, ByteEncoder}
+import failure.{DecodingFailure, UInt256RefineFailure}
 
 type UInt256Bytes  = UInt256.Refined[ByteVector]
 type UInt256BigInt = UInt256.Refined[BigInt]
@@ -72,6 +73,11 @@ object UInt256:
         refined <- UInt256.from(bytes).left.map(_.msg)
       yield refined,
     )
-
+  given uint256bytesByteDecoder: ByteDecoder[UInt256Bytes] =
+    ByteDecoder
+      .fromFixedSizeBytes(32)(identity)
+      .emap(UInt256.from(_).left.map(e => DecodingFailure(e.msg)))
+  given uint256bytesByteEncoder: ByteEncoder[UInt256Bytes] = _.toBytes
+  
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   val EmptyBytes: UInt256Bytes = UInt256.from(ByteVector.low(32)).toOption.get
