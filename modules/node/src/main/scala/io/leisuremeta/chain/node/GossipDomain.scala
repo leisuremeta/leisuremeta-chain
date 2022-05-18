@@ -17,6 +17,7 @@ import api.model.{
   StateRoot,
   TransactionWithResult,
 }
+import api.model.token.{TokenDefinition, TokenDefinitionId}
 import api.model.Block.ops.*
 import lib.crypto.{KeyPair, Recover, Sign, Signature}
 import lib.crypto.Hash.ops.*
@@ -26,12 +27,14 @@ import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
 import lib.merkle.MerkleTrieNode.MerkleRoot
+import io.leisuremeta.chain.api.model.token
 
 object GossipDomain:
 
   case class MerkleState(
       account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
+      token: MerkleState.TokenMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
       account = StateRoot.AccountStateRoot(
@@ -42,12 +45,16 @@ object GossipDomain:
         groupRoot = group.groupState.root,
         groupAccountRoot = group.groupAccountState.root,
       ),
+      token = StateRoot.TokenStateRoot(
+        tokenDefinitionRoot = token.tokenDefinitionState.root,
+      ),
     )
 
   object MerkleState:
     def from(header: Block.Header): MerkleState = MerkleState(
       account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
+      token = TokenMerkleState.from(header.stateRoot.token),
     )
 
     case class AccountMerkleState(
@@ -73,6 +80,15 @@ object GossipDomain:
       def from(root: StateRoot.GroupStateRoot): GroupMerkleState = GroupMerkleState(
         groupState = buildMerkleTrieState(root.groupRoot),
         groupAccountState = buildMerkleTrieState(root.groupAccountRoot),
+      )
+
+    case class TokenMerkleState(
+      tokenDefinitionState: MerkleTrieState[TokenDefinitionId, TokenDefinition],
+    )
+
+    object TokenMerkleState:
+      def from(root: StateRoot.TokenStateRoot): TokenMerkleState = TokenMerkleState(
+        tokenDefinitionState = buildMerkleTrieState(root.tokenDefinitionRoot),
       )
 
   def buildMerkleTrieState[K, V](
@@ -643,7 +659,11 @@ object GossipDomain:
       groupAccountState <- state.group.groupAccountState.rebase(
         newBase.group.groupAccountState,
       )
+      tokenDefinitionState <- state.token.tokenDefinitionState.rebase(
+        newBase.token.tokenDefinitionState,
+      )
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
       MerkleState.GroupMerkleState(groupState, groupAccountState),
+      MerkleState.TokenMerkleState(tokenDefinitionState),
     )

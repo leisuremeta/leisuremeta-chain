@@ -15,7 +15,7 @@ import lib.crypto.Hash.ops.*
 
 object BlockService:
 
-  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState](
+  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
   )(using
