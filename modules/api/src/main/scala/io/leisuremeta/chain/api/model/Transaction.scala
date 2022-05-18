@@ -6,6 +6,8 @@ sealed trait Transaction:
   def networkId: NetworkId
   def createdAt: Instant
 
+trait TransactionResult
+
 object Transaction:
   sealed trait AccountTx extends Transaction
   object AccountTx:
@@ -22,6 +24,10 @@ object Transaction:
         account: Account,
         summaries: Map[PublicKeySummary, String],
     ) extends AccountTx
+
+    final case class AddPublicKeySummariesResult(
+        removed: Map[PublicKeySummary, String],
+    ) extends TransactionResult
 
     final case class RemovePublicKeySummaries(
         networkId: NetworkId,

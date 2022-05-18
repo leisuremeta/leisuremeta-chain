@@ -57,7 +57,6 @@
 * Resoponse:
   * Map[TokenID, AccountName]
 
-
 `POST` **/tx** 트랜잭션 제출
 
 * 아래의 트랜잭션 목록 참조
@@ -434,8 +433,8 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Account
 
-* AccountState: AccountName => Option[Guardian]
-* AccountKeyState: (AccountName, PublicKeyHash) => Desription
+* NameState: AccountName => Option[Guardian]
+* AccountKeyState: (AccountName, PublicKeySummary) => Desription
   * Description에는 추가된 시각이 포함되어 있어야 함
 
 ### Group

@@ -27,7 +27,13 @@ object MerkleTrie:
       MerkleTrieNode[K, V],
     ]]
 
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  @SuppressWarnings(
+    Array(
+      "org.wartremover.warts.Any",
+      "org.wartremover.warts.Nothing",
+      "org.wartremover.warts.Recursion",
+    ),
+  )
   def get[F[_]: Monad, K, V: ByteDecoder](key: BitVector)(implicit
       ns: NodeStore[F, K, V],
   ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Option[V]] =
@@ -64,7 +70,14 @@ object MerkleTrie:
         yield valueOption
     }
 
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  @SuppressWarnings(
+    Array(
+      "org.wartremover.warts.Equals",
+      "org.wartremover.warts.OptionPartial",
+      "org.wartremover.warts.Nothing",
+      "org.wartremover.warts.Recursion",
+    ),
+  )
   def put[F[_]: Monad, K, V: ByteEncoder](key: BitVector, value: V)(implicit
       ns: NodeStore[F, K, V],
   ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Unit] =
@@ -297,8 +310,9 @@ object MerkleTrie:
 
   @SuppressWarnings(
     Array(
-      "org.wartremover.warts.Recursion",
       "org.wartremover.warts.NonUnitStatements",
+      "org.wartremover.warts.OptionPartial",
+      "org.wartremover.warts.Recursion",
     ),
   )
   def remove[F[_]: Monad, K, V](key: BitVector)(implicit
@@ -402,7 +416,13 @@ object MerkleTrie:
           },
     )
 
-  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
+  @SuppressWarnings(
+    Array(
+      "org.wartremover.warts.Nothing",
+      "org.wartremover.warts.OptionPartial",
+      "org.wartremover.warts.Recursion",
+    ),
+  )
   def from[F[_]: Monad, K, V: ByteDecoder](key: BitVector)(implicit
       ns: NodeStore[F, K, V],
   ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Stream[
