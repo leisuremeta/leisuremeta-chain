@@ -30,11 +30,9 @@ trait BlockRepository[F[_]] {
 
 object BlockRepository {
 
-  def apply[F[_]](implicit
-      blockRepository: BlockRepository[F]
-  ): BlockRepository[F] = blockRepository
+  def apply[F[_]: BlockRepository]: BlockRepository[F] = summon
 
-  def fromStores[F[_]: Monad](implicit
+  def fromStores[F[_]: Monad](using
       bestBlockHeaderStore: SingleValueStore[F, Block.Header],
       blockHashStore: HashStore[F, Block],
       blockNumberIndex: StoreIndex[F, BigNat, BlockHash],

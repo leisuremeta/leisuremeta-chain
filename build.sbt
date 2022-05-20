@@ -2,7 +2,7 @@ val V = new {
   val Scala      = "3.1.2"
   val ScalaGroup = "3.1"
 
-  val catsEffect = "3.3.11"
+  val catsEffect = "3.3.12"
   val tapir      = "1.0.0-M9"
   val sttp       = "3.6.1"
   val circe      = "0.15.0-M1"
@@ -104,6 +104,7 @@ lazy val root = (project in file("."))
 
 lazy val node = (project in file("modules/node"))
   .settings(Dependencies.node)
+  .settings(Dependencies.tests)
   .settings(
     name := "leisuremeta-chain-node",
   )
