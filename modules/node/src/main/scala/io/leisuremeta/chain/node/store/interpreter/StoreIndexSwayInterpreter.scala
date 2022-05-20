@@ -83,17 +83,16 @@ class StoreIndexSwayInterpreter[K, V: ByteCodec](
 
 object StoreIndexSwayInterpreter {
 
-  @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-  def apply[K: ByteCodec, V: ByteCodec](dir: Path)(using IORuntime): StoreIndexSwayInterpreter[K, V] = {
+  def apply[K: ByteCodec, V: ByteCodec](dir: Path): IO[StoreIndexSwayInterpreter[K, V]] = {
 
     scribe.debug(s"===> Generating mapIO with path $dir")
-    implicit val k: KeyOrder[Slice[Byte]] = KeyOrder.default
+    given KeyOrder[Slice[Byte]] = KeyOrder.default
     given KeyOrder[K] = null
     given ExecutionContext = swaydb.configs.level.DefaultExecutionContext.compactionEC
 
-    val map: Map[K, Array[Byte], Nothing, IO] = swaydb.persistent.Map[K, Array[Byte], Nothing, IO](dir).unsafeRunSync()
+    val map: IO[Map[K, Array[Byte], Nothing, IO]] = swaydb.persistent.Map[K, Array[Byte], Nothing, IO](dir)
 
-    new StoreIndexSwayInterpreter[K, V](map, dir)
+    map.map(new StoreIndexSwayInterpreter[K, V](_, dir))
   }
 
   def ensureNoRemainder[A](
@@ -107,11 +106,10 @@ object StoreIndexSwayInterpreter {
   given swaydb.core.build.BuildValidator = swaydb.core.build.BuildValidator.DisallowOlderVersions(swaydb.data.DataType.Map)
 
 
-  @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-  def reverseBignatStoreIndex[A: ByteCodec](dir: Path)(using IORuntime): StoreIndexSwayInterpreter[BigNat, A] = {
-    implicit val k: KeyOrder[Slice[Byte]] = KeyOrder.reverseLexicographic
-    val map = swaydb.persistent.Map[BigNat, Array[Byte], Nothing, IO](dir).unsafeRunSync()
-    new StoreIndexSwayInterpreter[BigNat, A](map, dir)
+  def reverseBignatStoreIndex[A: ByteCodec](dir: Path): IO[StoreIndexSwayInterpreter[BigNat, A]] = {
+    given KeyOrder[Slice[Byte]] = KeyOrder.reverseLexicographic
+    val map = swaydb.persistent.Map[BigNat, Array[Byte], Nothing, IO](dir)
+    map.map(new StoreIndexSwayInterpreter[BigNat, A](_, dir))
   }
 
   

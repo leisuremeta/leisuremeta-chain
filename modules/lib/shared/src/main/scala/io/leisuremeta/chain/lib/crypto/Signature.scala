@@ -4,6 +4,9 @@ package crypto
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Interval
 import eu.timepit.refined.refineV
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.*
+import io.circe.refined.*
 import scodec.bits.ByteVector
 
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
@@ -37,3 +40,8 @@ object Signature:
   given sigEncoder: ByteEncoder[Signature] = ByteEncoder.genericEncoder
 
   given sigDecoder: ByteDecoder[Signature] = ByteDecoder.genericDecoder
+
+  val sigCirceEncoder: Encoder[Signature] = deriveEncoder[Signature]
+
+  val sigCirceDecoder: Decoder[Signature] = deriveDecoder[Signature]
+

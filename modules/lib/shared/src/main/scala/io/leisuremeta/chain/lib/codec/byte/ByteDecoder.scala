@@ -82,15 +82,15 @@ object ByteDecoder:
       ),
     )
 
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  given ByteDecoder[UInt256BigInt] = fromFixedSizeBytes(32) { bytes =>
-    UInt256.from(BigInt(1, bytes.toArray)).toOption.get
-  }
-
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  given ByteDecoder[UInt256Bytes] = fromFixedSizeBytes(32) {
-    UInt256.from(_).toOption.get
-  }
+//  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+//  given ByteDecoder[UInt256BigInt] = fromFixedSizeBytes(32) { bytes =>
+//    UInt256.from(BigInt(1, bytes.toArray)).toOption.get
+//  }
+//
+//  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+//  given ByteDecoder[UInt256Bytes] = fromFixedSizeBytes(32) {
+//    UInt256.from(_).toOption.get
+//  }
 
   given byteDecoder: ByteDecoder[Byte] = fromFixedSizeBytes(1)(_.toByte())
 

@@ -1,10 +1,12 @@
 package io.leisuremeta.chain.lib
 package datatype
 
-import scodec.bits.ByteVector
+import scala.util.Try
 
 import cats.syntax.eq.given
+
 import io.circe.{Decoder, Encoder}
+import scodec.bits.ByteVector
 
 import codec.byte.{ByteDecoder, ByteEncoder}
 import failure.{DecodingFailure, UInt256RefineFailure}
@@ -73,11 +75,29 @@ object UInt256:
         refined <- UInt256.from(bytes).left.map(_.msg)
       yield refined,
     )
+
+  given uint256bigintCirceEncoder: Encoder[UInt256BigInt] =
+    Encoder[String].contramap[UInt256BigInt](_.toBytes.toHex)
+  given uint256bigintCirceDecoder: Decoder[UInt256BigInt] =
+    Decoder.decodeString.emap((str: String) =>
+      for
+        bigint  <- Try(BigInt(str, 16)).toEither.left.map(_.getMessage)
+        refined <- UInt256.from(bigint).left.map(_.msg)
+      yield refined,
+    )
+
   given uint256bytesByteDecoder: ByteDecoder[UInt256Bytes] =
     ByteDecoder
       .fromFixedSizeBytes(32)(identity)
       .emap(UInt256.from(_).left.map(e => DecodingFailure(e.msg)))
   given uint256bytesByteEncoder: ByteEncoder[UInt256Bytes] = _.toBytes
-  
+
+  given uint256bigintByteDecoder: ByteDecoder[UInt256BigInt] =
+    ByteDecoder
+      .fromFixedSizeBytes(32)(bytes => BigInt(1, bytes.toArray))
+      .emap(UInt256.from(_).left.map(e => DecodingFailure(e.msg)))
+  given uint256bigintByteEncoder: ByteEncoder[UInt256BigInt] = _.toBytes
+
+
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   val EmptyBytes: UInt256Bytes = UInt256.from(ByteVector.low(32)).toOption.get

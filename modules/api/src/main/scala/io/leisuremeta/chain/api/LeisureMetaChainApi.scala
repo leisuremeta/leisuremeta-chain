@@ -8,8 +8,9 @@ import sttp.tapir.*
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.given
 
+import lib.crypto.Hash
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
-import api.model.Transaction
+import api.model.{NodeStatus, Transaction}
 
 object LeisureMetaChainApi:
 
@@ -20,6 +21,7 @@ object LeisureMetaChainApi:
   given Schema[Utf8] = Schema.string
   given [K: KeyEncoder, V: Schema]: Schema[Map[K, V]] =
     Schema.schemaForMap[K, V](KeyEncoder[K].apply)
+  given [A]: Schema[Hash.Value[A]] = Schema.string
 
 //  import UInt256Bytes.given
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -30,4 +32,4 @@ object LeisureMetaChainApi:
       .out(jsonBody[UInt256Bytes])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getStatusEndpoint = endpoint.get.in("status").out(jsonBody[String])
+  val getStatusEndpoint = endpoint.get.in("status").out(jsonBody[NodeStatus])

@@ -1,6 +1,8 @@
 package io.leisuremeta.chain
 package api.model
 
+import java.time.Instant
+
 import cats.syntax.eq.given
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.Size
@@ -11,10 +13,17 @@ import sttp.tapir.Schema
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.crypto.{Hash, PublicKey}
+import lib.datatype.Utf8
 
 opaque type PublicKeySummary = ByteVector
 
 object PublicKeySummary:
+
+  final case class Info(
+    description: Utf8,
+    addedAt: Instant,
+  )
+
   def apply(bytes: ByteVector): Either[String, PublicKeySummary] =
     Either.cond(
       bytes.size === 20,

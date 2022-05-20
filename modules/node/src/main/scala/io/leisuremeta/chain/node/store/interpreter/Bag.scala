@@ -11,9 +11,11 @@ import scala.util.Failure
 object Bag:
   /** Cats-effect 3 async bag implementation
     */
-  given (using runtime: IORuntime): swaydb.Bag.Async[IO] =
+  given swaydb.Bag.Async[IO] =
     new Async[IO]:
       self =>
+
+      given runtime: IORuntime = cats.effect.unsafe.implicits.global
       override def executionContext: ExecutionContext =
         runtime.compute
 

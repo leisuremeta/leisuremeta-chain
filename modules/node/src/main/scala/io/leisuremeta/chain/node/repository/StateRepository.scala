@@ -7,6 +7,7 @@ import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
 
 //import api.model.{Account, NameState, TokenState, Transaction}
+import api.model.{Account, PublicKeySummary}
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
@@ -22,6 +23,12 @@ trait StateRepository[F[_], K, V]:
   def put(state: MerkleTrieState[K, V]): F[Unit]
 
 object StateRepository:
+
+  type All[F[_]] = AccountState.All[F]
+  object AccountState:
+    type Name[F[_]] = StateRepository[F, Account, Option[Account]]
+    type Key[F[_]] = StateRepository[F, (Account, PublicKeySummary), PublicKeySummary.Info]
+    type All[F[_]] = Name[F] with Key[F]
 
   given nodeStore[F[_]: Functor, K, V](using
       sr: StateRepository[F, K, V],
