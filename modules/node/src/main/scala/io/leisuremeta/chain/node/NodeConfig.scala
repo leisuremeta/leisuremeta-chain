@@ -23,19 +23,21 @@ final case class NodeConfig(
 )
 
 object NodeConfig:
-  def load[F[_]: Async](getConf: F[Config]): EitherT[F, String, NodeConfig] = for
-    config  <- EitherT.right[String](getConf)
-    local   <- EitherT.fromEither[F](LocalConfig.load(config))
-    wire    <- EitherT.fromEither[F](WireConfig.load(config))
-    genesis <- EitherT.fromEither[F](GenesisConfig.load(config))
-  yield NodeConfig(local, wire, genesis)
+  def load[F[_]: Async](getConf: F[Config]): EitherT[F, String, NodeConfig] =
+    for
+      config  <- EitherT.right[String](getConf)
+      local   <- EitherT.fromEither[F](LocalConfig.load(config))
+      wire    <- EitherT.fromEither[F](WireConfig.load(config))
+      genesis <- EitherT.fromEither[F](GenesisConfig.load(config))
+    yield NodeConfig(local, wire, genesis)
 
   case class LocalConfig(
       networkId: NetworkId,
       port: PortNumber,
-      `private`: UInt256BigInt,
+      `private`: Option[UInt256BigInt],
   ):
-    override def toString: String = s"LocalConfig($networkId, $port, **hidden**)"
+    override def toString: String =
+      s"LocalConfig($networkId, $port, **hidden**)"
 
   object LocalConfig:
     def load(config: Config): Either[String, LocalConfig] = for
@@ -43,9 +45,11 @@ object NodeConfig:
       networkId     <- BigNat.fromBigInt(BigInt(networkIdLong))
       portInt       <- either(config.getInt("local.port"))
       port          <- refineV[Interval.Closed[0, 65535]](portInt)
-      privString    <- either(config.getString("local.private"))
-      priv          <- UInt256.from(BigInt(privString, 16)).left.map(_.msg)
-    yield LocalConfig(NetworkId(networkId), port, priv)
+      privStrOption <- eitherOption(config.getString("local.private"))
+      privOption    <- privStrOption match
+        case None => Right(None)
+        case Some(s) => UInt256.from(BigInt(s, 16)).map(Option(_)).left.map(_.msg)
+    yield LocalConfig(NetworkId(networkId), port, privOption)
 
   case class WireConfig(
       timeWindowMillis: Long,
@@ -64,7 +68,7 @@ object NodeConfig:
   case class PeerConfig(dest: String, publicKeySummary: String)
   object PeerConfig:
     def load(config: Config): Either[String, PeerConfig] = for
-      dest    <- either(config.getString("dest"))
+      dest             <- either(config.getString("dest"))
       publicKeySummary <- either(config.getString("public-key-summary"))
     yield PeerConfig(dest, publicKeySummary)
 
@@ -81,3 +85,14 @@ object NodeConfig:
       case e: ConfigException.WrongType => s"Wrong type: ${e.getMessage}"
       case e: Exception                 => s"Exception: ${e.getMessage}"
     }
+
+  private def eitherOption[A](action: => A): Either[String, Option[A]] =
+    Try(action)
+      .map(Some(_))
+      .recover { case e: ConfigException.Missing => None }
+      .toEither
+      .left
+      .map {
+        case e: ConfigException.WrongType => s"Wrong type: ${e.getMessage}"
+        case e: Exception                 => s"Exception: ${e.getMessage}"
+      }

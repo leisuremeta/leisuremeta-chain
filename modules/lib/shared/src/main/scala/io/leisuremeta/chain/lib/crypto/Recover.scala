@@ -14,8 +14,13 @@ trait Recover[A]:
 object Recover:
   def apply[A: Recover]: Recover[A] = summon
 
+  def build[A]: Recover[A] = 
+    (hashValue: Hash.Value[A], signature: Signature) =>
+      CryptoOps.recover(signature, hashValue.toUInt256Bytes.toArray).toOption
+
   object ops:
     extension [A](hashValue: Hash.Value[A])
       def recover(signature: Signature)(using
           r: Recover[A],
       ): Option[PublicKey] = r.fromHash(hashValue, signature)
+  

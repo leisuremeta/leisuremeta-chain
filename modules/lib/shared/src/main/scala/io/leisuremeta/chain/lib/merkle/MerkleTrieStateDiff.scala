@@ -7,6 +7,10 @@ opaque type MerkleTrieStateDiff[K, V] =
 
 object MerkleTrieStateDiff:
 
+  def apply[K, V](
+      map: Map[MerkleHash[K, V], (MerkleTrieNode[K, V], Int)],
+  ): MerkleTrieStateDiff[K, V] = map
+
   def empty[K, V]: MerkleTrieStateDiff[K, V] = Map.empty
 
   extension [K, V](diff: MerkleTrieStateDiff[K, V])
@@ -41,5 +45,6 @@ object MerkleTrieStateDiff:
 
     def toList: List[(MerkleHash[K, V], (MerkleTrieNode[K, V], Int))] =
       diff.toList
-  end extension
 
+    def toMap: Map[MerkleHash[K, V], (MerkleTrieNode[K, V], Int)] = diff
+  end extension

@@ -1,6 +1,7 @@
 package io.leisuremeta.chain.lib
 package crypto
 
+import cats.Eq
 import cats.Contravariant
 
 import io.circe.{Decoder, Encoder}
@@ -32,6 +33,8 @@ object Hash:
 
     given byteValueEncoder[A]: ByteEncoder[Value[A]] =
       UInt256.uint256bytesByteEncoder.contramap[Value[A]](_.toUInt256Bytes)
+
+    given eqValue[A]: Eq[Value[A]] = Eq.fromUniversalEquals
 
 
   extension [A](value: Value[A]) def toUInt256Bytes: UInt256Bytes = value

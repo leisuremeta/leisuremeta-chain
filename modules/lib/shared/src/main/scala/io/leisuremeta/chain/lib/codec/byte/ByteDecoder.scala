@@ -62,6 +62,11 @@ object ByteDecoder:
       bd: ByteDecoder[m.MirroredElemTypes],
   ): ByteDecoder[P] = bd map m.fromProduct
 
+  given unitByteDecoder: ByteDecoder[Unit] = bytes =>
+    Right[DecodingFailure, DecodeResult[Unit]](
+      DecodeResult((), bytes),
+    )
+
   type BigNat = BigInt Refined NonNegative
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))

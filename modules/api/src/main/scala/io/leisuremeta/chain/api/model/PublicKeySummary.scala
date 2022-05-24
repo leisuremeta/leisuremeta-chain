@@ -3,6 +3,7 @@ package api.model
 
 import java.time.Instant
 
+import cats.Eq
 import cats.syntax.eq.given
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.Size
@@ -42,6 +43,8 @@ object PublicKeySummary:
 
   extension (pks: PublicKeySummary)
     def toBytes: ByteVector = pks
+
+  given Eq[PublicKeySummary] = Eq.fromUniversalEquals
 
   given Decoder[PublicKeySummary] = Decoder.decodeString.emap { (s: String) =>
     val (f, b) = s `splitAt` 2

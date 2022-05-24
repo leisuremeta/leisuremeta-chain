@@ -48,6 +48,8 @@ object ByteEncoder:
       beb: ByteEncoder[m.MirroredElemTypes],
   ): ByteEncoder[P] = beb contramap Tuple.fromProductTyped
 
+  given unitByteEncoder: ByteEncoder[Unit] = _ => ByteVector.empty
+
   given [A: UInt256.Ops]: ByteEncoder[UInt256.Refined[A]] = _.toBytes
 
   given instantEncoder: ByteEncoder[Instant] =
