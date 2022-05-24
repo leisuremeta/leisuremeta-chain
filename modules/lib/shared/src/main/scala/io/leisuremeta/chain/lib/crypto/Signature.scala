@@ -41,7 +41,7 @@ object Signature:
 
   given sigDecoder: ByteDecoder[Signature] = ByteDecoder.genericDecoder
 
-  val sigCirceEncoder: Encoder[Signature] = deriveEncoder[Signature]
+  given sigCirceEncoder: Encoder[Signature] = deriveEncoder[Signature]
 
-  val sigCirceDecoder: Decoder[Signature] = deriveDecoder[Signature]
+  given sigCirceDecoder: Decoder[Signature] = deriveDecoder[Signature]
 

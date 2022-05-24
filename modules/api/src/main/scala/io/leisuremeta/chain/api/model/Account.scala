@@ -1,6 +1,8 @@
 package io.leisuremeta.chain
 package api.model
 
+import cats.Eq
+
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import sttp.tapir.Schema
 
@@ -24,3 +26,5 @@ object Account:
 
   given ByteDecoder[Account] = Utf8.utf8ByteDecoder
   given ByteEncoder[Account] = Utf8.utf8ByteEncoder
+
+  given Eq[Account] = Eq.fromUniversalEquals

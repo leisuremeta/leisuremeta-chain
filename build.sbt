@@ -3,7 +3,7 @@ val V = new {
   val ScalaGroup = "3.1"
 
   val catsEffect = "3.3.12"
-  val tapir      = "1.0.0-M9"
+  val tapir      = "1.0.0-RC1"
   val sttp       = "3.6.1"
   val circe      = "0.15.0-M1"
   val refined    = "0.9.28"
@@ -118,7 +118,7 @@ lazy val api = crossProject(JSPlatform, JVMPlatform)
     scalacOptions ++= Seq(
       "-Xmax-inlines:64",
     ),
-    Compile / compile / wartremoverErrors ++= Warts.all,
+    Compile / compile / wartremoverErrors ++= Warts.allBut(Wart.NoNeedImport),
   )
   .dependsOn(lib)
 

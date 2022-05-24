@@ -5,7 +5,7 @@ import lib.crypto.Hash
 
 final case class TransactionWithResult(
     signedTx: Signed.Tx,
-    result: TransactionResult,
+    result: Option[TransactionResult],
 )
 
 object TransactionWithResult:

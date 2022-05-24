@@ -6,5 +6,5 @@ import lib.crypto.Signature
 
 final case class AccountSignature(
     sig: Signature,
-    name: Account,
+    account: Account,
 )

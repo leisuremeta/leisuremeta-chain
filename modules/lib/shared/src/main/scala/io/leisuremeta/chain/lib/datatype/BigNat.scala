@@ -30,8 +30,7 @@ object BigNat:
 
   def fromBigInt(n: BigInt): Either[String, BigNat] = refineV[NonNegative](n)
 
-  extension (bignat: BigNat)
-    def toBigInt: BigInt = bignat.value
+  extension (bignat: BigNat) def toBigInt: BigInt = bignat.value
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafeFromBigInt(n: BigInt): BigNat = fromBigInt(n) match
@@ -40,10 +39,18 @@ object BigNat:
 
   def unsafeFromLong(long: Long): BigNat = unsafeFromBigInt(BigInt(long))
 
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def add(x: BigNat, y: BigNat): BigNat =
+    refineV[NonNegative](x.value + y.value) match
+      case Right(nat) => nat
+      case Left(e)    => throw new Exception(e)
+
   given bignatByteDecoder: ByteDecoder[BigNat] = ByteDecoder.bignatByteDecoder
 
   given bignatByteEncoder: ByteEncoder[BigNat] = ByteEncoder.bignatByteEncoder
 
-  given bignatCirceDecoder: CirceDecoder[BigNat] = refinedDecoder[BigInt, NonNegative, Refined]
+  given bignatCirceDecoder: CirceDecoder[BigNat] =
+    refinedDecoder[BigInt, NonNegative, Refined]
 
-  given bignatCirceEncoder: CirceEncoder[BigNat] = refinedEncoder[BigInt, NonNegative, Refined]
+  given bignatCirceEncoder: CirceEncoder[BigNat] =
+    refinedEncoder[BigInt, NonNegative, Refined]

@@ -15,7 +15,12 @@ object Utf8:
   def from(s: String): Either[CharacterCodingException, Utf8] =
     ByteVector.encodeUtf8(s).map(_ => s)
 
-  extension (u: Utf8) def value: String = u
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def unsafeFrom(s: String): Utf8 = from(s).fold(e => throw e, identity)
+
+  extension (u: Utf8)
+    def value: String = u
+    def bytes: ByteVector = ByteVector.view(u.getBytes(StandardCharsets.UTF_8))
 
   given utf8CirceDecoder: Decoder[Utf8] =
     Decoder.decodeString.emap(from(_).left.map(_.getMessage))

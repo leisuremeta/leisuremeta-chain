@@ -3,6 +3,8 @@ package api.model
 
 import java.time.Instant
 
+import cats.Eq
+
 import lib.merkle.MerkleTrieNode.MerkleRoot
 
 final case class StateRoot(
@@ -17,13 +19,10 @@ object StateRoot:
   case class AccountStateRoot(
       namesRoot: Option[MerkleRoot[Account, Option[Account]]],
       keyRoot: Option[
-        MerkleRoot[(Account, PublicKeySummary), PublicKeyDescription],
+        MerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
       ],
   )
   object AccountStateRoot:
     def empty: AccountStateRoot = AccountStateRoot(None, None)
 
-  case class PublicKeyDescription(
-      description: String,
-      addedAt: Instant,
-  )
+  given eqStateRoot: Eq[StateRoot] = Eq.fromUniversalEquals

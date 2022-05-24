@@ -5,7 +5,7 @@ import java.time.Instant
 
 import cats.kernel.Eq
 
-import lib.crypto.{Hash, Signature}
+import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign, Signature}
 import lib.merkle.MerkleTrieNode
 import lib.datatype.BigNat
 
@@ -41,3 +41,7 @@ object Block:
         Hash.Value[Block](headerHash.toUInt256Bytes)
 
   given blockHash: Hash[Block] = Header.headerHash.contramap(_.header)
+
+  given signBlock: Sign[Block.Header] = Sign.build
+
+  given recoverBlockHeader: Recover[Block.Header] = Recover.build

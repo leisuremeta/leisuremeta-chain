@@ -15,3 +15,8 @@ object Signed:
 
   given txhashDecoder: Decoder[TxHash] = Hash.Value.circeValueDecoder[Tx]
   given txhashEncoder: Encoder[TxHash] = Hash.Value.circeValueEncoder[Tx]
+
+  import io.circe.generic.semiauto.*
+
+  given signedDecoder[A: Decoder]: Decoder[Signed[A]] = deriveDecoder
+  given signedEncoder[A: Encoder]: Encoder[Signed[A]] = deriveEncoder
