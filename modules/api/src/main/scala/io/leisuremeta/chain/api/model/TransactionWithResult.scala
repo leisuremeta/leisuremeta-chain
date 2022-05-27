@@ -11,3 +11,8 @@ final case class TransactionWithResult(
 object TransactionWithResult:
   given Hash[TransactionWithResult] =
     Hash[Transaction].contramap(_.signedTx.value)
+
+  object ops:
+    extension [A](txHash: Signed.TxHash)
+      def toResultHashValue: Hash.Value[TransactionWithResult] =
+        Hash.Value[TransactionWithResult](txHash.toUInt256Bytes)
