@@ -24,6 +24,8 @@ object BlockService:
       namesStateRepo: StateRepository.AccountState.Name[F],
       keyStateRepo: StateRepository.AccountState.Key[F],
   ): EitherT[F, String, Block.BlockHash] = for
+    _ <- EitherT.rightT[F, String](scribe.info(s"Saving Block: $block"))
+    _ <- EitherT.rightT[F, String](scribe.info(s"Saving txs: $txs"))
     _ <- EitherT
       .cond[F](block.transactionHashes === txs.keySet, (), "Invalid txs")
     parentOption <- blockRepo.get(block.header.parentHash).leftMap(_.msg)
@@ -58,7 +60,7 @@ object BlockService:
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
   yield
-    scribe.debug(s"block saved with states: $block")
+    scribe.info(s"block saved with states: $block")
     block.toHash
 
   def saveBlock[F[_]: Monad: BlockRepository: TransactionRepository](
@@ -66,6 +68,7 @@ object BlockService:
       txs: Map[Signed.TxHash, TransactionWithResult],
   ): EitherT[F, String, Block.BlockHash] = for {
     _ <- BlockRepository[F].put(block).leftMap(_.msg)
+    _ <- EitherT.rightT[F, String](scribe.info(s"Saving txs: $txs"))
     _ <- block.transactionHashes.toList.traverse { (txHash: Signed.TxHash) =>
       for {
         tx <- EitherT
@@ -73,4 +76,5 @@ object BlockService:
         _ <- EitherT.right[String](TransactionRepository[F].put(tx))
       } yield ()
     }
+    _ <- EitherT.rightT[F, String](scribe.info(s"txs is saved successfully"))
   } yield block.toHash

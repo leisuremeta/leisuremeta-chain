@@ -32,24 +32,24 @@ class LocalGossipServiceInterpreter[F[_]
   override def onNewTx(tx: Signed.Tx): EitherT[F, String, Signed.TxHash] =
     scribe.info(s"===> onNewTx: $tx, $params")
     withLocalGossip {
-      StateT.modifyF { (localGossip: GossipDomain.LocalGossip) =>
+      StateT { (localGossip: GossipDomain.LocalGossip) =>
         GossipDomain.onNewTx[F](localGossip, tx).map { localGossip1 =>
           scribe.info(s"===> after onNewTx: ${localGossip1}")
           scribe.info(s"===> new txs: ${localGossip1.newTxs}")
-          localGossip1
+          (localGossip1, tx.toHash)
         }
       }
-    } *> EitherT {
-      scribe.info(s"===> updating response map")
-      for
-        result <- Async[F].async[Either[String, Signed.TxHash]]{ cb =>
-          txResponseRef.update { map =>
-            map + (tx.toHash -> cb)
-          }.map(_ => None)
-        }
-      yield
-        scribe.info(s"===> onNewTx result: $result")
-        result
+//    } *> EitherT {
+//      scribe.info(s"===> updating response map")
+//      for
+//        result <- Async[F].async[Either[String, Signed.TxHash]]{ cb =>
+//          txResponseRef.update { map =>
+//            map + (tx.toHash -> cb)
+//          }.map(_ => None)
+//        }
+//      yield
+//        scribe.info(s"===> onNewTx result: $result")
+//        result
     }
 
   override def generateNewBlockSuggestion(
@@ -170,21 +170,21 @@ class LocalGossipServiceInterpreter[F[_]
           val txs: Map[Signed.TxHash, Signed.Tx] =
             block.transactionHashes.map { (txHash) =>
               (txHash, localGossip.newTxs(txHash))
-            }.toMap  
-          BlockService.saveBlockWithState[F](block, txs) *>
-            block.transactionHashes.toVector.traverse { txHash =>
-              EitherT.right[String](txResponseRef.update{ map =>
-                map(txHash)(Right(Right(txHash)))
-                map.removed(txHash)
-              })
-            }
+            }.toMap
+          BlockService.saveBlockWithState[F](block, txs)
+//            *> block.transactionHashes.toVector.traverse { txHash =>
+//              EitherT.right[String](txResponseRef.update{ map =>
+//                map(txHash)(Right(Right(txHash)))
+//                map.removed(txHash)
+//              })
+//            }
         }
-        _ <- removedTxHashSet.toList.traverse{ txHash =>
-          EitherT.right[String](txResponseRef.update{ map =>
-            map(txHash)(Right(Left(s"tx $txHash is invalidated by another block")))
-            map.removed(txHash)
-          })
-        }
+//        _ <- removedTxHashSet.toList.traverse{ txHash =>
+//          EitherT.right[String](txResponseRef.update{ map =>
+//            map(txHash)(Right(Left(s"tx $txHash is invalidated by another block")))
+//            map.removed(txHash)
+//          })
+//        }
       yield (localGossip1, blockList)).recover { (msg: String) =>
         scribe.info(s"Fail to finalize: $msg")
         (localGossip, List.empty)
