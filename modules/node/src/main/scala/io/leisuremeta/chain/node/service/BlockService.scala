@@ -2,7 +2,7 @@ package io.leisuremeta.chain
 package node
 package service
 
-import cats.Monad
+import cats.{Functor, Monad}
 import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.syntax.eq.*
@@ -37,14 +37,19 @@ object BlockService:
     parentState = GossipDomain.MerkleState.from(parent.header)
     txList      = txs.values.toList
     stateAndResultList <- txList
-      .foldM[EitherT[F, String, *], (GossipDomain.MerkleState, List[TransactionWithResult])]((parentState, Nil)){
-        case ((state, acc), tx) =>
-          StateService.updateStateWithTx[F](state, tx).map{
-            case (newState, result) =>
-              (newState, result :: acc)
-          }
+      .foldM[EitherT[
+        F,
+        String,
+        *,
+      ], (GossipDomain.MerkleState, List[TransactionWithResult])](
+        (parentState, Nil),
+      ) { case ((state, acc), tx) =>
+        StateService.updateStateWithTx[F](state, tx).map {
+          case (newState, result) =>
+            (newState, result :: acc)
+        }
       }
-    state = stateAndResultList._1
+    state      = stateAndResultList._1
     resultList = stateAndResultList._2.reverse
     _ <- EitherT.cond[F](
       state.toStateRoot === block.header.stateRoot,
@@ -66,15 +71,20 @@ object BlockService:
   def saveBlock[F[_]: Monad: BlockRepository: TransactionRepository](
       block: Block,
       txs: Map[Signed.TxHash, TransactionWithResult],
-  ): EitherT[F, String, Block.BlockHash] = for {
+  ): EitherT[F, String, Block.BlockHash] = for
     _ <- BlockRepository[F].put(block).leftMap(_.msg)
     _ <- EitherT.rightT[F, String](scribe.info(s"Saving txs: $txs"))
     _ <- block.transactionHashes.toList.traverse { (txHash: Signed.TxHash) =>
-      for {
+      for
         tx <- EitherT
           .fromOption[F](txs.get(txHash), s"Missing transaction: $txHash")
         _ <- EitherT.right[String](TransactionRepository[F].put(tx))
-      } yield ()
+      yield ()
     }
     _ <- EitherT.rightT[F, String](scribe.info(s"txs is saved successfully"))
-  } yield block.toHash
+  yield block.toHash
+
+  def get[F[_]: Functor: BlockRepository](
+      blockHash: Block.BlockHash,
+  ): EitherT[F, String, Option[Block]] =
+    BlockRepository[F].get(blockHash).leftMap(_.msg)
