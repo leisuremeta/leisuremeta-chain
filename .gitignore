@@ -13,3 +13,6 @@ client-fastopt-bundle.js.map
 
 # sway db data folder
 sway
+
+# workshheets
+*.worksheet.sc
