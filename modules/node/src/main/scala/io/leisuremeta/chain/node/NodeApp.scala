@@ -14,7 +14,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import api.{LeisureMetaChainApi as Api}
-import api.model.{Account, PublicKeySummary}
+import api.model.{Account, Block, PublicKeySummary, Transaction}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{BlockRepository, StateRepository, TransactionRepository}
@@ -27,6 +27,7 @@ import service.{
   TransactionService,
 }
 import service.interpreter.LocalGossipServiceInterpreter
+import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
   : Async: BlockRepository: StateRepository.AccountState.Name: StateRepository.AccountState.Key: TransactionRepository](
@@ -86,6 +87,17 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getBlockServerEndpoint = Api.getBlockEndpoint.serverLogic {
+    (blockHash: Block.BlockHash) =>
+      val result = BlockService.get(blockHash).value
+      
+      result.map {
+        case Right(Some(block)) => Right(block)
+        case Right(None) => Left(Right(Api.NotFound(s"block not found: $blockHash")))
+        case Left(err)   => Left(Left(Api.ServerError(err)))
+      }
+  }
+
   def getStatusServerEndpoint = Api.getStatusEndpoint.serverLogicSuccess { _ =>
     LocalStatusService
       .status[F](
@@ -127,13 +139,21 @@ final case class NodeApp[F[_]
       }
   }
 
+  def postTxHashServerEndpoint(using LocalGossipService[F]) =
+    Api.postTxHashEndpoint.serverLogicPure[F] { (tx: Transaction) =>
+      scribe.info(s"received postTxHash request: $tx")
+      Right(tx.toHash)
+    }
+
   def leisuremetaEndpoints(using
       LocalGossipService[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
+    getBlockServerEndpoint,
     getStatusServerEndpoint,
     getTxServerEndpoint,
     postTxServerEndpoint,
+    postTxHashServerEndpoint,
   )
 
   val localPublicKeySummary: PublicKeySummary =

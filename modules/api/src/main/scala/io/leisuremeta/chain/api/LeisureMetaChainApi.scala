@@ -4,18 +4,20 @@ package api
 import io.circe.KeyEncoder
 import io.circe.generic.auto.*
 import io.circe.refined.*
+import scodec.bits.ByteVector
 import sttp.client3.*
 import sttp.model.StatusCode
 import sttp.tapir.*
-import sttp.tapir.CodecFormat.Json
+import sttp.tapir.CodecFormat.{Json, TextPlain}
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 
 import lib.crypto.{Hash, Signature}
-import lib.datatype.{BigNat, UInt256BigInt, UInt256Bytes, Utf8}
+import lib.datatype.{BigNat, UInt256, UInt256BigInt, UInt256Bytes, Utf8}
 import api.model.{
   Account,
   AccountSignature,
+  Block,
   NodeStatus,
   Signed,
   Transaction,
@@ -36,6 +38,13 @@ object LeisureMetaChainApi:
     Schema.schemaForMap[K, V](KeyEncoder[K].apply)
   given [A]: Schema[Hash.Value[A]] = Schema.string
   given Schema[Signature.Header]   = Schema(SchemaType.SInteger())
+
+  given hashValueCodec[A]: Codec[String, Hash.Value[A], TextPlain] = Codec.string.mapDecode{ (s: String) =>
+    ByteVector.fromHexDescriptive(s).left.map(new Exception(_)).flatMap(UInt256.from) match
+      case Left(e) => DecodeResult.Error(s, e)
+      case Right(v) => DecodeResult.Value(Hash.Value(v))
+  }(_.toUInt256Bytes.toBytes.toHex)
+
 
   final case class ServerError(msg: String)
 
@@ -74,14 +83,18 @@ object LeisureMetaChainApi:
     .in("tx" / path[Signed.TxHash])
     .out(jsonBody[TransactionWithResult])
 
-
-  //  import UInt256Bytes.given
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val postTxEndpoint =
     baseEndpoint.post
       .in("tx")
       .in(jsonBody[Signed.Tx])
       .out(jsonBody[Signed.TxHash])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val postTxHashEndpoint = baseEndpoint.post
+    .in("txhash")
+    .in(jsonBody[Transaction])
+    .out(jsonBody[Hash.Value[Transaction]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getStatusEndpoint =
@@ -92,3 +105,9 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("account" / path[Account])
       .out(jsonBody[AccountInfo])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBlockEndpoint =
+    baseEndpoint.get
+      .in("block" / path[Block.BlockHash])
+      .out(jsonBody[Block])
