@@ -1,12 +1,13 @@
 package io.leisuremeta.chain.lib
 package crypto
 
+import cats.Eq
 import cats.Contravariant
 
 import io.circe.{Decoder, Encoder}
 import scodec.bits.ByteVector
 
-import codec.byte.ByteEncoder
+import codec.byte.{ByteDecoder, ByteEncoder}
 import datatype.{UInt256, UInt256Bytes}
 
 trait Hash[A]:
@@ -27,6 +28,15 @@ object Hash:
     given circeValueEncoder[A]: Encoder[Value[A]] =
       UInt256.uint256bytesCirceEncoder.contramap[Value[A]](_.toUInt256Bytes)
 
+    given byteValueDecoder[A]: ByteDecoder[Value[A]] =
+      UInt256.uint256bytesByteDecoder.map(Value[A](_))
+
+    given byteValueEncoder[A]: ByteEncoder[Value[A]] =
+      UInt256.uint256bytesByteEncoder.contramap[Value[A]](_.toUInt256Bytes)
+
+    given eqValue[A]: Eq[Value[A]] = Eq.fromUniversalEquals
+
+
   extension [A](value: Value[A]) def toUInt256Bytes: UInt256Bytes = value
 
   object ops:
@@ -37,7 +47,7 @@ object Hash:
       fa.contramap(f)
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  given hash[A: ByteEncoder]: Hash[A] = (a: A) =>
+  def build[A: ByteEncoder]: Hash[A] = (a: A) =>
     val bytes = ByteEncoder[A].encode(a)
     val h     = ByteVector.view(CryptoOps.keccak256(bytes.toArray))
     Value[A](UInt256.from(h).toOption.get)

@@ -13,6 +13,8 @@ trait Sign[A]:
 object Sign:
   def apply[A: Sign]: Sign[A] = summon
 
+  def build[A]: Sign[A] = (hashValue: Hash.Value[A], keyPair: KeyPair) =>
+    CryptoOps.sign(keyPair, hashValue.toUInt256Bytes.toBytes.toArray)
   object ops:
     extension (keyPair: KeyPair)
       def sign[A: Hash: Sign](a: A): Either[String, Signature] =

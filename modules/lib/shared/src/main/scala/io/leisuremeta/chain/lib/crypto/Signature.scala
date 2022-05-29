@@ -4,6 +4,9 @@ package crypto
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Interval
 import eu.timepit.refined.refineV
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.*
+import io.circe.refined.*
 import scodec.bits.ByteVector
 
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
@@ -27,14 +30,18 @@ object Signature:
   given headerEncoder: ByteEncoder[Header] =
     ByteVector `fromByte` _.value.toByte
 
-  @SuppressWarnings(Array("org.wartremover.warts.Nothing"))
-  given headerDecoder: ByteDecoder[Header] = bytes =>
-    ByteDecoder[Byte].decode(bytes).flatMap { case DecodeResult(b, remainder) =>
-      refineV[Signature.HeaderRange](b.toInt) match
-        case Left(msg)      => Left(DecodingFailure(msg))
-        case Right(refined) => Right(DecodeResult(refined, remainder))
+  given headerDecoder: ByteDecoder[Header] =
+    ByteDecoder[Byte].decode(_).flatMap { case DecodeResult(b, remainder) =>
+      refineV[Signature.HeaderRange](b.toInt)
+        .map(DecodeResult(_, remainder))
+        .left.map(DecodingFailure(_))
     }
 
   given sigEncoder: ByteEncoder[Signature] = ByteEncoder.genericEncoder
 
   given sigDecoder: ByteDecoder[Signature] = ByteDecoder.genericDecoder
+
+  given sigCirceEncoder: Encoder[Signature] = deriveEncoder[Signature]
+
+  given sigCirceDecoder: Decoder[Signature] = deriveDecoder[Signature]
+

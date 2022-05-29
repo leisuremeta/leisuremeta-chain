@@ -1,0 +1,18 @@
+local {
+  network-id = 102
+  port = 8081
+  private = "", // local private key (Hex)
+}
+wire {
+  time-window-millis = 1000,
+  port = 11111,
+  peers: [
+    {
+      dest: "localhost: 8081",    // "address:port"
+      public-key-summary: "", // Peer Public Key Summary (Hex)
+    },
+  ],
+}
+genesis {
+  timestamp: "2020-05-20T09:00:00.00Z",
+}

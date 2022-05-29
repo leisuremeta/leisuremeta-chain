@@ -1,9 +1,17 @@
 package io.leisuremeta.chain.lib
 package codec.byte
 
+import java.time.Instant
+
 import scala.deriving.Mirror
 import scala.reflect.{ClassTag, classTag}
 
+import cats.syntax.eq.catsSyntaxEq
+
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.auto.autoUnwrap
+import eu.timepit.refined.numeric.NonNegative
+import eu.timepit.refined.refineV
 import scodec.bits.ByteVector
 
 import datatype.{UInt256, UInt256BigInt, UInt256Bytes}
@@ -27,6 +35,8 @@ trait ByteDecoder[A]:
     decode(bytes).flatMap { case DecodeResult(a, remainder) =>
       f(a).decode(remainder)
     }
+
+  def widen[AA >: A]: ByteDecoder[AA] = map(identity)
 
 final case class DecodeResult[+A](value: A, remainder: ByteVector)
 
@@ -52,6 +62,18 @@ object ByteDecoder:
       bd: ByteDecoder[m.MirroredElemTypes],
   ): ByteDecoder[P] = bd map m.fromProduct
 
+  given unitByteDecoder: ByteDecoder[Unit] = bytes =>
+    Right[DecodingFailure, DecodeResult[Unit]](
+      DecodeResult((), bytes),
+    )
+
+  type BigNat = BigInt Refined NonNegative
+
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def unsafeFromBigInt(n: BigInt): BigNat = refineV[NonNegative](n) match
+    case Right(nat) => nat
+    case Left(e)    => throw new Exception(e)
+
   def fromFixedSizeBytes[T: ClassTag](
       size: Long,
   )(f: ByteVector => T): ByteDecoder[T] = bytes =>
@@ -65,14 +87,96 @@ object ByteDecoder:
       ),
     )
 
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  given ByteDecoder[UInt256BigInt] = fromFixedSizeBytes(32) { bytes =>
-    UInt256.from(BigInt(1, bytes.toArray)).toOption.get
-  }
-
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  given ByteDecoder[UInt256Bytes] = fromFixedSizeBytes(32) {
-    UInt256.from(_).toOption.get
-  }
+//  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+//  given ByteDecoder[UInt256BigInt] = fromFixedSizeBytes(32) { bytes =>
+//    UInt256.from(BigInt(1, bytes.toArray)).toOption.get
+//  }
+//
+//  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+//  given ByteDecoder[UInt256Bytes] = fromFixedSizeBytes(32) {
+//    UInt256.from(_).toOption.get
+//  }
 
   given byteDecoder: ByteDecoder[Byte] = fromFixedSizeBytes(1)(_.toByte())
+
+  given longDecoder: ByteDecoder[Long] = fromFixedSizeBytes(8)(_.toLong())
+
+  given instantDecoder: ByteDecoder[Instant] =
+    ByteDecoder[Long] map Instant.ofEpochMilli
+
+  given bignatByteDecoder: ByteDecoder[BigNat] = bytes =>
+    Either.cond(bytes.nonEmpty, bytes, DecodingFailure("Empty bytes")).flatMap {
+      nonEmptyBytes =>
+        val head: Int        = nonEmptyBytes.head & 0xff
+        val tail: ByteVector = nonEmptyBytes.tail
+        if head <= 0x80 then
+          Right[DecodingFailure, DecodeResult[BigNat]](
+            DecodeResult(unsafeFromBigInt(BigInt(head)), tail),
+          )
+        else if head <= 0xf8 then
+          val size = head - 0x80
+          if tail.size < size then
+            Left[DecodingFailure, DecodeResult[BigNat]](
+              DecodingFailure(
+                s"required byte size $size, but $tail",
+              ),
+            )
+          else
+            val (front, back) = tail.splitAt(size.toLong)
+            Right[DecodingFailure, DecodeResult[BigNat]](
+              DecodeResult(unsafeFromBigInt(BigInt(1, front.toArray)), back),
+            )
+        else
+          val sizeOfNumber = head - 0xf8 + 1
+          if tail.size < sizeOfNumber then
+            Left[DecodingFailure, DecodeResult[BigNat]](
+              DecodingFailure(
+                s"required byte size $sizeOfNumber, but $tail",
+              ),
+            )
+          else
+            val (sizeBytes, data) = tail.splitAt(sizeOfNumber.toLong)
+            val size              = BigInt(1, sizeBytes.toArray).toLong
+
+            if data.size < size then
+              Left[DecodingFailure, DecodeResult[BigNat]](
+                DecodingFailure(
+                  s"required byte size $size, but $data",
+                ),
+              )
+            else
+              val (front, back) = data.splitAt(size)
+              Right[DecodingFailure, DecodeResult[BigNat]](
+                DecodeResult(unsafeFromBigInt(BigInt(1, front.toArray)), back),
+              )
+    }
+
+  def sizedListDecoder[A: ByteDecoder](size: BigNat): ByteDecoder[List[A]] =
+    bytes =>
+      @annotation.tailrec
+      def loop(
+          bytes: ByteVector,
+          count: BigInt,
+          acc: List[A],
+      ): Either[DecodingFailure, DecodeResult[List[A]]] =
+        if count === BigInt(0) then
+          Right[DecodingFailure, DecodeResult[List[A]]](
+            DecodeResult(acc.reverse, bytes),
+          )
+        else
+          ByteDecoder[A].decode(bytes) match
+            case Left(failure) =>
+              Left[DecodingFailure, DecodeResult[List[A]]](failure)
+            case Right(DecodeResult(value, remainder)) =>
+              loop(remainder, count - 1, value :: acc)
+      loop(bytes, size, Nil)
+
+  given mapByteDecoder[K: ByteDecoder, V: ByteDecoder]: ByteDecoder[Map[K, V]] =
+    bignatByteDecoder flatMap sizedListDecoder[(K, V)] map (_.toMap)
+
+  given optionByteDecoder[A: ByteDecoder]: ByteDecoder[Option[A]] =
+    bignatByteDecoder flatMap sizedListDecoder[A] map (_.headOption)
+
+  given setByteDecoder[A: ByteDecoder]: ByteDecoder[Set[A]] =
+    bignatByteDecoder flatMap sizedListDecoder[A] map (_.toSet)
+  
