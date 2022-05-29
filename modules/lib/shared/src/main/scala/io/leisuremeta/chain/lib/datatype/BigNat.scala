@@ -22,7 +22,6 @@ import failure.DecodingFailure
 
 opaque type BigNat = BigInt Refined NonNegative
 
-
 object BigNat:
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   val Zero: BigNat = refineV[NonNegative](BigInt(0)).toOption.get
@@ -31,75 +30,27 @@ object BigNat:
 
   def fromBigInt(n: BigInt): Either[String, BigNat] = refineV[NonNegative](n)
 
-  extension (bignat: BigNat)
-    def toBigInt: BigInt = bignat.value
+  extension (bignat: BigNat) def toBigInt: BigInt = bignat.value
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafeFromBigInt(n: BigInt): BigNat = fromBigInt(n) match
     case Right(nat) => nat
     case Left(e)    => throw new Exception(e)
 
-  given bignatByteDecoder: ByteDecoder[BigNat] = bytes =>
-    Either.cond(bytes.nonEmpty, bytes, DecodingFailure("Empty bytes")).flatMap {
-      nonEmptyBytes =>
-        val head: Int        = nonEmptyBytes.head & 0xff
-        val tail: ByteVector = nonEmptyBytes.tail
-        if head <= 0x80 then
-          Right[DecodingFailure, DecodeResult[BigNat]](
-            DecodeResult(unsafeFromBigInt(BigInt(head)), tail),
-          )
-        else if head <= 0xf8 then
-          val size = head - 0x80
-          if tail.size < size then
-            Left[DecodingFailure, DecodeResult[BigNat]](
-              DecodingFailure(
-                s"required byte size $size, but $tail",
-              ),
-            )
-          else
-            val (front, back) = tail.splitAt(size.toLong)
-            Right[DecodingFailure, DecodeResult[BigNat]](
-              DecodeResult(unsafeFromBigInt(BigInt(1, front.toArray)), back),
-            )
-        else
-          val sizeOfNumber = head - 0xf8 + 1
-          if tail.size < sizeOfNumber then
-            Left[DecodingFailure, DecodeResult[BigNat]](
-              DecodingFailure(
-                s"required byte size $sizeOfNumber, but $tail",
-              ),
-            )
-          else
-            val (sizeBytes, data) = tail.splitAt(sizeOfNumber.toLong)
-            val size              = BigInt(1, sizeBytes.toArray).toLong
+  def unsafeFromLong(long: Long): BigNat = unsafeFromBigInt(BigInt(long))
 
-            if data.size < size then
-              Left[DecodingFailure, DecodeResult[BigNat]](
-                DecodingFailure(
-                  s"required byte size $size, but $data",
-                ),
-              )
-            else
-              val (front, back) = data.splitAt(size)
-              Right[DecodingFailure, DecodeResult[BigNat]](
-                DecodeResult(unsafeFromBigInt(BigInt(1, front.toArray)), back),
-              )
-    }
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def add(x: BigNat, y: BigNat): BigNat =
+    refineV[NonNegative](x.value + y.value) match
+      case Right(nat) => nat
+      case Left(e)    => throw new Exception(e)
 
-  given bignatByteEncoder: ByteEncoder[BigNat] = bignat =>
-    val bytes = ByteVector.view(bignat.toByteArray).dropWhile(_ === 0x00.toByte)
-    if bytes.isEmpty then ByteVector(0x00.toByte)
-    else if bignat <= 0x80 then bytes
-    else
-      val size = bytes.size
-      if size < (0xf8 - 0x80) + 1 then
-        ByteVector.fromByte((size + 0x80).toByte) ++ bytes
-      else
-        val sizeBytes = ByteVector.fromLong(size).dropWhile(_ === 0x00.toByte)
-        ByteVector.fromByte(
-          (sizeBytes.size + 0xf8 - 1).toByte,
-        ) ++ sizeBytes ++ bytes
+  given bignatByteDecoder: ByteDecoder[BigNat] = ByteDecoder.bignatByteDecoder
 
-  given bignatCirceDecoder: CirceDecoder[BigNat] = refinedDecoder[BigInt, NonNegative, Refined]
+  given bignatByteEncoder: ByteEncoder[BigNat] = ByteEncoder.bignatByteEncoder
 
-  given bignatCirceEncoder: CirceEncoder[BigNat] = refinedEncoder[BigInt, NonNegative, Refined]
+  given bignatCirceDecoder: CirceDecoder[BigNat] =
+    refinedDecoder[BigInt, NonNegative, Refined]
+
+  given bignatCirceEncoder: CirceEncoder[BigNat] =
+    refinedEncoder[BigInt, NonNegative, Refined]
