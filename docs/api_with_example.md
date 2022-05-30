@@ -5,20 +5,22 @@
 아직 해시값 계산 모듈을 제공하지 않으므로, 여기에 트랜잭션을 보내면 해시값을 계산해준다. 나온 해시값에 서명해서 정식으로 트랜잭션을 집어넣으면 된다.
 
 ```json
-{
-  "AccountTx" : {
-    "CreateAccount" : {
-      "networkId" : 1000,
-      "createdAt" : "2020-05-22T09:00:00Z",
-      "account" : "alice",
-      "guardian" : null
-    }
-  }
-}
+[
+	{
+  	"AccountTx" : {
+    	"CreateAccount" : {
+      	"networkId" : 1000,
+      	"createdAt" : "2020-05-22T09:00:00Z",
+      	"account" : "alice",
+      	"guardian" : null
+    	}
+  	}
+	}
+]
 ```
 
 ```json
-"396fb3ef2ecdb800126027a802e26eb2e7e1d47fee28f24287fb836cdafc6f1e"
+["396fb3ef2ecdb800126027a802e26eb2e7e1d47fee28f24287fb836cdafc6f1e"]
 ```
 
 
@@ -28,30 +30,32 @@
 (Private Key `b229e76b742616db3ac2c5c2418f44063fcc5fcc52a08e05d4285bdb31acba06`으로 서명한 예시)
 
 ```json
-{
-  "sig" : {
+[
+  {
     "sig" : {
-      "v" : 27,
-      "r" : "c0cf8bb197d5f0a562fd76200f09480f676f31970e982f65bc1efd707504ef73",
-      "s" : "7ad50c3987ce4a9007d093d25caaf701436824dafc6290d8e477b8f1c8b6771d"
+      "sig" : {
+        "v" : 27,
+        "r" : "c0cf8bb197d5f0a562fd76200f09480f676f31970e982f65bc1efd707504ef73",
+        "s" : "7ad50c3987ce4a9007d093d25caaf701436824dafc6290d8e477b8f1c8b6771d"
+      },
+      "account" : "alice"
     },
-    "account" : "alice"
-  },
-  "value" : {
-    "AccountTx" : {
-      "CreateAccount" : {
-        "networkId" : 1000,
-        "createdAt" : "2020-05-22T09:00:00Z",
-        "account" : "alice",
-        "guardian" : null
+    "value" : {
+      "AccountTx" : {
+        "CreateAccount" : {
+          "networkId" : 1000,
+          "createdAt" : "2020-05-22T09:00:00Z",
+          "account" : "alice",
+          "guardian" : null
+        }
       }
     }
   }
-}
+]
 ```
 
 ```json
-"396fb3ef2ecdb800126027a802e26eb2e7e1d47fee28f24287fb836cdafc6f1e"
+["396fb3ef2ecdb800126027a802e26eb2e7e1d47fee28f24287fb836cdafc6f1e"]
 ```
 
 

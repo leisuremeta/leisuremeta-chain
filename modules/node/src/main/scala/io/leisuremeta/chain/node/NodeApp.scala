@@ -107,16 +107,16 @@ final case class NodeApp[F[_]
   }
 
   def postTxServerEndpoint(using LocalGossipService[F]) =
-    Api.postTxEndpoint.serverLogic { (tx: Signed.Tx) =>
-      scribe.info(s"received postTx request: $tx")
-      val result = TransactionService.submit[F](tx).value
+    Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
+      scribe.info(s"received postTx request: $txs")
+      val result = TransactionService.submit[F](txs).value
       result.map {
         case Left(err) =>
-          scribe.info(s"error occured in tx $tx: $err")
+          scribe.info(s"error occured in tx $txs: $err")
           Left(Right(Api.BadRequest(err)))
-        case Right(txHash) =>
-          scribe.info(s"submitted tx: $txHash")
-          Right(txHash)
+        case Right(txHashes) =>
+          scribe.info(s"submitted txs: $txHashes")
+          Right(txHashes)
       }
     }
 
@@ -140,9 +140,9 @@ final case class NodeApp[F[_]
   }
 
   def postTxHashServerEndpoint(using LocalGossipService[F]) =
-    Api.postTxHashEndpoint.serverLogicPure[F] { (tx: Transaction) =>
-      scribe.info(s"received postTxHash request: $tx")
-      Right(tx.toHash)
+    Api.postTxHashEndpoint.serverLogicPure[F] { (txs: Seq[Transaction]) =>
+      scribe.info(s"received postTxHash request: $txs")
+      Right(txs.map(_.toHash))
     }
 
   def leisuremetaEndpoints(using
