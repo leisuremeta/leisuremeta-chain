@@ -214,7 +214,7 @@ genesis {
           val response0 = basicRequest
             .response(asStringAlways)
             .post(uri"http://localhost:8081/tx")
-            .body(signedTx)
+            .body(Seq(signedTx))
             .send(backend)
           println(
             s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
@@ -238,8 +238,8 @@ genesis {
           Result.all(
             List(
               response0.code ==== StatusCode.Ok,
-              decode[Hash.Value[Transaction]](response0.body) ==== Right(
-                tx.toHash,
+              decode[Seq[Signed.TxHash]](response0.body) ==== Right(
+                Seq(tx.toHash),
               ),
               response1.code ==== StatusCode.Ok,
               response2.code ==== StatusCode.Ok,

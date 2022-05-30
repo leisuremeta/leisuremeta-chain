@@ -87,14 +87,14 @@ object LeisureMetaChainApi:
   val postTxEndpoint =
     baseEndpoint.post
       .in("tx")
-      .in(jsonBody[Signed.Tx])
-      .out(jsonBody[Signed.TxHash])
+      .in(jsonBody[Seq[Signed.Tx]])
+      .out(jsonBody[Seq[Signed.TxHash]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val postTxHashEndpoint = baseEndpoint.post
     .in("txhash")
-    .in(jsonBody[Transaction])
-    .out(jsonBody[Hash.Value[Transaction]])
+    .in(jsonBody[Seq[Transaction]])
+    .out(jsonBody[Seq[Hash.Value[Transaction]]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getStatusEndpoint =
