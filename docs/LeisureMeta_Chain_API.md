@@ -95,7 +95,7 @@
     * account: Account 계정 이름
     * summaries: Map[PublicKeySummary, String]
       * 추가할 공개키요약과 간단한 설명
-  * Computed Fields
+  * Result
     * Removed: Map[PublicKeySummary, Descrption(string)]
   
 * RemovePublicKeySummaries 계정에 사용할 공개키요약 삭제
@@ -247,7 +247,7 @@
         * TokenDefinitionID(string)
         * TokedID(string)
     
-  * Computed Fields
+  * Result
     * InputTokens: Set[TokenID]
   
 * AcceptDeal 거래 수락
@@ -265,7 +265,7 @@
   * > 거래 제안자 서명
   * Fields
     * Suggestion: SignedTxHash
-  * Computed Fields
+  * Result
     * SuggestionTokenDefinitionID: 제안에 담았던 토큰 정의 ID. 돌려받는다.
     * SuggestionTokenDetail: 돌려받을 토큰의 구체적 디테일. 
       * Fungible인 경우: Amount
@@ -346,7 +346,7 @@
     * Amount: 요청할 갯수
     * Input Token Definition ID
     * Inputs: Set[SignedTxHash]
-  * Computed Fields
+  * Result
     * Output: Amount 자신에게 되돌릴 금액
 
 * InitialTokenOffering 최초 랜덤박스 제공
@@ -354,7 +354,7 @@
   * Fields
     * NoticeTxHash: NFT 민팅 공지 트랜잭션 해시
     * Outputs: Map[AccountName, Amount]
-  * Computed Fields
+  * Result
     * RemainderOutputs: Map[AccountName, DefinitionID, Amount]
       * JoinTokenOffering으로 락업 걸려있던 물량 중 풀려서 되찾아갈 Fungible Token들
 
@@ -362,7 +362,7 @@
   * > 사용자 서명
   * Fields
     * Inputs: Set[SignedTxHash]: 같은 종류의 랜덤박스여야함
-  * Computed Fields
+  * Result
     * TokenDefinitionID
     * Output: Amount 자신에게 되돌려지는 랜덤박스 수량. input 총합 - 1 개.
 
@@ -373,7 +373,7 @@
     * Results: Map[ClaimTxHash, (RandomNumber, Proof)]
       * ClaimTxHash: ClaimNFT 트랜잭션 해시
       * RandomNumber, Proof: VRF 결과로 나오는 난수와 증명
-  * ComputedFields
+  * Result
     * TokenDefinitionID
     * Outputs: Map[AccountName, TokenId]
 

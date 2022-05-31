@@ -142,3 +142,20 @@ best hash값을 넣어서 최신 블록의 정보를 조회한다
 }
 ```
 
+
+
+`GET` **/account**/alice 계정정보 조회
+
+```json
+{
+  "guardian": null,
+  "publicKeySummaries": {
+    "99f681d29754aeee1426ef991b745a4f662e620c": {
+      "description": "Automatically added in account creation",
+      "addedAt": "2020-05-22T09:00:00Z"
+    }
+  }
+}
+```
+
+ 
