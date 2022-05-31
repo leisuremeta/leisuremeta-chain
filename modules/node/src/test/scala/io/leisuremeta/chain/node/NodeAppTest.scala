@@ -18,6 +18,7 @@ import sttp.client3.*
 import sttp.model.{MediaType, StatusCode}
 
 import api.model.*
+import api_model.AccountInfo
 import lib.crypto.{CryptoOps, Hash}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
@@ -77,11 +78,13 @@ genesis {
     number = BigNat.Zero,
   )
 
-  given testKVStore[K, V]: store.KeyValueStore[IO, K, V] = new store.KeyValueStore[IO, K, V]:
-    private val _map = scala.collection.mutable.Map.empty[K, V]
-    def get(key: K): EitherT[IO, DecodingFailure, Option[V]] = EitherT.pure[IO, DecodingFailure](_map.get(key))
-    def put(key: K, value: V): IO[Unit] = IO(_map.put(key, value))
-    def remove(key: K): IO[Unit] = IO(_map.remove(key))
+  given testKVStore[K, V]: store.KeyValueStore[IO, K, V] =
+    new store.KeyValueStore[IO, K, V]:
+      private val _map = scala.collection.mutable.Map.empty[K, V]
+      def get(key: K): EitherT[IO, DecodingFailure, Option[V]] =
+        EitherT.pure[IO, DecodingFailure](_map.get(key))
+      def put(key: K, value: V): IO[Unit] = IO(_map.put(key, value))
+      def remove(key: K): IO[Unit]        = IO(_map.remove(key))
 
   given testBlockRepo: BlockRepository[IO] = new BlockRepository[IO]:
     private val _bestHeader: Ref[IO, Option[Block.Header]] =
@@ -89,7 +92,7 @@ genesis {
 
     private val map: scala.collection.mutable.Map[Hash.Value[Block], Block] =
       scala.collection.mutable.Map.empty
-    
+
     def bestHeader: EitherT[IO, DecodingFailure, Option[Block.Header]] =
       EitherT.right[DecodingFailure](_bestHeader.get)
     def get(
@@ -105,23 +108,25 @@ genesis {
           Some(block.header)
       }
     }
-    
+
     def listFrom(
         blockNumber: BigNat,
         limit: Int,
-    ): EitherT[IO, DecodingFailure, List[(BigNat, Block.BlockHash)]] = 
+    ): EitherT[IO, DecodingFailure, List[(BigNat, Block.BlockHash)]] =
       println(s"======> ListFrom is called!!")
       ???
 
     def findByTransaction(
-        txHash: Signed.TxHash
+        txHash: Signed.TxHash,
     ): EitherT[IO, DecodingFailure, Option[Block.BlockHash]] =
       println(s"======> findByTransaction is called!!")
       ???
 
   given testTxRepo: TransactionRepository[IO] = new TransactionRepository[IO]:
 
-    private val map: scala.collection.mutable.Map[Hash.Value[TransactionWithResult], TransactionWithResult] =
+    private val map: scala.collection.mutable.Map[Hash.Value[
+      TransactionWithResult,
+    ], TransactionWithResult] =
       scala.collection.mutable.Map.empty
 
     def get(
@@ -130,17 +135,20 @@ genesis {
       scribe.info(s"======> get is called with tx hash: ${transactionHash}")
       EitherT.pure[IO, DecodingFailure](map.get(transactionHash))
 
-    def put(transaction: TransactionWithResult): IO[Unit] = IO{
+    def put(transaction: TransactionWithResult): IO[Unit] = IO {
       scribe.info(s"putting transaction: $transaction")
       map += transaction.toHash -> transaction
     }
 
-  given testStateRepo[K, V]: StateRepository[IO, K, V] = StateRepository.fromStores[IO, K, V]
+  given testStateRepo[K, V]: StateRepository[IO, K, V] =
+    StateRepository.fromStores[IO, K, V]
 
-  given LocalGossipService[IO] = LocalGossipServiceInterpreter.build[IO](
-    bestConfirmedBlock = ???,
-    params = ???
-  ).unsafeRunSync()
+  given LocalGossipService[IO] = LocalGossipServiceInterpreter
+    .build[IO](
+      bestConfirmedBlock = ???,
+      params = ???,
+    )
+    .unsafeRunSync()
 
   def getApp: NodeApp[IO] =
     val Right(conf) = NodeConfig
@@ -152,28 +160,30 @@ genesis {
 
   example("app generate genesis block in initialization") {
 
-    getApp.resource.flatMap{ appResource => 
-      appResource.use { _ =>
-        IO {
-          val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+    getApp.resource
+      .flatMap { appResource =>
+        appResource.use { _ =>
+          IO {
+            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
-          val response = basicRequest
-            .response(asStringAlways)
-            .get(uri"http://localhost:8081/status")
-            .send(backend)
-          println(
-            s"status request result: body: ${response.body}, status code: ${response.code}",
-          )
+            val response = basicRequest
+              .response(asStringAlways)
+              .get(uri"http://localhost:8081/status")
+              .send(backend)
+            println(
+              s"status request result: body: ${response.body}, status code: ${response.code}",
+            )
 
-          Result.all(
-            List(
-              response.code ==== StatusCode.Ok,
-              decode[NodeStatus](response.body) ==== Right(expectedNodeStatus),
-            ),
-          )
+            Result.all(
+              List(
+                response.code ==== StatusCode.Ok,
+                decode[NodeStatus](response.body) ==== Right(expectedNodeStatus),
+              ),
+            )
+          }
         }
       }
-    }.unsafeRunSync()
+      .unsafeRunSync()
   }
 
   example("post tx is defined") {
@@ -207,45 +217,51 @@ genesis {
         val serialized = a.asJson.noSpaces
         StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
 
-    getApp.resource.flatMap { appResource =>
-      appResource.use { _ =>
-        IO {
-          val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
-          val response0 = basicRequest
-            .response(asStringAlways)
-            .post(uri"http://localhost:8081/tx")
-            .body(Seq(signedTx))
-            .send(backend)
-          println(
-            s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
-          )
-          val response1 = basicRequest
-            .response(asStringAlways)
-            .get(uri"http://localhost:8081/tx/${txHash.toUInt256Bytes.toBytes.toHex}")
-            .send(backend)
-          println(
-            s"get tx request result: body: ${response1.body}, status code: ${response1.code}",
-          )
-          val response2 = basicRequest
-            .response(asStringAlways)
-            .get(uri"http://localhost:8081/account/alice")
-            .send(backend)
+    getApp.resource
+      .flatMap { appResource =>
+        appResource.use { _ =>
+          IO {
+            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+            val response0 = basicRequest
+              .response(asStringAlways)
+              .post(uri"http://localhost:8081/tx")
+              .body(Seq(signedTx))
+              .send(backend)
+            println(
+              s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
+            )
+            val response1 = basicRequest
+              .response(asStringAlways)
+              .get(
+                uri"http://localhost:8081/tx/${txHash.toUInt256Bytes.toBytes.toHex}",
+              )
+              .send(backend)
+            println(
+              s"get tx request result: body: ${response1.body}, status code: ${response1.code}",
+            )
+            val response2 = basicRequest
+              .response(asStringAlways)
+              .get(uri"http://localhost:8081/account/alice")
+              .send(backend)
 
-          println(
-            s"get account request result: body: ${response2.body}, status code: ${response2.code}",
-          )
+            println(
+              s"get account request result: body: ${response2.body}, status code: ${response2.code}",
+            )
 
-          Result.all(
-            List(
-              response0.code ==== StatusCode.Ok,
-              decode[Seq[Signed.TxHash]](response0.body) ==== Right(
-                Seq(tx.toHash),
+            Result.all(
+              List(
+                response0.code ==== StatusCode.Ok,
+                decode[Seq[Signed.TxHash]](response0.body) ==== Right(
+                  Seq(tx.toHash),
+                ),
+                response1.code ==== StatusCode.Ok,
+                response2.code ==== StatusCode.Ok,
+                decode[AccountInfo](response2.body)
+                  .map(_.publicKeySummaries.nonEmpty) ==== Right(true),
               ),
-              response1.code ==== StatusCode.Ok,
-              response2.code ==== StatusCode.Ok,
-            ),
-          )
+            )
+          }
         }
       }
-    }.unsafeRunSync()
+      .unsafeRunSync()
   }

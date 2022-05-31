@@ -61,7 +61,7 @@ object PublicKeySummary:
     Encoder.encodeString.contramap(summary => s"0x${summary.toString}")
   
   given KeyDecoder[PublicKeySummary] = KeyDecoder.instance(fromHex(_).toOption)
-  given KeyEncoder[PublicKeySummary] = KeyEncoder.encodeKeyString.contramap(_.toString)
+  given KeyEncoder[PublicKeySummary] = KeyEncoder.encodeKeyString.contramap(_.toHex)
 
   given Schema[PublicKeySummary] = Schema.string
 

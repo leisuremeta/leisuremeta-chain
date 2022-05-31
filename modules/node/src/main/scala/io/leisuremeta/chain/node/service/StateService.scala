@@ -24,6 +24,7 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.{PublicKey, Signature}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
+import lib.datatype.Utf8
 import lib.merkle.{MerkleTrie, MerkleTrieState}
 import repository.{StateRepository, TransactionRepository}
 import repository.StateRepository.given
@@ -39,11 +40,6 @@ object StateService:
     signedTx.value match
       case tx: Transaction.AccountTx =>
         updateStateWithAccountTx[F](state, signedTx.sig, tx)
-  /*
-
-      namesState: MerkleTrieState[Account, Option[Account]],
-      keyState: MerkleTrieState[(Account, PublicKeySummary), PublicKeySummary.Info],
-   */
 
   def updateStateWithAccountTx[F[_]: Concurrent](
       ms: MerkleState,
@@ -108,15 +104,17 @@ object StateService:
       case ca: Transaction.AccountTx.CreateAccount =>
         getAccount.flatMap {
           case None =>
-            MerkleTrie
-              .put(sig.account.toBytes.bits, ca.guardian)
-              .runS(ms.namesState)
-              .map { accountState1 =>
-                (
-                  MerkleState(accountState1, ms.keyState),
-                  TransactionWithResult(Signed(sig, ca), None),
-                )
-              }
+            for
+              accountState1 <- MerkleTrie
+                .put(sig.account.toBytes.bits, ca.guardian)
+                .runS(ms.namesState)
+              keyState1 <- if ca.guardian === Some(sig.account) then EitherT.pure[F, String](ms.keyState) else
+                for
+                  pubKeySummary <- EitherT.fromEither[F](recoverSignature(ca, sig.sig))
+                  info = PublicKeySummary.Info(Utf8.unsafeFrom("Automatically added in account creation"), ca.createdAt)
+                  keyState <- MerkleTrie.put((ca.account, pubKeySummary).toBytes.bits, info).runS(ms.keyState)
+                yield keyState
+            yield (MerkleState(accountState1, keyState1), TransactionWithResult(Signed(sig, ca), None))
           case Some(_) =>
             EitherT.leftT("Account already exists")
         }
