@@ -11,6 +11,8 @@ import api.model.{
   Account,
   PublicKeySummary,
   Block,
+  GroupData,
+  GroupId,
   Signed,
   StateRoot,
   TransactionWithResult,
@@ -33,11 +35,17 @@ object GossipDomain:
         (Account, PublicKeySummary),
         PublicKeySummary.Info,
       ],
+      groupState: MerkleTrieState[GroupId, GroupData],
+      groupAccountState: MerkleTrieState[(GroupId, Account), Unit],
   ):
     def toStateRoot: StateRoot = StateRoot(
       account = StateRoot.AccountStateRoot(
         namesRoot = namesState.root,
         keyRoot = keyState.root,
+      ),
+      group = StateRoot.GroupStateRoot(
+        groupRoot = groupState.root,
+        groupAccountRoot = groupAccountState.root,
       ),
     )
 
@@ -45,6 +53,8 @@ object GossipDomain:
     def from(header: Block.Header): MerkleState = MerkleState(
       namesState = buildMerkleTrieState(header.stateRoot.account.namesRoot),
       keyState = buildMerkleTrieState(header.stateRoot.account.keyRoot),
+      groupState = buildMerkleTrieState(header.stateRoot.group.groupRoot),
+      groupAccountState = buildMerkleTrieState(header.stateRoot.group.groupAccountRoot),
     )
 
   def buildMerkleTrieState[K, V](
@@ -611,4 +621,8 @@ object GossipDomain:
     for
       namesState <- state.namesState.rebase(newBase.namesState)
       keyState   <- state.keyState.rebase(newBase.keyState)
-    yield MerkleState(namesState, keyState)
+      groupState <- state.groupState.rebase(newBase.groupState)
+      groupAccountState <- state.groupAccountState.rebase(
+        newBase.groupAccountState,
+      )
+    yield MerkleState(namesState, keyState, groupState, groupAccountState)

@@ -8,7 +8,7 @@ import cats.effect.{ExitCode, IO, IOApp}
 import com.typesafe.config.{Config, ConfigFactory}
 
 import api.{LeisureMetaChainApi as Api}
-import api.model.{Account, Block, PublicKeySummary, Signed, TransactionWithResult}
+import api.model.*
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
 import lib.datatype.{BigNat, UInt256Bytes}
@@ -81,6 +81,10 @@ object NodeMain extends IOApp:
             getStateRepo[(Account, PublicKeySummary), PublicKeySummary.Info](
               Paths.get("sway", "state", "pubkey"),
             )
+          given StateRepository[IO, GroupId, GroupData] <-
+            getStateRepo[GroupId, GroupData](Paths.get("sway", "state", "group"))
+          given StateRepository[IO, (GroupId, Account), Unit] <-
+            getStateRepo[(GroupId, Account), Unit](Paths.get("sway", "state", "group", "account"))
           given TransactionRepository[IO] <- getTransactionRepo
 
           appResource <- NodeApp[IO](config).resource

@@ -82,9 +82,14 @@ genesis {
     new store.KeyValueStore[IO, K, V]:
       private val _map = scala.collection.mutable.Map.empty[K, V]
       def get(key: K): EitherT[IO, DecodingFailure, Option[V]] =
+        scribe.debug(s"===> test kv store: get($key)")
         EitherT.pure[IO, DecodingFailure](_map.get(key))
-      def put(key: K, value: V): IO[Unit] = IO(_map.put(key, value))
-      def remove(key: K): IO[Unit]        = IO(_map.remove(key))
+      def put(key: K, value: V): IO[Unit] =
+        scribe.debug(s"===> test kv store: put($key, $value)")
+        IO(_map.put(key, value))
+      def remove(key: K): IO[Unit] =
+        scribe.debug(s"===> test kv store: remove($key)")
+        IO(_map.remove(key))
 
   given testBlockRepo: BlockRepository[IO] = new BlockRepository[IO]:
     private val _bestHeader: Ref[IO, Option[Block.Header]] =
@@ -258,6 +263,96 @@ genesis {
                 response2.code ==== StatusCode.Ok,
                 decode[AccountInfo](response2.body)
                   .map(_.publicKeySummaries.nonEmpty) ==== Right(true),
+              ),
+            )
+          }
+        }
+      }
+      .unsafeRunSync()
+  }
+
+  example("get group is defined") {
+
+    val account = Account(Utf8.unsafeFrom("alice"))
+
+    val tx: Transaction = Transaction.AccountTx.CreateAccount(
+      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+      createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
+      account = account,
+      guardian = None,
+    )
+
+    val txHash = tx.toHash
+
+    val keyPair = CryptoOps.fromPrivate(
+      BigInt(
+        "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
+        16,
+      ),
+    )
+
+    val Right(sig) = keyPair.sign(tx)
+
+    val accountSig = AccountSignature(sig, account)
+
+    val signedTx = Signed(accountSig, tx)
+
+    val tx2: Transaction = Transaction.GroupTx.CreateGroup(
+      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+      createdAt = Instant.parse("2020-05-22T09:01:00.00Z"),
+      groupId = GroupId(Utf8.unsafeFrom("group-core")),
+      name = Utf8.unsafeFrom("group-core"),
+      coordinator = account,
+    )
+    val Right(sig2) = keyPair.sign(tx2)
+    val accountSig2 = AccountSignature(sig2, account)
+    val signedTx2   = Signed(accountSig2, tx2)
+
+    given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
+      (a: A) =>
+        val serialized = a.asJson.noSpaces
+        StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
+
+    getApp.resource
+      .flatMap { appResource =>
+        appResource.use { _ =>
+          IO {
+            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+            val response0 = basicRequest
+              .response(asStringAlways)
+              .post(uri"http://localhost:8081/tx")
+              .body(Seq(signedTx))
+              .send(backend)
+            println(
+              s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
+            )
+            val response1 = basicRequest
+              .response(asStringAlways)
+              .post(uri"http://localhost:8081/tx")
+              .body(Seq(signedTx2))
+              .send(backend)
+            println(
+              s"post tx request result: body: ${response1.body}, status code: ${response1.code}",
+            )
+            val response2 = basicRequest
+              .response(asStringAlways)
+              .get(uri"http://localhost:8081/group/group-core")
+              .send(backend)
+
+            println(
+              s"get account request result: body: ${response2.body}, status code: ${response2.code}",
+            )
+
+            Result.all(
+              List(
+                response0.code ==== StatusCode.Ok,
+                decode[Seq[Signed.TxHash]](response0.body) ==== Right(
+                  Seq(tx.toHash),
+                ),
+                response1.code ==== StatusCode.Ok,
+                response2.code ==== StatusCode.Ok,
+//                decode[AccountInfo](response2.body)
+//                  .map(_.publicKeySummaries.nonEmpty) ==== Right(true),
               ),
             )
           }
