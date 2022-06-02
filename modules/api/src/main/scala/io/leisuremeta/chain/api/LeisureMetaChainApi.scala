@@ -18,12 +18,13 @@ import api.model.{
   Account,
   AccountSignature,
   Block,
+  GroupId,
   NodeStatus,
   Signed,
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.AccountInfo
+import api.model.api_model.{AccountInfo, GroupInfo}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -105,6 +106,12 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("account" / path[Account])
       .out(jsonBody[AccountInfo])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getGroupEndpoint =
+    baseEndpoint.get
+      .in("group" / path[GroupId])
+      .out(jsonBody[GroupInfo])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockEndpoint =

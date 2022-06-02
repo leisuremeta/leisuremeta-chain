@@ -6,7 +6,7 @@ import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
 
-import api.model.{Account, PublicKeySummary}
+import api.model.{Account, GroupId, GroupData, PublicKeySummary}
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
@@ -25,6 +25,10 @@ object StateRepository:
   object AccountState:
     type Name[F[_]] = StateRepository[F, Account, Option[Account]]
     type Key[F[_]] = StateRepository[F, (Account, PublicKeySummary), PublicKeySummary.Info]
+
+  object GroupState:
+    type Group[F[_]] = StateRepository[F, GroupId, GroupData]
+    type GroupAccount[F[_]] = StateRepository[F, (GroupId, Account), Unit]
 
   given nodeStore[F[_]: Functor, K, V](using
       sr: StateRepository[F, K, V],

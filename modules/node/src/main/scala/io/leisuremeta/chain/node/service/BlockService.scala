@@ -23,6 +23,8 @@ object BlockService:
       txRepo: TransactionRepository[F],
       namesStateRepo: StateRepository.AccountState.Name[F],
       keyStateRepo: StateRepository.AccountState.Key[F],
+      groupStateRepo: StateRepository.GroupState.Group[F],
+      groupAccountStateRepo: StateRepository.GroupState.GroupAccount[F],
   ): EitherT[F, String, Block.BlockHash] = for
     _ <- EitherT.rightT[F, String](scribe.info(s"Saving Block: $block"))
     _ <- EitherT.rightT[F, String](scribe.info(s"Saving txs: $txs"))
@@ -57,10 +59,12 @@ object BlockService:
       s"State is not correct in block: ${block.header}",
     )
     _ <- EitherT.right[String](
-      Monad[F].tuple3(
+      Monad[F].tuple5(
         resultList.traverse(txRepo.put),
         namesStateRepo.put(state.namesState),
         keyStateRepo.put(state.keyState),
+        groupStateRepo.put(state.groupState),
+        groupAccountStateRepo.put(state.groupAccountState),
       ),
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
