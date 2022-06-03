@@ -15,7 +15,7 @@ import repository.{BlockRepository, StateRepository, TransactionRepository}
 
 object TransactionService:
   def submit[F[_]
-    : Monad: Clock: BlockRepository: LocalGossipService: StateRepository.AccountState.Name: StateRepository.AccountState.Key](
+    : Monad: Clock: BlockRepository: LocalGossipService: StateRepository.AccountState](
       txs: Seq[Signed.Tx],
   ): EitherT[F, String, Seq[Signed.TxHash]] =
     scribe.info(

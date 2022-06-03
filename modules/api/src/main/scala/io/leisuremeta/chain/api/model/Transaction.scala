@@ -18,7 +18,7 @@ object TransactionResult:
         case Transaction.AccountTx.AddPublicKeySummariesResult(removed) =>
           ByteVector.fromByte(0) ++ ByteEncoder[Map[PublicKeySummary, Utf8]]
             .encode(removed)
-            
+
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap { case 0 =>
       ByteDecoder[Map[PublicKeySummary, Utf8]].map(
@@ -81,6 +81,55 @@ object Transaction:
 //        case tx: RemoveAccount            => build(3)(tx)
   end AccountTx
 
+  sealed trait GroupTx extends Transaction
+  object GroupTx:
+    final case class CreateGroup(
+        networkId: NetworkId,
+        createdAt: Instant,
+        groupId: GroupId,
+        name: Utf8,
+        coordinator: Account,
+    ) extends GroupTx
+
+//    final case class DisbandGroup(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        groupId: GroupId,
+//    ) extends GroupTx
+
+    final case class AddAccounts(
+        networkId: NetworkId,
+        createdAt: Instant,
+        groupId: GroupId,
+        accounts: Set[Account],
+    ) extends GroupTx
+
+//    final case class RemoveAccounts(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        groupId: GroupId,
+//        accounts: Set[Account],
+//    ) extends GroupTx
+
+//    final case class ReplaceCoordinator(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        groupId: GroupId,
+//        newCoordinator: Account,
+//    ) extends GroupTx
+
+    given txByteDecoder: ByteDecoder[GroupTx] = ByteDecoder[BigNat].flatMap {
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[CreateGroup].widen
+          case 2 => ByteDecoder[AddAccounts].widen
+    }
+    given txByteEncoder: ByteEncoder[GroupTx] = (atx: GroupTx) =>
+      atx match
+        case tx: CreateGroup => build(0)(tx)
+        case tx: AddAccounts => build(2)(tx)
+  end GroupTx
+
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
       BigNat.unsafeFromLong(discriminator),
@@ -90,10 +139,12 @@ object Transaction:
     bignat =>
       bignat.toBigInt.toInt match
         case 0 => ByteDecoder[AccountTx].widen
+        case 1 => ByteDecoder[GroupTx].widen
   }
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
       case tx: AccountTx => build(0)(tx)
+      case tx: GroupTx   => build(1)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 
