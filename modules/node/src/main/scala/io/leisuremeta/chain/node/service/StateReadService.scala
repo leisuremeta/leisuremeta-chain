@@ -19,7 +19,7 @@ import StateRepository.given
 
 object StateReadService:
   def getAccountInfo[F[_]
-    : Concurrent: BlockRepository: StateRepository.AccountState.Name: StateRepository.AccountState.Key](
+    : Concurrent: BlockRepository: StateRepository.AccountState](
       account: Account,
   ): F[Option[AccountInfo]] = for
     bestHeaderEither <- BlockRepository[F].bestHeader.value
@@ -60,7 +60,7 @@ object StateReadService:
     accountStateOption.map(guardian => AccountInfo(guardian, keyList.toMap))
 
   def getGroupInfo[F[_]
-    : Concurrent: BlockRepository: StateRepository.GroupState.Group: StateRepository.GroupState.GroupAccount](
+    : Concurrent: BlockRepository: StateRepository.GroupState](
       groupId: GroupId,
   ): F[Option[GroupInfo]] = for
     bestHeaderEither <- BlockRepository[F].bestHeader.value
