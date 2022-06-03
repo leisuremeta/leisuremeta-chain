@@ -14,7 +14,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import api.{LeisureMetaChainApi as Api}
-import api.model.{Account, Block, PublicKeySummary, Transaction}
+import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{BlockRepository, StateRepository, TransactionRepository}
@@ -30,7 +30,7 @@ import service.interpreter.LocalGossipServiceInterpreter
 import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: StateRepository.AccountState.Name: StateRepository.AccountState.Key: TransactionRepository](
+  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: TransactionRepository](
     config: NodeConfig,
 ):
 
@@ -84,6 +84,14 @@ final case class NodeApp[F[_]
       StateReadService.getAccountInfo(a).map {
         case Some(info) => Right(info)
         case None       => Left(Right(Api.NotFound(s"account not found: $a")))
+      }
+  }
+
+  def getGroupServerEndpoint = Api.getGroupEndpoint.serverLogic {
+    (g: GroupId) =>
+      StateReadService.getGroupInfo(g).map {
+        case Some(info) => Right(info)
+        case None       => Left(Right(Api.NotFound(s"group not found: $g")))
       }
   }
 
@@ -150,6 +158,7 @@ final case class NodeApp[F[_]
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getBlockServerEndpoint,
+    getGroupServerEndpoint,
     getStatusServerEndpoint,
     getTxServerEndpoint,
     postTxServerEndpoint,

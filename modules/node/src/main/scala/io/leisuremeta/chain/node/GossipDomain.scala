@@ -11,6 +11,8 @@ import api.model.{
   Account,
   PublicKeySummary,
   Block,
+  GroupData,
+  GroupId,
   Signed,
   StateRoot,
   TransactionWithResult,
@@ -28,24 +30,50 @@ import lib.merkle.MerkleTrieNode.MerkleRoot
 object GossipDomain:
 
   case class MerkleState(
-      namesState: MerkleTrieState[Account, Option[Account]],
-      keyState: MerkleTrieState[
-        (Account, PublicKeySummary),
-        PublicKeySummary.Info,
-      ],
+      account: MerkleState.AccountMerkleState,
+      group: MerkleState.GroupMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
       account = StateRoot.AccountStateRoot(
-        namesRoot = namesState.root,
-        keyRoot = keyState.root,
+        namesRoot = account.namesState.root,
+        keyRoot = account.keyState.root,
+      ),
+      group = StateRoot.GroupStateRoot(
+        groupRoot = group.groupState.root,
+        groupAccountRoot = group.groupAccountState.root,
       ),
     )
 
   object MerkleState:
     def from(header: Block.Header): MerkleState = MerkleState(
-      namesState = buildMerkleTrieState(header.stateRoot.account.namesRoot),
-      keyState = buildMerkleTrieState(header.stateRoot.account.keyRoot),
+      account = AccountMerkleState.from(header.stateRoot.account),
+      group = GroupMerkleState.from(header.stateRoot.group),
     )
+
+    case class AccountMerkleState(
+      namesState: MerkleTrieState[Account, Option[Account]],
+      keyState: MerkleTrieState[
+        (Account, PublicKeySummary),
+        PublicKeySummary.Info,
+      ],
+    )
+
+    object AccountMerkleState:
+      def from(root: StateRoot.AccountStateRoot): AccountMerkleState = AccountMerkleState(
+        namesState = buildMerkleTrieState(root.namesRoot),
+        keyState = buildMerkleTrieState(root.keyRoot),
+      )
+    
+    case class GroupMerkleState(
+      groupState: MerkleTrieState[GroupId, GroupData],
+      groupAccountState: MerkleTrieState[(GroupId, Account), Unit],
+    )
+
+    object GroupMerkleState:
+      def from(root: StateRoot.GroupStateRoot): GroupMerkleState = GroupMerkleState(
+        groupState = buildMerkleTrieState(root.groupRoot),
+        groupAccountState = buildMerkleTrieState(root.groupAccountRoot),
+      )
 
   def buildMerkleTrieState[K, V](
       root: Option[MerkleRoot[K, V]],
@@ -609,6 +637,13 @@ object GossipDomain:
       newBase: MerkleState,
   ): Either[String, MerkleState] =
     for
-      namesState <- state.namesState.rebase(newBase.namesState)
-      keyState   <- state.keyState.rebase(newBase.keyState)
-    yield MerkleState(namesState, keyState)
+      namesState <- state.account.namesState.rebase(newBase.account.namesState)
+      keyState   <- state.account.keyState.rebase(newBase.account.keyState)
+      groupState <- state.group.groupState.rebase(newBase.group.groupState)
+      groupAccountState <- state.group.groupAccountState.rebase(
+        newBase.group.groupAccountState,
+      )
+    yield MerkleState(
+      MerkleState.AccountMerkleState(namesState, keyState), 
+      MerkleState.GroupMerkleState(groupState, groupAccountState),
+    )
