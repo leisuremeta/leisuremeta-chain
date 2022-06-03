@@ -31,7 +31,7 @@ object StateReadService:
     merkleState = MerkleState.from(bestHeader)
     accountStateEither <- MerkleTrie
       .get[F, Account, Option[Account]](account.toBytes.bits)
-      .runA(merkleState.namesState)
+      .runA(merkleState.account.namesState)
       .value
     accountStateOption <- accountStateEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
@@ -40,7 +40,7 @@ object StateReadService:
       .from[F, (Account, PublicKeySummary), PublicKeySummary.Info](
         account.toBytes.bits,
       )
-      .runA(merkleState.keyState)
+      .runA(merkleState.account.keyState)
       .flatMap(_.compile.toList.flatMap{
         (list) => list.traverse{
           case (bits, v) => EitherT.fromEither[F]{
@@ -72,7 +72,7 @@ object StateReadService:
     merkleState = MerkleState.from(bestHeader)
     groupDataEither <- MerkleTrie
       .get[F, GroupId, GroupData](groupId.toBytes.bits)
-      .runA(merkleState.groupState)
+      .runA(merkleState.group.groupState)
       .value
     groupDataOption <- groupDataEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
@@ -81,7 +81,7 @@ object StateReadService:
       .from[F, (GroupId, Account), Unit](
         groupId.toBytes.bits,
       )
-      .runA(merkleState.groupAccountState)
+      .runA(merkleState.group.groupAccountState)
       .flatMap(_.compile.toList.flatMap{
         (list) => list.traverse{
           case (bits, _) => EitherT.fromEither[F]{
