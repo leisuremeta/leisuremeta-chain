@@ -61,10 +61,10 @@ object BlockService:
     _ <- EitherT.right[String](
       Monad[F].tuple5(
         resultList.traverse(txRepo.put),
-        namesStateRepo.put(state.namesState),
-        keyStateRepo.put(state.keyState),
-        groupStateRepo.put(state.groupState),
-        groupAccountStateRepo.put(state.groupAccountState),
+        namesStateRepo.put(state.account.namesState),
+        keyStateRepo.put(state.account.keyState),
+        groupStateRepo.put(state.group.groupState),
+        groupAccountStateRepo.put(state.group.groupAccountState),
       ),
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)

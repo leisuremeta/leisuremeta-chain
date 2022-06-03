@@ -57,14 +57,14 @@ object StateService:
 
     def getAccount: EitherT[F, String, Option[Option[Account]]] = MerkleTrie
       .get[F, Account, Option[Account]](tx.account.toBytes.bits)
-      .runA(ms.namesState)
+      .runA(ms.account.namesState)
 
     def getKeyInfo(
         account: Account,
         publicKeySummary: PublicKeySummary,
     ): EitherT[F, String, Option[PublicKeySummary.Info]] = MerkleTrie
       .get((account, publicKeySummary).toBytes.bits)
-      .runA(ms.keyState)
+      .runA(ms.account.keyState)
 
     def getKeyList(
         account: Account,
@@ -73,7 +73,7 @@ object StateService:
         .from[F, (Account, PublicKeySummary), PublicKeySummary.Info](
           account.toBytes.bits,
         )
-        .runA(ms.keyState)
+        .runA(ms.account.keyState)
         .flatMap { (stream) =>
           stream
             .takeWhile(_._1.startsWith(account.toBytes.bits))
@@ -110,10 +110,10 @@ object StateService:
             for
               accountState1 <- MerkleTrie
                 .put(sig.account.toBytes.bits, ca.guardian)
-                .runS(ms.namesState)
+                .runS(ms.account.namesState)
               keyState1 <-
                 if ca.guardian === Some(sig.account) then
-                  EitherT.pure[F, String](ms.keyState)
+                  EitherT.pure[F, String](ms.account.keyState)
                 else
                   for
                     pubKeySummary <- EitherT
@@ -125,10 +125,10 @@ object StateService:
                     )
                     keyState <- MerkleTrie
                       .put((ca.account, pubKeySummary).toBytes.bits, info)
-                      .runS(ms.keyState)
+                      .runS(ms.account.keyState)
                   yield keyState
             yield (
-              ms.copy(namesState = accountState1, keyState = keyState1),
+              ms.copy(account = ms.account.copy(namesState = accountState1, keyState = keyState1)),
               TransactionWithResult(Signed(sig, ca), None),
             )
           case Some(_) => EitherT.leftT("Account already exists")
@@ -177,13 +177,13 @@ object StateService:
                           )
                       }
                   yield ()
-                }.runS(ms.keyState)
+                }.runS(ms.account.keyState)
                 result = Transaction.AccountTx.AddPublicKeySummariesResult(
                   toRemove.toMap.view.mapValues(_.description).toMap,
                 )
                 txWithResult =
                   TransactionWithResult(Signed(sig, ap), Some(result))
-              yield (ms.copy(keyState = keyState), txWithResult)
+              yield (ms.copy(account = ms.account.copy(keyState = keyState)), txWithResult)
             case Some(_) if sig.account === ap.account =>
               for
                 pubKeySummary <- EitherT
@@ -223,13 +223,13 @@ object StateService:
                           )
                       }
                   yield ()
-                }.runS(ms.keyState)
+                }.runS(ms.account.keyState)
                 result = Transaction.AccountTx.AddPublicKeySummariesResult(
                   toRemove.toMap.view.mapValues(_.description).toMap,
                 )
                 txWithResult =
                   TransactionWithResult(Signed(sig, ap), Some(result))
-              yield (ms.copy(keyState = keyState), txWithResult)
+              yield (ms.copy(account = ms.account.copy(keyState = keyState)), txWithResult)
             case Some(_) =>
               EitherT.leftT(
                 s"Account does not match signature: ${ap.account} vs ${sig.account}",
@@ -259,9 +259,9 @@ object StateService:
       if cg.coordinator === sig.account then
         for groupState <- MerkleTrie
             .put(cg.groupId.toBytes.bits, GroupData(cg.name, cg.coordinator))
-            .runS(ms.groupState)
+            .runS(ms.group.groupState)
         yield (
-          ms.copy(groupState = groupState),
+          ms.copy(group = ms.group.copy(groupState = groupState)),
           TransactionWithResult(Signed(sig, cg), None),
         )
       else
@@ -272,7 +272,7 @@ object StateService:
       for
         groupDataOption <- MerkleTrie
           .get[F, GroupId, GroupData](ag.groupId.toBytes.bits)
-          .runA(ms.groupState)
+          .runA(ms.group.groupState)
         groupData <- EitherT.fromOption[F](
           groupDataOption,
           s"Group does not exist: ${ag.groupId}",
@@ -283,7 +283,7 @@ object StateService:
           s"Account does not match signature: ${groupData.coordinator} vs ${sig.account}",
         )
         groupAccountState <- ag.accounts.toList.foldLeftM(
-          ms.groupAccountState,
+          ms.group.groupAccountState,
         ) { (state, account) =>
           MerkleTrie
             .put[F, (GroupId, Account), Unit](
@@ -293,6 +293,6 @@ object StateService:
             .runS(state)
         }
       yield (
-        ms.copy(groupAccountState = groupAccountState),
+        ms.copy(group = ms.group.copy(groupAccountState = groupAccountState)),
         TransactionWithResult(Signed(sig, ag), None),
       )
