@@ -35,7 +35,7 @@ import repository.StateRepository.given
 object StateService:
 
   def updateStateWithTx[F[_]
-    : Concurrent: StateRepository.AccountState.Name: StateRepository.AccountState.Key: StateRepository.GroupState.Group: StateRepository.GroupState.GroupAccount: TransactionRepository](
+    : Concurrent: StateRepository.AccountState: StateRepository.GroupState: TransactionRepository](
       state: MerkleState,
       signedTx: Signed.Tx,
   ): EitherT[F, String, (MerkleState, TransactionWithResult)] =
@@ -46,13 +46,10 @@ object StateService:
       case tx: Transaction.GroupTx =>
         updateStateWithGroupTx[F](state, signedTx.sig, tx)
 
-  def updateStateWithAccountTx[F[_]: Concurrent](
+  def updateStateWithAccountTx[F[_]: Concurrent: StateRepository.AccountState](
       ms: MerkleState,
       sig: AccountSignature,
       tx: Transaction.AccountTx,
-  )(using
-      namesStateRepo: StateRepository.AccountState.Name[F],
-      keyStateRepo: StateRepository.AccountState.Key[F],
   ): EitherT[F, String, (MerkleState, TransactionWithResult)] =
 
     def getAccount: EitherT[F, String, Option[Option[Account]]] = MerkleTrie
@@ -247,13 +244,10 @@ object StateService:
     .map(_.toHash)
     .map(PublicKeySummary.fromPublicKeyHash)
 
-  def updateStateWithGroupTx[F[_]: Concurrent](
+  def updateStateWithGroupTx[F[_]: Concurrent: StateRepository.GroupState](
       ms: MerkleState,
       sig: AccountSignature,
       tx: Transaction.GroupTx,
-  )(using
-      groupStateRepo: StateRepository.GroupState.Group[F],
-      groupAccountStateRepo: StateRepository.GroupState.GroupAccount[F],
   ): EitherT[F, String, (MerkleState, TransactionWithResult)] = tx match
     case cg: Transaction.GroupTx.CreateGroup =>
       if cg.coordinator === sig.account then

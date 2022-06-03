@@ -15,6 +15,7 @@ import lib.datatype.{BigNat, UInt256Bytes}
 import lib.merkle.MerkleTrieNode
 import lib.merkle.MerkleTrieNode.{MerkleHash, MerkleRoot}
 import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.StateRepository.given
 import service.LocalGossipService
 import service.interpreter.LocalGossipServiceInterpreter
 import store.*
@@ -45,35 +46,33 @@ object NodeMain extends IOApp:
       ](Paths.get("sway", "block", "tx"))
     yield BlockRepository.fromStores[IO]
 
+    type StateRepoStore[F[_], K, V] = StoreIndex[IO, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
+
     def getStateRepo[K: ByteCodec, V: ByteCodec](
         dir: Path,
-    ): IO[StateRepository[IO, K, V]] =
-      for given StoreIndex[
-          IO,
-          MerkleHash[K, V],
-          (MerkleTrieNode[K, V], BigNat),
-        ] <-
-          sway[MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)](dir)
-      yield StateRepository.fromStores[IO, K, V]
+    ): IO[StateRepoStore[IO, K, V]] =
+      sway[MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)](dir)
 
-    def getTransactionRepo: IO[TransactionRepository[IO]] = for
-      given StoreIndex[IO, Hash.Value[TransactionWithResult], TransactionWithResult] <- 
-        sway[Hash.Value[TransactionWithResult], TransactionWithResult](Paths.get("sway", "transaction"))
-    yield TransactionRepository.fromStores[IO]
-
+    def getTransactionRepo: IO[TransactionRepository[IO]] =
+      for given StoreIndex[IO, Hash.Value[
+          TransactionWithResult,
+        ], TransactionWithResult] <-
+          sway[Hash.Value[TransactionWithResult], TransactionWithResult](
+            Paths.get("sway", "transaction"),
+          )
+      yield TransactionRepository.fromStores[IO]
 
     val getConfig: IO[Config] = IO.blocking(ConfigFactory.load)
 
     NodeConfig.load[IO](getConfig).value.flatMap {
       case Right(config) =>
-        
         for
           given BlockRepository[IO] <- getBlockRepo
-          given StateRepository[IO, Account, Option[Account]] <-
+          given StateRepoStore[IO, Account, Option[Account]] <-
             getStateRepo[Account, Option[Account]](
               Paths.get("sway", "state", "name"),
             )
-          given StateRepository[
+          given StateRepoStore[
             IO,
             (Account, PublicKeySummary),
             PublicKeySummary.Info,
@@ -81,14 +80,16 @@ object NodeMain extends IOApp:
             getStateRepo[(Account, PublicKeySummary), PublicKeySummary.Info](
               Paths.get("sway", "state", "pubkey"),
             )
-          given StateRepository[IO, GroupId, GroupData] <-
+          given StateRepoStore[IO, GroupId, GroupData] <-
             getStateRepo[GroupId, GroupData](Paths.get("sway", "state", "group"))
-          given StateRepository[IO, (GroupId, Account), Unit] <-
-            getStateRepo[(GroupId, Account), Unit](Paths.get("sway", "state", "group", "account"))
+          given StateRepoStore[IO, (GroupId, Account), Unit] <-
+            getStateRepo[(GroupId, Account), Unit](
+              Paths.get("sway", "state", "group", "account"),
+            )
           given TransactionRepository[IO] <- getTransactionRepo
 
           appResource <- NodeApp[IO](config).resource
-          exitcode <- appResource.useForever.as(ExitCode.Success)
+          exitcode    <- appResource.useForever.as(ExitCode.Success)
         yield exitcode
       case Left(err) =>
         IO(println(err)).as(ExitCode.Error)

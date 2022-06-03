@@ -30,7 +30,7 @@ import service.interpreter.LocalGossipServiceInterpreter
 import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: StateRepository.AccountState.Name: StateRepository.AccountState.Key: StateRepository.GroupState.Group: StateRepository.GroupState.GroupAccount: TransactionRepository](
+  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: TransactionRepository](
     config: NodeConfig,
 ):
 

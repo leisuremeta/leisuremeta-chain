@@ -22,24 +22,73 @@ trait StateRepository[F[_], K, V]:
   def put(state: MerkleTrieState[K, V]): F[Unit]
 
 object StateRepository:
-  object AccountState:
-    type Name[F[_]] = StateRepository[F, Account, Option[Account]]
-    type Key[F[_]] = StateRepository[F, (Account, PublicKeySummary), PublicKeySummary.Info]
 
+  /**
+   * AccountState
+   */
+  trait AccountState[F[_]]:
+    def name: StateRepository[F, Account, Option[Account]]
+    def key
+        : StateRepository[F, (Account, PublicKeySummary), PublicKeySummary.Info]
+  object AccountState:
+    def apply[F[_]: AccountState]: AccountState[F] = summon
+    given from[F[_]: Monad](using
+        nameKVStroe: MerkleHashStore[F, Account, Option[Account]],
+        keyKVStroe: MerkleHashStore[
+          F,
+          (Account, PublicKeySummary),
+          PublicKeySummary.Info,
+        ],
+    ): AccountState[F] = new AccountState[F]:
+      def name: StateRepository[F, Account, Option[Account]] = fromStores
+      def key: StateRepository[
+        F,
+        (Account, PublicKeySummary),
+        PublicKeySummary.Info,
+      ] = fromStores
+
+  given nodeStoreFromAccount[F[_]: Functor: AccountState]
+      : NodeStore[F, Account, Option[Account]] =
+    Kleisli(AccountState[F].name.get(_).leftMap(_.msg))
+  given nodeStoreFromAccountKey[F[_]: Functor: AccountState]
+      : NodeStore[F, (Account, PublicKeySummary), PublicKeySummary.Info] =
+    Kleisli(AccountState[F].key.get(_).leftMap(_.msg))
+
+  /**
+   * GroupState
+   */
+  trait GroupState[F[_]]:
+    def group: StateRepository[F, GroupId, GroupData]
+    def groupAccount: StateRepository[F, (GroupId, Account), Unit]
   object GroupState:
-    type Group[F[_]] = StateRepository[F, GroupId, GroupData]
-    type GroupAccount[F[_]] = StateRepository[F, (GroupId, Account), Unit]
+    def apply[F[_]: GroupState]: GroupState[F] = summon
+    given from[F[_]: Monad](using
+        groupKVStroe: MerkleHashStore[F, GroupId, GroupData],
+        groupAccountKVStroe: MerkleHashStore[
+          F,
+          (GroupId, Account),
+          Unit,
+        ],
+    ): GroupState[F] = new GroupState[F]:
+      def group: StateRepository[F, GroupId, GroupData] = fromStores
+      def groupAccount: StateRepository[F, (GroupId, Account), Unit] = fromStores
+
+  given nodeStoreFromGroup[F[_]: Functor: GroupState]
+      : NodeStore[F, GroupId, GroupData] =
+    Kleisli(GroupState[F].group.get(_).leftMap(_.msg))
+  given nodeStoreFromGroupAccount[F[_]: Functor: GroupState]
+      : NodeStore[F, (GroupId, Account), Unit] =
+    Kleisli(GroupState[F].groupAccount.get(_).leftMap(_.msg))
 
   given nodeStore[F[_]: Functor, K, V](using
       sr: StateRepository[F, K, V],
   ): NodeStore[F, K, V] = Kleisli(sr.get(_).leftMap(_.msg))
 
+  type MerkleHashStore[F[_], K, V] =
+    KeyValueStore[F, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
+
   def fromStores[F[_]: Monad, K, V](using
-      stateKvStore: KeyValueStore[
-        F,
-        MerkleHash[K, V],
-        (MerkleTrieNode[K, V], BigNat),
-      ],
+      stateKvStore: MerkleHashStore[F, K, V]
   ): StateRepository[F, K, V] = new StateRepository[F, K, V]:
 
     def get(

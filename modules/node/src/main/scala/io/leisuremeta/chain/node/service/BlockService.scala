@@ -15,16 +15,12 @@ import lib.crypto.Hash.ops.*
 
 object BlockService:
 
-  def saveBlockWithState[F[_]: Concurrent](
+  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
   )(using
       blockRepo: BlockRepository[F],
       txRepo: TransactionRepository[F],
-      namesStateRepo: StateRepository.AccountState.Name[F],
-      keyStateRepo: StateRepository.AccountState.Key[F],
-      groupStateRepo: StateRepository.GroupState.Group[F],
-      groupAccountStateRepo: StateRepository.GroupState.GroupAccount[F],
   ): EitherT[F, String, Block.BlockHash] = for
     _ <- EitherT.rightT[F, String](scribe.info(s"Saving Block: $block"))
     _ <- EitherT.rightT[F, String](scribe.info(s"Saving txs: $txs"))
@@ -61,10 +57,10 @@ object BlockService:
     _ <- EitherT.right[String](
       Monad[F].tuple5(
         resultList.traverse(txRepo.put),
-        namesStateRepo.put(state.account.namesState),
-        keyStateRepo.put(state.account.keyState),
-        groupStateRepo.put(state.group.groupState),
-        groupAccountStateRepo.put(state.group.groupAccountState),
+        StateRepository.AccountState[F].name.put(state.account.namesState),
+        StateRepository.AccountState[F].key.put(state.account.keyState),
+        StateRepository.GroupState[F].group.put(state.group.groupState),
+        StateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
       ),
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
