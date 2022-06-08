@@ -6,8 +6,9 @@ import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
 
-import api.model.{Account, GroupId, GroupData, PublicKeySummary}
+import api.model.{Account, GroupId, GroupData, PublicKeySummary, TransactionWithResult}
 import api.model.token.{TokenDefinition, TokenDefinitionId}
+import lib.crypto.Hash
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
@@ -84,6 +85,11 @@ object StateRepository:
     */
   trait TokenState[F[_]]:
     def definition: StateRepository[F, TokenDefinitionId, TokenDefinition]
+    def fungibleBalance: StateRepository[
+      F,
+      (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+      Unit,
+    ]
   object TokenState:
     def apply[F[_]: TokenState]: TokenState[F] = summon
     given from[F[_]: Monad](using
@@ -92,13 +98,27 @@ object StateRepository:
           TokenDefinitionId,
           TokenDefinition,
         ],
+        fungibleBalanceKVStroe: MerkleHashStore[
+          F,
+          (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ],
     ): TokenState[F] = new TokenState[F]:
       def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
         fromStores
+      def fungibleBalance: StateRepository[
+        F,
+        (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ] = fromStores
 
-  given definitionStoreFromToken[F[_]: Functor: TokenState]
+  given nodeStoreFromDefinition[F[_]: Functor: TokenState]
       : NodeStore[F, TokenDefinitionId, TokenDefinition] =
     Kleisli(TokenState[F].definition.get(_).leftMap(_.msg))
+
+  given nodeStoreFromFungibleBalance[F[_]: Functor: TokenState]
+      : NodeStore[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].fungibleBalance.get(_).leftMap(_.msg))
 
   /** General
     */
