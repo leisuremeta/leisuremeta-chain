@@ -15,6 +15,7 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
+import api.model.token.TokenDefinitionId
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{BlockRepository, StateRepository, TransactionRepository}
@@ -114,6 +115,14 @@ final case class NodeApp[F[_]
       )
   }
 
+  def getTokenDefServerEndpoint = Api.getTokenDefinitionEndpoint.serverLogic {
+    (tokenDefinitionId: TokenDefinitionId) =>
+      StateReadService.getTokenDef(tokenDefinitionId).map {
+        case Some(tokenDef) => Right(tokenDef)
+        case None       => Left(Right(Api.NotFound(s"token definition not found: $tokenDefinitionId")))
+      }
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -161,6 +170,7 @@ final case class NodeApp[F[_]
     getGroupServerEndpoint,
     getStatusServerEndpoint,
     getTxServerEndpoint,
+    getTokenDefServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )

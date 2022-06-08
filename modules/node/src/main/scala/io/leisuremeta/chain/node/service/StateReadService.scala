@@ -11,6 +11,7 @@ import cats.syntax.traverse.*
 import GossipDomain.MerkleState
 import api.model.{Account, GroupId, GroupData, PublicKeySummary}
 import api.model.api_model.{AccountInfo, GroupInfo}
+import api.model.token.{TokenDefinition, TokenDefinitionId}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.merkle.MerkleTrie
@@ -99,3 +100,25 @@ object StateReadService:
       case Right(accountList) => Concurrent[F].pure(accountList)
   yield
     groupDataOption.map(groupData => GroupInfo(groupData, accountList.toSet))
+
+  def getTokenDef[F[_]
+    : Concurrent: BlockRepository: StateRepository.TokenState](
+      tokenDefinitionId: TokenDefinitionId,
+  ): F[Option[TokenDefinition]] = for
+    bestHeaderEither <- BlockRepository[F].bestHeader.value
+    bestHeader <- bestHeaderEither match
+      case Left(err) => Concurrent[F].raiseError(err)
+      case Right(None) =>
+        Concurrent[F].raiseError(new Exception("No best header"))
+      case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
+    merkleState = MerkleState.from(bestHeader)
+    tokenDefEither <- MerkleTrie
+      .get[F, TokenDefinitionId, TokenDefinition](tokenDefinitionId.toBytes.bits)
+      .runA(merkleState.token.tokenDefinitionState)
+      .value
+    tokenDefOption <- tokenDefEither match
+      case Left(err) => Concurrent[F].raiseError(new Exception(err))
+      case Right(tokenDefOption) => Concurrent[F].pure(tokenDefOption)
+  yield
+    tokenDefOption
+
