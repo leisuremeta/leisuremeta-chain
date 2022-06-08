@@ -5,6 +5,7 @@ import java.time.Instant
 
 import cats.Eq
 
+import lib.crypto.Hash
 import lib.merkle.MerkleTrieNode.MerkleRoot
 import token.{TokenDefinition, TokenDefinitionId}
 
@@ -39,8 +40,9 @@ object StateRoot:
 
   case class TokenStateRoot(
       tokenDefinitionRoot: Option[MerkleRoot[TokenDefinitionId, TokenDefinition]],
+      fungibleBalanceRoot: Option[MerkleRoot[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]]
   )
   object TokenStateRoot:
-    def empty: TokenStateRoot = TokenStateRoot(None)
+    def empty: TokenStateRoot = TokenStateRoot(None, None)
 
   given eqStateRoot: Eq[StateRoot] = Eq.fromUniversalEquals

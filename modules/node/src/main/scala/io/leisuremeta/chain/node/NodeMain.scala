@@ -91,6 +91,10 @@ object NodeMain extends IOApp:
             getStateRepo[TokenDefinitionId, TokenDefinition](
               Paths.get("sway", "state", "token", "definition"),
             )
+          given StateRepoStore[IO, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] <-
+            getStateRepo[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
+              Paths.get("sway", "state", "token", "fungible-balance"),
+            )
           given TransactionRepository[IO] <- getTransactionRepo
 
           appResource <- NodeApp[IO](config).resource

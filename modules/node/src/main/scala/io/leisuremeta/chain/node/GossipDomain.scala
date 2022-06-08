@@ -19,7 +19,7 @@ import api.model.{
 }
 import api.model.token.{TokenDefinition, TokenDefinitionId}
 import api.model.Block.ops.*
-import lib.crypto.{KeyPair, Recover, Sign, Signature}
+import lib.crypto.{Hash, KeyPair, Recover, Sign, Signature}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
 import lib.crypto.Sign.ops.*
@@ -47,6 +47,7 @@ object GossipDomain:
       ),
       token = StateRoot.TokenStateRoot(
         tokenDefinitionRoot = token.tokenDefinitionState.root,
+        fungibleBalanceRoot = token.fungibleBalanceState.root,
       ),
     )
 
@@ -84,11 +85,13 @@ object GossipDomain:
 
     case class TokenMerkleState(
       tokenDefinitionState: MerkleTrieState[TokenDefinitionId, TokenDefinition],
+      fungibleBalanceState: MerkleTrieState[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit],
     )
 
     object TokenMerkleState:
       def from(root: StateRoot.TokenStateRoot): TokenMerkleState = TokenMerkleState(
         tokenDefinitionState = buildMerkleTrieState(root.tokenDefinitionRoot),
+        fungibleBalanceState = buildMerkleTrieState(root.fungibleBalanceRoot),
       )
 
   def buildMerkleTrieState[K, V](
@@ -662,8 +665,11 @@ object GossipDomain:
       tokenDefinitionState <- state.token.tokenDefinitionState.rebase(
         newBase.token.tokenDefinitionState,
       )
+      fungibleBalanceState <- state.token.fungibleBalanceState.rebase(
+        newBase.token.fungibleBalanceState,
+      )
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
       MerkleState.GroupMerkleState(groupState, groupAccountState),
-      MerkleState.TokenMerkleState(tokenDefinitionState),
+      MerkleState.TokenMerkleState(tokenDefinitionState, fungibleBalanceState),
     )

@@ -142,14 +142,14 @@ object Transaction:
         nftInfo: Option[NftInfo],
     ) extends TokenTx
 
-/*
+
     final case class MintFungibleToken(
         networkId: NetworkId,
         createdAt: Instant,
         definitionId: TokenDefinitionId,
         outputs: Map[Account, BigNat],
     ) extends TokenTx
-
+/*
     final case class MintNFT(
         networkId: NetworkId,
         createdAt: Instant,
@@ -252,13 +252,13 @@ object Transaction:
       bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[DefineToken].widen
-//          case 1 => ByteDecoder[MintFungibleToken].widen
+          case 1 => ByteDecoder[MintFungibleToken].widen
 //          case _ => ???
     }
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
         case tx: DefineToken       => build(0)(tx)
-//        case tx: MintFungibleToken => build(1)(tx)
+        case tx: MintFungibleToken => build(1)(tx)
 //        case _                     => ???
 
   end TokenTx
