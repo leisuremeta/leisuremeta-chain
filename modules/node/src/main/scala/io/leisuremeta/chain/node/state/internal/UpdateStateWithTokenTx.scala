@@ -62,9 +62,11 @@ trait UpdateStateWithTokenTx:
                 tokenDefinition,
               )
               .runS(ms.token.tokenDefinitionState)
-          yield (
-            ms.copy(token =
-              ms.token.copy(tokenDefinitionState = tokenDefinitionState),
-            ),
-            TransactionWithResult(Signed(sig, tx), None),
-          )
+          yield
+            scribe.info(s"===> new Token Definition state: $tokenDefinitionState")
+            (
+              ms.copy(token =
+                ms.token.copy(tokenDefinitionState = tokenDefinitionState),
+              ),
+              TransactionWithResult(Signed(sig, tx), None),
+            )

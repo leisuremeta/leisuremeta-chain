@@ -25,6 +25,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.api_model.{AccountInfo, GroupInfo}
+import api.model.token.{TokenDefinition, TokenDefinitionId}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -118,3 +119,9 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("block" / path[Block.BlockHash])
       .out(jsonBody[Block])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenDefinitionEndpoint =
+    baseEndpoint.get
+      .in("token-def" / path[TokenDefinitionId])
+      .out(jsonBody[TokenDefinition])

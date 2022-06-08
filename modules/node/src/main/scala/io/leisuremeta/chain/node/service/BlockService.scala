@@ -55,12 +55,13 @@ object BlockService:
       s"State is not correct in block: ${block.header}",
     )
     _ <- EitherT.right[String](
-      Monad[F].tuple5(
+      Monad[F].tuple6(
         resultList.traverse(txRepo.put),
         StateRepository.AccountState[F].name.put(state.account.namesState),
         StateRepository.AccountState[F].key.put(state.account.keyState),
         StateRepository.GroupState[F].group.put(state.group.groupState),
         StateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
+        StateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),
       ),
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
