@@ -99,11 +99,12 @@ final case class NodeApp[F[_]
   def getBlockServerEndpoint = Api.getBlockEndpoint.serverLogic {
     (blockHash: Block.BlockHash) =>
       val result = BlockService.get(blockHash).value
-      
+
       result.map {
         case Right(Some(block)) => Right(block)
-        case Right(None) => Left(Right(Api.NotFound(s"block not found: $blockHash")))
-        case Left(err)   => Left(Left(Api.ServerError(err)))
+        case Right(None) =>
+          Left(Right(Api.NotFound(s"block not found: $blockHash")))
+        case Left(err) => Left(Left(Api.ServerError(err)))
       }
   }
 
@@ -119,7 +120,23 @@ final case class NodeApp[F[_]
     (tokenDefinitionId: TokenDefinitionId) =>
       StateReadService.getTokenDef(tokenDefinitionId).map {
         case Some(tokenDef) => Right(tokenDef)
-        case None       => Left(Right(Api.NotFound(s"token definition not found: $tokenDefinitionId")))
+        case None =>
+          Left(
+            Right(
+              Api.NotFound(s"token definition not found: $tokenDefinitionId"),
+            ),
+          )
+      }
+  }
+
+  def getBalanceServerEndpoint = Api.getBalanceEndpoint.serverLogic {
+    (account, movable) =>
+      StateReadService.getBalance(account, movable).map { balanceMap =>
+        Either.cond(
+          balanceMap.nonEmpty,
+          balanceMap,
+          Right(Api.NotFound(s"balance not found: $account")),
+        )
       }
   }
 

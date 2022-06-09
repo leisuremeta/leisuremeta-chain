@@ -3,6 +3,8 @@ package api.model
 
 import java.time.Instant
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
@@ -25,6 +27,12 @@ object TransactionResult:
         Transaction.AccountTx.AddPublicKeySummariesResult(_),
       )
     }
+  
+  given txResultCirceEncoder: Encoder[TransactionResult] =
+    deriveEncoder[TransactionResult]
+
+  given txResultCirceDecoder: Decoder[TransactionResult] =
+    deriveDecoder[TransactionResult]
 
 sealed trait Transaction:
   def networkId: NetworkId
