@@ -1,6 +1,8 @@
 package io.leisuremeta.chain
 package api
 
+import java.util.Locale
+
 import io.circe.KeyEncoder
 import io.circe.generic.auto.*
 import io.circe.refined.*
@@ -24,7 +26,7 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.{AccountInfo, GroupInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo}
 import api.model.token.{TokenDefinition, TokenDefinitionId}
 import api.model.Signed.TxHash.given
 
@@ -125,3 +127,19 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("token-def" / path[TokenDefinitionId])
       .out(jsonBody[TokenDefinition])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBalanceEndpoint =
+    baseEndpoint.get
+      .in("balance" / path[Account] and query[Option[Movable]]("movable"))
+      .out(jsonBody[Map[TokenDefinitionId, BalanceInfo]])
+  enum Movable:
+    case Free, Locked
+  object Movable:
+    @SuppressWarnings(Array("org.wartremover.warts.ToString"))
+    given Codec[String, Option[Movable], TextPlain] = Codec.string.mapDecode{ (s: String) =>
+      s match
+        case "free" => DecodeResult.Value(Some(Movable.Free))
+        case "locked" => DecodeResult.Value(Some(Movable.Locked))
+        case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
+    }(_.fold("")(_.toString.toLowerCase(Locale.ENGLISH)))

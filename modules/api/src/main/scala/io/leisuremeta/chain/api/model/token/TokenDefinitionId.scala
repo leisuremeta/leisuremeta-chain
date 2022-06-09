@@ -2,7 +2,7 @@ package io.leisuremeta.chain
 package api.model
 package token
 
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import sttp.tapir.{Codec, DecodeResult, Schema}
 import sttp.tapir.CodecFormat.TextPlain
 
@@ -18,6 +18,10 @@ object TokenDefinitionId:
 
   given Decoder[TokenDefinitionId] = Utf8.utf8CirceDecoder
   given Encoder[TokenDefinitionId] = Utf8.utf8CirceEncoder
+
+  given KeyDecoder[TokenDefinitionId] = Utf8.utf8CirceKeyDecoder
+  given KeyEncoder[TokenDefinitionId] = Utf8.utf8CirceKeyEncoder
+
   given Schema[TokenDefinitionId] = Schema.string
 
   given ByteDecoder[TokenDefinitionId] = Utf8.utf8ByteDecoder.map(TokenDefinitionId(_))
