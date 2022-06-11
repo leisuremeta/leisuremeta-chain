@@ -9,7 +9,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.*
-import api.model.token.{TokenDefinition, TokenDefinitionId}
+import api.model.token.*
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
 import lib.datatype.{BigNat, UInt256Bytes}
@@ -94,6 +94,16 @@ object NodeMain extends IOApp:
           given StateRepoStore[IO, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] <-
             getStateRepo[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
               Paths.get("sway", "state", "token", "fungible-balance"),
+            )
+          given StateRepoStore[IO, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit] <-
+            getStateRepo[(Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
+              Paths.get("sway", "state", "token", "nft-balance"),
+            )
+          given StateRepoStore[IO, TokenId, NftState] <-
+            getStateRepo[TokenId, NftState](Paths.get("sway", "state", "token", "nft"))
+          given StateRepoStore[IO, (TokenDefinitionId, Rarity, TokenId), Unit] <-
+            getStateRepo[(TokenDefinitionId, Rarity, TokenId), Unit](
+              Paths.get("sway", "state", "token", "rarity"),
             )
           given TransactionRepository[IO] <- getTransactionRepo
 

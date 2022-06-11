@@ -10,7 +10,7 @@ import scodec.bits.ByteVector
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
-import token.{Rarity, NftInfo, TokenDefinitionId}
+import token.{Rarity, NftInfo, TokenDefinitionId, TokenId}
 
 sealed trait TransactionResult
 object TransactionResult:
@@ -27,7 +27,7 @@ object TransactionResult:
         Transaction.AccountTx.AddPublicKeySummariesResult(_),
       )
     }
-  
+
   given txResultCirceEncoder: Encoder[TransactionResult] =
     deriveEncoder[TransactionResult]
 
@@ -150,25 +150,24 @@ object Transaction:
         nftInfo: Option[NftInfo],
     ) extends TokenTx
 
-
     final case class MintFungibleToken(
         networkId: NetworkId,
         createdAt: Instant,
         definitionId: TokenDefinitionId,
         outputs: Map[Account, BigNat],
     ) extends TokenTx
-/*
+
     final case class MintNFT(
         networkId: NetworkId,
         createdAt: Instant,
-        definitionId: TokenDefinitionId,
-        tokenId: TokenDefinitionId,
+        tokenDefinitionId: TokenDefinitionId,
+        tokenId: TokenId,
         rarity: Rarity,
         dataUrl: Utf8,
         contentHash: UInt256Bytes,
         output: Account,
     ) extends TokenTx
-
+    /*
 //    final case class BurnNFT(
 //        networkId: NetworkId,
 //        createdAt: Instant,
@@ -255,18 +254,20 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
     ) extends TokenTx
-*/
+     */
     given txByteDecoder: ByteDecoder[TokenTx] = ByteDecoder[BigNat].flatMap {
       bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[DefineToken].widen
           case 1 => ByteDecoder[MintFungibleToken].widen
+          case 2 => ByteDecoder[MintNFT].widen
 //          case _ => ???
     }
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
         case tx: DefineToken       => build(0)(tx)
         case tx: MintFungibleToken => build(1)(tx)
+        case tx: MintNFT           => build(2)(tx)
 //        case _                     => ???
 
   end TokenTx
