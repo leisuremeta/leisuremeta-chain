@@ -22,7 +22,7 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.token.{TokenDefinition, TokenDefinitionId}
+import api.model.token.*
 import lib.merkle.MerkleTrie
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
@@ -114,4 +114,57 @@ trait UpdateStateWithTokenTx:
                 .runS(state)
             }
           yield (ms.copy(token = ms.token.copy(fungibleBalanceState = fungibleBalanceState)), txWithResult)
-          
+        case mn: Transaction.TokenTx.MintNFT =>
+          for
+            tokenDefinitionOption <- MerkleTrie
+              .get[F, TokenDefinitionId, TokenDefinition](
+                mn.tokenDefinitionId.toBytes.bits,
+              )
+              .runA(ms.token.tokenDefinitionState)
+            tokenDefinition <- EitherT.fromOption[F](
+              tokenDefinitionOption,
+              s"Token definition ${mn.tokenDefinitionId} does not exist"
+            )
+            adminGroupId <- EitherT.fromOption[F](
+              tokenDefinition.adminGroup,
+              s"Admin group does not exist in token $tokenDefinition"
+            )
+            groupAccountOption <- MerkleTrie
+              .get[F, (GroupId, Account), Unit]((adminGroupId, sig.account).toBytes.bits)
+              .runA(ms.group.groupAccountState)
+            _ <- EitherT.cond(
+              groupAccountOption.nonEmpty,
+              (),
+              s"Account ${sig.account} is not a member of admin group $adminGroupId",
+            )
+            pubKeySummary <- EitherT.fromEither[F](recoverSignature(mn, sig.sig))
+            accountPubKeyOption <- MerkleTrie
+              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
+                (sig.account, pubKeySummary).toBytes.bits,
+              )
+              .runA(ms.account.keyState)
+            _ <- EitherT.cond(
+              accountPubKeyOption.nonEmpty,
+              (),
+              s"Account ${sig.account} does not have public key summary $pubKeySummary",
+            )
+            txWithResult = TransactionWithResult(Signed(sig, mn), None)
+            balanceItem = (mn.output, mn.tokenId, txWithResult.toHash)
+            nftBalanceState <- MerkleTrie
+              .put[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](balanceItem.toBytes.bits, ())
+              .runS(ms.token.nftBalanceState)
+            nftStateItem = NftState(mn.tokenId, mn.tokenDefinitionId, mn.output)
+            nftState <- MerkleTrie
+              .put[F, TokenId, NftState](mn.tokenId.toBytes.bits, nftStateItem)
+              .runS(ms.token.nftState)
+            rarityItem = (mn.tokenDefinitionId, mn.rarity, mn.tokenId)
+            rarityState <- MerkleTrie
+              .put[F, (TokenDefinitionId, Rarity, TokenId), Unit](rarityItem.toBytes.bits, ())
+              .runS(ms.token.rarityState)
+            tokenState = ms.token.copy(
+              nftBalanceState = nftBalanceState,
+              nftState = nftState,
+              rarityState = rarityState,
+            )
+          yield 
+            (ms.copy(token = tokenState), txWithResult)

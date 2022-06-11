@@ -460,8 +460,12 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
       * Rarity: Map[(Rarity(string), Weight)]
       * DataUrl(string)
       * ContentHash: uint256
-* TokenState: TokenID => TokenInfo
-  * TokenInfo에는 현재 소유자 정보, token definition id가 포함되어 있어야 함
+* NftState: TokenID => NftState
+  * NftState
+    * TokenID
+    * TokenDefinitionID
+    * CurrentOwner: Account
+
 * RarityState: (TokenDefinitionID, Rarity, TokenID) => ()
 * FungibleBalanceState: (AccountName, TokenDefinitionID, TransactionHash) => ()
 * NftBalanceState: (AccountName, TokenID, TransactionHash) => ()

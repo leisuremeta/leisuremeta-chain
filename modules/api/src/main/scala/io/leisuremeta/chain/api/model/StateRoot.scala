@@ -7,7 +7,7 @@ import cats.Eq
 
 import lib.crypto.Hash
 import lib.merkle.MerkleTrieNode.MerkleRoot
-import token.{TokenDefinition, TokenDefinitionId}
+import token.*
 
 final case class StateRoot(
     account: StateRoot.AccountStateRoot,
@@ -40,9 +40,12 @@ object StateRoot:
 
   case class TokenStateRoot(
       tokenDefinitionRoot: Option[MerkleRoot[TokenDefinitionId, TokenDefinition]],
-      fungibleBalanceRoot: Option[MerkleRoot[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]]
+      fungibleBalanceRoot: Option[MerkleRoot[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]],
+      nftBalanceRoot: Option[MerkleRoot[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit]],
+      nftRoot:        Option[MerkleRoot[TokenId, NftState]],
+      rarityRoot:     Option[MerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
   )
   object TokenStateRoot:
-    def empty: TokenStateRoot = TokenStateRoot(None, None)
+    def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None)
 
   given eqStateRoot: Eq[StateRoot] = Eq.fromUniversalEquals

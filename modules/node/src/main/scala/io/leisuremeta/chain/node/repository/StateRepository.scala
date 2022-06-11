@@ -6,8 +6,14 @@ import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
 
-import api.model.{Account, GroupId, GroupData, PublicKeySummary, TransactionWithResult}
-import api.model.token.{TokenDefinition, TokenDefinitionId}
+import api.model.{
+  Account,
+  GroupId,
+  GroupData,
+  PublicKeySummary,
+  TransactionWithResult,
+}
+import api.model.token.{NftState, Rarity, TokenDefinition, TokenDefinitionId, TokenId}
 import lib.crypto.Hash
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
@@ -90,6 +96,13 @@ object StateRepository:
       (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
       Unit,
     ]
+    def nftBalance: StateRepository[
+      F,
+      (Account, TokenId, Hash.Value[TransactionWithResult]),
+      Unit,
+    ]
+    def nft: StateRepository[F, TokenId, NftState]
+    def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit]
   object TokenState:
     def apply[F[_]: TokenState]: TokenState[F] = summon
     given from[F[_]: Monad](using
@@ -103,6 +116,13 @@ object StateRepository:
           (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
+        nftBalanceKVStore: MerkleHashStore[
+          F,
+          (Account, TokenId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ],
+        nftKVStore: MerkleHashStore[F, TokenId, NftState],
+        rarityKVStore: MerkleHashStore[F, (TokenDefinitionId, Rarity, TokenId), Unit],
     ): TokenState[F] = new TokenState[F]:
       def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
         fromStores
@@ -111,15 +131,37 @@ object StateRepository:
         (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
         Unit,
       ] = fromStores
+      def nftBalance: StateRepository[
+        F,
+        (Account, TokenId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ] = fromStores
+      def nft: StateRepository[F, TokenId, NftState] = fromStores
+      def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
+        fromStores
 
   given nodeStoreFromDefinition[F[_]: Functor: TokenState]
       : NodeStore[F, TokenDefinitionId, TokenDefinition] =
     Kleisli(TokenState[F].definition.get(_).leftMap(_.msg))
 
-  given nodeStoreFromFungibleBalance[F[_]: Functor: TokenState]
-      : NodeStore[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] =
+  given nodeStoreFromFungibleBalance[F[_]: Functor: TokenState]: NodeStore[
+    F,
+    (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+    Unit,
+  ] =
     Kleisli(TokenState[F].fungibleBalance.get(_).leftMap(_.msg))
 
+  given nodeStoreFromNftBalance[F[_]: Functor: TokenState]
+      : NodeStore[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].nftBalance.get(_).leftMap(_.msg))
+  
+  given nodeStoreFromNft[F[_]: Functor: TokenState]
+      : NodeStore[F, TokenId, NftState] =
+    Kleisli(TokenState[F].nft.get(_).leftMap(_.msg))
+  
+  given nodeStoreFromRarity[F[_]: Functor: TokenState]
+      : NodeStore[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
+    Kleisli(TokenState[F].rarity.get(_).leftMap(_.msg))
   /** General
     */
   given nodeStore[F[_]: Functor, K, V](using

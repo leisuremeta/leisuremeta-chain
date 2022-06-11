@@ -17,7 +17,7 @@ import api.model.{
   StateRoot,
   TransactionWithResult,
 }
-import api.model.token.{TokenDefinition, TokenDefinitionId}
+import api.model.token.*
 import api.model.Block.ops.*
 import lib.crypto.{Hash, KeyPair, Recover, Sign, Signature}
 import lib.crypto.Hash.ops.*
@@ -37,18 +37,9 @@ object GossipDomain:
       token: MerkleState.TokenMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
-      account = StateRoot.AccountStateRoot(
-        namesRoot = account.namesState.root,
-        keyRoot = account.keyState.root,
-      ),
-      group = StateRoot.GroupStateRoot(
-        groupRoot = group.groupState.root,
-        groupAccountRoot = group.groupAccountState.root,
-      ),
-      token = StateRoot.TokenStateRoot(
-        tokenDefinitionRoot = token.tokenDefinitionState.root,
-        fungibleBalanceRoot = token.fungibleBalanceState.root,
-      ),
+      account = account.toStateRoot,
+      group = group.toStateRoot,
+      token = token.toStateRoot,
     )
 
   object MerkleState:
@@ -64,8 +55,11 @@ object GossipDomain:
         (Account, PublicKeySummary),
         PublicKeySummary.Info,
       ],
-    )
-
+    ):
+      def toStateRoot: StateRoot.AccountStateRoot = StateRoot.AccountStateRoot(
+        namesRoot = namesState.root,
+        keyRoot = keyState.root,
+      )
     object AccountMerkleState:
       def from(root: StateRoot.AccountStateRoot): AccountMerkleState = AccountMerkleState(
         namesState = buildMerkleTrieState(root.namesRoot),
@@ -75,7 +69,11 @@ object GossipDomain:
     case class GroupMerkleState(
       groupState: MerkleTrieState[GroupId, GroupData],
       groupAccountState: MerkleTrieState[(GroupId, Account), Unit],
-    )
+    ):
+      def toStateRoot: StateRoot.GroupStateRoot = StateRoot.GroupStateRoot(
+        groupRoot = groupState.root,
+        groupAccountRoot = groupAccountState.root,
+      )
 
     object GroupMerkleState:
       def from(root: StateRoot.GroupStateRoot): GroupMerkleState = GroupMerkleState(
@@ -86,12 +84,25 @@ object GossipDomain:
     case class TokenMerkleState(
       tokenDefinitionState: MerkleTrieState[TokenDefinitionId, TokenDefinition],
       fungibleBalanceState: MerkleTrieState[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit],
-    )
+      nftBalanceState: MerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
+      nftState:        MerkleTrieState[TokenId, NftState],
+      rarityState:     MerkleTrieState[(TokenDefinitionId, Rarity, TokenId), Unit],
+    ):
+      def toStateRoot: StateRoot.TokenStateRoot = StateRoot.TokenStateRoot(
+        tokenDefinitionRoot = tokenDefinitionState.root,
+        fungibleBalanceRoot = fungibleBalanceState.root,
+        nftBalanceRoot = nftBalanceState.root,
+        nftRoot = nftState.root,
+        rarityRoot = rarityState.root,
+      )
 
     object TokenMerkleState:
       def from(root: StateRoot.TokenStateRoot): TokenMerkleState = TokenMerkleState(
         tokenDefinitionState = buildMerkleTrieState(root.tokenDefinitionRoot),
         fungibleBalanceState = buildMerkleTrieState(root.fungibleBalanceRoot),
+        nftBalanceState = buildMerkleTrieState(root.nftBalanceRoot),
+        nftState        = buildMerkleTrieState(root.nftRoot), 
+        rarityState     = buildMerkleTrieState(root.rarityRoot), 
       )
 
   def buildMerkleTrieState[K, V](
@@ -668,8 +679,19 @@ object GossipDomain:
       fungibleBalanceState <- state.token.fungibleBalanceState.rebase(
         newBase.token.fungibleBalanceState,
       )
+      nftBalanceState <- state.token.nftBalanceState.rebase(
+        newBase.token.nftBalanceState
+      )
+      nftState <- state.token.nftState.rebase(newBase.token.nftState)
+      rarityState <- state.token.rarityState.rebase(newBase.token.rarityState)
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
       MerkleState.GroupMerkleState(groupState, groupAccountState),
-      MerkleState.TokenMerkleState(tokenDefinitionState, fungibleBalanceState),
+      MerkleState.TokenMerkleState(
+        tokenDefinitionState,
+        fungibleBalanceState,
+        nftBalanceState,
+        nftState,
+        rarityState,
+      ),
     )
