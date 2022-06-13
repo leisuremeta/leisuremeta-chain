@@ -5,10 +5,12 @@ package api_model
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 
+import token.TokenDefinitionId
 import lib.crypto.Hash
 import lib.datatype.BigNat
 
-final case class BalanceInfo(
-    totalAmount: BigNat,
-    unused: Map[Hash.Value[TransactionWithResult], TransactionWithResult],
+final case class NftBalanceInfo(
+  tokenDefinitionId: TokenDefinitionId,
+  txHash: Hash.Value[TransactionWithResult],
+  tx: TransactionWithResult,
 )

@@ -26,8 +26,8 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo}
-import api.model.token.{TokenDefinition, TokenDefinitionId}
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
+import api.model.token.{TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -131,8 +131,15 @@ object LeisureMetaChainApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBalanceEndpoint =
     baseEndpoint.get
-      .in("balance" / path[Account] and query[Option[Movable]]("movable"))
+      .in("balance" / path[Account].and(query[Option[Movable]]("movable")))
       .out(jsonBody[Map[TokenDefinitionId, BalanceInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftBalanceEndpoint =
+    baseEndpoint.get
+      .in("nft-balance" / path[Account].and(query[Option[Movable]]("movable")))
+      .out(jsonBody[Map[TokenId, NftBalanceInfo]])
+
   enum Movable:
     case Free, Locked
   object Movable:
@@ -141,5 +148,6 @@ object LeisureMetaChainApi:
       s match
         case "free" => DecodeResult.Value(Some(Movable.Free))
         case "locked" => DecodeResult.Value(Some(Movable.Locked))
+        case "all" => DecodeResult.Value(None)
         case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
     }(_.fold("")(_.toString.toLowerCase(Locale.ENGLISH)))
