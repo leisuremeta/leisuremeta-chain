@@ -87,6 +87,8 @@ object GossipDomain:
       nftBalanceState: MerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
       nftState:        MerkleTrieState[TokenId, NftState],
       rarityState:     MerkleTrieState[(TokenDefinitionId, Rarity, TokenId), Unit],
+      lockState: MerkleTrieState[(Account, Hash.Value[TransactionWithResult]), Unit],
+      deadlineState: MerkleTrieState[(Instant, Hash.Value[TransactionWithResult]), Unit],
     ):
       def toStateRoot: StateRoot.TokenStateRoot = StateRoot.TokenStateRoot(
         tokenDefinitionRoot = tokenDefinitionState.root,
@@ -94,6 +96,8 @@ object GossipDomain:
         nftBalanceRoot = nftBalanceState.root,
         nftRoot = nftState.root,
         rarityRoot = rarityState.root,
+        lockRoot = lockState.root,
+        deadlineRoot = deadlineState.root,
       )
 
     object TokenMerkleState:
@@ -103,6 +107,8 @@ object GossipDomain:
         nftBalanceState = buildMerkleTrieState(root.nftBalanceRoot),
         nftState        = buildMerkleTrieState(root.nftRoot), 
         rarityState     = buildMerkleTrieState(root.rarityRoot), 
+        lockState       = buildMerkleTrieState(root.lockRoot),
+        deadlineState   = buildMerkleTrieState(root.deadlineRoot),
       )
 
   def buildMerkleTrieState[K, V](
@@ -684,6 +690,10 @@ object GossipDomain:
       )
       nftState <- state.token.nftState.rebase(newBase.token.nftState)
       rarityState <- state.token.rarityState.rebase(newBase.token.rarityState)
+      lockState <- state.token.lockState.rebase(newBase.token.lockState)
+      deadlineState <- state.token.deadlineState.rebase(
+        newBase.token.deadlineState,
+      )
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
       MerkleState.GroupMerkleState(groupState, groupAccountState),
@@ -693,5 +703,7 @@ object GossipDomain:
         nftBalanceState,
         nftState,
         rarityState,
+        lockState,
+        deadlineState,
       ),
     )

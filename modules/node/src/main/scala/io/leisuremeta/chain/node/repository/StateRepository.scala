@@ -2,6 +2,8 @@ package io.leisuremeta.chain
 package node
 package repository
 
+import java.time.Instant
+
 import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
@@ -103,6 +105,9 @@ object StateRepository:
     ]
     def nft: StateRepository[F, TokenId, NftState]
     def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit]
+    def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit]
+    def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit]
+
   object TokenState:
     def apply[F[_]: TokenState]: TokenState[F] = summon
     given from[F[_]: Monad](using
@@ -123,6 +128,8 @@ object StateRepository:
         ],
         nftKVStore: MerkleHashStore[F, TokenId, NftState],
         rarityKVStore: MerkleHashStore[F, (TokenDefinitionId, Rarity, TokenId), Unit],
+        lockKVStore: MerkleHashStore[F, (Account, Hash.Value[TransactionWithResult]), Unit],
+        deadlineKVStore: MerkleHashStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit],
     ): TokenState[F] = new TokenState[F]:
       def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
         fromStores
@@ -139,6 +146,10 @@ object StateRepository:
       def nft: StateRepository[F, TokenId, NftState] = fromStores
       def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
         fromStores
+      def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
+        fromStores
+      def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit] = fromStores
+
 
   given nodeStoreFromDefinition[F[_]: Functor: TokenState]
       : NodeStore[F, TokenDefinitionId, TokenDefinition] =
@@ -162,6 +173,14 @@ object StateRepository:
   given nodeStoreFromRarity[F[_]: Functor: TokenState]
       : NodeStore[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
     Kleisli(TokenState[F].rarity.get(_).leftMap(_.msg))
+
+  given nodeStoreFromLock[F[_]: Functor: TokenState]
+      : NodeStore[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].lock.get(_).leftMap(_.msg))
+  given nodeStoreFromDeadline[F[_]: Functor: TokenState]
+      : NodeStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].deadline.get(_).leftMap(_.msg))
+
   /** General
     */
   given nodeStore[F[_]: Functor, K, V](using

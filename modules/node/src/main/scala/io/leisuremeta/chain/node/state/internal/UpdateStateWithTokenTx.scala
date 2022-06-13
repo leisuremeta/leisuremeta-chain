@@ -3,6 +3,8 @@ package node
 package state
 package internal
 
+import java.time.Instant
+
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.eq.given
@@ -269,5 +271,47 @@ trait UpdateStateWithTokenTx:
             ms.copy(token =
               ms.token.copy(fungibleBalanceState = fungibleBalanceState),
             ),
+            txWithResult,
+          )
+        case sf: Transaction.TokenTx.SuggestFungibleTokenDeal =>
+
+          val txWithResult = TransactionWithResult(Signed(sig, tx), None)
+
+          for
+            pubKeySummary <- EitherT.fromEither[F](
+              recoverSignature(sf, sig.sig),
+            )
+            accountPubKeyOption <- MerkleTrie
+              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
+                (sig.account, pubKeySummary).toBytes.bits,
+              )
+              .runA(ms.account.keyState)
+            _ <- EitherT.fromOption[F](
+              accountPubKeyOption,
+              s"Account ${sig.account} does not have public key summary $pubKeySummary",
+            )
+            fungibleBalanceState <- sf.inputs.toList.traverse { (txHash) =>
+              MerkleTrie.remove[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
+                (sig.account, sf.inputDefinitionId, txHash).toBytes.bits,
+              )
+            }.runS(ms.token.fungibleBalanceState)
+            lockState <- sf.inputs.toList.traverse { (txHash) =>
+              MerkleTrie.put[F, (Account, Hash.Value[TransactionWithResult]), Unit](
+                (sig.account, txHash).toBytes.bits,
+                (),
+              )
+            }.runS(ms.token.lockState)
+            deadlineState <- sf.inputs.toList.traverse { (txHash) =>
+              MerkleTrie.put[F, (Instant, Hash.Value[TransactionWithResult]), Unit](
+                (sf.dealDeadline, txHash).toBytes.bits,
+                (),
+              )
+            }.runS(ms.token.deadlineState)
+          yield (
+            ms.copy(token = ms.token.copy(
+              fungibleBalanceState = fungibleBalanceState,
+              lockState = lockState,
+              deadlineState = deadlineState,
+            )),
             txWithResult,
           )

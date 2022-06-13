@@ -2,6 +2,7 @@ package io.leisuremeta.chain
 package node
 
 import java.nio.file.{Path, Paths}
+import java.time.Instant
 
 import cats.effect.{ExitCode, IO, IOApp}
 //import cats.effect.unsafe.implicits.global
@@ -104,6 +105,14 @@ object NodeMain extends IOApp:
           given StateRepoStore[IO, (TokenDefinitionId, Rarity, TokenId), Unit] <-
             getStateRepo[(TokenDefinitionId, Rarity, TokenId), Unit](
               Paths.get("sway", "state", "token", "rarity"),
+            )
+          given StateRepoStore[IO, (Account, Hash.Value[TransactionWithResult]), Unit] <-
+            getStateRepo[(Account, Hash.Value[TransactionWithResult]), Unit](
+              Paths.get("sway", "state", "token", "lock"),
+            )
+          given StateRepoStore[IO, (Instant, Hash.Value[TransactionWithResult]), Unit] <-
+            getStateRepo[(Instant, Hash.Value[TransactionWithResult]), Unit](
+              Paths.get("sway", "state", "token", "deadline"),
             )
           given TransactionRepository[IO] <- getTransactionRepo
 
