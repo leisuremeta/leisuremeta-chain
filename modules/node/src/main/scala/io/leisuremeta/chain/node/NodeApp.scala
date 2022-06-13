@@ -140,6 +140,17 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getNftBalanceServerEndpoint = Api.getNftBalanceEndpoint.serverLogic {
+    (account, movable) =>
+      StateReadService.getNftBalance(account, movable).map { nftBalanceMap =>
+        Either.cond(
+          nftBalanceMap.nonEmpty,
+          nftBalanceMap,
+          Right(Api.NotFound(s"nft balance not found: $account")),
+        )
+      }
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -188,6 +199,8 @@ final case class NodeApp[F[_]
     getStatusServerEndpoint,
     getTxServerEndpoint,
     getTokenDefServerEndpoint,
+    getBalanceServerEndpoint,
+    getNftBalanceServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )
