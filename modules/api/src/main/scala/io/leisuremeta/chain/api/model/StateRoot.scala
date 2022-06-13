@@ -39,11 +39,18 @@ object StateRoot:
     def empty: GroupStateRoot = GroupStateRoot(None, None)
 
   case class TokenStateRoot(
-      tokenDefinitionRoot: Option[MerkleRoot[TokenDefinitionId, TokenDefinition]],
-      fungibleBalanceRoot: Option[MerkleRoot[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]],
-      nftBalanceRoot: Option[MerkleRoot[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit]],
-      nftRoot:        Option[MerkleRoot[TokenId, NftState]],
-      rarityRoot:     Option[MerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
+      tokenDefinitionRoot: Option[
+        MerkleRoot[TokenDefinitionId, TokenDefinition],
+      ],
+      fungibleBalanceRoot: Option[MerkleRoot[
+        (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ]],
+      nftBalanceRoot: Option[
+        MerkleRoot[(Account, TokenId, Hash.Value[TransactionWithResult]), Unit],
+      ],
+      nftRoot: Option[MerkleRoot[TokenId, NftState]],
+      rarityRoot: Option[MerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
   )
   object TokenStateRoot:
     def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None)
