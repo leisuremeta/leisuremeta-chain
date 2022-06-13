@@ -214,11 +214,17 @@ object StateReadService:
       case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
   yield balanceTxList.groupMapReduce(_._1) { (defId, txHash, txWithResult) =>
     txWithResult.signedTx.value match
-      case mf: Transaction.TokenTx.MintFungibleToken =>
-        BalanceInfo(
-          totalAmount = mf.outputs.get(account).getOrElse(BigNat.Zero),
-          unused = Map(txHash -> txWithResult),
-        )
+      case fb : Transaction.FungibleBalance => fb match
+        case mf: Transaction.TokenTx.MintFungibleToken =>
+          BalanceInfo(
+            totalAmount = mf.outputs.get(account).getOrElse(BigNat.Zero),
+            unused = Map(txHash -> txWithResult),
+          )
+        case tf: Transaction.TokenTx.TransferFungibleToken =>
+          BalanceInfo(
+            totalAmount = tf.outputs.get(account).getOrElse(BigNat.Zero),
+            unused = Map(txHash -> txWithResult),
+          )
       case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
   }((a, b) =>
     BalanceInfo(
@@ -282,14 +288,15 @@ object StateReadService:
       TransactionRepository[F].get(txHash).map { txWithResultOption =>
         txWithResultOption.map(txWithResult =>
           txWithResult.signedTx.value match
-            case mf: Transaction.TokenTx.MintNFT =>
-              Map(
-                tokenId -> NftBalanceInfo(
-                  mf.tokenDefinitionId,
-                  txHash,
-                  txWithResult,
-                ),
-              )
+            case nb: Transaction.NftBalance => nb match
+              case mf: Transaction.TokenTx.MintNFT =>
+                Map(
+                  tokenId -> NftBalanceInfo(
+                    mf.tokenDefinitionId,
+                    txHash,
+                    txWithResult,
+                  ),
+                )
             case _ =>
               Map.empty,
         )
