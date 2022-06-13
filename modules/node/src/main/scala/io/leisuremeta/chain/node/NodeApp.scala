@@ -151,6 +151,14 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
+    (tokenDefinitionId: TokenDefinitionId) =>
+      StateReadService.getOwners(tokenDefinitionId).value.map {
+        case Right(ownerMap) => Right(ownerMap)
+        case Left(errMsg) => Left(Left(Api.ServerError(errMsg)))
+      }
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -201,6 +209,7 @@ final case class NodeApp[F[_]
     getTokenDefServerEndpoint,
     getBalanceServerEndpoint,
     getNftBalanceServerEndpoint,
+    getOwnersServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )

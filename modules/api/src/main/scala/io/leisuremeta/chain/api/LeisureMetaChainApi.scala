@@ -140,6 +140,13 @@ object LeisureMetaChainApi:
       .in("nft-balance" / path[Account].and(query[Option[Movable]]("movable")))
       .out(jsonBody[Map[TokenId, NftBalanceInfo]])
 
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOwnersEndpoint =
+    baseEndpoint.get
+      .in("owners" / path[TokenDefinitionId])
+      .out(jsonBody[Map[TokenId, Account]])
+
   enum Movable:
     case Free, Locked
   object Movable:

@@ -20,7 +20,13 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
-import api.model.token.{TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.{
+  Rarity,
+  NftState,
+  TokenDefinition,
+  TokenDefinitionId,
+  TokenId,
+}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -277,12 +283,58 @@ object StateReadService:
         txWithResultOption.map(txWithResult =>
           txWithResult.signedTx.value match
             case mf: Transaction.TokenTx.MintNFT =>
-              Map(tokenId -> NftBalanceInfo(mf.tokenDefinitionId, txHash, txWithResult))
+              Map(
+                tokenId -> NftBalanceInfo(
+                  mf.tokenDefinitionId,
+                  txHash,
+                  txWithResult,
+                ),
+              )
             case _ =>
-              Map.empty
-      )}
+              Map.empty,
+        )
+      }
     }.value
     balanceTxList <- balanceTxEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err.msg))
       case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
   yield balanceTxList.foldLeft(Map.empty)(_ ++ _)
+
+  def getOwners[F[_]: Concurrent: BlockRepository: StateRepository.TokenState](
+      tokenDefinitionId: TokenDefinitionId,
+  ): EitherT[F, String, Map[TokenId, Account]] = for
+    bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
+    bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
+    merkleState = MerkleState.from(bestHeader)
+    tokenIdList <- MerkleTrie
+      .from[F, (TokenDefinitionId, Rarity, TokenId), Unit](
+        tokenDefinitionId.toBytes.bits,
+      )
+      .runA(merkleState.token.rarityState)
+      .flatMap(
+        _.takeWhile(
+          _._1.startsWith(tokenDefinitionId.toBytes.bits),
+        ).compile.toList
+          .flatMap { (list) =>
+            list.traverse { case (bits, _) =>
+              EitherT.fromEither[F] {
+                ByteDecoder[(TokenDefinitionId, Rarity, TokenId)]
+                  .decode(bits.bytes) match
+                  case Left(err) => Left(err.msg)
+                  case Right(DecodeResult((_, _, tokenId), remainder)) =>
+                    if remainder.isEmpty then Right(tokenId)
+                    else
+                      Left(
+                        s"non-empty remainder in decoding rarity state of $tokenDefinitionId",
+                      )
+              }
+            }
+          },
+      )
+    ownerOptionList <- tokenIdList.traverse { (tokenId: TokenId) =>
+      MerkleTrie
+        .get[F, TokenId, NftState](tokenId.toBytes.bits)
+        .runA(merkleState.token.nftState)
+        .map(nftStateOption => nftStateOption.map(state => (tokenId, state.currentOwner)))
+    }
+  yield ownerOptionList.flatten.toMap
