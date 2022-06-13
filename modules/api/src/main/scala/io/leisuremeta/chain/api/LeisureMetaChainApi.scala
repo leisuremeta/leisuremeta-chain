@@ -27,7 +27,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
-import api.model.token.{TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -140,6 +140,11 @@ object LeisureMetaChainApi:
       .in("nft-balance" / path[Account].and(query[Option[Movable]]("movable")))
       .out(jsonBody[Map[TokenId, NftBalanceInfo]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenEndpoint =
+    baseEndpoint.get
+      .in("token" / path[TokenId])
+      .out(jsonBody[NftState])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getOwnersEndpoint =

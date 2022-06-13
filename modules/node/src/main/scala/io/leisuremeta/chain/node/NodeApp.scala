@@ -15,7 +15,7 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
-import api.model.token.TokenDefinitionId
+import api.model.token.{TokenDefinitionId, TokenId}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{BlockRepository, StateRepository, TransactionRepository}
@@ -151,6 +151,17 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getTokenServerEndpoint = Api.getTokenEndpoint.serverLogic {
+    (tokenId: TokenId) =>
+      StateReadService.getToken(tokenId).value.map {
+        case Right(Some(nftState)) => Right(nftState)
+        case Right(None) =>
+          Left(Right(Api.NotFound(s"token not found: $tokenId")))
+        case Left(err) => Left(Left(Api.ServerError(err)))
+      }
+  }
+
+
   def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
     (tokenDefinitionId: TokenDefinitionId) =>
       StateReadService.getOwners(tokenDefinitionId).value.map {
@@ -209,6 +220,7 @@ final case class NodeApp[F[_]
     getTokenDefServerEndpoint,
     getBalanceServerEndpoint,
     getNftBalanceServerEndpoint,
+    getTokenServerEndpoint,
     getOwnersServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
