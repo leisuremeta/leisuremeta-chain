@@ -155,7 +155,7 @@ object Transaction:
         createdAt: Instant,
         definitionId: TokenDefinitionId,
         outputs: Map[Account, BigNat],
-    ) extends TokenTx
+    ) extends TokenTx with FungibleBalance
 
     final case class MintNFT(
         networkId: NetworkId,
@@ -166,8 +166,8 @@ object Transaction:
         dataUrl: Utf8,
         contentHash: UInt256Bytes,
         output: Account,
-    ) extends TokenTx
-    /*
+    ) extends TokenTx with NftBalance
+
 //    final case class BurnNFT(
 //        networkId: NetworkId,
 //        createdAt: Instant,
@@ -178,12 +178,12 @@ object Transaction:
     final case class TransferFungibleToken(
         networkId: NetworkId,
         createdAt: Instant,
-        definitionId: TokenDefinitionId,
+        tokenDefinitionId: TokenDefinitionId,
         inputs: Set[Signed.TxHash],
         outputs: Map[Account, BigNat],
-        memo: Option[String],
-    ) extends TokenTx
-
+        memo: Option[Utf8],
+    ) extends TokenTx with FungibleBalance
+    /*
     final case class TransferNft(
         networkId: NetworkId,
         createdAt: Instant,
@@ -261,13 +261,16 @@ object Transaction:
           case 0 => ByteDecoder[DefineToken].widen
           case 1 => ByteDecoder[MintFungibleToken].widen
           case 2 => ByteDecoder[MintNFT].widen
+          case 4 => ByteDecoder[TransferFungibleToken].widen
+
 //          case _ => ???
     }
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
-        case tx: DefineToken       => build(0)(tx)
-        case tx: MintFungibleToken => build(1)(tx)
-        case tx: MintNFT           => build(2)(tx)
+        case tx: DefineToken           => build(0)(tx)
+        case tx: MintFungibleToken     => build(1)(tx)
+        case tx: MintNFT               => build(2)(tx)
+        case tx: TransferFungibleToken => build(4)(tx)
 //        case _                     => ???
 
   end TokenTx
@@ -334,3 +337,8 @@ object Transaction:
   end AgendaTx
 
  */
+
+  sealed trait FungibleBalance
+
+  sealed trait NftBalance
+
