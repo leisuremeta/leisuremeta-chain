@@ -155,7 +155,8 @@ object Transaction:
         createdAt: Instant,
         definitionId: TokenDefinitionId,
         outputs: Map[Account, BigNat],
-    ) extends TokenTx with FungibleBalance
+    ) extends TokenTx
+        with FungibleBalance
 
     final case class MintNFT(
         networkId: NetworkId,
@@ -166,7 +167,8 @@ object Transaction:
         dataUrl: Utf8,
         contentHash: UInt256Bytes,
         output: Account,
-    ) extends TokenTx with NftBalance
+    ) extends TokenTx
+        with NftBalance
 
 //    final case class BurnNFT(
 //        networkId: NetworkId,
@@ -182,34 +184,38 @@ object Transaction:
         inputs: Set[Signed.TxHash],
         outputs: Map[Account, BigNat],
         memo: Option[Utf8],
-    ) extends TokenTx with FungibleBalance
-    /*
-    final case class TransferNft(
-        networkId: NetworkId,
-        createdAt: Instant,
-        definitionId: TokenDefinitionId,
-        tokenId: TokenId,
-        input: Signed.TxHash,
-        output: Account,
-        memo: Option[String],
     ) extends TokenTx
+        with FungibleBalance
 
-//    final case class SuggestFungibleTokenDeal(
+//    final case class TransferNft(
 //        networkId: NetworkId,
 //        createdAt: Instant,
-//        originalSuggestion: Option[Signed.TxHash],
-//        inputDefinitionId: TokenDefinitionId,
-//        inputs: Set[Signed.TxHash],
-//        output: BigNat,
-//        dealDeadline: Instant,
-//        requirement: FungibleRequirement,
+//        definitionId: TokenDefinitionId,
+//        tokenId: TokenId,
+//        input: Signed.TxHash,
+//        output: Account,
+//        memo: Option[String],
 //    ) extends TokenTx
+
+    final case class SuggestFungibleTokenDeal(
+        networkId: NetworkId,
+        createdAt: Instant,
+        originalSuggestion: Option[Signed.TxHash],
+        inputDefinitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+        output: BigNat,
+        dealDeadline: Instant,
+        requirement: FungibleRequirement,
+    ) extends TokenTx
+
+    object SuggestFungibleTokenDeal:
+      given txEncoder: Encoder[SuggestFungibleTokenDeal] = deriveEncoder
 
     case class FungibleRequirement(
         definitionID: TokenDefinitionId,
         amount: BigNat,
     )
-
+    /*
     final case class SuggestSellDeal(
         networkId: NetworkId,
         createdAt: Instant,
@@ -262,15 +268,17 @@ object Transaction:
           case 1 => ByteDecoder[MintFungibleToken].widen
           case 2 => ByteDecoder[MintNFT].widen
           case 4 => ByteDecoder[TransferFungibleToken].widen
+          case 6 => ByteDecoder[SuggestFungibleTokenDeal].widen
 
 //          case _ => ???
     }
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
-        case tx: DefineToken           => build(0)(tx)
-        case tx: MintFungibleToken     => build(1)(tx)
-        case tx: MintNFT               => build(2)(tx)
-        case tx: TransferFungibleToken => build(4)(tx)
+        case tx: DefineToken              => build(0)(tx)
+        case tx: MintFungibleToken        => build(1)(tx)
+        case tx: MintNFT                  => build(2)(tx)
+        case tx: TransferFungibleToken    => build(4)(tx)
+        case tx: SuggestFungibleTokenDeal => build(6)(tx)
 //        case _                     => ???
 
   end TokenTx
@@ -299,7 +307,7 @@ object Transaction:
 
   given txRecover: Recover[Transaction] = Recover.build
 
-/*
+  /*
   sealed trait RandomOfferingTx extends Transaction
   object RandomOfferingTx:
     final case class Notice(
@@ -336,9 +344,8 @@ object Transaction:
     ) extends AgendaTx
   end AgendaTx
 
- */
+   */
 
   sealed trait FungibleBalance
 
   sealed trait NftBalance
-
