@@ -300,6 +300,17 @@ object StateReadService:
       case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
   yield balanceTxList.foldLeft(Map.empty)(_ ++ _)
 
+  def getToken[F[_]: Concurrent: BlockRepository: StateRepository.TokenState](
+      tokenId: TokenId,
+  ): EitherT[F, String, Option[NftState]] = for
+    bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
+    bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
+    merkleState = MerkleState.from(bestHeader)
+    nftStateOption <- MerkleTrie
+      .get[F, TokenId, NftState](tokenId.toBytes.bits)
+      .runA(merkleState.token.nftState)
+  yield nftStateOption
+
   def getOwners[F[_]: Concurrent: BlockRepository: StateRepository.TokenState](
       tokenDefinitionId: TokenDefinitionId,
   ): EitherT[F, String, Map[TokenId, Account]] = for
