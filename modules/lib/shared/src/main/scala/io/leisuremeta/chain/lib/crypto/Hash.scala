@@ -4,7 +4,7 @@ package crypto
 import cats.Eq
 import cats.Contravariant
 
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, KeyEncoder, KeyDecoder}
 import scodec.bits.ByteVector
 
 import codec.byte.{ByteDecoder, ByteEncoder}
@@ -27,6 +27,15 @@ object Hash:
 
     given circeValueEncoder[A]: Encoder[Value[A]] =
       UInt256.uint256bytesCirceEncoder.contramap[Value[A]](_.toUInt256Bytes)
+
+    given circeKeyDecoder[A]: KeyDecoder[Value[A]] = (str) =>
+      for
+        bytes <- ByteVector.fromHex(str)
+        uint256 <- UInt256.from(bytes).toOption
+      yield Value[A](uint256)
+
+    given circeKeyEncoder[A]: KeyEncoder[Value[A]] =
+      KeyEncoder.encodeKeyString.contramap[Value[A]](_.toUInt256Bytes.toBytes.toHex)
 
     given byteValueDecoder[A]: ByteDecoder[Value[A]] =
       UInt256.uint256bytesByteDecoder.map(Value[A](_))

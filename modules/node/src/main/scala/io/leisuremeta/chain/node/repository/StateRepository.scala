@@ -2,11 +2,21 @@ package io.leisuremeta.chain
 package node
 package repository
 
+import java.time.Instant
+
 import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits.*
 
-import api.model.{Account, GroupId, GroupData, PublicKeySummary}
+import api.model.{
+  Account,
+  GroupId,
+  GroupData,
+  PublicKeySummary,
+  TransactionWithResult,
+}
+import api.model.token.{NftState, Rarity, TokenDefinition, TokenDefinitionId, TokenId}
+import lib.crypto.Hash
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
@@ -23,9 +33,8 @@ trait StateRepository[F[_], K, V]:
 
 object StateRepository:
 
-  /**
-   * AccountState
-   */
+  /** AccountState
+    */
   trait AccountState[F[_]]:
     def name: StateRepository[F, Account, Option[Account]]
     def key
@@ -54,9 +63,8 @@ object StateRepository:
       : NodeStore[F, (Account, PublicKeySummary), PublicKeySummary.Info] =
     Kleisli(AccountState[F].key.get(_).leftMap(_.msg))
 
-  /**
-   * GroupState
-   */
+  /** GroupState
+    */
   trait GroupState[F[_]]:
     def group: StateRepository[F, GroupId, GroupData]
     def groupAccount: StateRepository[F, (GroupId, Account), Unit]
@@ -71,7 +79,8 @@ object StateRepository:
         ],
     ): GroupState[F] = new GroupState[F]:
       def group: StateRepository[F, GroupId, GroupData] = fromStores
-      def groupAccount: StateRepository[F, (GroupId, Account), Unit] = fromStores
+      def groupAccount: StateRepository[F, (GroupId, Account), Unit] =
+        fromStores
 
   given nodeStoreFromGroup[F[_]: Functor: GroupState]
       : NodeStore[F, GroupId, GroupData] =
@@ -80,6 +89,100 @@ object StateRepository:
       : NodeStore[F, (GroupId, Account), Unit] =
     Kleisli(GroupState[F].groupAccount.get(_).leftMap(_.msg))
 
+  /** TokenState
+    */
+  trait TokenState[F[_]]:
+    def definition: StateRepository[F, TokenDefinitionId, TokenDefinition]
+    def fungibleBalance: StateRepository[
+      F,
+      (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+      Unit,
+    ]
+    def nftBalance: StateRepository[
+      F,
+      (Account, TokenId, Hash.Value[TransactionWithResult]),
+      Unit,
+    ]
+    def nft: StateRepository[F, TokenId, NftState]
+    def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit]
+    def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit]
+    def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit]
+
+  object TokenState:
+    def apply[F[_]: TokenState]: TokenState[F] = summon
+    given from[F[_]: Monad](using
+        difinitionKVStroe: MerkleHashStore[
+          F,
+          TokenDefinitionId,
+          TokenDefinition,
+        ],
+        fungibleBalanceKVStroe: MerkleHashStore[
+          F,
+          (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ],
+        nftBalanceKVStore: MerkleHashStore[
+          F,
+          (Account, TokenId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ],
+        nftKVStore: MerkleHashStore[F, TokenId, NftState],
+        rarityKVStore: MerkleHashStore[F, (TokenDefinitionId, Rarity, TokenId), Unit],
+        lockKVStore: MerkleHashStore[F, (Account, Hash.Value[TransactionWithResult]), Unit],
+        deadlineKVStore: MerkleHashStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit],
+    ): TokenState[F] = new TokenState[F]:
+      def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
+        fromStores
+      def fungibleBalance: StateRepository[
+        F,
+        (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ] = fromStores
+      def nftBalance: StateRepository[
+        F,
+        (Account, TokenId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ] = fromStores
+      def nft: StateRepository[F, TokenId, NftState] = fromStores
+      def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
+        fromStores
+      def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
+        fromStores
+      def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit] = fromStores
+
+
+  given nodeStoreFromDefinition[F[_]: Functor: TokenState]
+      : NodeStore[F, TokenDefinitionId, TokenDefinition] =
+    Kleisli(TokenState[F].definition.get(_).leftMap(_.msg))
+
+  given nodeStoreFromFungibleBalance[F[_]: Functor: TokenState]: NodeStore[
+    F,
+    (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+    Unit,
+  ] =
+    Kleisli(TokenState[F].fungibleBalance.get(_).leftMap(_.msg))
+
+  given nodeStoreFromNftBalance[F[_]: Functor: TokenState]
+      : NodeStore[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].nftBalance.get(_).leftMap(_.msg))
+  
+  given nodeStoreFromNft[F[_]: Functor: TokenState]
+      : NodeStore[F, TokenId, NftState] =
+    Kleisli(TokenState[F].nft.get(_).leftMap(_.msg))
+  
+  given nodeStoreFromRarity[F[_]: Functor: TokenState]
+      : NodeStore[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
+    Kleisli(TokenState[F].rarity.get(_).leftMap(_.msg))
+
+  given nodeStoreFromLock[F[_]: Functor: TokenState]
+      : NodeStore[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].lock.get(_).leftMap(_.msg))
+  given nodeStoreFromDeadline[F[_]: Functor: TokenState]
+      : NodeStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].deadline.get(_).leftMap(_.msg))
+
+  /** General
+    */
   given nodeStore[F[_]: Functor, K, V](using
       sr: StateRepository[F, K, V],
   ): NodeStore[F, K, V] = Kleisli(sr.get(_).leftMap(_.msg))
@@ -88,7 +191,7 @@ object StateRepository:
     KeyValueStore[F, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
 
   def fromStores[F[_]: Monad, K, V](using
-      stateKvStore: MerkleHashStore[F, K, V]
+      stateKvStore: MerkleHashStore[F, K, V],
   ): StateRepository[F, K, V] = new StateRepository[F, K, V]:
 
     def get(

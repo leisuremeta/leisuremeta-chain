@@ -10,17 +10,28 @@
 >
 > * 'free': 유동 자산
 > * 'locked': 예치 자산
+> * 'all': 전체 자산
 
 *  Response: Map[TokenDefinitionID, BalanceInfo]
   * Token Definition ID: 토큰 정의 ID (string)
   * BalanceInfo
     * Total Amount: 해당 토큰 총 금액/수량 (NFT의 경우 랜덤박스 갯수)
-    * Array[TxHash]: 사용하지 않은 트랜잭션 해시 목록
+    * Map[TxHash, Tx]: 사용하지 않은 트랜잭션 해시 목록
 
 `GET` **/nft-balance/{accountName}** 계정 NFT 잔고 조회
 
-*  Response: Map[TokenDefinitionID, Map[TokenID, UTXO Hash]]
-  * Token Definition ID: 토큰 정의 ID (string)
+> `param` *(optional)* movable: 잔고의 이동 가능성 여부
+>
+> * 'free': 유동 자산
+> * 'locked': 예치 자산
+> * 'all': 전체 자산
+
+*  Response: Map[TokenID, NftBalanceInfo]
+  *  NftBalanceInfo
+    *  TokenDefinitionId
+    *  TxHash
+    *  Tx
+
 
 `GET` **/reward-expectation/{accountName}** 예상 보상량 조회
 
@@ -448,20 +459,24 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Token
 
-* TokenDefinitionState: TokenDefinitionID(string)=> TokenDefinitionInfo
-  * TokenDefinitionInfo
+* TokenDefinitionState: TokenDefinitionID(string)=> TokenDefinition
+  * TokenDefinition
     * TokenDefinitionID(string)
     * Name(string)
     * *(optional)* Symbol(string)
-    * *(optional)* AdminGroup: GroupName(string)
+    * *(optional)* AdminGroup: GroupId
     * TotalAmount
     * *(optional)* NftInfo
       * Minter: AccountName(string)
       * Rarity: Map[(Rarity(string), Weight)]
       * DataUrl(string)
       * ContentHash: uint256
-* TokenState: TokenID => TokenInfo
-  * TokenInfo에는 현재 소유자 정보, token definition id가 포함되어 있어야 함
+* NftState: TokenID => NftState
+  * NftState
+    * TokenID
+    * TokenDefinitionID
+    * CurrentOwner: Account
+
 * RarityState: (TokenDefinitionID, Rarity, TokenID) => ()
 * FungibleBalanceState: (AccountName, TokenDefinitionID, TransactionHash) => ()
 * NftBalanceState: (AccountName, TokenID, TransactionHash) => ()

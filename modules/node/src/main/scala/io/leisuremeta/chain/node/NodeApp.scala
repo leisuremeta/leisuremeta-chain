@@ -15,6 +15,7 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
+import api.model.token.{TokenDefinitionId, TokenId}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{BlockRepository, StateRepository, TransactionRepository}
@@ -30,7 +31,7 @@ import service.interpreter.LocalGossipServiceInterpreter
 import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: TransactionRepository](
+  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: TransactionRepository](
     config: NodeConfig,
 ):
 
@@ -98,11 +99,12 @@ final case class NodeApp[F[_]
   def getBlockServerEndpoint = Api.getBlockEndpoint.serverLogic {
     (blockHash: Block.BlockHash) =>
       val result = BlockService.get(blockHash).value
-      
+
       result.map {
         case Right(Some(block)) => Right(block)
-        case Right(None) => Left(Right(Api.NotFound(s"block not found: $blockHash")))
-        case Left(err)   => Left(Left(Api.ServerError(err)))
+        case Right(None) =>
+          Left(Right(Api.NotFound(s"block not found: $blockHash")))
+        case Left(err) => Left(Left(Api.ServerError(err)))
       }
   }
 
@@ -112,6 +114,60 @@ final case class NodeApp[F[_]
         networkId = config.local.networkId,
         genesisTimestamp = config.genesis.timestamp,
       )
+  }
+
+  def getTokenDefServerEndpoint = Api.getTokenDefinitionEndpoint.serverLogic {
+    (tokenDefinitionId: TokenDefinitionId) =>
+      StateReadService.getTokenDef(tokenDefinitionId).map {
+        case Some(tokenDef) => Right(tokenDef)
+        case None =>
+          Left(
+            Right(
+              Api.NotFound(s"token definition not found: $tokenDefinitionId"),
+            ),
+          )
+      }
+  }
+
+  def getBalanceServerEndpoint = Api.getBalanceEndpoint.serverLogic {
+    (account, movable) =>
+      StateReadService.getBalance(account, movable).map { balanceMap =>
+        Either.cond(
+          balanceMap.nonEmpty,
+          balanceMap,
+          Right(Api.NotFound(s"balance not found: $account")),
+        )
+      }
+  }
+
+  def getNftBalanceServerEndpoint = Api.getNftBalanceEndpoint.serverLogic {
+    (account, movable) =>
+      StateReadService.getNftBalance(account, movable).map { nftBalanceMap =>
+        Either.cond(
+          nftBalanceMap.nonEmpty,
+          nftBalanceMap,
+          Right(Api.NotFound(s"nft balance not found: $account")),
+        )
+      }
+  }
+
+  def getTokenServerEndpoint = Api.getTokenEndpoint.serverLogic {
+    (tokenId: TokenId) =>
+      StateReadService.getToken(tokenId).value.map {
+        case Right(Some(nftState)) => Right(nftState)
+        case Right(None) =>
+          Left(Right(Api.NotFound(s"token not found: $tokenId")))
+        case Left(err) => Left(Left(Api.ServerError(err)))
+      }
+  }
+
+
+  def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
+    (tokenDefinitionId: TokenDefinitionId) =>
+      StateReadService.getOwners(tokenDefinitionId).value.map {
+        case Right(ownerMap) => Right(ownerMap)
+        case Left(errMsg) => Left(Left(Api.ServerError(errMsg)))
+      }
   }
 
   def postTxServerEndpoint(using LocalGossipService[F]) =
@@ -161,6 +217,11 @@ final case class NodeApp[F[_]
     getGroupServerEndpoint,
     getStatusServerEndpoint,
     getTxServerEndpoint,
+    getTokenDefServerEndpoint,
+    getBalanceServerEndpoint,
+    getNftBalanceServerEndpoint,
+    getTokenServerEndpoint,
+    getOwnersServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )
