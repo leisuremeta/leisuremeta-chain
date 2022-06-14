@@ -3,6 +3,7 @@ package codec.byte
 
 import java.time.Instant
 
+import scala.compiletime.{erasedValue, summonInline}
 import scala.deriving.Mirror
 import scala.reflect.{ClassTag, classTag}
 
@@ -12,6 +13,7 @@ import eu.timepit.refined.auto.autoUnwrap
 import eu.timepit.refined.numeric.NonNegative
 import eu.timepit.refined.refineV
 import scodec.bits.ByteVector
+import shapeless3.deriving.*
 
 import datatype.UInt256
 
@@ -48,6 +50,20 @@ object ByteEncoder:
       beb: ByteEncoder[m.MirroredElemTypes],
   ): ByteEncoder[P] = beb contramap Tuple.fromProductTyped
 
+  private inline def summonAll[T <: Tuple]: List[ByteEncoder[_]] = inline erasedValue[T] match
+    case _: EmptyTuple => Nil
+    case _: (t *: ts)  => summonInline[ByteEncoder[t]] :: summonAll[ts]
+
+  inline given sumEncoder[S](using s: Mirror.SumOf[S]): ByteEncoder[S] =
+    lazy val elemInstances = summonAll[s.MirroredElemTypes]
+
+    (sv: S) =>
+      val ordinal = s.ordinal(sv)
+      bignatByteEncoder.encode(unsafeFromBigInt(ordinal)) ++ elemInstances(
+        ordinal,
+      ).asInstanceOf[ByteEncoder[S]].encode(sv)
+
+
   given unitByteEncoder: ByteEncoder[Unit] = _ => ByteVector.empty
 
   given [A: UInt256.Ops]: ByteEncoder[UInt256.Refined[A]] = _.toBytes
@@ -69,18 +85,23 @@ object ByteEncoder:
           (sizeBytes.size + 0xf8 - 1).toByte,
         ) ++ sizeBytes ++ bytes
 
-  given listByteEncoder[A: ByteEncoder]: ByteEncoder[List[A]] = (list: List[A]) =>
-    list.foldLeft(bignatByteEncoder.encode(unsafeFromBigInt(list.size))) {
-      case (acc, a) => acc ++ ByteEncoder[A].encode(a)
-    }
+  given listByteEncoder[A: ByteEncoder]: ByteEncoder[List[A]] =
+    (list: List[A]) =>
+      list.foldLeft(bignatByteEncoder.encode(unsafeFromBigInt(list.size))) {
+        case (acc, a) => acc ++ ByteEncoder[A].encode(a)
+      }
 
   given mapByteEncoder[K: ByteEncoder, V: ByteEncoder]: ByteEncoder[Map[K, V]] =
     listByteEncoder[(K, V)].contramap(_.toList)
 
-  given optionByteEncoder[A: ByteEncoder]: ByteEncoder[Option[A]] = 
+  given optionByteEncoder[A: ByteEncoder]: ByteEncoder[Option[A]] =
     listByteEncoder.contramap(_.toList)
-  
+
   given setByteEncoder[A: ByteEncoder]: ByteEncoder[Set[A]] = (set: Set[A]) =>
-    set.map(ByteEncoder[A].encode).toList.sorted.foldLeft{
-      bignatByteEncoder.encode(unsafeFromBigInt(set.size))
-     } (_ ++ _)
+    set
+      .map(ByteEncoder[A].encode)
+      .toList
+      .sorted
+      .foldLeft {
+        bignatByteEncoder.encode(unsafeFromBigInt(set.size))
+      }(_ ++ _)

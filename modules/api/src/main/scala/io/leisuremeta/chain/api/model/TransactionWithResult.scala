@@ -13,6 +13,6 @@ object TransactionWithResult:
     Hash[Transaction].contramap(_.signedTx.value)
 
   object ops:
-    extension [A](txHash: Signed.TxHash)
+    extension [A](txHash: Hash.Value[A])
       def toResultHashValue: Hash.Value[TransactionWithResult] =
         Hash.Value[TransactionWithResult](txHash.toUInt256Bytes)
