@@ -10,7 +10,9 @@ import scodec.bits.ByteVector
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
-import token.{Rarity, NftInfo, TokenDefinitionId, TokenId}
+import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintFungibleToken
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferFungibleToken
 
 sealed trait TransactionResult
 object TransactionResult:
@@ -20,12 +22,22 @@ object TransactionResult:
         case Transaction.AccountTx.AddPublicKeySummariesResult(removed) =>
           ByteVector.fromByte(0) ++ ByteEncoder[Map[PublicKeySummary, Utf8]]
             .encode(removed)
+        case Transaction.TokenTx.AcceptDealResult(outputs) =>
+          ByteVector.fromByte(1) ++ ByteEncoder[
+            Map[Account, Map[TokenDefinitionId, TokenDetail]],
+          ]
+            .encode(outputs)
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
-    ByteDecoder.byteDecoder.flatMap { case 0 =>
-      ByteDecoder[Map[PublicKeySummary, Utf8]].map(
-        Transaction.AccountTx.AddPublicKeySummariesResult(_),
-      )
+    ByteDecoder.byteDecoder.flatMap {
+      case 0 =>
+        ByteDecoder[Map[PublicKeySummary, Utf8]].map(
+          Transaction.AccountTx.AddPublicKeySummariesResult(_),
+        )
+      case 1 =>
+        ByteDecoder[Map[Account, Map[TokenDefinitionId, TokenDetail]]].map(
+          Transaction.TokenTx.AcceptDealResult(_),
+        )
     }
 
   given txResultCirceEncoder: Encoder[TransactionResult] =
@@ -207,39 +219,40 @@ object Transaction:
         dealDeadline: Instant,
         requirement: FungibleRequirement,
     ) extends TokenTx
+        with DealSuggestion
 
     object SuggestFungibleTokenDeal:
       given txEncoder: Encoder[SuggestFungibleTokenDeal] = deriveEncoder
 
     case class FungibleRequirement(
-        definitionID: TokenDefinitionId,
+        definitionId: TokenDefinitionId,
         amount: BigNat,
     )
-    /*
-    final case class SuggestSellDeal(
-        networkId: NetworkId,
-        createdAt: Instant,
-        originalSuggestion: Option[Signed.TxHash],
-        inputDefinitionId: TokenDefinitionId,
-        input: Signed.TxHash,
-        dealDeadline: Instant,
-        requirement: FungibleRequirement,
-    ) extends TokenTx
 
-    final case class SuggestBuyDeal(
-        networkId: NetworkId,
-        createdAt: Instant,
-        originalSuggestion: Option[Signed.TxHash],
-        inputDefinitionId: TokenDefinitionId,
-        input: Signed.TxHash,
-        dealDeadline: Instant,
-        requirement: NftRequirement,
-    ) extends TokenTx
+//    final case class SuggestSellDeal(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        originalSuggestion: Option[Signed.TxHash],
+//        inputDefinitionId: TokenDefinitionId,
+//        input: Signed.TxHash,
+//        dealDeadline: Instant,
+//        requirement: FungibleRequirement,
+//    ) extends TokenTx
 
-    case class NftRequirement(
-        definitionID: TokenDefinitionId,
-        tokenID: TokenId,
-    )
+//    final case class SuggestBuyDeal(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        originalSuggestion: Option[Signed.TxHash],
+//        inputDefinitionId: TokenDefinitionId,
+//        input: Signed.TxHash,
+//        dealDeadline: Instant,
+//        requirement: NftRequirement,
+//    ) extends TokenTx
+
+//    case class NftRequirement(
+//        definitionID: TokenDefinitionId,
+//        tokenID: TokenId,
+//    )
 
 //    final case class SuggestSwapDeal(
 //        networkId: NetworkId,
@@ -254,8 +267,15 @@ object Transaction:
     final case class AcceptDeal(
         networkId: NetworkId,
         createdAt: Instant,
+        suggestion: Signed.TxHash,
+        inputs: Set[Signed.TxHash],
     ) extends TokenTx
+        with FungibleBalance
 
+    final case class AcceptDealResult(
+        outputs: Map[Account, Map[TokenDefinitionId, TokenDetail]],
+    ) extends TransactionResult
+    /*
     final case class CancelSuggestion(
         networkId: NetworkId,
         createdAt: Instant,
@@ -264,13 +284,13 @@ object Transaction:
     given txByteDecoder: ByteDecoder[TokenTx] = ByteDecoder[BigNat].flatMap {
       bignat =>
         bignat.toBigInt.toInt match
-          case 0 => ByteDecoder[DefineToken].widen
-          case 1 => ByteDecoder[MintFungibleToken].widen
-          case 2 => ByteDecoder[MintNFT].widen
-          case 4 => ByteDecoder[TransferFungibleToken].widen
-          case 6 => ByteDecoder[SuggestFungibleTokenDeal].widen
+          case 0  => ByteDecoder[DefineToken].widen
+          case 1  => ByteDecoder[MintFungibleToken].widen
+          case 2  => ByteDecoder[MintNFT].widen
+          case 4  => ByteDecoder[TransferFungibleToken].widen
+          case 6  => ByteDecoder[SuggestFungibleTokenDeal].widen
+          case 10 => ByteDecoder[AcceptDeal].widen
 
-//          case _ => ???
     }
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
@@ -279,8 +299,7 @@ object Transaction:
         case tx: MintNFT                  => build(2)(tx)
         case tx: TransferFungibleToken    => build(4)(tx)
         case tx: SuggestFungibleTokenDeal => build(6)(tx)
-//        case _                     => ???
-
+        case tx: AcceptDeal               => build(10)(tx)
   end TokenTx
 
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
@@ -349,3 +368,6 @@ object Transaction:
   sealed trait FungibleBalance
 
   sealed trait NftBalance
+
+  sealed trait DealSuggestion:
+    def originalSuggestion: Option[Signed.TxHash]

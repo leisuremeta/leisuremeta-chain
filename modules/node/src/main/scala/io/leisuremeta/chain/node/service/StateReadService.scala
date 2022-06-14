@@ -25,6 +25,7 @@ import api.model.token.{
   NftState,
   TokenDefinition,
   TokenDefinitionId,
+  TokenDetail,
   TokenId,
 }
 import lib.codec.byte.{ByteDecoder, DecodeResult}
@@ -157,81 +158,106 @@ object StateReadService:
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
       movableOption: Option[Api.Movable],
-  ): F[Map[TokenDefinitionId, BalanceInfo]] = for
-    bestHeaderEither <- BlockRepository[F].bestHeader.value
-    bestHeader <- bestHeaderEither match
-      case Left(err) => Concurrent[F].raiseError(err)
-      case Right(None) =>
-        Concurrent[F].raiseError(new Exception("No best header"))
-      case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
-    balanceListEither <- MerkleTrie
-      .from[
-        F,
-        (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
-        Unit,
-      ](
-        account.toBytes.bits,
-      )
-      .runA(merkleState.token.fungibleBalanceState)
-      .flatMap(
-        _.takeWhile(_._1.startsWith(account.toBytes.bits)).compile.toList
-          .flatMap { (list) =>
-            list.traverse { case (bits, _) =>
-              EitherT.fromEither[F] {
-                ByteDecoder[
-                  (
-                      Account,
-                      TokenDefinitionId,
-                      Hash.Value[TransactionWithResult],
-                  ),
-                ]
-                  .decode(bits.bytes) match
-                  case Left(err) => Left(err.msg)
-                  case Right(
-                        DecodeResult(
-                          (account, tokenDefinitionId, txHash),
-                          remainder,
-                        ),
-                      ) =>
-                    if remainder.isEmpty then Right((tokenDefinitionId, txHash))
-                    else Left(s"non-empty remainder in decoding $account")
+  ): F[Map[TokenDefinitionId, BalanceInfo]] = getFreeBalance[F](account)
+
+  def getFreeBalance[F[_]
+    : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
+      account: Account,
+  ): F[Map[TokenDefinitionId, BalanceInfo]] =
+    for
+      bestHeaderEither <- BlockRepository[F].bestHeader.value
+      bestHeader <- bestHeaderEither match
+        case Left(err) => Concurrent[F].raiseError(err)
+        case Right(None) =>
+          Concurrent[F].raiseError(new Exception("No best header"))
+        case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
+      merkleState = MerkleState.from(bestHeader)
+      balanceListEither <- MerkleTrie
+        .from[
+          F,
+          (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ](
+          account.toBytes.bits,
+        )
+        .runA(merkleState.token.fungibleBalanceState)
+        .flatMap(
+          _.takeWhile(_._1.startsWith(account.toBytes.bits)).compile.toList
+            .flatMap { (list) =>
+              list.traverse { case (bits, _) =>
+                EitherT.fromEither[F] {
+                  ByteDecoder[
+                    (
+                        Account,
+                        TokenDefinitionId,
+                        Hash.Value[TransactionWithResult],
+                    ),
+                  ]
+                    .decode(bits.bytes) match
+                    case Left(err) => Left(err.msg)
+                    case Right(
+                          DecodeResult(
+                            (account, tokenDefinitionId, txHash),
+                            remainder,
+                          ),
+                        ) =>
+                      if remainder.isEmpty then
+                        Right((tokenDefinitionId, txHash))
+                      else Left(s"non-empty remainder in decoding $account")
+                }
               }
-            }
-          },
-      )
-      .value
-    balanceList <- balanceListEither match
-      case Left(err)          => Concurrent[F].raiseError(new Exception(err))
-      case Right(balanceList) => Concurrent[F].pure(balanceList)
-    balanceTxEither <- balanceList.traverse { (defId, txHash) =>
-      TransactionRepository[F].get(txHash).map { txWithResultOption =>
-        txWithResultOption.map(txWithResult => (defId, txHash, txWithResult))
-      }
-    }.value
-    balanceTxList <- balanceTxEither match
-      case Left(err) => Concurrent[F].raiseError(new Exception(err.msg))
-      case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
-  yield balanceTxList.groupMapReduce(_._1) { (defId, txHash, txWithResult) =>
-    txWithResult.signedTx.value match
-      case fb : Transaction.FungibleBalance => fb match
-        case mf: Transaction.TokenTx.MintFungibleToken =>
-          BalanceInfo(
-            totalAmount = mf.outputs.get(account).getOrElse(BigNat.Zero),
-            unused = Map(txHash -> txWithResult),
-          )
-        case tf: Transaction.TokenTx.TransferFungibleToken =>
-          BalanceInfo(
-            totalAmount = tf.outputs.get(account).getOrElse(BigNat.Zero),
-            unused = Map(txHash -> txWithResult),
-          )
-      case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
-  }((a, b) =>
-    BalanceInfo(
-      totalAmount = BigNat.add(a.totalAmount, b.totalAmount),
-      unused = a.unused ++ b.unused,
-    ),
-  )
+            },
+        )
+        .value
+      balanceList <- balanceListEither match
+        case Left(err)          => Concurrent[F].raiseError(new Exception(err))
+        case Right(balanceList) => Concurrent[F].pure(balanceList)
+      balanceTxEither <- balanceList.traverse { (defId, txHash) =>
+        TransactionRepository[F].get(txHash).map { txWithResultOption =>
+          txWithResultOption.map(txWithResult => (defId, txHash, txWithResult))
+        }
+      }.value
+      balanceTxList <- balanceTxEither match
+        case Left(err) => Concurrent[F].raiseError(new Exception(err.msg))
+        case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
+    yield balanceTxList.groupMapReduce(_._1) { (defId, txHash, txWithResult) =>
+      txWithResult.signedTx.value match
+        case fb: Transaction.FungibleBalance =>
+          fb match
+            case mf: Transaction.TokenTx.MintFungibleToken =>
+              BalanceInfo(
+                totalAmount = mf.outputs.get(account).getOrElse(BigNat.Zero),
+                unused = Map(txHash -> txWithResult),
+              )
+            case tf: Transaction.TokenTx.TransferFungibleToken =>
+              BalanceInfo(
+                totalAmount = tf.outputs.get(account).getOrElse(BigNat.Zero),
+                unused = Map(txHash -> txWithResult),
+              )
+            case ad: Transaction.TokenTx.AcceptDeal =>
+              txWithResult.result match
+                case Some(Transaction.TokenTx.AcceptDealResult(outputs)) =>
+                  BalanceInfo(
+                    totalAmount = outputs
+                      .get(account)
+                      .flatMap(_.get(defId))
+                      .fold(BigNat.Zero) {
+                        case TokenDetail.FungibleDetail(amount) => amount
+                        case TokenDetail.NftDetail(_)           => BigNat.Zero
+                      },
+                    unused = Map(txHash -> txWithResult),
+                  )
+                case _ =>
+                  throw new Exception(
+                    s"AcceptDeal result is not found for $txHash",
+                  )
+        case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
+    }((a, b) =>
+      BalanceInfo(
+        totalAmount = BigNat.add(a.totalAmount, b.totalAmount),
+        unused = a.unused ++ b.unused,
+      ),
+    )
 
   def getNftBalance[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
@@ -288,15 +314,16 @@ object StateReadService:
       TransactionRepository[F].get(txHash).map { txWithResultOption =>
         txWithResultOption.map(txWithResult =>
           txWithResult.signedTx.value match
-            case nb: Transaction.NftBalance => nb match
-              case mf: Transaction.TokenTx.MintNFT =>
-                Map(
-                  tokenId -> NftBalanceInfo(
-                    mf.tokenDefinitionId,
-                    txHash,
-                    txWithResult,
-                  ),
-                )
+            case nb: Transaction.NftBalance =>
+              nb match
+                case mf: Transaction.TokenTx.MintNFT =>
+                  Map(
+                    tokenId -> NftBalanceInfo(
+                      mf.tokenDefinitionId,
+                      txHash,
+                      txWithResult,
+                    ),
+                  )
             case _ =>
               Map.empty,
         )
@@ -353,6 +380,8 @@ object StateReadService:
       MerkleTrie
         .get[F, TokenId, NftState](tokenId.toBytes.bits)
         .runA(merkleState.token.nftState)
-        .map(nftStateOption => nftStateOption.map(state => (tokenId, state.currentOwner)))
+        .map(nftStateOption =>
+          nftStateOption.map(state => (tokenId, state.currentOwner)),
+        )
     }
   yield ownerOptionList.flatten.toMap
