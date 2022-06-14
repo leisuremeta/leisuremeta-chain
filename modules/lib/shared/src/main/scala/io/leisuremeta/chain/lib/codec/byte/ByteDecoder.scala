@@ -3,6 +3,7 @@ package codec.byte
 
 import java.time.Instant
 
+import scala.compiletime.{erasedValue, summonInline}
 import scala.deriving.Mirror
 import scala.reflect.{ClassTag, classTag}
 
@@ -61,6 +62,17 @@ object ByteDecoder:
       m: Mirror.ProductOf[P],
       bd: ByteDecoder[m.MirroredElemTypes],
   ): ByteDecoder[P] = bd map m.fromProduct
+
+  private inline def summonAll[T <: Tuple]: List[ByteDecoder[_]] = inline erasedValue[T] match
+    case _: EmptyTuple => Nil
+    case _: (t *: ts)  => summonInline[ByteDecoder[t]] :: summonAll[ts]
+
+  inline given sumDecoder[S](using s: Mirror.SumOf[S]): ByteDecoder[S] =
+    lazy val elemInstances = summonAll[s.MirroredElemTypes]
+
+    bignatByteDecoder
+      .flatMap(bignat => elemInstances(bignat.value.toInt))
+      .asInstanceOf[ByteDecoder[S]]
 
   given unitByteDecoder: ByteDecoder[Unit] = bytes =>
     Right[DecodingFailure, DecodeResult[Unit]](

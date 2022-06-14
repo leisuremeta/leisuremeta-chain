@@ -5,7 +5,12 @@ package state
 import cats.data.EitherT
 
 import GossipDomain.MerkleState
-import api.model.{AccountSignature, PublicKeySummary, Transaction, TransactionWithResult}
+import api.model.{
+  AccountSignature,
+  PublicKeySummary,
+  Transaction,
+  TransactionWithResult,
+}
 import lib.crypto.Signature
 import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
@@ -18,7 +23,10 @@ trait UpdateState[F[_], T <: Transaction]:
       tx: T,
   ): EitherT[F, String, (MerkleState, TransactionWithResult)]
 
-object UpdateState extends UpdateStateWithAccountTx with UpdateStateWithGroupTx:
+object UpdateState
+    extends UpdateStateWithAccountTx
+    with UpdateStateWithGroupTx
+    with UpdateStateWithTokenTx:
   def apply[F[_], T <: Transaction](using
       ev: UpdateState[F, T],
   ): UpdateState[F, T] = ev

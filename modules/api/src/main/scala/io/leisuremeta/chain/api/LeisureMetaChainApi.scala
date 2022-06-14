@@ -1,6 +1,8 @@
 package io.leisuremeta.chain
 package api
 
+import java.util.Locale
+
 import io.circe.KeyEncoder
 import io.circe.generic.auto.*
 import io.circe.refined.*
@@ -24,7 +26,8 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.{AccountInfo, GroupInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
+import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -118,3 +121,45 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("block" / path[Block.BlockHash])
       .out(jsonBody[Block])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenDefinitionEndpoint =
+    baseEndpoint.get
+      .in("token-def" / path[TokenDefinitionId])
+      .out(jsonBody[TokenDefinition])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBalanceEndpoint =
+    baseEndpoint.get
+      .in("balance" / path[Account].and(query[Option[Movable]]("movable")))
+      .out(jsonBody[Map[TokenDefinitionId, BalanceInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftBalanceEndpoint =
+    baseEndpoint.get
+      .in("nft-balance" / path[Account].and(query[Option[Movable]]("movable")))
+      .out(jsonBody[Map[TokenId, NftBalanceInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenEndpoint =
+    baseEndpoint.get
+      .in("token" / path[TokenId])
+      .out(jsonBody[NftState])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOwnersEndpoint =
+    baseEndpoint.get
+      .in("owners" / path[TokenDefinitionId])
+      .out(jsonBody[Map[TokenId, Account]])
+
+  enum Movable:
+    case Free, Locked
+  object Movable:
+    @SuppressWarnings(Array("org.wartremover.warts.ToString"))
+    given Codec[String, Option[Movable], TextPlain] = Codec.string.mapDecode{ (s: String) =>
+      s match
+        case "free" => DecodeResult.Value(Some(Movable.Free))
+        case "locked" => DecodeResult.Value(Some(Movable.Locked))
+        case "all" => DecodeResult.Value(None)
+        case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
+    }(_.fold("")(_.toString.toLowerCase(Locale.ENGLISH)))

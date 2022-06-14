@@ -7,6 +7,7 @@ import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.syntax.eq.*
 import cats.syntax.foldable.*
+import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
 import api.model.{Block, Signed, TransactionWithResult}
@@ -15,7 +16,7 @@ import lib.crypto.Hash.ops.*
 
 object BlockService:
 
-  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState](
+  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
   )(using
@@ -55,13 +56,15 @@ object BlockService:
       s"State is not correct in block: ${block.header}",
     )
     _ <- EitherT.right[String](
-      Monad[F].tuple5(
-        resultList.traverse(txRepo.put),
+      List(
+        resultList.traverse(txRepo.put).map(_ => ()),
         StateRepository.AccountState[F].name.put(state.account.namesState),
         StateRepository.AccountState[F].key.put(state.account.keyState),
         StateRepository.GroupState[F].group.put(state.group.groupState),
         StateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
-      ),
+        StateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),
+        StateRepository.TokenState[F].fungibleBalance.put(state.token.fungibleBalanceState),
+      ).sequence
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
   yield

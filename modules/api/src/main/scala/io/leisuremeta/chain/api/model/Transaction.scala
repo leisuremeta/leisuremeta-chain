@@ -3,12 +3,16 @@ package api.model
 
 import java.time.Instant
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
-import lib.datatype.{BigNat, Utf8}
-import io.leisuremeta.chain.api.model.Transaction.AccountTx.CreateAccount
+import lib.datatype.{BigNat, UInt256Bytes, Utf8}
+import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintFungibleToken
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferFungibleToken
 
 sealed trait TransactionResult
 object TransactionResult:
@@ -18,13 +22,29 @@ object TransactionResult:
         case Transaction.AccountTx.AddPublicKeySummariesResult(removed) =>
           ByteVector.fromByte(0) ++ ByteEncoder[Map[PublicKeySummary, Utf8]]
             .encode(removed)
+        case Transaction.TokenTx.AcceptDealResult(outputs) =>
+          ByteVector.fromByte(1) ++ ByteEncoder[
+            Map[Account, Map[TokenDefinitionId, TokenDetail]],
+          ]
+            .encode(outputs)
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
-    ByteDecoder.byteDecoder.flatMap { case 0 =>
-      ByteDecoder[Map[PublicKeySummary, Utf8]].map(
-        Transaction.AccountTx.AddPublicKeySummariesResult(_),
-      )
+    ByteDecoder.byteDecoder.flatMap {
+      case 0 =>
+        ByteDecoder[Map[PublicKeySummary, Utf8]].map(
+          Transaction.AccountTx.AddPublicKeySummariesResult(_),
+        )
+      case 1 =>
+        ByteDecoder[Map[Account, Map[TokenDefinitionId, TokenDetail]]].map(
+          Transaction.TokenTx.AcceptDealResult(_),
+        )
     }
+
+  given txResultCirceEncoder: Encoder[TransactionResult] =
+    deriveEncoder[TransactionResult]
+
+  given txResultCirceDecoder: Decoder[TransactionResult] =
+    deriveDecoder[TransactionResult]
 
 sealed trait Transaction:
   def networkId: NetworkId
@@ -130,6 +150,158 @@ object Transaction:
         case tx: AddAccounts => build(2)(tx)
   end GroupTx
 
+  sealed trait TokenTx extends Transaction
+  object TokenTx:
+    final case class DefineToken(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        name: Utf8,
+        symbol: Option[Utf8],
+        minterGroup: Option[GroupId],
+        nftInfo: Option[NftInfo],
+    ) extends TokenTx
+
+    final case class MintFungibleToken(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        outputs: Map[Account, BigNat],
+    ) extends TokenTx
+        with FungibleBalance
+
+    final case class MintNFT(
+        networkId: NetworkId,
+        createdAt: Instant,
+        tokenDefinitionId: TokenDefinitionId,
+        tokenId: TokenId,
+        rarity: Rarity,
+        dataUrl: Utf8,
+        contentHash: UInt256Bytes,
+        output: Account,
+    ) extends TokenTx
+        with NftBalance
+
+//    final case class BurnNFT(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        definitionId: TokenDefinitionId,
+//        input: Signed.TxHash,
+//    ) extends TokenTx
+
+    final case class TransferFungibleToken(
+        networkId: NetworkId,
+        createdAt: Instant,
+        tokenDefinitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+        outputs: Map[Account, BigNat],
+        memo: Option[Utf8],
+    ) extends TokenTx
+        with FungibleBalance
+
+//    final case class TransferNft(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        definitionId: TokenDefinitionId,
+//        tokenId: TokenId,
+//        input: Signed.TxHash,
+//        output: Account,
+//        memo: Option[String],
+//    ) extends TokenTx
+
+    final case class SuggestFungibleTokenDeal(
+        networkId: NetworkId,
+        createdAt: Instant,
+        originalSuggestion: Option[Signed.TxHash],
+        inputDefinitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+        output: BigNat,
+        dealDeadline: Instant,
+        requirement: FungibleRequirement,
+    ) extends TokenTx
+        with DealSuggestion
+
+    object SuggestFungibleTokenDeal:
+      given txEncoder: Encoder[SuggestFungibleTokenDeal] = deriveEncoder
+
+    case class FungibleRequirement(
+        definitionId: TokenDefinitionId,
+        amount: BigNat,
+    )
+
+//    final case class SuggestSellDeal(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        originalSuggestion: Option[Signed.TxHash],
+//        inputDefinitionId: TokenDefinitionId,
+//        input: Signed.TxHash,
+//        dealDeadline: Instant,
+//        requirement: FungibleRequirement,
+//    ) extends TokenTx
+
+//    final case class SuggestBuyDeal(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        originalSuggestion: Option[Signed.TxHash],
+//        inputDefinitionId: TokenDefinitionId,
+//        input: Signed.TxHash,
+//        dealDeadline: Instant,
+//        requirement: NftRequirement,
+//    ) extends TokenTx
+
+//    case class NftRequirement(
+//        definitionID: TokenDefinitionId,
+//        tokenID: TokenId,
+//    )
+
+//    final case class SuggestSwapDeal(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        originalSuggestion: Option[Signed.TxHash],
+//        inputDefinitionId: TokenDefinitionId,
+//        input: Set[Signed.TxHash],
+//        dealDeadline: Instant,
+//        requirement: NftRequirement,
+//    ) extends TokenTx
+
+    final case class AcceptDeal(
+        networkId: NetworkId,
+        createdAt: Instant,
+        suggestion: Signed.TxHash,
+        inputs: Set[Signed.TxHash],
+    ) extends TokenTx
+        with FungibleBalance
+
+    final case class AcceptDealResult(
+        outputs: Map[Account, Map[TokenDefinitionId, TokenDetail]],
+    ) extends TransactionResult
+    /*
+    final case class CancelSuggestion(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends TokenTx
+     */
+    given txByteDecoder: ByteDecoder[TokenTx] = ByteDecoder[BigNat].flatMap {
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0  => ByteDecoder[DefineToken].widen
+          case 1  => ByteDecoder[MintFungibleToken].widen
+          case 2  => ByteDecoder[MintNFT].widen
+          case 4  => ByteDecoder[TransferFungibleToken].widen
+          case 6  => ByteDecoder[SuggestFungibleTokenDeal].widen
+          case 10 => ByteDecoder[AcceptDeal].widen
+
+    }
+    given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
+      ttx match
+        case tx: DefineToken              => build(0)(tx)
+        case tx: MintFungibleToken        => build(1)(tx)
+        case tx: MintNFT                  => build(2)(tx)
+        case tx: TransferFungibleToken    => build(4)(tx)
+        case tx: SuggestFungibleTokenDeal => build(6)(tx)
+        case tx: AcceptDeal               => build(10)(tx)
+  end TokenTx
+
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
       BigNat.unsafeFromLong(discriminator),
@@ -140,14 +312,62 @@ object Transaction:
       bignat.toBigInt.toInt match
         case 0 => ByteDecoder[AccountTx].widen
         case 1 => ByteDecoder[GroupTx].widen
+        case 2 => ByteDecoder[TokenTx].widen
   }
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
       case tx: AccountTx => build(0)(tx)
       case tx: GroupTx   => build(1)(tx)
+      case tx: TokenTx   => build(2)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 
   given txSign: Sign[Transaction] = Sign.build
 
   given txRecover: Recover[Transaction] = Recover.build
+
+  /*
+  sealed trait RandomOfferingTx extends Transaction
+  object RandomOfferingTx:
+    final case class Notice(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends RandomOfferingTx
+
+    final case class InitialTokenOffering(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends RandomOfferingTx
+
+    final case class ClaimToken(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends RandomOfferingTx
+  end RandomOfferingTx
+
+  sealed trait AgendaTx extends Transaction
+  object AgendaTx:
+    final case class Suggest(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends AgendaTx
+
+    final case class Vote(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends AgendaTx
+
+    final case class Finalize(
+        networkId: NetworkId,
+        createdAt: Instant,
+    ) extends AgendaTx
+  end AgendaTx
+
+   */
+
+  sealed trait FungibleBalance
+
+  sealed trait NftBalance
+
+  sealed trait DealSuggestion:
+    def originalSuggestion: Option[Signed.TxHash]

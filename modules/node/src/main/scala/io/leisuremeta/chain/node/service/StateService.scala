@@ -13,7 +13,7 @@ import state.UpdateState
 object StateService:
 
   def updateStateWithTx[F[_]
-    : Concurrent: StateRepository.AccountState: StateRepository.GroupState: TransactionRepository](
+    : Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: TransactionRepository](
       state: MerkleState,
       signedTx: Signed.Tx,
   ): EitherT[F, String, (MerkleState, TransactionWithResult)] =
@@ -23,3 +23,5 @@ object StateService:
         UpdateState[F, Transaction.AccountTx](state, signedTx.sig, tx)
       case tx: Transaction.GroupTx =>
         UpdateState[F, Transaction.GroupTx](state, signedTx.sig, tx)
+      case tx: Transaction.TokenTx =>
+        UpdateState[F, Transaction.TokenTx](state, signedTx.sig, tx)

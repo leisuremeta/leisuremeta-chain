@@ -17,8 +17,9 @@ import api.model.{
   StateRoot,
   TransactionWithResult,
 }
+import api.model.token.*
 import api.model.Block.ops.*
-import lib.crypto.{KeyPair, Recover, Sign, Signature}
+import lib.crypto.{Hash, KeyPair, Recover, Sign, Signature}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
 import lib.crypto.Sign.ops.*
@@ -26,28 +27,26 @@ import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
 import lib.merkle.MerkleTrieNode.MerkleRoot
+import io.leisuremeta.chain.api.model.token
 
 object GossipDomain:
 
   case class MerkleState(
       account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
+      token: MerkleState.TokenMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
-      account = StateRoot.AccountStateRoot(
-        namesRoot = account.namesState.root,
-        keyRoot = account.keyState.root,
-      ),
-      group = StateRoot.GroupStateRoot(
-        groupRoot = group.groupState.root,
-        groupAccountRoot = group.groupAccountState.root,
-      ),
+      account = account.toStateRoot,
+      group = group.toStateRoot,
+      token = token.toStateRoot,
     )
 
   object MerkleState:
     def from(header: Block.Header): MerkleState = MerkleState(
       account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
+      token = TokenMerkleState.from(header.stateRoot.token),
     )
 
     case class AccountMerkleState(
@@ -56,8 +55,11 @@ object GossipDomain:
         (Account, PublicKeySummary),
         PublicKeySummary.Info,
       ],
-    )
-
+    ):
+      def toStateRoot: StateRoot.AccountStateRoot = StateRoot.AccountStateRoot(
+        namesRoot = namesState.root,
+        keyRoot = keyState.root,
+      )
     object AccountMerkleState:
       def from(root: StateRoot.AccountStateRoot): AccountMerkleState = AccountMerkleState(
         namesState = buildMerkleTrieState(root.namesRoot),
@@ -67,12 +69,46 @@ object GossipDomain:
     case class GroupMerkleState(
       groupState: MerkleTrieState[GroupId, GroupData],
       groupAccountState: MerkleTrieState[(GroupId, Account), Unit],
-    )
+    ):
+      def toStateRoot: StateRoot.GroupStateRoot = StateRoot.GroupStateRoot(
+        groupRoot = groupState.root,
+        groupAccountRoot = groupAccountState.root,
+      )
 
     object GroupMerkleState:
       def from(root: StateRoot.GroupStateRoot): GroupMerkleState = GroupMerkleState(
         groupState = buildMerkleTrieState(root.groupRoot),
         groupAccountState = buildMerkleTrieState(root.groupAccountRoot),
+      )
+
+    case class TokenMerkleState(
+      tokenDefinitionState: MerkleTrieState[TokenDefinitionId, TokenDefinition],
+      fungibleBalanceState: MerkleTrieState[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit],
+      nftBalanceState: MerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
+      nftState:        MerkleTrieState[TokenId, NftState],
+      rarityState:     MerkleTrieState[(TokenDefinitionId, Rarity, TokenId), Unit],
+      lockState: MerkleTrieState[(Account, Hash.Value[TransactionWithResult]), Unit],
+      deadlineState: MerkleTrieState[(Instant, Hash.Value[TransactionWithResult]), Unit],
+    ):
+      def toStateRoot: StateRoot.TokenStateRoot = StateRoot.TokenStateRoot(
+        tokenDefinitionRoot = tokenDefinitionState.root,
+        fungibleBalanceRoot = fungibleBalanceState.root,
+        nftBalanceRoot = nftBalanceState.root,
+        nftRoot = nftState.root,
+        rarityRoot = rarityState.root,
+        lockRoot = lockState.root,
+        deadlineRoot = deadlineState.root,
+      )
+
+    object TokenMerkleState:
+      def from(root: StateRoot.TokenStateRoot): TokenMerkleState = TokenMerkleState(
+        tokenDefinitionState = buildMerkleTrieState(root.tokenDefinitionRoot),
+        fungibleBalanceState = buildMerkleTrieState(root.fungibleBalanceRoot),
+        nftBalanceState = buildMerkleTrieState(root.nftBalanceRoot),
+        nftState        = buildMerkleTrieState(root.nftRoot), 
+        rarityState     = buildMerkleTrieState(root.rarityRoot), 
+        lockState       = buildMerkleTrieState(root.lockRoot),
+        deadlineState   = buildMerkleTrieState(root.deadlineRoot),
       )
 
   def buildMerkleTrieState[K, V](
@@ -643,7 +679,31 @@ object GossipDomain:
       groupAccountState <- state.group.groupAccountState.rebase(
         newBase.group.groupAccountState,
       )
+      tokenDefinitionState <- state.token.tokenDefinitionState.rebase(
+        newBase.token.tokenDefinitionState,
+      )
+      fungibleBalanceState <- state.token.fungibleBalanceState.rebase(
+        newBase.token.fungibleBalanceState,
+      )
+      nftBalanceState <- state.token.nftBalanceState.rebase(
+        newBase.token.nftBalanceState
+      )
+      nftState <- state.token.nftState.rebase(newBase.token.nftState)
+      rarityState <- state.token.rarityState.rebase(newBase.token.rarityState)
+      lockState <- state.token.lockState.rebase(newBase.token.lockState)
+      deadlineState <- state.token.deadlineState.rebase(
+        newBase.token.deadlineState,
+      )
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
       MerkleState.GroupMerkleState(groupState, groupAccountState),
+      MerkleState.TokenMerkleState(
+        tokenDefinitionState,
+        fungibleBalanceState,
+        nftBalanceState,
+        nftState,
+        rarityState,
+        lockState,
+        deadlineState,
+      ),
     )
