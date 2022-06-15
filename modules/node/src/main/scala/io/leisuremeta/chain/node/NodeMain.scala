@@ -10,6 +10,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.*
+import api.model.dao.DaoData
 import api.model.token.*
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
@@ -118,6 +119,8 @@ object NodeMain extends IOApp:
             getStateRepo[(Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
               Paths.get("sway", "state", "token", "suggestion"),
             )
+          given StateRepoStore[IO, GroupId, DaoData] <-
+            getStateRepo[GroupId, DaoData](Paths.get("sway", "state", "dao", "dao"))
           given StateRepoStore[IO, TokenDefinitionId, Hash.Value[TransactionWithResult]] <-
             getStateRepo[TokenDefinitionId, Hash.Value[TransactionWithResult]](
               Paths.get("sway", "state", "offering", "content"),

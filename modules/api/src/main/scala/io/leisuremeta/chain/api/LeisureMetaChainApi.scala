@@ -48,6 +48,7 @@ object LeisureMetaChainApi:
     (byteArray: Array[Byte]) => Some(VrfPublicKey(ByteVector.view(byteArray)))
   } { (vrf: VrfPublicKey) => vrf.toBytes.toArray }
   given Schema[Transaction] = Schema.derived[Transaction]
+  given Schema[NftBalanceInfo] = Schema.derived[NftBalanceInfo]
 
   given hashValueCodec[A]: Codec[String, Hash.Value[A], TextPlain] = Codec.string.mapDecode{ (s: String) =>
     ByteVector.fromHexDescriptive(s).left.map(new Exception(_)).flatMap(UInt256.from) match

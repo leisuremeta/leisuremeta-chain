@@ -16,6 +16,7 @@ import api.model.{
   PublicKeySummary,
   TransactionWithResult,
 }
+import api.model.dao.{DaoData}
 import api.model.token.{NftState, Rarity, TokenDefinition, TokenDefinitionId, TokenId}
 import lib.crypto.Hash
 import lib.datatype.BigNat
@@ -34,8 +35,7 @@ trait StateRepository[F[_], K, V]:
 
 object StateRepository:
 
-  /** AccountState
-    */
+  /** AccountState */
   trait AccountState[F[_]]:
     def name: StateRepository[F, Account, AccountData]
     def key
@@ -64,8 +64,7 @@ object StateRepository:
       : NodeStore[F, (Account, PublicKeySummary), PublicKeySummary.Info] =
     Kleisli(AccountState[F].key.get(_).leftMap(_.msg))
 
-  /** GroupState
-    */
+  /** GroupState */
   trait GroupState[F[_]]:
     def group: StateRepository[F, GroupId, GroupData]
     def groupAccount: StateRepository[F, (GroupId, Account), Unit]
@@ -90,8 +89,7 @@ object StateRepository:
       : NodeStore[F, (GroupId, Account), Unit] =
     Kleisli(GroupState[F].groupAccount.get(_).leftMap(_.msg))
 
-  /** TokenState
-    */
+  /** TokenState */
   trait TokenState[F[_]]:
     def definition: StateRepository[F, TokenDefinitionId, TokenDefinition]
     def fungibleBalance: StateRepository[
@@ -189,6 +187,20 @@ object StateRepository:
       : NodeStore[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] =
     Kleisli(TokenState[F].suggestion.get(_).leftMap(_.msg))
 
+  /** DaoState */
+  trait DaoState[F[_]]:
+    def dao: StateRepository[F, GroupId, DaoData]
+  object DaoState:
+    def apply[F[_]: DaoState]: DaoState[F] = summon
+    given from[F[_]: Monad](using
+        groupKVStroe: MerkleHashStore[F, GroupId, DaoData],
+    ): DaoState[F] = new DaoState[F]:
+      def dao: StateRepository[F, GroupId, DaoData] = fromStores
+
+  given nodeStoreFromDao[F[_]: Functor: DaoState]
+    : NodeStore[F, GroupId, DaoData] =
+    Kleisli(DaoState[F].dao.get(_).leftMap(_.msg))
+  
   /** RandomOffering */
   trait RandomOfferingState[F[_]]:
     def randomOffering: StateRepository[F, TokenDefinitionId, Hash.Value[TransactionWithResult]]
@@ -203,9 +215,7 @@ object StateRepository:
       : NodeStore[F, TokenDefinitionId, Hash.Value[TransactionWithResult]] =
     Kleisli(RandomOfferingState[F].randomOffering.get(_).leftMap(_.msg))
 
-
-  /** General
-    */
+  /** General */
   given nodeStore[F[_]: Functor, K, V](using
       sr: StateRepository[F, K, V],
   ): NodeStore[F, K, V] = Kleisli(sr.get(_).leftMap(_.msg))

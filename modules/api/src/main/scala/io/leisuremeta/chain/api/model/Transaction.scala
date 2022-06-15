@@ -7,13 +7,12 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
+import dao.{ModeratorSelectionRule, RewardRatio}
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
 import offering.{VrfPublicKey}
 import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintFungibleToken
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferFungibleToken
 
 sealed trait TransactionResult
 object TransactionResult:
@@ -31,7 +30,7 @@ object TransactionResult:
           ByteVector.fromByte(2)
             ++ ByteEncoder[TokenDefinitionId].encode(defId)
             ++ ByteEncoder[TokenDetail].encode(tokenDetail)
-          
+
         case Transaction.RandomOfferingTx.JoinTokenOfferingResult(output) =>
           ByteVector.fromByte(3) ++ ByteEncoder[BigNat].encode(output)
         case Transaction.RandomOfferingTx.InitialTokenOfferingResult(
@@ -53,7 +52,7 @@ object TransactionResult:
         )
       case 2 =>
         for
-          defId <- ByteDecoder[TokenDefinitionId]
+          defId       <- ByteDecoder[TokenDefinitionId]
           tokenDetail <- ByteDecoder[TokenDetail]
         yield Transaction.TokenTx.CancelSuggestionResult(defId, tokenDetail)
       case 3 =>
@@ -353,6 +352,27 @@ object Transaction:
 
   end TokenTx
 
+  sealed trait DaoTx extends Transaction
+  object DaoTx:
+    final case class RegisterDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        groupId: GroupId,
+        daoAccount: Account,
+        rewardRatio: RewardRatio,
+        moderatorSelectionRule: ModeratorSelectionRule,
+    ) extends DaoTx
+
+    given txByteDecoder: ByteDecoder[DaoTx] = ByteDecoder[BigNat].flatMap {
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[RegisterDao].widen
+    }
+    given txByteEncoder: ByteEncoder[DaoTx] = (dtx: DaoTx) =>
+      dtx match
+        case tx: RegisterDao => build(0)(tx)
+  end DaoTx
+
   sealed trait RandomOfferingTx extends Transaction
   object RandomOfferingTx:
     final case class NoticeTokenOffering(
@@ -421,6 +441,7 @@ object Transaction:
         case 0 => ByteDecoder[AccountTx].widen
         case 1 => ByteDecoder[GroupTx].widen
         case 2 => ByteDecoder[TokenTx].widen
+        case 3 => ByteDecoder[DaoTx].widen
         case 4 => ByteDecoder[RandomOfferingTx].widen
   }
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
@@ -428,17 +449,17 @@ object Transaction:
       case tx: AccountTx        => build(0)(tx)
       case tx: GroupTx          => build(1)(tx)
       case tx: TokenTx          => build(2)(tx)
+      case tx: DaoTx            => build(3)(tx)
       case tx: RandomOfferingTx => build(4)(tx)
+
+  given txCirceDecoder: Decoder[Transaction] = deriveDecoder
+  given txCirceEncoder: Encoder[Transaction] = deriveEncoder
 
   given txHash: Hash[Transaction] = Hash.build
 
   given txSign: Sign[Transaction] = Sign.build
 
   given txRecover: Recover[Transaction] = Recover.build
-
-  given txCirceDecoder: Decoder[Transaction] = deriveDecoder
-  given txCirceEncoder: Encoder[Transaction] = deriveEncoder
-
   /*
   sealed trait AgendaTx extends Transaction
   object AgendaTx:

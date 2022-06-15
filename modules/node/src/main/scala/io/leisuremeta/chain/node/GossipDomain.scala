@@ -18,6 +18,7 @@ import api.model.{
   StateRoot,
   TransactionWithResult,
 }
+import api.model.dao.*
 import api.model.offering.*
 import api.model.token.*
 import api.model.Block.ops.*
@@ -37,12 +38,14 @@ object GossipDomain:
       account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
       token: MerkleState.TokenMerkleState,
+      dao: MerkleState.DaoMerkleState,
       offering: MerkleState.RandomOfferingMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
       account = account.toStateRoot,
       group = group.toStateRoot,
       token = token.toStateRoot,
+      dao = dao.toStateRoot,
       offering = offering.toStateRoot,
     )
 
@@ -51,6 +54,7 @@ object GossipDomain:
       account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
       token = TokenMerkleState.from(header.stateRoot.token),
+      dao = DaoMerkleState.from(header.stateRoot.dao),
       offering = RandomOfferingMerkleState.from(header.stateRoot.offering),
     )
 
@@ -118,7 +122,18 @@ object GossipDomain:
         deadlineState   = buildMerkleTrieState(root.deadlineRoot),
         suggestionState = buildMerkleTrieState(root.suggestionRoot),
       )
-      
+    
+    case class DaoMerkleState(
+      daoState: MerkleTrieState[GroupId, DaoData],
+    ):
+      def toStateRoot: StateRoot.DaoStateRoot = StateRoot.DaoStateRoot(
+        daoRoot = daoState.root,
+      )
+    object DaoMerkleState:
+      def from(root: StateRoot.DaoStateRoot): DaoMerkleState = DaoMerkleState(
+        daoState = buildMerkleTrieState(root.daoRoot),
+      )
+
     case class RandomOfferingMerkleState(
       offeringState: MerkleTrieState[TokenDefinitionId, Hash.Value[TransactionWithResult]],
     ):
@@ -717,6 +732,7 @@ object GossipDomain:
       suggestionState <- state.token.suggestionState.rebase(
         newBase.token.suggestionState,
       )
+      daoState <- state.dao.daoState.rebase(newBase.dao.daoState)
       offeringState <- state.offering.offeringState.rebase(newBase.offering.offeringState)
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
@@ -731,5 +747,6 @@ object GossipDomain:
         deadlineState,
         suggestionState,
       ),
+      MerkleState.DaoMerkleState(daoState),
       MerkleState.RandomOfferingMerkleState(offeringState),
     )

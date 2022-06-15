@@ -8,6 +8,7 @@ import io.circe.generic.semiauto.*
 import token.TokenDefinitionId
 import lib.crypto.Hash
 import lib.datatype.BigNat
+import sttp.tapir.Schema
 
 final case class NftBalanceInfo(
   tokenDefinitionId: TokenDefinitionId,

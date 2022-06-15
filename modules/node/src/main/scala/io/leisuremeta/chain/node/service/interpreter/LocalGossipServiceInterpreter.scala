@@ -19,7 +19,7 @@ import service.{BlockService, StateService}
 //import LocalGossipServiceInterpreter._
 
 class LocalGossipServiceInterpreter[F[_]
-  : Async: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RandomOfferingState: TransactionRepository: BlockRepository](
+  : Async: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.DaoState: StateRepository.RandomOfferingState: TransactionRepository: BlockRepository](
     localGossipRef: Ref[F, GossipDomain.LocalGossip],
     lock: Semaphore[F],
     params: GossipDomain.GossipParams,
@@ -193,7 +193,7 @@ class LocalGossipServiceInterpreter[F[_]
 
 object LocalGossipServiceInterpreter:
   def build[F[_]
-    : Async: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RandomOfferingState: TransactionRepository: BlockRepository](
+    : Async: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.DaoState: StateRepository.RandomOfferingState: TransactionRepository: BlockRepository](
       bestConfirmedBlock: Block,
       params: GossipDomain.GossipParams,
   ): F[LocalGossipService[F]] = for

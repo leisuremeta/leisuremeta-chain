@@ -218,11 +218,6 @@ genesis {
     def submit(tx: Transaction) =
       val Right(sig) = keyPair.sign(tx)
 
-      given io.circe.Encoder[Transaction] = {
-        import io.circe.generic.semiauto.*
-        deriveEncoder[Transaction]
-      }
-
       basicRequest
         .response(asStringAlways)
         .post(uri"http://localhost:8081/tx")

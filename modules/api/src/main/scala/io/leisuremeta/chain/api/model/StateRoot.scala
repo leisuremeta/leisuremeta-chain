@@ -5,6 +5,7 @@ import java.time.Instant
 
 import cats.Eq
 
+import dao.DaoData
 import lib.crypto.Hash
 import lib.merkle.MerkleTrieNode.MerkleRoot
 import token.*
@@ -13,6 +14,7 @@ final case class StateRoot(
     account: StateRoot.AccountStateRoot,
     group: StateRoot.GroupStateRoot,
     token: StateRoot.TokenStateRoot,
+    dao: StateRoot.DaoStateRoot,
     offering: StateRoot.RandomOfferingStateRoot,
 )
 
@@ -22,6 +24,7 @@ object StateRoot:
     account = StateRoot.AccountStateRoot.empty,
     group = StateRoot.GroupStateRoot.empty,
     token = StateRoot.TokenStateRoot.empty,
+    dao = StateRoot.DaoStateRoot.empty,
     offering = StateRoot.RandomOfferingStateRoot.empty,
   )
   case class AccountStateRoot(
@@ -59,6 +62,12 @@ object StateRoot:
   )
   object TokenStateRoot:
     def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None, None)
+
+  case class DaoStateRoot(
+      daoRoot: Option[MerkleRoot[GroupId, DaoData]],
+  )
+  object DaoStateRoot:
+    def empty: DaoStateRoot = DaoStateRoot(None)
 
   case class RandomOfferingStateRoot(
       offeringRoot: Option[MerkleRoot[TokenDefinitionId, Hash.Value[TransactionWithResult]]],

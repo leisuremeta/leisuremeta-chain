@@ -88,6 +88,9 @@ object UpdateStateWithAccountTxTest
       token = GossipDomain.MerkleState.TokenMerkleState.from(
         StateRoot.TokenStateRoot.empty,
       ),
+      dao = GossipDomain.MerkleState.DaoMerkleState.from(
+        StateRoot.DaoStateRoot.empty,
+      ),
       offering = GossipDomain.MerkleState.RandomOfferingMerkleState.from(
         StateRoot.RandomOfferingStateRoot.empty,
       ),

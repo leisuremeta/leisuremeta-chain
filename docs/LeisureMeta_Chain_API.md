@@ -301,7 +301,23 @@
     * GroupID(string)
     * DaoAccountName(string)
       * 다오 보상 충전용 계정. 여기에 들어온 금액을 매주 정해진 룰에 따라 보상한다. Unique account이어야 한다.
-    * RewardRatio
+    * RewardRatio: 보상 비율 / 가중치
+      * activity
+      * collector
+      * staking
+    * Weight: 보상 가중치
+      * Activity: 활동 보상 가중치
+        * like
+        * comment
+        * referral
+        * report
+      * Collector: 
+        * like
+        * comment
+        * referral
+        * report
+    * Limit: 최대 보상량 제한
+      * 
     * ModeratorSelectionRule
   
 * UpdateDao DAO 정보 업데이트. 그룹 조정자가 업데이트 권한을 갖는다.
@@ -501,8 +517,8 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Dao
 
-* DaoState: GroupID => DaoInfo
-  * DaoInfo
+* DaoState: GroupID => DaoData
+  * DaoData
     * Moderators
 * DaoTokenActivityState: (GroupID, TokenID, AccountName) => ActivityState
   * ActivityState

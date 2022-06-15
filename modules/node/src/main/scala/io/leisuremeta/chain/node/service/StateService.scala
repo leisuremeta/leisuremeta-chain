@@ -25,5 +25,7 @@ object StateService:
         UpdateState[F, Transaction.GroupTx](state, signedTx.sig, tx)
       case tx: Transaction.TokenTx =>
         UpdateState[F, Transaction.TokenTx](state, signedTx.sig, tx)
+      case tx: Transaction.DaoTx =>
+        UpdateState[F, Transaction.DaoTx](state, signedTx.sig, tx)
       case tx: Transaction.RandomOfferingTx =>
         UpdateState[F, Transaction.RandomOfferingTx](state, signedTx.sig, tx)

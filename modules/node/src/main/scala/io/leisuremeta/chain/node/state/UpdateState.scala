@@ -27,6 +27,7 @@ object UpdateState
     extends UpdateStateWithAccountTx
     with UpdateStateWithGroupTx
     with UpdateStateWithTokenTx
+    with UpdateStateWithDaoTx
     with UpdateStateWithRandomOfferingTx:
       
   def apply[F[_], T <: Transaction](using
