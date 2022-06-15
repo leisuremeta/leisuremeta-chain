@@ -200,6 +200,7 @@ genesis {
       networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
       createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
       account = account,
+      ethAddress = None,
       guardian = None,
     )
 
@@ -280,6 +281,7 @@ genesis {
       networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
       createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
       account = account,
+      ethAddress = None,
       guardian = None,
     )
 

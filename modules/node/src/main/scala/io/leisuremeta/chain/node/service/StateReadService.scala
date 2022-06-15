@@ -13,6 +13,7 @@ import GossipDomain.MerkleState
 import api.{LeisureMetaChainApi as Api}
 import api.model.{
   Account,
+  AccountData,
   GroupId,
   GroupData,
   PublicKeySummary,
@@ -49,7 +50,7 @@ object StateReadService:
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
     accountStateEither <- MerkleTrie
-      .get[F, Account, Option[Account]](account.toBytes.bits)
+      .get[F, Account, AccountData](account.toBytes.bits)
       .runA(merkleState.account.namesState)
       .value
     accountStateOption <- accountStateEither match
@@ -82,7 +83,11 @@ object StateReadService:
     keyList <- keyListEither match
       case Left(err)      => Concurrent[F].raiseError(new Exception(err))
       case Right(keyList) => Concurrent[F].pure(keyList)
-  yield accountStateOption.map(guardian => AccountInfo(guardian, keyList.toMap))
+  yield accountStateOption.map(accountData => AccountInfo(
+    accountData.ethAddress,
+    accountData.guardian,
+    keyList.toMap
+  ))
 
   def getGroupInfo[F[_]
     : Concurrent: BlockRepository: StateRepository.GroupState](

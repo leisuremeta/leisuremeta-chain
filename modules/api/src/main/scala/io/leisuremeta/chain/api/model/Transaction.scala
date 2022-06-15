@@ -58,6 +58,15 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         account: Account,
+        ethAddress: Option[Utf8],
+        guardian: Option[Account],
+    ) extends AccountTx
+
+    final case class UpdateAccount(
+        networkId: NetworkId,
+        createdAt: Instant,
+        account: Account,
+        ethAddress: Option[Utf8],
         guardian: Option[Account],
     ) extends AccountTx
 
@@ -89,16 +98,18 @@ object Transaction:
       bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[CreateAccount].widen
-          case 1 => ByteDecoder[AddPublicKeySummaries].widen
-//          case 2 => ByteDecoder[RemovePublicKeySummaries].widen
-//          case 3 => ByteDecoder[RemoveAccount].widen
+          case 1 => ByteDecoder[UpdateAccount].widen
+          case 2 => ByteDecoder[AddPublicKeySummaries].widen
+//          case 3 => ByteDecoder[RemovePublicKeySummaries].widen
+//          case 4 => ByteDecoder[RemoveAccount].widen
     }
     given txByteEncoder: ByteEncoder[AccountTx] = (atx: AccountTx) =>
       atx match
         case tx: CreateAccount         => build(0)(tx)
-        case tx: AddPublicKeySummaries => build(1)(tx)
-//        case tx: RemovePublicKeySummaries => build(2)(tx)
-//        case tx: RemoveAccount            => build(3)(tx)
+        case tx: UpdateAccount         => build(1)(tx)
+        case tx: AddPublicKeySummaries => build(2)(tx)
+//        case tx: RemovePublicKeySummaries => build(3)(tx)
+//        case tx: RemoveAccount            => build(4)(tx)
   end AccountTx
 
   sealed trait GroupTx extends Transaction

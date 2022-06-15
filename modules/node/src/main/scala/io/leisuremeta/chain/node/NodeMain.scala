@@ -70,8 +70,8 @@ object NodeMain extends IOApp:
       case Right(config) =>
         for
           given BlockRepository[IO] <- getBlockRepo
-          given StateRepoStore[IO, Account, Option[Account]] <-
-            getStateRepo[Account, Option[Account]](
+          given StateRepoStore[IO, Account, AccountData] <-
+            getStateRepo[Account, AccountData](
               Paths.get("sway", "state", "name"),
             )
           given StateRepoStore[

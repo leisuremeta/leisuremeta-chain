@@ -97,9 +97,18 @@
   * > 사용자 서명
   * Fields
     * account: Account 계정 이름
+    * ethAddress: *(optional)* 이더리움 주소
     * guardian: *(optional)* Account
       * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
   
+* UpdateAccount 계정 생성
+  * > 사용자 서명
+  * Fields
+    * account: Account 계정 이름
+    * ethAddress: *(optional)* 이더리움 주소
+    * guardian: *(optional)* Account
+      * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
+
 * AddPublicKeySummaries 계정에 사용할 공개키요약 추가
   * > 사용자 서명 혹은 Guardian 서명
   * Fields
@@ -444,7 +453,11 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Account
 
-* NameState: AccountName => Option[Guardian]
+* NameState: AccountName => AccountData
+  * AccountData
+    * *(optional)* ethAddress
+    * *(optional)* guardian (account)
+
 * AccountKeyState: (AccountName, PublicKeySummary) => Desription
   * Description에는 추가된 시각이 포함되어 있어야 함
 
