@@ -23,7 +23,7 @@ object StateRoot:
     token = StateRoot.TokenStateRoot.empty,
   )
   case class AccountStateRoot(
-      namesRoot: Option[MerkleRoot[Account, Option[Account]]],
+      namesRoot: Option[MerkleRoot[Account, AccountData]],
       keyRoot: Option[
         MerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
       ],

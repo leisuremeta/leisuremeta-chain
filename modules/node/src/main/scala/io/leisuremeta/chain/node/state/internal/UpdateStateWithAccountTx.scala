@@ -15,6 +15,7 @@ import GossipDomain.MerkleState
 import UpdateState.*
 import api.model.{
   Account,
+  AccountData,
   AccountSignature,
   PublicKeySummary,
   Signed,
@@ -33,8 +34,8 @@ trait UpdateStateWithAccountTx:
       : UpdateState[F, Transaction.AccountTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.AccountTx) =>
 
-      def getAccount: EitherT[F, String, Option[Option[Account]]] = MerkleTrie
-        .get[F, Account, Option[Account]](tx.account.toBytes.bits)
+      def getAccount: EitherT[F, String, Option[AccountData]] = MerkleTrie
+        .get[F, Account, AccountData](tx.account.toBytes.bits)
         .runA(ms.account.namesState)
 
       def getKeyInfo(
@@ -87,7 +88,7 @@ trait UpdateStateWithAccountTx:
             case None =>
               for
                 accountState1 <- MerkleTrie
-                  .put(sig.account.toBytes.bits, ca.guardian)
+                  .put(sig.account.toBytes.bits, AccountData(ca.ethAddress, ca.guardian))
                   .runS(ms.account.namesState)
                 keyState1 <-
                   if ca.guardian === Some(sig.account) then
@@ -117,11 +118,34 @@ trait UpdateStateWithAccountTx:
             case Some(_) => EitherT.leftT("Account already exists")
           }
 
+        case ua: Transaction.AccountTx.UpdateAccount =>
+          getAccount.flatMap {
+            case None => EitherT.leftT("Account does not exist")
+            case Some(accountData) =>
+              if sig.account === ua.account || Option(sig.account) === accountData.guardian then
+                for
+                  accountState1 <- {
+                    for
+                      _ <- MerkleTrie.remove[F, Account, AccountData](ua.account.toBytes.bits)
+                      _ <- MerkleTrie.put[F, Account, AccountData](ua.account.toBytes.bits, AccountData(ua.ethAddress, ua.guardian))
+                    yield ()
+                  }.runS(ms.account.namesState)
+                yield (
+                  ms.copy(account =
+                    ms.account
+                      .copy(namesState = accountState1),
+                  ),
+                  TransactionWithResult(Signed(sig, ua), None),
+                )
+              else
+                EitherT.leftT(s"Account ${sig.account} does not authorize update of ${ua.account}")
+          }
+
         case ap: Transaction.AccountTx.AddPublicKeySummaries =>
           getAccount
             .flatMap {
               case None => EitherT.leftT("Account does not exist")
-              case Some(Some(guardian)) if sig.account === guardian =>
+              case Some(AccountData(_, Some(guardian))) if sig.account === guardian =>
                 for
                   pubKeySummary <- EitherT
                     .fromEither[F](recoverSignature(ap, sig.sig))

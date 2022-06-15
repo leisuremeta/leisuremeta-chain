@@ -9,6 +9,7 @@ import cats.implicits.*
 
 import api.model.{
   Account,
+  AccountData,
   PublicKeySummary,
   Block,
   GroupData,
@@ -50,7 +51,7 @@ object GossipDomain:
     )
 
     case class AccountMerkleState(
-      namesState: MerkleTrieState[Account, Option[Account]],
+      namesState: MerkleTrieState[Account, AccountData],
       keyState: MerkleTrieState[
         (Account, PublicKeySummary),
         PublicKeySummary.Info,
