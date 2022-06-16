@@ -10,6 +10,7 @@ import scodec.bits.ByteVector
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
+import offering.{VrfPublicKey}
 import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintFungibleToken
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferFungibleToken
@@ -313,6 +314,32 @@ object Transaction:
         case tx: AcceptDeal               => build(10)(tx)
   end TokenTx
 
+  sealed trait RandomOfferingTx extends Transaction
+  object RandomOfferingTx:
+    final case class NoticeTokenOffering(
+        networkId: NetworkId,
+        createdAt: Instant,
+        groupId: GroupId,
+        offeringAccount: Account,
+        tokenDefinitionId: TokenDefinitionId,
+        vrfPublicKey: VrfPublicKey,
+        autojoin: Map[Account, BigNat],
+        inputs: Set[Signed.TxHash],
+        requirement: Option[(TokenDefinitionId, BigNat)],
+        claimStartDate: Instant,
+        note: Utf8,
+    ) extends RandomOfferingTx
+
+    given txByteDecoder: ByteDecoder[RandomOfferingTx] = ByteDecoder[BigNat].flatMap {
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[NoticeTokenOffering].widen
+    }
+    given txByteEncoder: ByteEncoder[RandomOfferingTx] = (atx: RandomOfferingTx) =>
+      atx match
+        case tx: NoticeTokenOffering => build(0)(tx)
+  end RandomOfferingTx
+
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
       BigNat.unsafeFromLong(discriminator),
@@ -324,12 +351,14 @@ object Transaction:
         case 0 => ByteDecoder[AccountTx].widen
         case 1 => ByteDecoder[GroupTx].widen
         case 2 => ByteDecoder[TokenTx].widen
+        case 4 => ByteDecoder[RandomOfferingTx].widen
   }
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
-      case tx: AccountTx => build(0)(tx)
-      case tx: GroupTx   => build(1)(tx)
-      case tx: TokenTx   => build(2)(tx)
+      case tx: AccountTx        => build(0)(tx)
+      case tx: GroupTx          => build(1)(tx)
+      case tx: TokenTx          => build(2)(tx)
+      case tx: RandomOfferingTx => build(4)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 
@@ -338,24 +367,6 @@ object Transaction:
   given txRecover: Recover[Transaction] = Recover.build
 
   /*
-  sealed trait RandomOfferingTx extends Transaction
-  object RandomOfferingTx:
-    final case class Notice(
-        networkId: NetworkId,
-        createdAt: Instant,
-    ) extends RandomOfferingTx
-
-    final case class InitialTokenOffering(
-        networkId: NetworkId,
-        createdAt: Instant,
-    ) extends RandomOfferingTx
-
-    final case class ClaimToken(
-        networkId: NetworkId,
-        createdAt: Instant,
-    ) extends RandomOfferingTx
-  end RandomOfferingTx
-
   sealed trait AgendaTx extends Transaction
   object AgendaTx:
     final case class Suggest(
