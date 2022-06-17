@@ -170,6 +170,15 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getOfferingServerEndpoint = Api.getOfferingEndpoint.serverLogic {
+    (tokenDefinitionId: TokenDefinitionId) =>
+      StateReadService.getOffering(tokenDefinitionId).value.map {
+        case Right(Some(offeringInfo)) => Right(offeringInfo)
+        case Right(None) => Left(Right(Api.NotFound(s"offering not found: $tokenDefinitionId")))
+        case Left(errMsg) => Left(Left(Api.ServerError(errMsg)))
+      }
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")

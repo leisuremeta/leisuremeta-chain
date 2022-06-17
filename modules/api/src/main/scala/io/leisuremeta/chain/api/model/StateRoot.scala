@@ -60,7 +60,7 @@ object StateRoot:
     def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None)
 
   case class RandomOfferingStateRoot(
-      offeringRoot: Option[MerkleRoot[(TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]],
+      offeringRoot: Option[MerkleRoot[TokenDefinitionId, Hash.Value[TransactionWithResult]]],
   )
   object RandomOfferingStateRoot:
     def empty: RandomOfferingStateRoot = RandomOfferingStateRoot(None)

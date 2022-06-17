@@ -512,7 +512,7 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Random Offering
 
-* RandomOfferingState: DefinitionID => RandomOfferingContent
+* RandomOfferingState: DefinitionID => NoticeTxHash
 
 ### Agenda
 
