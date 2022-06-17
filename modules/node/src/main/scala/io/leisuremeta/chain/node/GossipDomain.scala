@@ -117,7 +117,7 @@ object GossipDomain:
       )
       
     case class RandomOfferingMerkleState(
-      offeringState: MerkleTrieState[(TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit],
+      offeringState: MerkleTrieState[TokenDefinitionId, Hash.Value[TransactionWithResult]],
     ):
       def toStateRoot: StateRoot.RandomOfferingStateRoot = StateRoot.RandomOfferingStateRoot(
         offeringRoot = offeringState.root,

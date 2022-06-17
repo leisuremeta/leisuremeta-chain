@@ -16,3 +16,5 @@ object TransactionWithResult:
     extension [A](txHash: Hash.Value[A])
       def toResultHashValue: Hash.Value[TransactionWithResult] =
         Hash.Value[TransactionWithResult](txHash.toUInt256Bytes)
+      def toSignedTxHash: Hash.Value[Signed.Tx] =
+        Hash.Value[Signed.Tx](txHash.toUInt256Bytes)

@@ -26,7 +26,7 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo, RandomOfferingInfo}
 import api.model.offering.VrfPublicKey
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
@@ -156,6 +156,12 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("owners" / path[TokenDefinitionId])
       .out(jsonBody[Map[TokenId, Account]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOfferingEndpoint =
+    baseEndpoint.get
+      .in("offering" / path[TokenDefinitionId])
+      .out(jsonBody[RandomOfferingInfo])
 
   enum Movable:
     case Free, Locked

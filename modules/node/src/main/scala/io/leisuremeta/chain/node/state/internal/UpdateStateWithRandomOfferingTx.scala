@@ -118,12 +118,8 @@ trait UpdateStateWithRandomOfferingTx:
             }.runS(ms.token.nftBalanceState)
 
             randomOfferingState <- MerkleTrie
-              .put[
-                F,
-                (TokenDefinitionId, Hash.Value[TransactionWithResult]),
-                Unit,
-              ](
-                (nt.tokenDefinitionId, result.toHash).toBytes.bits,
+              .put[F, TokenDefinitionId, Hash.Value[TransactionWithResult]](
+                nt.tokenDefinitionId.toBytes.bits,
                 result.toHash,
               )
               .runS(ms.offering.offeringState)

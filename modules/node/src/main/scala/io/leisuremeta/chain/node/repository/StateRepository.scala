@@ -184,16 +184,16 @@ object StateRepository:
 
   /** RandomOffering */
   trait RandomOfferingState[F[_]]:
-    def randomOffering: StateRepository[F, (TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]
+    def randomOffering: StateRepository[F, TokenDefinitionId, Hash.Value[TransactionWithResult]]
   object RandomOfferingState:
     def apply[F[_]: RandomOfferingState]: RandomOfferingState[F] = summon
     given from[F[_]: Monad](using
-        randomOfferingKVStroe: MerkleHashStore[F, (TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit],
+        randomOfferingKVStroe: MerkleHashStore[F, TokenDefinitionId, Hash.Value[TransactionWithResult]],
     ): RandomOfferingState[F] = new RandomOfferingState[F]:
-      def randomOffering: StateRepository[F, (TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] = fromStores
+      def randomOffering: StateRepository[F, TokenDefinitionId, Hash.Value[TransactionWithResult]] = fromStores
 
   given nodeStoreFromRandomOffering[F[_]: Functor: RandomOfferingState]
-      : NodeStore[F, (TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] =
+      : NodeStore[F, TokenDefinitionId, Hash.Value[TransactionWithResult]] =
     Kleisli(RandomOfferingState[F].randomOffering.get(_).leftMap(_.msg))
 
 
