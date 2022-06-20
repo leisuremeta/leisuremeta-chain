@@ -94,6 +94,7 @@ object GossipDomain:
       rarityState:     MerkleTrieState[(TokenDefinitionId, Rarity, TokenId), Unit],
       lockState: MerkleTrieState[(Account, Hash.Value[TransactionWithResult]), Unit],
       deadlineState: MerkleTrieState[(Instant, Hash.Value[TransactionWithResult]), Unit],
+      suggestionState: MerkleTrieState[(Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit],
     ):
       def toStateRoot: StateRoot.TokenStateRoot = StateRoot.TokenStateRoot(
         tokenDefinitionRoot = tokenDefinitionState.root,
@@ -103,6 +104,7 @@ object GossipDomain:
         rarityRoot = rarityState.root,
         lockRoot = lockState.root,
         deadlineRoot = deadlineState.root,
+        suggestionRoot = suggestionState.root,
       )
 
     object TokenMerkleState:
@@ -114,6 +116,7 @@ object GossipDomain:
         rarityState     = buildMerkleTrieState(root.rarityRoot), 
         lockState       = buildMerkleTrieState(root.lockRoot),
         deadlineState   = buildMerkleTrieState(root.deadlineRoot),
+        suggestionState = buildMerkleTrieState(root.suggestionRoot),
       )
       
     case class RandomOfferingMerkleState(
@@ -711,6 +714,9 @@ object GossipDomain:
       deadlineState <- state.token.deadlineState.rebase(
         newBase.token.deadlineState,
       )
+      suggestionState <- state.token.suggestionState.rebase(
+        newBase.token.suggestionState,
+      )
       offeringState <- state.offering.offeringState.rebase(newBase.offering.offeringState)
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState), 
@@ -723,6 +729,7 @@ object GossipDomain:
         rarityState,
         lockState,
         deadlineState,
+        suggestionState,
       ),
       MerkleState.RandomOfferingMerkleState(offeringState),
     )

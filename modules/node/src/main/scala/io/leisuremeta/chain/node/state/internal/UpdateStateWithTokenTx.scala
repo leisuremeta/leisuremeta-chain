@@ -324,12 +324,20 @@ trait UpdateStateWithTokenTx:
                   )
               }
               .runS(ms.token.deadlineState)
+            suggestionState <- sf.originalSuggestion match
+              case Some(originalSuggestion) => MerkleTrie
+                .put[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
+                  (originalSuggestion, txWithResult.toHash).toBytes.bits,
+                  (),
+                ).runS(ms.token.suggestionState)
+              case None => EitherT.pure(ms.token.suggestionState)
           yield (
             ms.copy(token =
               ms.token.copy(
                 fungibleBalanceState = fungibleBalanceState,
                 lockState = lockState,
                 deadlineState = deadlineState,
+                suggestionState = suggestionState,
               ),
             ),
             txWithResult,
@@ -410,6 +418,19 @@ trait UpdateStateWithTokenTx:
                                 EitherT.leftT(
                                   s"JoinTokenOffering result is not found for $jt",
                                 )
+                          case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+                            txWithResult.result match
+                              case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
+                                EitherT.pure{
+                                  outputs
+                                    .get(txWithResult.signedTx.sig.account)
+                                    .flatMap(_.get(sf.inputDefinitionId))
+                                    .getOrElse(BigNat.Zero)
+                                }
+                              case _ =>
+                                EitherT.leftT(
+                                  s"InitialTokenOffering result is not found for $it",
+                                )
                       case tx => EitherT.leftT(
                         s"Transaction ${tx.toHash} is not a fungible balance",
                       )
@@ -450,6 +471,19 @@ trait UpdateStateWithTokenTx:
                               case _ =>
                                 EitherT.leftT(
                                   s"JoinTokenOffering result is not found for $jt",
+                                )
+                          case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+                            txWithResult.result match
+                              case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
+                                EitherT.pure{
+                                  outputs
+                                    .get(txWithResult.signedTx.sig.account)
+                                    .flatMap(_.get(sf.inputDefinitionId))
+                                    .getOrElse(BigNat.Zero)
+                                }
+                              case _ =>
+                                EitherT.leftT(
+                                  s"InitialTokenOffering result is not found for $it",
                                 )
                       case tx => EitherT.leftT(
                         s"Transaction ${tx.toHash} is not a fungible balance",
@@ -497,9 +531,22 @@ trait UpdateStateWithTokenTx:
                   lockState <- MerkleTrie.remove[F, (Account, Hash.Value[TransactionWithResult]), Unit](
                     (suggestionAccount, ad.suggestion).toBytes.bits,
                   ).runS(ms.token.lockState)
+
+                  suggestionState <- sf.originalSuggestion match
+                    case None => EitherT.pure(ms.token.suggestionState)
+                    case Some(originalSuggestionTxHash) => {
+                      for
+                        pairStream <- MerkleTrie.from[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](originalSuggestionTxHash.toBytes.bits)
+                        pairList <- StateT.liftF(pairStream.takeWhile(_._1.startsWith(suggestionAccount.toBytes.bits)).compile.toList)
+                        _ <- pairList.traverse{ case (k, _) =>
+                          MerkleTrie.remove[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](k)
+                        }
+                      yield ()
+                    }.runS(ms.token.suggestionState)
                   
                 yield (ms.copy(token = ms.token.copy(
                   fungibleBalanceState = fungibleBalanceState,
                   lockState = lockState,
+                  suggestionState = suggestionState,
                 )), result)
           yield result

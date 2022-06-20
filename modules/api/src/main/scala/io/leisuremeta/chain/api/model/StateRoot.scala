@@ -55,9 +55,10 @@ object StateRoot:
       rarityRoot: Option[MerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
       lockRoot: Option[MerkleRoot[(Account, Hash.Value[TransactionWithResult]), Unit]],
       deadlineRoot: Option[MerkleRoot[(Instant, Hash.Value[TransactionWithResult]), Unit]],
+      suggestionRoot: Option[MerkleRoot[(Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit]],
   )
   object TokenStateRoot:
-    def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None)
+    def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None, None)
 
   case class RandomOfferingStateRoot(
       offeringRoot: Option[MerkleRoot[TokenDefinitionId, Hash.Value[TransactionWithResult]]],

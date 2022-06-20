@@ -69,6 +69,7 @@ object BlockService:
         StateRepository.TokenState[F].rarity.put(state.token.rarityState),
         StateRepository.TokenState[F].lock.put(state.token.lockState),
         StateRepository.TokenState[F].deadline.put(state.token.deadlineState),
+        StateRepository.TokenState[F].suggestion.put(state.token.suggestionState),
         StateRepository.RandomOfferingState[F].randomOffering.put(state.offering.offeringState),
       ).sequence
     )
