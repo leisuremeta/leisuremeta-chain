@@ -13,6 +13,7 @@ final case class StateRoot(
     account: StateRoot.AccountStateRoot,
     group: StateRoot.GroupStateRoot,
     token: StateRoot.TokenStateRoot,
+    offering: StateRoot.RandomOfferingStateRoot,
 )
 
 object StateRoot:
@@ -21,6 +22,7 @@ object StateRoot:
     account = StateRoot.AccountStateRoot.empty,
     group = StateRoot.GroupStateRoot.empty,
     token = StateRoot.TokenStateRoot.empty,
+    offering = StateRoot.RandomOfferingStateRoot.empty,
   )
   case class AccountStateRoot(
       namesRoot: Option[MerkleRoot[Account, AccountData]],
@@ -53,8 +55,15 @@ object StateRoot:
       rarityRoot: Option[MerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
       lockRoot: Option[MerkleRoot[(Account, Hash.Value[TransactionWithResult]), Unit]],
       deadlineRoot: Option[MerkleRoot[(Instant, Hash.Value[TransactionWithResult]), Unit]],
+      suggestionRoot: Option[MerkleRoot[(Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit]],
   )
   object TokenStateRoot:
-    def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None)
+    def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None, None)
+
+  case class RandomOfferingStateRoot(
+      offeringRoot: Option[MerkleRoot[TokenDefinitionId, Hash.Value[TransactionWithResult]]],
+  )
+  object RandomOfferingStateRoot:
+    def empty: RandomOfferingStateRoot = RandomOfferingStateRoot(None)
 
   given eqStateRoot: Eq[StateRoot] = Eq.fromUniversalEquals
