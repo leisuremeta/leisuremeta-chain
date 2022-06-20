@@ -27,12 +27,17 @@ object TransactionResult:
           ByteVector.fromByte(1) ++ ByteEncoder[
             Map[Account, Map[TokenDefinitionId, TokenDetail]],
           ].encode(outputs)
+        case Transaction.TokenTx.CancelSuggestionResult(defId, tokenDetail) =>
+          ByteVector.fromByte(2)
+            ++ ByteEncoder[TokenDefinitionId].encode(defId)
+            ++ ByteEncoder[TokenDetail].encode(tokenDetail)
+          
         case Transaction.RandomOfferingTx.JoinTokenOfferingResult(output) =>
-          ByteVector.fromByte(2) ++ ByteEncoder[BigNat].encode(output)
+          ByteVector.fromByte(3) ++ ByteEncoder[BigNat].encode(output)
         case Transaction.RandomOfferingTx.InitialTokenOfferingResult(
               totalOutputs,
             ) =>
-          ByteVector.fromByte(3) ++ ByteEncoder[
+          ByteVector.fromByte(4) ++ ByteEncoder[
             Map[Account, Map[TokenDefinitionId, BigNat]],
           ].encode(totalOutputs)
 
@@ -47,10 +52,15 @@ object TransactionResult:
           Transaction.TokenTx.AcceptDealResult(_),
         )
       case 2 =>
+        for
+          defId <- ByteDecoder[TokenDefinitionId]
+          tokenDetail <- ByteDecoder[TokenDetail]
+        yield Transaction.TokenTx.CancelSuggestionResult(defId, tokenDetail)
+      case 3 =>
         ByteDecoder[BigNat].map(
           Transaction.RandomOfferingTx.JoinTokenOfferingResult(_),
         )
-      case 3 =>
+      case 4 =>
         ByteDecoder[Map[Account, Map[TokenDefinitionId, BigNat]]].map(
           Transaction.RandomOfferingTx.InitialTokenOfferingResult(_),
         )
@@ -302,12 +312,20 @@ object Transaction:
     final case class AcceptDealResult(
         outputs: Map[Account, Map[TokenDefinitionId, TokenDetail]],
     ) extends TransactionResult
-    /*
+
     final case class CancelSuggestion(
         networkId: NetworkId,
         createdAt: Instant,
+        suggestion: Signed.TxHash,
     ) extends TokenTx
-     */
+        with FungibleBalance
+        with NftBalance
+
+    final case class CancelSuggestionResult(
+        tokenDefinitionId: TokenDefinitionId,
+        detail: TokenDetail,
+    ) extends TransactionResult
+
     given txByteDecoder: ByteDecoder[TokenTx] = ByteDecoder[BigNat].flatMap {
       bignat =>
         bignat.toBigInt.toInt match
@@ -317,6 +335,7 @@ object Transaction:
           case 4  => ByteDecoder[TransferFungibleToken].widen
           case 6  => ByteDecoder[SuggestFungibleTokenDeal].widen
           case 10 => ByteDecoder[AcceptDeal].widen
+          case 11 => ByteDecoder[CancelSuggestion].widen
 
     }
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
@@ -327,6 +346,7 @@ object Transaction:
         case tx: TransferFungibleToken    => build(4)(tx)
         case tx: SuggestFungibleTokenDeal => build(6)(tx)
         case tx: AcceptDeal               => build(10)(tx)
+        case tx: CancelSuggestion         => build(11)(tx)
 
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder
