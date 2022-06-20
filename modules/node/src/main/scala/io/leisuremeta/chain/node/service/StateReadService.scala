@@ -271,6 +271,21 @@ object StateReadService:
                   throw new Exception(
                     s"JoinTokenOffering result is not found for $txHash",
                   )
+            case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+              txWithResult.result match
+                case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
+                  BalanceInfo(
+                    totalAmount = outputs
+                      .get(account)
+                      .flatMap(_.get(defId))
+                      .getOrElse(BigNat.Zero),
+                    unused = Map(txHash -> txWithResult),
+                  )
+                case _ =>
+                  throw new Exception(
+                    s"InitialTokenOffering result is not found for $txHash",
+                  )
+
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
       BalanceInfo(

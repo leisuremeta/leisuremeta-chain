@@ -375,7 +375,7 @@
     * NoticeTxHash: NFT 민팅 공지 트랜잭션 해시
     * Outputs: Map[AccountName, Amount]
   * Result
-    * RemainderOutputs: Map[AccountName, DefinitionID, Amount]
+    * TotalOutputs: Map[AccountName, Map[TokenDefinitionID, Amount]]
       * JoinTokenOffering으로 락업 걸려있던 물량 중 풀려서 되찾아갈 Fungible Token들
 
 * ClaimNFT 랜덤박스 열기: 한 번에 박스 하나씩만 열 수 있음

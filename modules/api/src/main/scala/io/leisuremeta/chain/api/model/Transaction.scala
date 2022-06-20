@@ -26,10 +26,15 @@ object TransactionResult:
         case Transaction.TokenTx.AcceptDealResult(outputs) =>
           ByteVector.fromByte(1) ++ ByteEncoder[
             Map[Account, Map[TokenDefinitionId, TokenDetail]],
-          ]
-            .encode(outputs)
+          ].encode(outputs)
         case Transaction.RandomOfferingTx.JoinTokenOfferingResult(output) =>
           ByteVector.fromByte(2) ++ ByteEncoder[BigNat].encode(output)
+        case Transaction.RandomOfferingTx.InitialTokenOfferingResult(
+              totalOutputs,
+            ) =>
+          ByteVector.fromByte(3) ++ ByteEncoder[
+            Map[Account, Map[TokenDefinitionId, BigNat]],
+          ].encode(totalOutputs)
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap {
@@ -44,6 +49,10 @@ object TransactionResult:
       case 2 =>
         ByteDecoder[BigNat].map(
           Transaction.RandomOfferingTx.JoinTokenOfferingResult(_),
+        )
+      case 3 =>
+        ByteDecoder[Map[Account, Map[TokenDefinitionId, BigNat]]].map(
+          Transaction.RandomOfferingTx.InitialTokenOfferingResult(_),
         )
     }
 
@@ -318,7 +327,7 @@ object Transaction:
         case tx: TransferFungibleToken    => build(4)(tx)
         case tx: SuggestFungibleTokenDeal => build(6)(tx)
         case tx: AcceptDeal               => build(10)(tx)
-    
+
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder
 
@@ -349,8 +358,21 @@ object Transaction:
         inputs: Set[Signed.TxHash],
     ) extends RandomOfferingTx
         with FungibleBalance
+
     final case class JoinTokenOfferingResult(
         outout: BigNat,
+    ) extends TransactionResult
+
+    final case class InitialTokenOffering(
+        networkId: NetworkId,
+        createdAt: Instant,
+        noticeTxHash: Signed.TxHash,
+        outputs: Map[Account, BigNat],
+    ) extends RandomOfferingTx
+        with FungibleBalance
+
+    final case class InitialTokenOfferingResult(
+        totalOutputs: Map[Account, Map[TokenDefinitionId, BigNat]],
     ) extends TransactionResult
 
     given txByteDecoder: ByteDecoder[RandomOfferingTx] =
@@ -358,12 +380,14 @@ object Transaction:
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[NoticeTokenOffering].widen
           case 1 => ByteDecoder[JoinTokenOffering].widen
+          case 2 => ByteDecoder[InitialTokenOffering].widen
       }
     given txByteEncoder: ByteEncoder[RandomOfferingTx] =
       (tx: RandomOfferingTx) =>
         tx match
-          case tx: NoticeTokenOffering => build(0)(tx)
-          case tx: JoinTokenOffering   => build(1)(tx)
+          case tx: NoticeTokenOffering  => build(0)(tx)
+          case tx: JoinTokenOffering    => build(1)(tx)
+          case tx: InitialTokenOffering => build(2)(tx)
   end RandomOfferingTx
 
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =

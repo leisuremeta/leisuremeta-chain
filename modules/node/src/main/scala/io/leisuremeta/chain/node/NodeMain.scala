@@ -114,6 +114,10 @@ object NodeMain extends IOApp:
             getStateRepo[(Instant, Hash.Value[TransactionWithResult]), Unit](
               Paths.get("sway", "state", "token", "deadline"),
             )
+          given StateRepoStore[IO, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] <-
+            getStateRepo[(Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
+              Paths.get("sway", "state", "token", "suggestion"),
+            )
           given StateRepoStore[IO, TokenDefinitionId, Hash.Value[TransactionWithResult]] <-
             getStateRepo[TokenDefinitionId, Hash.Value[TransactionWithResult]](
               Paths.get("sway", "state", "offering", "content"),

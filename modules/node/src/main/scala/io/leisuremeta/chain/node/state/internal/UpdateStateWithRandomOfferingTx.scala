@@ -3,8 +3,9 @@ package node
 package state
 package internal
 
-import cats.data.EitherT
+import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
+import cats.syntax.either.given
 import cats.syntax.eq.given
 import cats.syntax.traverse.given
 
@@ -21,6 +22,7 @@ import api.model.{
 }
 import api.model.TransactionWithResult.ops.*
 import api.model.token.{TokenDefinition, TokenDefinitionId, TokenDetail, TokenId}
+import lib.codec.byte.ByteDecoder
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
@@ -205,6 +207,20 @@ trait UpdateStateWithRandomOfferingTx:
                               EitherT.leftT(
                                 s"JoinTokenOffering result is not found for $jt",
                               )
+                        case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+                          txWithResult.result match
+                            case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
+                              EitherT.pure{
+                                outputs
+                                  .get(txWithResult.signedTx.sig.account)
+                                  .flatMap(_.get(jt.inputTokenDefinitionId))
+                                  .getOrElse(BigNat.Zero)
+                              }
+                            case _ =>
+                              EitherT.leftT(
+                                s"InitialTokenOffering result is not found for $txHash",
+                              )
+
                     case _ =>
                       EitherT.leftT(s"Transaction is not FungibleBalance: ${txHash}")
               yield amount
@@ -232,18 +248,106 @@ trait UpdateStateWithRandomOfferingTx:
                 )
               yield ()
             }.runS(ms.token.fungibleBalanceState)
-            lockState <- jt.inputs.toList.traverse{ (txHash) =>
-              MerkleTrie.put[F, (Account, Hash.Value[TransactionWithResult]), Unit](
-                (sig.account, txHash.toResultHashValue).toBytes.bits,
-                (),
-              )
-            }.runS(ms.token.lockState)
+            lockState <- MerkleTrie.put[F, (Account, Hash.Value[TransactionWithResult]), Unit](
+              (sig.account, result.toHash).toBytes.bits,
+              (),
+            ).runS(ms.token.lockState)
+            suggestionState <- MerkleTrie.put[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
+              (jt.noticeTxHash.toResultHashValue, result.toHash).toBytes.bits,
+              (),
+            ).runS(ms.token.suggestionState)
           yield (
             ms.copy(
               token = ms.token.copy(
                 fungibleBalanceState = fungibleBalanceState,
                 lockState = lockState,
+                suggestionState = suggestionState,
               ),
             ),
             result,
           )
+        case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+          for
+            txOption <- TransactionRepository[F]
+              .get(it.noticeTxHash.toResultHashValue)
+              .leftMap(_.msg)
+            tx <- EitherT.fromOption[F](
+              txOption,
+              s"Notice transaction not found: ${it.noticeTxHash}",
+            )
+            noticeTx <- tx.signedTx.value match
+              case nt: Transaction.RandomOfferingTx.NoticeTokenOffering => EitherT.pure(nt)
+              case _ =>
+                EitherT.right(Concurrent[F].raiseError {
+                  new Exception(s"Notice transaction is not a NoticeTokenOffering: ${it.noticeTxHash}")
+                })
+            lockedTxHashStream <- MerkleTrie.from[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
+              it.noticeTxHash.toBytes.bits,
+            ).runA(ms.token.suggestionState)
+            lockedTxHashBitVectorList <- lockedTxHashStream
+              .takeWhile(_._1.startsWith(it.noticeTxHash.toBytes.bits))
+              .map(_._1.drop(it.noticeTxHash.toBytes.bits.size))
+              .compile
+              .toList
+            lockedTxHashList <- lockedTxHashBitVectorList.traverse{ (txHashBitVector) =>
+              EitherT.fromEither[F]{
+                ByteDecoder[Hash.Value[TransactionWithResult]]
+                  .decode(txHashBitVector.bytes)
+                  .leftMap(_.msg)
+                  .map(_.value)
+              }
+            }
+            lockedTxList <- lockedTxHashList.traverse{ (txHash) =>
+              TransactionRepository[F]
+                .get(txHash)
+                .map(txOption => txOption.map{ tx => (txHash, tx)})
+                .leftMap(_.msg)
+            }
+            joinTxWithAccountList <- lockedTxList.flatten.traverse{ (txHash, tx) =>
+              tx.signedTx.value match
+                case jt: Transaction.RandomOfferingTx.JoinTokenOffering => EitherT.pure((txHash, jt, tx.signedTx.sig.account))
+                case _ =>
+                  EitherT.right(Concurrent[F].raiseError {
+                    new Exception(s"Locked transaction is not a JoinTokenOffering: ${tx.signedTx.sig}")
+                  })
+            }
+            totalOutputs: Map[Account, Map[TokenDefinitionId, BigNat]] = {
+              it.outputs.map{ (account, amount) => (account, noticeTx.tokenDefinitionId, amount) }
+                ++ joinTxWithAccountList.map{ case (_, jt, account) => (account, jt.inputTokenDefinitionId, jt.amount) }
+            }.groupMapReduce(_._1)((_, defId, amount) => Seq((defId, amount)))(_ ++ _).view.mapValues{
+              _.groupMapReduce(_._1)(_._2)(BigNat.add)
+            }.toMap
+            result = TransactionWithResult(
+              Signed(sig, it),
+              Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(totalOutputs)),
+            )
+            fungibleBalanceState <- totalOutputs
+              .toList
+              .flatMap{ (account, map) => map.toList.map((defId, _) => (account, defId)) }
+              .traverse{ (account, tokenDefId) =>
+                MerkleTrie.put[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
+                  (account, tokenDefId, result.toHash).toBytes.bits,
+                  (),
+                )
+              }.runS(ms.token.fungibleBalanceState)
+            lockState <- joinTxWithAccountList.traverse{ case (txHash, _, account) =>
+              MerkleTrie.remove[F, (Account, Hash.Value[TransactionWithResult]), Unit](
+                (account, txHash).toBytes.bits,
+              )
+            }.runS(ms.token.lockState)
+            suggestionState <- lockedTxHashBitVectorList.traverse{ (txHashBitVector) =>
+              MerkleTrie.remove[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
+                it.noticeTxHash.toBytes.bits ++ txHashBitVector
+              )
+            }.runS(ms.token.suggestionState)
+          yield (
+            ms.copy(
+              token = ms.token.copy(
+                fungibleBalanceState = fungibleBalanceState,
+                lockState = lockState,
+                suggestionState = suggestionState,
+              ),
+            ),
+            result,
+          )
+

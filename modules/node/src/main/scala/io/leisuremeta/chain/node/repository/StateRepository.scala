@@ -108,6 +108,7 @@ object StateRepository:
     def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit]
     def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit]
     def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit]
+    def suggestion: StateRepository[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit]
 
   object TokenState:
     def apply[F[_]: TokenState]: TokenState[F] = summon
@@ -131,6 +132,7 @@ object StateRepository:
         rarityKVStore: MerkleHashStore[F, (TokenDefinitionId, Rarity, TokenId), Unit],
         lockKVStore: MerkleHashStore[F, (Account, Hash.Value[TransactionWithResult]), Unit],
         deadlineKVStore: MerkleHashStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit],
+        suggestionKVStore: MerkleHashStore[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit],
     ): TokenState[F] = new TokenState[F]:
       def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
         fromStores
@@ -150,6 +152,8 @@ object StateRepository:
       def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
         fromStores
       def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit] = fromStores
+      def suggestion: StateRepository[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] =
+        fromStores
 
 
   given nodeStoreFromDefinition[F[_]: Functor: TokenState]
@@ -181,6 +185,9 @@ object StateRepository:
   given nodeStoreFromDeadline[F[_]: Functor: TokenState]
       : NodeStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit] =
     Kleisli(TokenState[F].deadline.get(_).leftMap(_.msg))
+  given nodeStoreFromSuggestion[F[_]: Functor: TokenState]
+      : NodeStore[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].suggestion.get(_).leftMap(_.msg))
 
   /** RandomOffering */
   trait RandomOfferingState[F[_]]:
