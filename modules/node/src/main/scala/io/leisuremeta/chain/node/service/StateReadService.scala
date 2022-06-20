@@ -258,6 +258,23 @@ object StateReadService:
                   throw new Exception(
                     s"AcceptDeal result is not found for $txHash",
                   )
+            case cs: Transaction.TokenTx.CancelSuggestion =>
+              txWithResult.result match
+                case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                  BalanceInfo(
+                    totalAmount = {
+                      detail match
+                        case TokenDetail.FungibleDetail(amount) if cancelDefId === defId =>
+                          amount
+                        case _ =>
+                          BigNat.Zero
+                    },
+                    unused = Map(txHash -> txWithResult),
+                  )
+                case _ =>
+                  throw new Exception(
+                    s"CancelSuggestion result is not found for $txHash",
+                  )
             case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
               txWithResult.result match
                 case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
@@ -368,6 +385,20 @@ object StateReadService:
                       txWithResult,
                     ),
                   )
+                case cs: Transaction.TokenTx.CancelSuggestion =>
+                  txWithResult.result match
+                    case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                      detail match
+                        case TokenDetail.NftDetail(tokenId) =>
+                          Map(
+                            tokenId -> NftBalanceInfo(
+                              cancelDefId,
+                              txHash,
+                              txWithResult,
+                            ),
+                          )
+                        case _ => Map.empty
+                    case _ =>  Map.empty
             case _ =>
               Map.empty,
         )

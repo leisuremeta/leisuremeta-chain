@@ -102,6 +102,21 @@ trait UpdateStateWithRandomOfferingTx:
                             (mn.tokenId, txHash),
                             s"Transaction ${txHash} is not an NFT balance for token definition ${nt.tokenDefinitionId}",
                           )
+                        case cs: Transaction.TokenTx.CancelSuggestion =>
+                          txResult.result match
+                            case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                              detail match
+                                case TokenDetail.NftDetail(tokenId) =>
+                                  EitherT.cond(
+                                    cancelDefId == nt.tokenDefinitionId,
+                                    (tokenId, txHash),
+                                    s"Transaction ${txHash} is not an NFT balance for token definition ${nt.tokenDefinitionId}",
+                                  )
+                                case _ =>
+                                  EitherT.leftT(
+                                    s"Transaction ${txHash} is not an NFT balance for token definition ${nt.tokenDefinitionId}",
+                                  )
+                            case _ => EitherT.leftT(s"Transaction ${txHash} is not an NFT balance for token definition ${nt.tokenDefinitionId}")
                     case _ =>
                       EitherT.leftT(s"Transaction is not NftBalance: ${txHash}")
               }
@@ -197,6 +212,20 @@ trait UpdateStateWithRandomOfferingTx:
                             case _ =>
                               EitherT.leftT(
                                 s"AcceptDeal result is not found: $txWithResult",
+                              )
+                        case cs: Transaction.TokenTx.CancelSuggestion =>
+                          txWithResult.result match
+                            case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                              detail match
+                                case TokenDetail.FungibleDetail(amount) =>
+                                  EitherT.pure(amount)
+                                case TokenDetail.NftDetail(_) =>
+                                  EitherT.leftT(
+                                    s"CancelSuggestion result is not found: $txWithResult",
+                                  )
+                            case _ =>
+                              EitherT.leftT(
+                                s"CancelSuggestion result is not found: $txWithResult",
                               )
                         case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
                           txWithResult.result match

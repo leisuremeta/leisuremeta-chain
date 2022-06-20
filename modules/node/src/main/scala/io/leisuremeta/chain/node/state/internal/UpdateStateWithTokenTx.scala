@@ -409,6 +409,18 @@ trait UpdateStateWithTokenTx:
                                 EitherT.leftT(
                                   s"AcceptDeal result is not found for $ad",
                                 )
+                          case cs: Transaction.TokenTx.CancelSuggestion =>
+                            txWithResult.result match
+                              case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                                EitherT.pure{
+                                  detail match
+                                    case TokenDetail.FungibleDetail(amount) => amount
+                                    case _ => BigNat.Zero
+                                }
+                              case _ =>
+                                EitherT.leftT(
+                                  s"CancelSuggestion result is not found for $cs",
+                                )
                           case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
                             txWithResult.result match
                               case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
@@ -462,6 +474,18 @@ trait UpdateStateWithTokenTx:
                               case _ =>
                                 EitherT.leftT(
                                   s"AcceptDeal result is not found: $txWithResult",
+                                )
+                          case cs: Transaction.TokenTx.CancelSuggestion =>
+                            txWithResult.result match
+                              case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                                EitherT.pure{
+                                  detail match
+                                    case TokenDetail.FungibleDetail(amount) => amount
+                                    case _ => BigNat.Zero
+                                }
+                              case _ =>
+                                EitherT.leftT(
+                                  s"CancelSuggestion result is not found for $cs",
                                 )
                           case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
                             txWithResult.result match
@@ -550,3 +574,115 @@ trait UpdateStateWithTokenTx:
                   suggestionState = suggestionState,
                 )), result)
           yield result
+        case cs: Transaction.TokenTx.CancelSuggestion =>
+          for
+            suggestionTxOption <- TransactionRepository[F]
+              .get(cs.suggestion.toResultHashValue)
+              .leftMap(_.msg)
+            suggestionTx <- EitherT.fromOption(
+              suggestionTxOption,
+              s"Suggestion transaction is not found: ${cs.suggestion}",
+            )
+            dealSuggestionTx <- suggestionTx.signedTx.value match
+              case s: Transaction.DealSuggestion => EitherT.pure(s)
+              case _ => EitherT.leftT(
+                s"Suggestion transaction is not a deal suggestion: ${suggestionTx}",
+              )
+            released <- dealSuggestionTx match
+              case sf: Transaction.TokenTx.SuggestFungibleTokenDeal =>
+                for
+                  inputOptionList <- sf.inputs.toList.traverse{ (txHash) =>
+                    TransactionRepository[F]
+                      .get(txHash.toResultHashValue)
+                      .leftMap(_.msg)
+                  }
+                  inputAmounts <- inputOptionList.flatten.traverse{ (txWithResult) =>
+                    txWithResult.signedTx.value match
+                      case fb: Transaction.FungibleBalance => fb match
+                        case mf: Transaction.TokenTx.MintFungibleToken =>
+                          EitherT.pure(mf.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero))
+                        case tf: Transaction.TokenTx.TransferFungibleToken =>
+                          EitherT.pure(tf.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero))
+                        case ad: Transaction.TokenTx.AcceptDeal =>
+                          txWithResult.result match
+                            case Some(Transaction.TokenTx.AcceptDealResult(outputs)) =>
+                              EitherT.pure(outputs
+                                .get(txWithResult.signedTx.sig.account)
+                                .flatMap(_.get(sf.inputDefinitionId))
+                                .fold(BigNat.Zero) {
+                                  case TokenDetail.FungibleDetail(amount) => amount
+                                  case TokenDetail.NftDetail(_)           => BigNat.Zero
+                                }
+                              )
+                            case _ =>
+                              EitherT.leftT(
+                                s"AcceptDeal result is not found: $txWithResult",
+                              )
+                        case cs: Transaction.TokenTx.CancelSuggestion =>
+                          txWithResult.result match
+                            case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
+                              EitherT.pure{
+                                detail match
+                                  case TokenDetail.FungibleDetail(amount) => amount
+                                  case _ => BigNat.Zero
+                              }
+                            case _ =>
+                              EitherT.leftT(
+                                s"CancelSuggestion result is not found for $cs",
+                              )
+                        case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+                          txWithResult.result match
+                            case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
+                              if txWithResult.signedTx.sig.account === sig.account =>
+                              EitherT.pure(output)
+                            case _ =>
+                              EitherT.leftT(
+                                s"JoinTokenOffering result is not found for $jt",
+                              )
+                        case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+                          txWithResult.result match
+                            case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
+                              EitherT.pure{
+                                outputs
+                                  .get(txWithResult.signedTx.sig.account)
+                                  .flatMap(_.get(sf.inputDefinitionId))
+                                  .getOrElse(BigNat.Zero)
+                              }
+                            case _ =>
+                              EitherT.leftT(
+                                s"InitialTokenOffering result is not found for $it",
+                              )
+                      case _ =>
+                        EitherT.leftT(
+                          s"Transaction ${txWithResult.signedTx.toHash} is not a fungible balance",
+                        )
+                    }
+                    lockedAmount <- EitherT.fromEither[F](BigNat.fromBigInt{
+                      inputAmounts.foldLeft(BigNat.Zero)(BigNat.add).toBigInt - sf.output.toBigInt
+                    })
+                yield (
+                  sf.inputDefinitionId,
+                  TokenDetail.FungibleDetail(lockedAmount),
+                )
+            (defId, detail) = released
+            result = TransactionWithResult(
+              Signed(sig, tx),
+              Some(Transaction.TokenTx.CancelSuggestionResult(defId, detail)),
+            )
+
+            lockState <- MerkleTrie.remove[F, (Account, Hash.Value[TransactionWithResult]), Unit](
+              (sig.account, cs.suggestion).toBytes.bits,
+            ).runS(ms.token.lockState)
+
+            fungibleBalanceState <- MerkleTrie.put[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
+              (sig.account, defId, result.toHash).toBytes.bits, ()
+            ).runS(ms.token.fungibleBalanceState)
+          yield (
+            ms.copy(
+              token = ms.token.copy(
+                lockState = lockState,
+                fungibleBalanceState = fungibleBalanceState,
+              ),
+            ),
+            result,
+          )

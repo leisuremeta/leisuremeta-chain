@@ -208,7 +208,7 @@ object GossipDomain:
             case Right(_) => true
             case Left(msg) =>
               scribe.info(
-                s"block $blockHash does not support tx ${tx.toHash}: $msg",
+                s"block $blockHash does not support tx ${tx.toHash}: $tx\n===> error msg: $msg",
               )
               false
           }
