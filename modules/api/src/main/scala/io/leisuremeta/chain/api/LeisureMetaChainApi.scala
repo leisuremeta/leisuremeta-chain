@@ -26,7 +26,8 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo, RandomOfferingInfo}
+import api.model.offering.VrfPublicKey
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
 
@@ -43,12 +44,16 @@ object LeisureMetaChainApi:
   given [A]: Schema[Hash.Value[A]] = Schema.string
   given Schema[Signature.Header]   = Schema(SchemaType.SInteger())
 
+  given Schema[VrfPublicKey] = Schema.schemaForByteArray.map[VrfPublicKey] {
+    (byteArray: Array[Byte]) => Some(VrfPublicKey(ByteVector.view(byteArray)))
+  } { (vrf: VrfPublicKey) => vrf.toBytes.toArray }
+  given Schema[Transaction] = Schema.derived[Transaction]
+
   given hashValueCodec[A]: Codec[String, Hash.Value[A], TextPlain] = Codec.string.mapDecode{ (s: String) =>
     ByteVector.fromHexDescriptive(s).left.map(new Exception(_)).flatMap(UInt256.from) match
       case Left(e) => DecodeResult.Error(s, e)
       case Right(v) => DecodeResult.Value(Hash.Value(v))
   }(_.toUInt256Bytes.toBytes.toHex)
-
 
   final case class ServerError(msg: String)
 
@@ -151,6 +156,12 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("owners" / path[TokenDefinitionId])
       .out(jsonBody[Map[TokenId, Account]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOfferingEndpoint =
+    baseEndpoint.get
+      .in("offering" / path[TokenDefinitionId])
+      .out(jsonBody[RandomOfferingInfo])
 
   enum Movable:
     case Free, Locked

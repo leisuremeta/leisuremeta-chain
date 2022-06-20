@@ -63,7 +63,8 @@ object UpdateStateWithAccountTxTest
 
     val account = Account(Utf8.unsafeFrom("minter"))
 
-    val pubKeySummary: PublicKeySummary = PublicKeySummary.fromPublicKeyHash(keyPair.publicKey.toHash)
+    val pubKeySummary: PublicKeySummary =
+      PublicKeySummary.fromPublicKeyHash(keyPair.publicKey.toHash)
 
     val tx: Transaction = Transaction.AccountTx.CreateAccount(
       networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
@@ -87,17 +88,25 @@ object UpdateStateWithAccountTxTest
       token = GossipDomain.MerkleState.TokenMerkleState.from(
         StateRoot.TokenStateRoot.empty,
       ),
+      offering = GossipDomain.MerkleState.RandomOfferingMerkleState.from(
+        StateRoot.RandomOfferingStateRoot.empty,
+      ),
     )
 
-    val Right((state, txResult)) = summon[UpdateState[IO, Transaction.AccountTx]](
-      baseState,
-      accountSig,
-      tx.asInstanceOf[Transaction.AccountTx],
-    ).value.unsafeRunSync()
+    val Right((state, txResult)) =
+      summon[UpdateState[IO, Transaction.AccountTx]](
+        baseState,
+        accountSig,
+        tx.asInstanceOf[Transaction.AccountTx],
+      ).value.unsafeRunSync()
 
-    val result = MerkleTrie.get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
-      (account, pubKeySummary).toBytes.bits,
-    ).runA(state.account.keyState).value.unsafeRunSync()
+    val result = MerkleTrie
+      .get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
+        (account, pubKeySummary).toBytes.bits,
+      )
+      .runA(state.account.keyState)
+      .value
+      .unsafeRunSync()
 
     Result.assert(result.isRight)
   }

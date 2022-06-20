@@ -5,6 +5,7 @@ package service
 import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.syntax.bifunctor.*
+import cats.syntax.eq.given
 import cats.syntax.functor.*
 import cats.syntax.flatMap.*
 import cats.syntax.traverse.*
@@ -20,7 +21,8 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
+import api.model.TransactionWithResult.ops.*
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo, RandomOfferingInfo}
 import api.model.token.{
   Rarity,
   NftState,
@@ -33,7 +35,7 @@ import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
-import lib.merkle.MerkleTrie
+import lib.merkle.{MerkleTrie, MerkleTrieState}
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import StateRepository.given
 
@@ -256,6 +258,34 @@ object StateReadService:
                   throw new Exception(
                     s"AcceptDeal result is not found for $txHash",
                   )
+            case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+              txWithResult.result match
+                case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
+                  if txWithResult.signedTx.sig.account === account =>
+
+                  BalanceInfo(
+                    totalAmount = output,
+                    unused = Map(txHash -> txWithResult),
+                  )
+                case _ =>
+                  throw new Exception(
+                    s"JoinTokenOffering result is not found for $txHash",
+                  )
+            case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
+              txWithResult.result match
+                case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
+                  BalanceInfo(
+                    totalAmount = outputs
+                      .get(account)
+                      .flatMap(_.get(defId))
+                      .getOrElse(BigNat.Zero),
+                    unused = Map(txHash -> txWithResult),
+                  )
+                case _ =>
+                  throw new Exception(
+                    s"InitialTokenOffering result is not found for $txHash",
+                  )
+
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
       BalanceInfo(
@@ -276,6 +306,15 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
+    nftBalanceMap <- getNftBalanceFromNftBalanceState[F](account, movableOption, merkleState.token.nftBalanceState)
+  yield nftBalanceMap
+
+  def getNftBalanceFromNftBalanceState[F[_]
+    : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
+      account: Account,
+      movableOption: Option[Api.Movable],
+      nftBalanceState: MerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
+    ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- MerkleTrie
       .from[
         F,
@@ -284,7 +323,7 @@ object StateReadService:
       ](
         account.toBytes.bits,
       )
-      .runA(merkleState.token.nftBalanceState)
+      .runA(nftBalanceState)
       .flatMap(
         _.takeWhile(_._1.startsWith(account.toBytes.bits)).compile.toList
           .flatMap { (list) =>
@@ -390,3 +429,37 @@ object StateReadService:
         )
     }
   yield ownerOptionList.flatten.toMap
+
+  def getOffering[F[_]: Concurrent: BlockRepository: StateRepository.TokenState: StateRepository.RandomOfferingState: TransactionRepository](
+      tokenDefinitionId: TokenDefinitionId,
+  ): EitherT[F, String, Option[RandomOfferingInfo]] =
+    summon[StateRepository.RandomOfferingState[F]].randomOffering
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
+      bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
+      merkleState = MerkleState.from(bestHeader)
+      noticeTxHashOption <- MerkleTrie.get[F, TokenDefinitionId, Hash.Value[TransactionWithResult]](
+        tokenDefinitionId.toBytes.bits,
+      ).runA(merkleState.offering.offeringState)
+      infoOption <- noticeTxHashOption.traverse { noticeTxHash =>
+        for
+          noticeTxOption <- TransactionRepository[F].get(noticeTxHash).leftMap(_.msg)
+          noticeTx <- EitherT.right(noticeTxOption.fold{
+            Concurrent[F].raiseError(new Exception(s"No notice transaction $noticeTxHash"))
+          }{ (noticeTx) =>
+            noticeTx.signedTx.value match
+              case tx: Transaction.RandomOfferingTx.NoticeTokenOffering =>
+                for
+                  balanceMap <- getNftBalanceFromNftBalanceState[F](tx.offeringAccount, None, merkleState.token.nftBalanceState)
+                yield RandomOfferingInfo(
+                  tokenDefinitionId = tokenDefinitionId,
+                  noticeTxHash = noticeTxHash.toSignedTxHash,
+                  noticeTx = tx,
+                  currentBalance = balanceMap,
+                )
+              case tx => Concurrent[F].raiseError(new Exception(s"Not a notice transaction $tx"))
+          })
+        yield noticeTx
+      }
+    yield infoOption
+    

@@ -102,7 +102,7 @@
       * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
   
 * UpdateAccount 계정 생성
-  * > 사용자 서명
+  * > 사용자 서명 혹은 Guardian 서명
   * Fields
     * account: Account 계정 이름
     * ethAddress: *(optional)* 이더리움 주소
@@ -344,7 +344,7 @@
 
   * Fields
     * GroupID(string)
-    * OfferingAccountName(string)
+    * OfferingAccount(string)
       * 랜덤박스 개봉 시 제공될 NFT 토큰 가지고 있을 계정. NFT를 추가 발행하고 이 계정으로 보내서 동적으로 늘려 나갈 수 있다.
     * Token Definition ID
     * VRF Public Key
@@ -375,7 +375,7 @@
     * NoticeTxHash: NFT 민팅 공지 트랜잭션 해시
     * Outputs: Map[AccountName, Amount]
   * Result
-    * RemainderOutputs: Map[AccountName, DefinitionID, Amount]
+    * TotalOutputs: Map[AccountName, Map[TokenDefinitionID, Amount]]
       * JoinTokenOffering으로 락업 걸려있던 물량 중 풀려서 되찾아갈 Fungible Token들
 
 * ClaimNFT 랜덤박스 열기: 한 번에 박스 하나씩만 열 수 있음
@@ -512,7 +512,7 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 ### Random Offering
 
-* RandomOfferingState: DefinitionID => RandomOfferingContent
+* RandomOfferingState: DefinitionID => NoticeTxHash
 
 ### Agenda
 

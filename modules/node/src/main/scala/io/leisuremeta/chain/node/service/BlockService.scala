@@ -16,7 +16,7 @@ import lib.crypto.Hash.ops.*
 
 object BlockService:
 
-  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState](
+  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RandomOfferingState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
   )(using
@@ -69,6 +69,8 @@ object BlockService:
         StateRepository.TokenState[F].rarity.put(state.token.rarityState),
         StateRepository.TokenState[F].lock.put(state.token.lockState),
         StateRepository.TokenState[F].deadline.put(state.token.deadlineState),
+        StateRepository.TokenState[F].suggestion.put(state.token.suggestionState),
+        StateRepository.RandomOfferingState[F].randomOffering.put(state.offering.offeringState),
       ).sequence
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
