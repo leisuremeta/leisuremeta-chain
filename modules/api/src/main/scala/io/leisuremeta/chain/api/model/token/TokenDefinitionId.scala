@@ -2,6 +2,8 @@ package io.leisuremeta.chain
 package api.model
 package token
 
+import cats.Eq
+
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import sttp.tapir.{Codec, DecodeResult, Schema}
 import sttp.tapir.CodecFormat.TextPlain
@@ -32,3 +34,5 @@ object TokenDefinitionId:
       case Left(e) => DecodeResult.Error(s, e)
       case Right(a) => DecodeResult.Value(TokenDefinitionId(a))
   }(_.utf8.value)
+
+  given Eq[TokenDefinitionId] = Eq.fromUniversalEquals
