@@ -5,6 +5,7 @@ package internal
 
 import cats.data.EitherT
 import cats.effect.Concurrent
+import cats.syntax.eq.given
 import cats.syntax.traverse.given
 
 import GossipDomain.MerkleState
@@ -19,10 +20,11 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.TransactionWithResult.ops.*
-import api.model.token.{TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.{TokenDefinition, TokenDefinitionId, TokenDetail, TokenId}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
+import lib.datatype.BigNat
 import lib.merkle.MerkleTrie
 import repository.{StateRepository, TransactionRepository}
 import repository.StateRepository.given
@@ -84,32 +86,41 @@ trait UpdateStateWithRandomOfferingTx:
                 .get(txHash)
                 .leftMap(_.msg)
             }
-            inputTokenIdAndTxHashes <- (inputTxHashList zip inputTxOptions).traverse {
-              case (txHash, None) =>
-                EitherT.leftT(s"Transaction not found: ${txHash}")
-              case (txHash, Some(txResult)) =>
-                txResult.signedTx.value match
-                  case nftBalanceTx: Transaction.NftBalance =>
-                    nftBalanceTx match
-                      case mn: Transaction.TokenTx.MintNFT =>
-                        EitherT.cond(
-                          mn.tokenDefinitionId == nt.tokenDefinitionId,
-                          (mn.tokenId, txHash),
-                          s"Transaction ${txHash} is not an NFT balance for token definition ${nt.tokenDefinitionId}",
-                        )
-                  case _ =>
-                    EitherT.leftT(s"Transaction is not NftBalance: ${txHash}")
-            }
+            inputTokenIdAndTxHashes <- (inputTxHashList zip inputTxOptions)
+              .traverse {
+                case (txHash, None) =>
+                  EitherT.leftT(s"Transaction not found: ${txHash}")
+                case (txHash, Some(txResult)) =>
+                  txResult.signedTx.value match
+                    case nftBalanceTx: Transaction.NftBalance =>
+                      nftBalanceTx match
+                        case mn: Transaction.TokenTx.MintNFT =>
+                          EitherT.cond(
+                            mn.tokenDefinitionId == nt.tokenDefinitionId,
+                            (mn.tokenId, txHash),
+                            s"Transaction ${txHash} is not an NFT balance for token definition ${nt.tokenDefinitionId}",
+                          )
+                    case _ =>
+                      EitherT.leftT(s"Transaction is not NftBalance: ${txHash}")
+              }
             result = TransactionWithResult(Signed(sig, tx), None)
             nftBalanceState <- {
               for
-                _ <- inputTokenIdAndTxHashes.traverse{ (tokenId, txHash) =>
-                  MerkleTrie.remove[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
+                _ <- inputTokenIdAndTxHashes.traverse { (tokenId, txHash) =>
+                  MerkleTrie.remove[
+                    F,
+                    (Account, TokenId, Hash.Value[TransactionWithResult]),
+                    Unit,
+                  ](
                     (sig.account, tokenId, txHash).toBytes.bits,
                   )
                 }
-                _ <- inputTokenIdAndTxHashes.traverse{ (tokenId, _) =>
-                  MerkleTrie.put[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
+                _ <- inputTokenIdAndTxHashes.traverse { (tokenId, _) =>
+                  MerkleTrie.put[
+                    F,
+                    (Account, TokenId, Hash.Value[TransactionWithResult]),
+                    Unit,
+                  ](
                     (nt.offeringAccount, tokenId, result.toHash).toBytes.bits,
                     (),
                   )
@@ -127,6 +138,112 @@ trait UpdateStateWithRandomOfferingTx:
             ms.copy(
               token = ms.token.copy(nftBalanceState = nftBalanceState),
               offering = ms.offering.copy(offeringState = randomOfferingState),
+            ),
+            result,
+          )
+        case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+          for
+            txOption <- TransactionRepository[F]
+              .get(jt.noticeTxHash.toResultHashValue)
+              .leftMap(_.msg)
+            tx <- EitherT.fromOption[F](
+              txOption,
+              s"Notice transaction not found: ${jt.noticeTxHash}",
+            )
+            noticeTx <- tx.signedTx.value match
+              case nt: Transaction.RandomOfferingTx.NoticeTokenOffering => EitherT.pure(nt)
+              case _ =>
+                EitherT.right(Concurrent[F].raiseError {
+                  new Exception(s"Notice transaction is not a NoticeTokenOffering: ${jt.noticeTxHash}")
+                })
+            requirement <- EitherT.fromOption(
+              noticeTx.requirement,
+              s"Notice transaction does not have requirement: ${jt.noticeTxHash}",
+            )
+            _ <- EitherT.cond(
+              jt.inputTokenDefinitionId === requirement._1,
+              (),
+              s"Notice transaction requirement token definition ${jt.noticeTxHash} is not ${jt.inputTokenDefinitionId}",
+            )
+            inputAmountList <- jt.inputs.toList.traverse{ (txHash) =>
+              for
+                txOption <- TransactionRepository[F]
+                  .get(txHash.toResultHashValue)
+                  .leftMap(_.msg)
+                txWithResult <- EitherT.fromOption[F](
+                  txOption,
+                  s"Input transaction not found: ${txHash}",
+                )
+                amount <- txWithResult.signedTx.value match
+                    case fungibleBalanceTx: Transaction.FungibleBalance =>
+                      fungibleBalanceTx match
+                        case mf: Transaction.TokenTx.MintFungibleToken =>
+                          EitherT.pure(mf.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero))
+                        case tf: Transaction.TokenTx.TransferFungibleToken =>
+                          EitherT.pure(tf.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero))
+                        case ad: Transaction.TokenTx.AcceptDeal =>
+                          txWithResult.result match
+                            case Some(Transaction.TokenTx.AcceptDealResult(outputs)) =>
+                              EitherT.pure(outputs
+                                .get(txWithResult.signedTx.sig.account)
+                                .flatMap(_.get(jt.inputTokenDefinitionId))
+                                .fold(BigNat.Zero) {
+                                  case TokenDetail.FungibleDetail(amount) => amount
+                                  case TokenDetail.NftDetail(_)           => BigNat.Zero
+                                }
+                              )
+                            case _ =>
+                              EitherT.leftT(
+                                s"AcceptDeal result is not found: $txWithResult",
+                              )
+                        case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+                          txWithResult.result match
+                            case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
+                              if txWithResult.signedTx.sig.account === sig.account =>
+                              EitherT.pure(output)
+                            case _ =>
+                              EitherT.leftT(
+                                s"JoinTokenOffering result is not found for $jt",
+                              )
+                    case _ =>
+                      EitherT.leftT(s"Transaction is not FungibleBalance: ${txHash}")
+              yield amount
+            }
+            inputTotalAmount = inputAmountList.foldLeft(BigNat.Zero)(BigNat.add)
+            outputAmount <- EitherT.fromEither[F](
+              BigNat.fromBigInt(inputTotalAmount.toBigInt - noticeTx.requirement.fold(BigInt(0))(_._2.toBigInt))
+            ).leftMap{ msg =>
+              s"Insufficient input total amount: $inputTotalAmount vs ${requirement._2}: $msg"
+            }
+            result = TransactionWithResult(
+              Signed(sig, jt),
+              Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(outputAmount)),
+            )
+            fungibleBalanceState <- {
+              for
+                _ <- jt.inputs.toList.traverse{ (txHash) =>
+                  MerkleTrie.remove[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit]{
+                    (sig.account, jt.inputTokenDefinitionId, txHash.toResultHashValue).toBytes.bits
+                  }
+                }
+                _ <- MerkleTrie.put[F, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
+                  (sig.account, jt.inputTokenDefinitionId, result.toHash).toBytes.bits,
+                  (),
+                )
+              yield ()
+            }.runS(ms.token.fungibleBalanceState)
+            lockState <- jt.inputs.toList.traverse{ (txHash) =>
+              MerkleTrie.put[F, (Account, Hash.Value[TransactionWithResult]), Unit](
+                (sig.account, txHash.toResultHashValue).toBytes.bits,
+                (),
+              )
+            }.runS(ms.token.lockState)
+          yield (
+            ms.copy(
+              token = ms.token.copy(
+                fungibleBalanceState = fungibleBalanceState,
+                lockState = lockState,
+              ),
             ),
             result,
           )

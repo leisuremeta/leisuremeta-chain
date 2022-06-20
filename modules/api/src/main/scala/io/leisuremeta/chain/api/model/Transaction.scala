@@ -28,6 +28,8 @@ object TransactionResult:
             Map[Account, Map[TokenDefinitionId, TokenDetail]],
           ]
             .encode(outputs)
+        case Transaction.RandomOfferingTx.JoinTokenOfferingResult(output) =>
+          ByteVector.fromByte(2) ++ ByteEncoder[BigNat].encode(output)
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap {
@@ -38,6 +40,10 @@ object TransactionResult:
       case 1 =>
         ByteDecoder[Map[Account, Map[TokenDefinitionId, TokenDetail]]].map(
           Transaction.TokenTx.AcceptDealResult(_),
+        )
+      case 2 =>
+        ByteDecoder[BigNat].map(
+          Transaction.RandomOfferingTx.JoinTokenOfferingResult(_),
         )
     }
 
@@ -312,6 +318,10 @@ object Transaction:
         case tx: TransferFungibleToken    => build(4)(tx)
         case tx: SuggestFungibleTokenDeal => build(6)(tx)
         case tx: AcceptDeal               => build(10)(tx)
+    
+    given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
+    given txCirceEncoder: Encoder[TokenTx] = deriveEncoder
+
   end TokenTx
 
   sealed trait RandomOfferingTx extends Transaction
@@ -330,14 +340,30 @@ object Transaction:
         note: Utf8,
     ) extends RandomOfferingTx
 
-    given txByteDecoder: ByteDecoder[RandomOfferingTx] = ByteDecoder[BigNat].flatMap {
-      bignat =>
+    final case class JoinTokenOffering(
+        networkId: NetworkId,
+        createdAt: Instant,
+        noticeTxHash: Signed.TxHash,
+        amount: BigNat,
+        inputTokenDefinitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+    ) extends RandomOfferingTx
+        with FungibleBalance
+    final case class JoinTokenOfferingResult(
+        outout: BigNat,
+    ) extends TransactionResult
+
+    given txByteDecoder: ByteDecoder[RandomOfferingTx] =
+      ByteDecoder[BigNat].flatMap { bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[NoticeTokenOffering].widen
-    }
-    given txByteEncoder: ByteEncoder[RandomOfferingTx] = (atx: RandomOfferingTx) =>
-      atx match
-        case tx: NoticeTokenOffering => build(0)(tx)
+          case 1 => ByteDecoder[JoinTokenOffering].widen
+      }
+    given txByteEncoder: ByteEncoder[RandomOfferingTx] =
+      (tx: RandomOfferingTx) =>
+        tx match
+          case tx: NoticeTokenOffering => build(0)(tx)
+          case tx: JoinTokenOffering   => build(1)(tx)
   end RandomOfferingTx
 
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
@@ -365,6 +391,9 @@ object Transaction:
   given txSign: Sign[Transaction] = Sign.build
 
   given txRecover: Recover[Transaction] = Recover.build
+
+  given txCirceDecoder: Decoder[Transaction] = deriveDecoder
+  given txCirceEncoder: Encoder[Transaction] = deriveEncoder
 
   /*
   sealed trait AgendaTx extends Transaction

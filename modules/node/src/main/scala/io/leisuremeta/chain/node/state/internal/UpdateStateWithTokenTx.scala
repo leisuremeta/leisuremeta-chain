@@ -401,6 +401,15 @@ trait UpdateStateWithTokenTx:
                                 EitherT.leftT(
                                   s"AcceptDeal result is not found for $ad",
                                 )
+                          case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+                            txWithResult.result match
+                              case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
+                                if txWithResult.signedTx.sig.account === sig.account =>
+                                EitherT.pure(output)
+                              case _ =>
+                                EitherT.leftT(
+                                  s"JoinTokenOffering result is not found for $jt",
+                                )
                       case tx => EitherT.leftT(
                         s"Transaction ${tx.toHash} is not a fungible balance",
                       )
@@ -432,6 +441,15 @@ trait UpdateStateWithTokenTx:
                               case _ =>
                                 EitherT.leftT(
                                   s"AcceptDeal result is not found: $txWithResult",
+                                )
+                          case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+                            txWithResult.result match
+                              case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
+                                if txWithResult.signedTx.sig.account === sig.account =>
+                                EitherT.pure(output)
+                              case _ =>
+                                EitherT.leftT(
+                                  s"JoinTokenOffering result is not found for $jt",
                                 )
                       case tx => EitherT.leftT(
                         s"Transaction ${tx.toHash} is not a fungible balance",

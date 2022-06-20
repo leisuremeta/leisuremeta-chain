@@ -294,54 +294,22 @@ genesis {
     getApp.resource
       .flatMap { appResource =>
         appResource.use { _ =>
-          IO {
-            
-            //val response = basicRequest
-            //  .response(asStringAlways)
-            //  .get(uri"http://localhost:8081/account/alice")
-            //  .send(backend)
-//
-            //println(s"response: ${response}")
 
-            Seq(tx0, tx1, tx2, tx3, tx4).foreach{tx =>
-              println("====")
-              println(Seq(sign(tx)).asJson.spaces2)
-              println("====")
-            }
-
-            val response0 = submit(tx0)
-            println(
-              s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
-            )
-            val response1 = submit(tx1)
-            println(
-              s"post tx1 request result: body: ${response1.body}, status code: ${response1.code}",
-            )
-            val response2 = submit(tx2)
-            println(
-              s"post tx2 request result: body: ${response2.body}, status code: ${response2.code}",
-            )
-            val response3 = submit(tx3)
-            println(
-              s"post tx3 request result: body: ${response3.body}, status code: ${response3.code}",
-            )
-            val response4 = submit(tx4)
-            println(
-              s"post tx4 request result: body: ${response4.body}, status code: ${response4.code}",
-            )
-
-            
-
-            Result.all(
+          IO(Result.all{
+            List(tx0, tx1, tx2, tx3, tx4).flatMap{ tx =>
+              println(
+                s"===> submitting tx: $tx",
+              )
+              val response = submit(tx)
+              println(
+                s"submit tx result: body: ${response.body}, status code: ${response.code}",
+              )
+              
               List(
-                response0.code ==== StatusCode.Ok,
-                response1.code ==== StatusCode.Ok,
-                response2.code ==== StatusCode.Ok,
-                response3.code ==== StatusCode.Ok,
-                response4.code ==== StatusCode.Ok,
-              ),
-            )
-          }
+                response.code ==== StatusCode.Ok,
+              )
+            }
+          })
         }
       }
       .unsafeRunSync()

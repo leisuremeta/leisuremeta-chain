@@ -5,6 +5,7 @@ package service
 import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.syntax.bifunctor.*
+import cats.syntax.eq.given
 import cats.syntax.functor.*
 import cats.syntax.flatMap.*
 import cats.syntax.traverse.*
@@ -256,6 +257,19 @@ object StateReadService:
                 case _ =>
                   throw new Exception(
                     s"AcceptDeal result is not found for $txHash",
+                  )
+            case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
+              txWithResult.result match
+                case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
+                  if txWithResult.signedTx.sig.account === account =>
+
+                  BalanceInfo(
+                    totalAmount = output,
+                    unused = Map(txHash -> txWithResult),
+                  )
+                case _ =>
+                  throw new Exception(
+                    s"JoinTokenOffering result is not found for $txHash",
                   )
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
