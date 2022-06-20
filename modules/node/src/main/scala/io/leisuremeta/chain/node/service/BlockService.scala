@@ -64,6 +64,11 @@ object BlockService:
         StateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
         StateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),
         StateRepository.TokenState[F].fungibleBalance.put(state.token.fungibleBalanceState),
+        StateRepository.TokenState[F].nftBalance.put(state.token.nftBalanceState),
+        StateRepository.TokenState[F].nft.put(state.token.nftState),
+        StateRepository.TokenState[F].rarity.put(state.token.rarityState),
+        StateRepository.TokenState[F].lock.put(state.token.lockState),
+        StateRepository.TokenState[F].deadline.put(state.token.deadlineState),
       ).sequence
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
