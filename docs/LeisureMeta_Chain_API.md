@@ -346,6 +346,10 @@
     * GroupID(string)
     * OfferingAccount(string)
       * 랜덤박스 개봉 시 제공될 NFT 토큰 가지고 있을 계정. NFT를 추가 발행하고 이 계정으로 보내서 동적으로 늘려 나갈 수 있다.
+    * FeeReceivingAccount
+      * 민팅 때 받을 금액중 수수료는 여기로 보내고 나머지는 창작자에게로 보냄
+    * FeeRatePerMille
+      * 수수료 비율 퍼밀(‰)(1/1000 단위)
     * Token Definition ID
     * VRF Public Key
     * AutoJoin: Map[AccountName, Amount]
@@ -358,7 +362,7 @@
       * Amount 랜덤박스 한 개 신청을 위한 락업 요구량
     * ClaimStartDate: 랜덤박스 개봉 가능 시점
     * Note(string): 기타 남길 내용
-
+  
 * JoinTokenOffering 민팅 참여
   * > 사용자 서명
   * Fields

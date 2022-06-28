@@ -57,6 +57,11 @@ trait UpdateStateWithRandomOfferingTx:
               tokenDefinition.adminGroup,
               s"Token definition admin group not found: ${nt.tokenDefinitionId}",
             )
+            _ <- EitherT.cond[F](
+              nt.feeRatePerMille.toBigInt <= BigInt(1000),
+              (),
+              s"Fee rate per mille must be less than 1000: ${nt.feeRatePerMille}",
+            )
             isMemberOfAdminGroup <- MerkleTrie
               .get[F, (GroupId, Account), Unit](
                 (adminGroup, sig.account).toBytes.bits,
@@ -340,9 +345,49 @@ trait UpdateStateWithRandomOfferingTx:
                     new Exception(s"Locked transaction is not a JoinTokenOffering: ${tx.signedTx.sig}")
                   })
             }
+            lockRemainder <- joinTxWithAccountList.traverse{ case (txHash, jt, account) =>
+              val remainderEither = BigNat.fromBigInt(
+                jt.amount.toBigInt - it.outputs.get(account).fold(BigInt(0))(_.toBigInt),
+              )
+              EitherT.fromEither[F](remainderEither)
+                .map{ remainder =>
+                  (account, jt.inputTokenDefinitionId, remainder)
+                }
+                .leftMap{ _ =>
+                  s"Not enough lock in account $account: ${jt.amount} vs ${it.outputs.get(account).fold(BigInt(0))(_.toBigInt)}"
+                }
+            }.map(_.filter(_._3.toBigInt > 0))
+            feeTokenDefinitionId = joinTxWithAccountList.head._2.inputTokenDefinitionId
+            receivedTotal = BigNat.unsafeFromBigInt{
+              joinTxWithAccountList.map(_._2.amount.toBigInt).sum - lockRemainder.map(_._3.toBigInt).sum
+            }
+            feeTotal = BigNat.divide(BigNat.multiply(receivedTotal, noticeTx.feeRatePerMille), BigNat.unsafeFromLong(1000L))
+            createrTotal <- EitherT.fromEither[F](
+              BigNat.fromBigInt(
+                receivedTotal.toBigInt - feeTotal.toBigInt,
+              )
+            ).leftMap{ _2 =>
+              s"Fee is larger than received amount: $feeTotal vs $receivedTotal"
+            }
+            tokenDefinitionOption <- MerkleTrie.get[F, TokenDefinitionId, TokenDefinition](
+              noticeTx.tokenDefinitionId.toBytes.bits,
+            ).runA(ms.token.tokenDefinitionState)
+            tokenDefinition <- EitherT.fromOption[F](
+              tokenDefinitionOption,
+              s"Token definition not found: ${noticeTx.tokenDefinitionId}",
+            )
+            nftInfo <- EitherT.fromOption[F](
+              tokenDefinition.nftInfo,
+              s"Token definition is not an NFT: ${noticeTx.tokenDefinitionId}",
+            )
+            creater = nftInfo.minter
+            feeOutput = List(
+              (creater, feeTokenDefinitionId, createrTotal),
+              (noticeTx.feeReceivingAccount, feeTokenDefinitionId, feeTotal),
+            )
             totalOutputs: Map[Account, Map[TokenDefinitionId, BigNat]] = {
               it.outputs.map{ (account, amount) => (account, noticeTx.tokenDefinitionId, amount) }
-                ++ joinTxWithAccountList.map{ case (_, jt, account) => (account, jt.inputTokenDefinitionId, jt.amount) }
+                ++ lockRemainder ++ feeOutput
             }.groupMapReduce(_._1)((_, defId, amount) => Seq((defId, amount)))(_ ++ _).view.mapValues{
               _.groupMapReduce(_._1)(_._2)(BigNat.add)
             }.toMap

@@ -45,6 +45,18 @@ object BigNat:
       case Right(nat) => nat
       case Left(e)    => throw new Exception(e)
 
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def multiply(x: BigNat, y: BigNat): BigNat =
+    refineV[NonNegative](x.value * y.value) match
+      case Right(nat) => nat
+      case Left(e)    => throw new Exception(e)
+
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def divide(x: BigNat, y: BigNat): BigNat =
+    refineV[NonNegative](x.value / y.value) match
+      case Right(nat) => nat
+      case Left(e)    => throw new Exception(e)
+
   given bignatByteDecoder: ByteDecoder[BigNat] = ByteDecoder.bignatByteDecoder
 
   given bignatByteEncoder: ByteEncoder[BigNat] = ByteEncoder.bignatByteEncoder

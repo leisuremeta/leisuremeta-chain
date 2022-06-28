@@ -360,6 +360,8 @@ object Transaction:
         createdAt: Instant,
         groupId: GroupId,
         offeringAccount: Account,
+        feeReceivingAccount: Account,
+        feeRatePerMille: BigNat,
         tokenDefinitionId: TokenDefinitionId,
         vrfPublicKey: VrfPublicKey,
         autojoin: Map[Account, BigNat],
