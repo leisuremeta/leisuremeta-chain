@@ -436,18 +436,19 @@
 
 ## Other API
 
-| Method | URL                           | Description               |
-| ------ | ----------------------------- | ------------------------- |
-| `GET`  | **/account/{accountName}**    | 계정정보 조회             |
-| `GET`  | **/agenda/{agendaID}**        | 안건 조회                 |
-| `GET`  | **/block/{blockHash}**        | 블록 정보 조회            |
-| `GET`  | **/dao**                      | DAO 목록 조회             |
-| `GET`  | **/group/{groupID}**          | 그룹 정보 조회            |
-| `GET`  | **/offering/{offeringID}**    | Offering 정보 조회        |
-| `GET`  | **/status**                   | 블록체인 상태 조회        |
-| `GET`  | **/token-def/{definitionID}** | 토큰 정의 정보 조회       |
-| `GET`  | **/token/{tokenID}**          | 토큰 정보 조회            |
-| `GET`  | **/tx/{txHash}**              | 트랜잭션 조회             |
+| Method | URL                           | Description                      |
+| ------ | ----------------------------- | -------------------------------- |
+| `GET`  | **/account/{accountName}**    | 계정정보 조회                    |
+| `GET`  | **/eth/{ethAddress}**         | 이더리움 주소와 연동된 계정 조회 |
+| `GET`  | **/agenda/{agendaID}**        | 안건 조회                        |
+| `GET`  | **/block/{blockHash}**        | 블록 정보 조회                   |
+| `GET`  | **/dao**                      | DAO 목록 조회                    |
+| `GET`  | **/group/{groupID}**          | 그룹 정보 조회                   |
+| `GET`  | **/offering/{offeringID}**    | Offering 정보 조회               |
+| `GET`  | **/status**                   | 블록체인 상태 조회               |
+| `GET`  | **/token-def/{definitionID}** | 토큰 정의 정보 조회              |
+| `GET`  | **/token/{tokenID}**          | 토큰 정보 조회                   |
+| `GET`  | **/tx/{txHash}**              | 트랜잭션 조회                    |
 
 
 

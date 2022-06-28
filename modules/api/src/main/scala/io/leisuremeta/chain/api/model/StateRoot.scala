@@ -7,6 +7,7 @@ import cats.Eq
 
 import lib.crypto.Hash
 import lib.merkle.MerkleTrieNode.MerkleRoot
+import account.EthAddress
 import token.*
 
 final case class StateRoot(
@@ -29,9 +30,10 @@ object StateRoot:
       keyRoot: Option[
         MerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
       ],
+      ethRoot: Option[MerkleRoot[EthAddress, Account]]
   )
   object AccountStateRoot:
-    def empty: AccountStateRoot = AccountStateRoot(None, None)
+    def empty: AccountStateRoot = AccountStateRoot(None, None, None)
 
   case class GroupStateRoot(
       groupRoot: Option[MerkleRoot[GroupId, GroupData]],

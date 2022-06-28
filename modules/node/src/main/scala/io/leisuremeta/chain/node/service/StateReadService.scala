@@ -22,6 +22,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.TransactionWithResult.ops.*
+import api.model.account.EthAddress
 import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo, RandomOfferingInfo}
 import api.model.token.{
   Rarity,
@@ -90,6 +91,25 @@ object StateReadService:
     accountData.guardian,
     keyList.toMap
   ))
+
+  def getEthAccount[F[_]: Concurrent: BlockRepository: StateRepository.AccountState](
+    ethAddress: EthAddress
+  ): F[Option[Account]] = for
+    bestHeaderEither <- BlockRepository[F].bestHeader.value
+    bestHeader <- bestHeaderEither match
+      case Left(err) => Concurrent[F].raiseError(err)
+      case Right(None) =>
+        Concurrent[F].raiseError(new Exception("No best header"))
+      case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
+    merkleState = MerkleState.from(bestHeader)
+    ethStateEither <- MerkleTrie
+      .get[F, EthAddress, Account](ethAddress.toBytes.bits)
+      .runA(merkleState.account.ethState)
+      .value
+    ethStateOption <- ethStateEither match
+      case Left(err) => Concurrent[F].raiseError(new Exception(err))
+      case Right(ethStateOption) => Concurrent[F].pure(ethStateOption)
+  yield ethStateOption
 
   def getGroupInfo[F[_]
     : Concurrent: BlockRepository: StateRepository.GroupState](

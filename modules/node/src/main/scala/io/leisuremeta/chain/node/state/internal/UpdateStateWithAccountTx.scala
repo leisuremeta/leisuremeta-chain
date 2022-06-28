@@ -3,7 +3,7 @@ package node
 package state
 package internal
 
-import cats.data.EitherT
+import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.eq.given
 import cats.syntax.foldable.given
@@ -22,7 +22,8 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import lib.merkle.MerkleTrie
+import api.model.account.EthAddress
+import lib.merkle.{MerkleTrie, MerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.Utf8
@@ -108,10 +109,20 @@ trait UpdateStateWithAccountTx:
                         .put((ca.account, pubKeySummary).toBytes.bits, info)
                         .runS(ms.account.keyState)
                     yield keyState
+                ethState1 <- ca.ethAddress match
+                  case Some(ethAddress) =>
+                    MerkleTrie
+                      .put(ethAddress.toBytes.bits, ca.account)
+                      .runS(ms.account.ethState)
+                  case None =>
+                    EitherT.pure[F, String](ms.account.ethState)
               yield (
-                ms.copy(account =
-                  ms.account
-                    .copy(namesState = accountState1, keyState = keyState1),
+                ms.copy(
+                  account = ms.account.copy(
+                    namesState = accountState1,
+                    keyState = keyState1,
+                    ethState = ethState1,
+                  ),
                 ),
                 TransactionWithResult(Signed(sig, ca), None),
               )
@@ -130,10 +141,29 @@ trait UpdateStateWithAccountTx:
                       _ <- MerkleTrie.put[F, Account, AccountData](ua.account.toBytes.bits, AccountData(ua.ethAddress, ua.guardian))
                     yield ()
                   }.runS(ms.account.namesState)
+                  ethState1 <-
+                    if accountData.ethAddress == ua.ethAddress then
+                      EitherT.pure[F, String](ms.account.ethState)
+                    else {
+                      for
+                        _ <- accountData.ethAddress match
+                          case Some(ethAddress) =>
+                            MerkleTrie.remove[F, EthAddress, Account](ethAddress.toBytes.bits)
+                          case None =>
+                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
+                        _ <- ua.ethAddress match
+                          case Some(ethAddress) =>
+                            MerkleTrie.put[F, EthAddress, Account](ethAddress.toBytes.bits, ua.account)
+                          case None =>
+                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
+                      yield ()
+                    }.runS(ms.account.ethState)
                 yield (
-                  ms.copy(account =
-                    ms.account
-                      .copy(namesState = accountState1),
+                  ms.copy(
+                    account = ms.account.copy(
+                      namesState = accountState1,
+                      ethState = ethState1,
+                    ),
                   ),
                   TransactionWithResult(Signed(sig, ua), None),
                 )

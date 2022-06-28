@@ -10,6 +10,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.*
+import api.model.account.EthAddress
 import api.model.token.*
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
@@ -48,7 +49,8 @@ object NodeMain extends IOApp:
       ](Paths.get("sway", "block", "tx"))
     yield BlockRepository.fromStores[IO]
 
-    type StateRepoStore[F[_], K, V] = StoreIndex[IO, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
+    type StateRepoStore[F[_], K, V] =
+      StoreIndex[IO, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
 
     def getStateRepo[K: ByteCodec, V: ByteCodec](
         dir: Path,
@@ -72,7 +74,7 @@ object NodeMain extends IOApp:
           given BlockRepository[IO] <- getBlockRepo
           given StateRepoStore[IO, Account, AccountData] <-
             getStateRepo[Account, AccountData](
-              Paths.get("sway", "state", "name"),
+              Paths.get("sway", "state", "account", "name"),
             )
           given StateRepoStore[
             IO,
@@ -80,10 +82,14 @@ object NodeMain extends IOApp:
             PublicKeySummary.Info,
           ] <-
             getStateRepo[(Account, PublicKeySummary), PublicKeySummary.Info](
-              Paths.get("sway", "state", "pubkey"),
+              Paths.get("sway", "state", "account", "pubkey"),
             )
+          given StateRepoStore[IO, EthAddress, Account] <-
+            getStateRepo[EthAddress, Account](Paths.get("sway", "state", "account", "eth"))
           given StateRepoStore[IO, GroupId, GroupData] <-
-            getStateRepo[GroupId, GroupData](Paths.get("sway", "state", "group"))
+            getStateRepo[GroupId, GroupData](
+              Paths.get("sway", "state", "group"),
+            )
           given StateRepoStore[IO, (GroupId, Account), Unit] <-
             getStateRepo[(GroupId, Account), Unit](
               Paths.get("sway", "state", "group", "account"),
@@ -92,33 +98,76 @@ object NodeMain extends IOApp:
             getStateRepo[TokenDefinitionId, TokenDefinition](
               Paths.get("sway", "state", "token", "definition"),
             )
-          given StateRepoStore[IO, (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit] <-
-            getStateRepo[(Account, TokenDefinitionId, Hash.Value[TransactionWithResult]), Unit](
+          given StateRepoStore[
+            IO,
+            (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+            Unit,
+          ] <-
+            getStateRepo[
+              (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+              Unit,
+            ](
               Paths.get("sway", "state", "token", "fungible-balance"),
             )
-          given StateRepoStore[IO, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit] <-
-            getStateRepo[(Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
+          given StateRepoStore[
+            IO,
+            (Account, TokenId, Hash.Value[TransactionWithResult]),
+            Unit,
+          ] <-
+            getStateRepo[
+              (Account, TokenId, Hash.Value[TransactionWithResult]),
+              Unit,
+            ](
               Paths.get("sway", "state", "token", "nft-balance"),
             )
           given StateRepoStore[IO, TokenId, NftState] <-
-            getStateRepo[TokenId, NftState](Paths.get("sway", "state", "token", "nft"))
-          given StateRepoStore[IO, (TokenDefinitionId, Rarity, TokenId), Unit] <-
+            getStateRepo[TokenId, NftState](
+              Paths.get("sway", "state", "token", "nft"),
+            )
+          given StateRepoStore[
+            IO,
+            (TokenDefinitionId, Rarity, TokenId),
+            Unit,
+          ] <-
             getStateRepo[(TokenDefinitionId, Rarity, TokenId), Unit](
               Paths.get("sway", "state", "token", "rarity"),
             )
-          given StateRepoStore[IO, (Account, Hash.Value[TransactionWithResult]), Unit] <-
+          given StateRepoStore[
+            IO,
+            (Account, Hash.Value[TransactionWithResult]),
+            Unit,
+          ] <-
             getStateRepo[(Account, Hash.Value[TransactionWithResult]), Unit](
               Paths.get("sway", "state", "token", "lock"),
             )
-          given StateRepoStore[IO, (Instant, Hash.Value[TransactionWithResult]), Unit] <-
+          given StateRepoStore[
+            IO,
+            (Instant, Hash.Value[TransactionWithResult]),
+            Unit,
+          ] <-
             getStateRepo[(Instant, Hash.Value[TransactionWithResult]), Unit](
               Paths.get("sway", "state", "token", "deadline"),
             )
-          given StateRepoStore[IO, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] <-
-            getStateRepo[(Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit](
+          given StateRepoStore[
+            IO,
+            (
+                Hash.Value[TransactionWithResult],
+                Hash.Value[TransactionWithResult],
+            ),
+            Unit,
+          ] <-
+            getStateRepo[
+              (
+                  Hash.Value[TransactionWithResult],
+                  Hash.Value[TransactionWithResult],
+              ),
+              Unit,
+            ](
               Paths.get("sway", "state", "token", "suggestion"),
             )
-          given StateRepoStore[IO, TokenDefinitionId, Hash.Value[TransactionWithResult]] <-
+          given StateRepoStore[IO, TokenDefinitionId, Hash.Value[
+            TransactionWithResult,
+          ]] <-
             getStateRepo[TokenDefinitionId, Hash.Value[TransactionWithResult]](
               Paths.get("sway", "state", "offering", "content"),
             )

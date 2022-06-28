@@ -15,6 +15,7 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
+import api.model.account.EthAddress
 import api.model.token.{TokenDefinitionId, TokenId}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
@@ -85,6 +86,14 @@ final case class NodeApp[F[_]
       StateReadService.getAccountInfo(a).map {
         case Some(info) => Right(info)
         case None       => Left(Right(Api.NotFound(s"account not found: $a")))
+      }
+  }
+
+  def getEthServerEndpoint = Api.getEthEndpoint.serverLogic {
+    (ethAddress: EthAddress) =>
+      StateReadService.getEthAccount(ethAddress).map {
+        case Some(account) => Right(account)
+        case None       => Left(Right(Api.NotFound(s"account not found: $ethAddress")))
       }
   }
 
@@ -222,6 +231,7 @@ final case class NodeApp[F[_]
       LocalGossipService[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
+    getEthServerEndpoint,
     getBlockServerEndpoint,
     getGroupServerEndpoint,
     getStatusServerEndpoint,

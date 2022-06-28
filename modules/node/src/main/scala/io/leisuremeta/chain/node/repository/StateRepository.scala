@@ -16,6 +16,7 @@ import api.model.{
   PublicKeySummary,
   TransactionWithResult,
 }
+import api.model.account.EthAddress
 import api.model.token.{NftState, Rarity, TokenDefinition, TokenDefinitionId, TokenId}
 import lib.crypto.Hash
 import lib.datatype.BigNat
@@ -40,6 +41,7 @@ object StateRepository:
     def name: StateRepository[F, Account, AccountData]
     def key
         : StateRepository[F, (Account, PublicKeySummary), PublicKeySummary.Info]
+    def eth: StateRepository[F, EthAddress, Account]
   object AccountState:
     def apply[F[_]: AccountState]: AccountState[F] = summon
     given from[F[_]: Monad](using
@@ -49,6 +51,7 @@ object StateRepository:
           (Account, PublicKeySummary),
           PublicKeySummary.Info,
         ],
+        ethKVStore: MerkleHashStore[F, EthAddress, Account],
     ): AccountState[F] = new AccountState[F]:
       def name: StateRepository[F, Account, AccountData] = fromStores
       def key: StateRepository[
@@ -56,6 +59,7 @@ object StateRepository:
         (Account, PublicKeySummary),
         PublicKeySummary.Info,
       ] = fromStores
+      def eth: StateRepository[F, EthAddress, Account] = fromStores
 
   given nodeStoreFromAccount[F[_]: Functor: AccountState]
       : NodeStore[F, Account, AccountData] =
@@ -63,6 +67,9 @@ object StateRepository:
   given nodeStoreFromAccountKey[F[_]: Functor: AccountState]
       : NodeStore[F, (Account, PublicKeySummary), PublicKeySummary.Info] =
     Kleisli(AccountState[F].key.get(_).leftMap(_.msg))
+  given nodeStoreFromEth[F[_]: Functor: AccountState]
+      : NodeStore[F, EthAddress, Account] =
+    Kleisli(AccountState[F].eth.get(_).leftMap(_.msg))
 
   /** GroupState
     */

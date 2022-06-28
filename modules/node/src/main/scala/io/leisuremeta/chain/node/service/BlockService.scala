@@ -60,6 +60,7 @@ object BlockService:
         resultList.traverse(txRepo.put).map(_ => ()),
         StateRepository.AccountState[F].name.put(state.account.namesState),
         StateRepository.AccountState[F].key.put(state.account.keyState),
+        StateRepository.AccountState[F].eth.put(state.account.ethState),
         StateRepository.GroupState[F].group.put(state.group.groupState),
         StateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
         StateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),

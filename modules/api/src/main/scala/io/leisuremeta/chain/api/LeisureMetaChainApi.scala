@@ -26,6 +26,7 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
+import api.model.account.EthAddress
 import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo, RandomOfferingInfo}
 import api.model.offering.VrfPublicKey
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
@@ -114,6 +115,12 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("account" / path[Account])
       .out(jsonBody[AccountInfo])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getEthEndpoint =
+    baseEndpoint.get
+      .in("eth" / path[EthAddress])
+      .out(jsonBody[Account])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getGroupEndpoint =

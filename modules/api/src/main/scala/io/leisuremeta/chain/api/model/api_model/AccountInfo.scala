@@ -2,10 +2,10 @@ package io.leisuremeta.chain
 package api.model
 package api_model
 
-import lib.datatype.Utf8
+import account.EthAddress
 
 final case class AccountInfo(
-    ethAddress: Option[Utf8],
+    ethAddress: Option[EthAddress],
     guardian: Option[Account],
     publicKeySummaries: Map[PublicKeySummary, PublicKeySummary.Info],
 )

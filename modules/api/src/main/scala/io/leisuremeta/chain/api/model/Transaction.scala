@@ -7,13 +7,12 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
+import account.EthAddress
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
 import offering.{VrfPublicKey}
 import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintFungibleToken
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferFungibleToken
 
 sealed trait TransactionResult
 object TransactionResult:
@@ -84,7 +83,7 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         account: Account,
-        ethAddress: Option[Utf8],
+        ethAddress: Option[EthAddress],
         guardian: Option[Account],
     ) extends AccountTx
 
@@ -92,7 +91,7 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         account: Account,
-        ethAddress: Option[Utf8],
+        ethAddress: Option[EthAddress],
         guardian: Option[Account],
     ) extends AccountTx
 
