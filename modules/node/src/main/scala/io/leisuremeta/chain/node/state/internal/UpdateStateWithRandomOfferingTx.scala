@@ -200,14 +200,14 @@ trait UpdateStateWithRandomOfferingTx:
                     case fungibleBalanceTx: Transaction.FungibleBalance =>
                       fungibleBalanceTx match
                         case mf: Transaction.TokenTx.MintFungibleToken =>
-                          EitherT.pure(mf.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero))
+                          EitherT.pure(mf.outputs.get(sig.account).getOrElse(BigNat.Zero))
                         case tf: Transaction.TokenTx.TransferFungibleToken =>
-                          EitherT.pure(tf.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero))
+                          EitherT.pure(tf.outputs.get(sig.account).getOrElse(BigNat.Zero))
                         case ad: Transaction.TokenTx.AcceptDeal =>
                           txWithResult.result match
                             case Some(Transaction.TokenTx.AcceptDealResult(outputs)) =>
                               EitherT.pure(outputs
-                                .get(txWithResult.signedTx.sig.account)
+                                .get(sig.account)
                                 .flatMap(_.get(jt.inputTokenDefinitionId))
                                 .fold(BigNat.Zero) {
                                   case TokenDetail.FungibleDetail(amount) => amount
