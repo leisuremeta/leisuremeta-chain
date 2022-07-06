@@ -176,8 +176,8 @@ object EthGatewayMain extends IOApp:
 
     val txData = FunctionEncoder.encode(function)
 
-    val TX_END_CHECK_DURATION = 5000
-    val TX_END_CHECK_RETRY    = 3
+    val TX_END_CHECK_DURATION = 20000
+    val TX_END_CHECK_RETRY    = 9
     val CHAIN_ID              = 3
     val receiptProcessor = new PollingTransactionReceiptProcessor(
       web3j,
@@ -380,7 +380,7 @@ object EthGatewayMain extends IOApp:
         keyPair,
       )
       _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
-      _ <- IO.sleep(1000.millis)
+      _ <- IO.sleep(10000.millis)
     yield endBlockNumber
 
     def loop(startBlockNumber: BigInt): IO[Unit] = for
