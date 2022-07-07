@@ -2,6 +2,7 @@ package io.leisuremeta.chain
 package gateway.eth
 
 import java.math.BigInteger
+import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.util.{Arrays, ArrayList, Collections}
 import java.time.Instant
 import scala.jdk.CollectionConverters.*
@@ -10,6 +11,7 @@ import scala.concurrent.duration.*
 import scala.util.Try
 
 import cats.effect.{ExitCode, IO, IOApp, OutcomeIO, Resource}
+import cats.syntax.applicativeError.*
 import cats.syntax.bifunctor.*
 import cats.syntax.eq.*
 import cats.syntax.traverse.*
@@ -125,6 +127,51 @@ object EthGatewayMain extends IOApp:
         value = BigInt(amount),
       )
 
+  def writeUnsentDeposits(deposits: Seq[TransferTokenEvent]): IO[Unit] = IO.blocking {
+    val path = Paths.get("unsent-deposits.json")
+    val json = deposits.asJson.spaces2
+    Files.write(path, json.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+  }
+
+  def readUnsentDeposits(): IO[Seq[TransferTokenEvent]] = IO.blocking {
+    val path = Paths.get("unsent-deposits.json")
+    val seqEither = for
+      json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
+      seq <- decode[Seq[TransferTokenEvent]](json)
+    yield seq
+    seqEither match
+      case Right(seq) => seq
+      case Left(e) =>
+        scribe.error(s"Error reading unsent deposits: ${e.getMessage}")
+        Seq.empty
+  }
+
+  def logSentDeposits(deposits: Seq[(Account, TransferTokenEvent)]): IO[Unit] = IO.blocking {
+    val path = Paths.get("sent-deposits.logs")
+    val jsons = deposits.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
+    Files.write(path, jsons.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
+  }
+
+  def writeLastBlockRead(blockNumber: BigInt): IO[Unit] = IO.blocking {
+    val path = Paths.get("last-block-read.json")
+    val json = blockNumber.asJson.spaces2
+    Files.write(path, json.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+  }
+
+  def readLastBlockRead(): IO[BigInt] = IO.blocking {
+    val path = Paths.get("last-block-read.json")
+    val blockNumberEither = for
+      json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
+      blockNumber <- decode[BigInt](json)
+    yield blockNumber
+    blockNumberEither match
+      case Right(blockNumber) => blockNumber
+      case Left(e) =>
+        scribe.error(s"Error reading last block read: ${e.getMessage}")
+        BigInt(0)
+  }
+
+
   def getEthBlockNumber(web3j: Web3j): IO[BigInt] =
     IO.fromCompletableFuture(IO(web3j.ethBlockNumber.sendAsync))
       .map(_.getBlockNumber)
@@ -160,6 +207,9 @@ object EthGatewayMain extends IOApp:
       amount: BigInt,
       gasPrice: BigInt,
   ): IO[Either[String, TransactionReceipt]] = IO {
+
+    scribe.info(s"transferToken: $contractAddress, $toAddress, $amount, $gasPrice")
+
     val credential = Credentials.create(privateKey)
 
     val params = new ArrayList[Type[?]]()
@@ -191,7 +241,7 @@ object EthGatewayMain extends IOApp:
       .sendTransaction(
         gasPrice.bigInteger,
         BigInteger.valueOf(1_000_000),
-        contractAddress,
+        contractAddress.toLowerCase(),
         txData,
         BigInteger.ZERO,
       )
@@ -321,21 +371,34 @@ object EthGatewayMain extends IOApp:
       depositEvents = events.filter(
         _.to.toLowerCase === gatewayEthAddress.toLowerCase,
       )
-      toMints <- depositEvents.toList.traverse { event =>
+      _ <- IO.delay(scribe.info(s"current deposit events: $depositEvents"))
+      oldEvents <- readUnsentDeposits()
+      _ <- IO.delay(scribe.info(s"old deposit events: $oldEvents"))
+      allEvents = depositEvents ++ oldEvents
+      _ <- IO.delay(scribe.info(s"all deposit events: $allEvents"))
+      eventAndAccountOptions <- allEvents.toList.traverse { event =>
         val amount    = event.value
         val toAccount = Account(Utf8.unsafeFrom(event.to))
         findAccountByEthAddress(lmAddress, event.from).map {
           (accountOption: Option[Account]) =>
-            accountOption.map { account =>
-              (account, amount)
-            }
+            (event, accountOption)
         }
       }
-      _ <- IO.delay(scribe.info(s"deposit events: $depositEvents"))
+      (known, unknown) = eventAndAccountOptions.partition(_._2.nonEmpty)
+      toMints = known.map{
+        case (event, Some(account)) => (account, event.value)
+        case (event, None) => throw new Exception(
+          s"Internal error: Account ${event.from} not found",
+        )
+      }
       _ <- IO.delay(scribe.info(s"toMints: $toMints"))
-      _ <- toMints.flatten.traverse { case (account, amount) =>
+      _ <- toMints.traverse { case (account, amount) =>
         mintLM(lmAddress, keyPair, account, amount)
       }
+      _ <- logSentDeposits(toMints.map(_._1).zip(known.map(_._1)))
+      unsent = unknown.map(_._1)
+      _ <- IO.delay(scribe.info(s"unsent: $unsent"))
+      _ <- writeUnsentDeposits(unsent)
     yield ()
 
   def checkLoop(
@@ -344,10 +407,11 @@ object EthGatewayMain extends IOApp:
       ethContract: String,
       gatewayEthAddress: String,
       keyPair: KeyPair,
-      startBlockNumber: BigInt,
   ): IO[Unit] =
-    def run(startBlockNumber: BigInt): IO[BigInt] = for
+    def run: IO[BigInt] = for
       _ <- IO.delay(scribe.info(s"Checking for deposit / withdrawal events"))
+      lastBlockNumber <- readLastBlockRead()
+      startBlockNumber = lastBlockNumber + 1
       blockNumber <- IO
         .fromCompletableFuture(IO(web3j.ethBlockNumber.sendAsync()))
         .map(_.getBlockNumber)
@@ -369,26 +433,27 @@ object EthGatewayMain extends IOApp:
         startBlockNumber,
         endBlockNumber,
       )
+      _ <- writeLastBlockRead(endBlockNumber)
       _ <- IO.delay(
         scribe.info(s"Deposit check finished. Withdrawal check started"),
       )
-      _ <- checkWithdrawal(
-        web3j,
-        lmAddress,
-        ethContract,
-        gatewayEthAddress,
-        keyPair,
-      )
+//      _ <- checkWithdrawal(
+//        web3j,
+//        lmAddress,
+//        ethContract,
+//        gatewayEthAddress,
+//        keyPair,
+//      )
       _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
       _ <- IO.sleep(10000.millis)
     yield endBlockNumber
 
-    def loop(startBlockNumber: BigInt): IO[Unit] = for
-      blockNumber <- run(startBlockNumber)
-      _           <- loop(blockNumber + 1)
+    def loop: IO[Unit] = for
+      _ <- run.orElse(IO.unit)
+      _ <- loop
     yield ()
 
-    loop(startBlockNumber)
+    loop
 
   def getGasPrice(weg3j: Web3j): IO[BigInt] =
     IO.fromCompletableFuture(IO(weg3j.ethGasPrice.sendAsync())).map {
@@ -526,10 +591,6 @@ object EthGatewayMain extends IOApp:
   }
 
   def run(args: List[String]): IO[ExitCode] =
-
-    val from = DefaultBlockParameterName.EARLIEST
-    val to   = DefaultBlockParameterName.LATEST
-
     for
       conf <- getConfig
       gatewayConf = GatewayConf.fromConfig(conf)
@@ -537,31 +598,21 @@ object EthGatewayMain extends IOApp:
         BigInt(gatewayConf.ethPrivate.drop(2), 16),
       )
       _ <- web3Resource(gatewayConf.ethAddress).use { web3 =>
+
+
+//        IO.fromCompletableFuture(IO(web3.web3ClientVersion().sendAsync())).map{
+//          clientVersion =>
+//            scribe.info(s"clientVersion: ${clientVersion.getWeb3ClientVersion}")
+//        }
+
+//        initializeLmChain(gatewayConf.lmAddress, keyPair)
         checkLoop(
           web3j = web3,
           lmAddress = gatewayConf.lmAddress,
           ethContract = gatewayConf.ethContract,
           gatewayEthAddress = gatewayConf.gatewayEthAddress,
           keyPair = keyPair,
-          startBlockNumber = BigInt(0),
         )
 
-//        val dest = "0xFcd1853d09F7Df77f17003B69dDc78b3f8bD5D0f"
-//
-//        for
-//          gasPrice <- getGasPrice(web3)
-//          receipt <- transferToken(
-//            web3j = web3,
-//            privateKey = gatewayConf.ethPrivate,
-//            contractAddress = gatewayConf.ethContract,
-//            toAddress = dest,
-//            amount = BigInt(1) * BigInt(10).pow(18),
-//            gasPrice = gasPrice,
-//          )
-//        yield
-//          ()
-
-//        for balanceInfo <- getBalance(gatewayConf.lmAddress)
-//        yield scribe.info(s"balanceInfo: $balanceInfo")
       }
     yield ExitCode.Success
