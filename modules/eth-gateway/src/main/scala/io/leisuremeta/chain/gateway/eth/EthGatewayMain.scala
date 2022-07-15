@@ -52,6 +52,8 @@ import api.model.*
 import api.model.api_model.{AccountInfo, BalanceInfo}
 import api.model.token.*
 import api.model.TransactionWithResult.ops.toSignedTxHash
+import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.OkHttpClient
 
 object EthGatewayMain extends IOApp:
 
@@ -66,6 +68,7 @@ object EthGatewayMain extends IOApp:
 
   case class GatewayConf(
       ethAddress: String,
+      ethChainId: Int,
       ethContract: String,
       ethPrivate: String,
       lmPrivate: String,
@@ -76,6 +79,7 @@ object EthGatewayMain extends IOApp:
     def fromConfig(config: Config): GatewayConf =
       GatewayConf(
         ethAddress = config.getString("eth-address"),
+        ethChainId = config.getInt("eth-chain-id"),
         ethContract = config.getString("eth-contract"),
         ethPrivate = config.getString("eth-private"),
         lmPrivate = config.getString("lm-private"),
@@ -84,7 +88,15 @@ object EthGatewayMain extends IOApp:
       )
 
   def web3Resource(url: String): Resource[IO, Web3j] = Resource.make {
-    IO(Web3j.build(new HttpService(url)))
+
+    val interceptor = HttpLoggingInterceptor()
+    interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+
+    val client = OkHttpClient.Builder()
+ //     .addInterceptor(interceptor)
+      .build()
+
+    IO(Web3j.build(new HttpService(url, client)))
   }(web3j => IO(web3j.shutdown()))
 
   case class TransferTokenEvent(
@@ -201,6 +213,7 @@ object EthGatewayMain extends IOApp:
 
   def transferToken(
       web3j: Web3j,
+      ethChainId: Int,
       privateKey: String,
       contractAddress: String,
       toAddress: String,
@@ -216,6 +229,7 @@ object EthGatewayMain extends IOApp:
     params.add(new Address(toAddress))
     params.add(new Uint256(amount.bigInteger))
 
+    //val returnTypes = Collections.singletonList[TypeReference[?]](new TypeReference[Type[?]](){})
     val returnTypes = Collections.emptyList[TypeReference[?]]()
 
     val function = new Function(
@@ -226,22 +240,23 @@ object EthGatewayMain extends IOApp:
 
     val txData = FunctionEncoder.encode(function)
 
+    scribe.debug(s"txData: $txData")
+
     val TX_END_CHECK_DURATION = 20000
     val TX_END_CHECK_RETRY    = 9
-    val CHAIN_ID              = 3
     val receiptProcessor = new PollingTransactionReceiptProcessor(
       web3j,
       TX_END_CHECK_DURATION,
       TX_END_CHECK_RETRY,
     );
     val manager =
-      new RawTransactionManager(web3j, credential, CHAIN_ID, receiptProcessor)
+      new RawTransactionManager(web3j, credential, ethChainId, receiptProcessor)
 
     val txHash = manager
       .sendTransaction(
         gasPrice.bigInteger,
         BigInteger.valueOf(1_000_000),
-        contractAddress.toLowerCase(),
+        contractAddress,
         txData,
         BigInteger.ZERO,
       )
@@ -403,6 +418,7 @@ object EthGatewayMain extends IOApp:
 
   def checkLoop(
       web3j: Web3j,
+      ethChainId: Int,
       lmAddress: String,
       ethContract: String,
       gatewayEthAddress: String,
@@ -434,17 +450,17 @@ object EthGatewayMain extends IOApp:
         endBlockNumber,
       )
       _ <- writeLastBlockRead(endBlockNumber)
-      _ <- IO.delay(
-        scribe.info(s"Deposit check finished. Withdrawal check started"),
-      )
+      _ <- IO.delay(scribe.info(s"Deposit check finished."))
+//      _ <- IO.delay(scribe.info(s"Withdrawal check started"))
 //      _ <- checkWithdrawal(
 //        web3j,
+//        ethChainId,
 //        lmAddress,
 //        ethContract,
 //        gatewayEthAddress,
 //        keyPair,
 //      )
-      _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
+//      _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
       _ <- IO.sleep(10000.millis)
     yield endBlockNumber
 
@@ -509,6 +525,7 @@ object EthGatewayMain extends IOApp:
 
   def checkWithdrawal(
       web3j: Web3j,
+      ethChainId: Int,
       lmAddress: String,
       ethContract: String,
       gatewayEthAddress: String,
@@ -555,6 +572,7 @@ object EthGatewayMain extends IOApp:
         successfulWithdraws <- toWithdraw.traverse { case (txHash, account, ethAddress, amount) =>
           transferToken(
             web3j = web3j,
+            ethChainId = ethChainId,
             privateKey = keyPair.privateKey.toString(16),
             contractAddress = ethContract,
             toAddress = ethAddress.utf8.value,
@@ -599,20 +617,33 @@ object EthGatewayMain extends IOApp:
       )
       _ <- web3Resource(gatewayConf.ethAddress).use { web3 =>
 
-
-//        IO.fromCompletableFuture(IO(web3.web3ClientVersion().sendAsync())).map{
-//          clientVersion =>
-//            scribe.info(s"clientVersion: ${clientVersion.getWeb3ClientVersion}")
-//        }
-
 //        initializeLmChain(gatewayConf.lmAddress, keyPair)
+
         checkLoop(
           web3j = web3,
+          ethChainId = gatewayConf.ethChainId,
           lmAddress = gatewayConf.lmAddress,
           ethContract = gatewayConf.ethContract,
           gatewayEthAddress = gatewayConf.gatewayEthAddress,
           keyPair = keyPair,
         )
+
+//        val dest = "0xa0d311fdC182Df002C90469098D3a2B6F40E5cDF"
+////        val dest = "0xa0d311fdc182df002c90469098d3a2b6f40e5cdf"
+//
+//        for
+//          gasPrice <- getGasPrice(web3)
+//          receipt <- transferToken(
+//            web3j = web3,
+//            ethChainId = gatewayConf.ethChainId,
+//            privateKey = gatewayConf.ethPrivate,
+//            contractAddress = gatewayConf.ethContract,
+//            toAddress = dest,
+//            amount = BigInt("1000000000000000000"), //* BigInt(10).pow(18),
+//            gasPrice = gasPrice,
+//          )
+//        yield
+//          ()
 
       }
     yield ExitCode.Success

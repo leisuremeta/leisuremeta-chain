@@ -15,7 +15,7 @@ val V = new {
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
 
-  val web3J = "4.8.7"
+  val web3J = "4.9.2"
 
   val scribe          = "3.8.2"
   val hedgehog        = "0.8.0"
@@ -48,6 +48,7 @@ val Dependencies = new {
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
       "org.web3j"    % "core"         % V.web3J,
+      "com.squareup.okhttp3" % "logging-interceptor" % "4.9.1",
     ),
   )
 
@@ -132,7 +133,23 @@ lazy val ethGateway = (project in file("modules/eth-gateway"))
   .settings(Dependencies.ethGateway)
   .settings(Dependencies.tests)
   .settings(
-    name := "leisuremeta-chain-eth-gateway",
+    name := "leisuremeta-chain-eth-gateway-deposit",
+    assemblyMergeStrategy := {
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
+  )
+  .dependsOn(api.jvm)
+
+lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
+  .settings(Dependencies.ethGateway)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-eth-gateway-withdraw",
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
