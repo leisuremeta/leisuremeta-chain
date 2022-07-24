@@ -101,6 +101,40 @@
     * guardian: *(optional)* Account
       * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
   
+  * Example (private key `b229e76b742616db3ac2c5c2418f44063fcc5fcc52a08e05d4285bdb31acba06` 으로 서명한 예시)
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "495c3bcc143eea328c11b7ec55069dd4fb16c26463999f9dbc085094c3b59423",
+          "s" : "707a75e433abd208cfb76d4e0cdbc04b1ce2389e3a1f866348ef2e3ea5785e93"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "AccountTx" : {
+          "CreateAccount" : {
+            "networkId" : 1000,
+            "createdAt" : "2020-05-22T09:00:00Z",
+            "account" : "alice",
+            "ethAddress" : null,
+            "guardian" : null
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["822380e575e482e829fc9f45ffd0f99f4f0987ccbec0c0a5de5fd640f42a9100"]
+  ```
+  
+  
+  
 * UpdateAccount 계정 생성
   * > 사용자 서명 혹은 Guardian 서명
   * Fields
@@ -109,14 +143,85 @@
     * guardian: *(optional)* Account
       * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
 
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "22c14ac6fbdce52c256640f1e36851ef901ea1b5cfebc3a430283a89df99bc11",
+          "s" : "3474ebcc861c2d31a60d363356c4c89c196d450432b33bedadfb94d66edf2ffd"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "AccountTx" : {
+          "UpdateAccount" : {
+            "networkId" : 1000,
+            "createdAt" : "2020-05-22T09:00:00Z",
+            "account" : "alice",
+            "ethAddress" : "0xefD277f6da7ac53e709392044AE98220Df142753",
+            "guardian" : null
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["7730dadeff5be3bfd63fdec8853d6301a5ec0e3b8c815a4d7e0ba20e8c52517d"]
+  ```
+  
+  
+  
 * AddPublicKeySummaries 계정에 사용할 공개키요약 추가
   * > 사용자 서명 혹은 Guardian 서명
+  
   * Fields
     * account: Account 계정 이름
     * summaries: Map[PublicKeySummary, String]
       * 추가할 공개키요약과 간단한 설명
+  
   * Result
     * Removed: Map[PublicKeySummary, Descrption(string)]
+  
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 27,
+          "r" : "816df20e4ff581fd2056689b48be73cca29e4f81977e5c42754e598757434c51",
+          "s" : "4e43aef8d836e79380067365cd7a4a452df5f52b73ec78463bdc7cdea2e11ca0"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "AccountTx" : {
+          "AddPublicKeySummaries" : {
+            "networkId" : 1000,
+            "createdAt" : "2020-05-22T09:00:00Z",
+            "account" : "alice",
+            "summaries" : {
+              "5b6ed47b96cd913eb938b81ee3ea9e7dc9affbff" : "another key"
+            }
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["e996dcbabcf8a86208bcc8d683778f5d6b5d1b8ff950c9e60cc72b66fc619cca"]
+  ```
+  
+  
   
 * RemovePublicKeySummaries 계정에 사용할 공개키요약 삭제
   * > 사용자 서명 혹은 Guardian 서명
@@ -140,6 +245,40 @@
     * Coordinator: AccountName(string)
       * 그룹 조정자. 그룹에 계정 추가, 삭제 및 그룹 해산 권한을 가짐
   
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "aab6f7ccc108b8e75601c726d43270c1a60f38f830136dfe293a2633dc86a0dd",
+          "s" : "3cc1b610df7a421f9ae560853d5f07005a20c6ad225a00861a76e5e91aa183c0"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "GroupTx" : {
+          "CreateGroup" : {
+            "networkId" : 1000,
+            "createdAt" : "2022-06-08T09:00:00Z",
+            "groupId" : "mint-group",
+            "name" : "mint group",
+            "coordinator" : "alice"
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["adb9440aeef2de4697774657ebbcce9c1e5b01423e0a21da90da355458400c75"]
+  ```
+  
+  
+  
 * DisbandGroup 그룹 해산
   * > Coordinator 서명
   * Fields
@@ -151,6 +290,43 @@
     * GroupID(string)
     * Accounts: Set[AccountName(string)]
 
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "2dd00a2ebf07ff2d09d6e9bcd889ddc775c17989827e3e19b5e8d1744c021466",
+          "s" : "05bd60fef3d45463e22e5c157c814a7cbd1681410b67b0233c97ce7116d60729"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "GroupTx" : {
+          "AddAccounts" : {
+            "networkId" : 1000,
+            "createdAt" : "2022-06-08T09:00:00Z",
+            "groupId" : "mint-group",
+            "accounts" : [
+              "alice",
+              "bob"
+            ]
+          }
+        }
+      }
+    }
+  ]
+  
+  ```
+  
+  ```json
+  ["015a8cced717ca40a528d9518e8494961a4c4e7fde1422304b751814ed181e00"]
+  ```
+  
+  
+  
 * RemoveAccounts 그룹에 계정 삭제
   * > Coordinator 서명
   * Fields
@@ -179,12 +355,95 @@
       * *(optional)* DataUrl(string)
       * *(optional)* ContentHash: uint256
 
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "ce2b48b7da96eef22a2b92170fb81865adb99cbcae99a2b81bb7ce9b4ba990b6",
+          "s" : "35a708c9ffc1b7ef4e88389255f883c96e551a404afc4627e3f6ca32a617bae6"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "DefineToken" : {
+            "networkId" : 1000,
+            "createdAt" : "2020-05-22T09:01:00Z",
+            "definitionId" : "test-token",
+            "name" : "test-token",
+            "symbol" : "TT",
+            "minterGroup" : "mint-group",
+            "nftInfo" : {
+              "Some" : {
+                "value" : {
+                  "minter" : "alice",
+                  "rarity" : {
+                    "LGDY" : 8,
+                    "UNIQ" : 4,
+                    "EPIC" : 2,
+                    "RARE" : 1
+                  },
+                  "dataUrl" : "https://www.playnomm.com/data/test-token.json",
+                  "contentHash" : "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["b0cfd8da5ef347762b60162c772148902b54abca4760fb53e3eb752f8b953664"]
+  ```
+  
+  
+  
 * MintFungibleToken
   * > MinterGroup에 속한 Account의 서명
   * Fields
     * TokenDefinitionID(string)
     * Outputs: Map[AccountName, Amount]
 
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "76fb1b3be81101638c9ce070628db035ad7d86d3363d664da0c5afe254494e90",
+          "s" : "7ffb1c751fe4f5341c75341e4a51373139a7f730a56a08078ac89b6e1a77fc76"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "MintFungibleToken" : {
+            "networkId" : 1000,
+            "createdAt" : "2020-05-22T09:01:00Z",
+            "definitionId" : "test-token",
+            "outputs" : {
+              "alice" : 100
+            }
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["a3f35adb3d5d08692a7350e61aaa28da992a4280ad8e558953898ef96a0051ca"]
+  ```
+  
 * MintNFT
   * > MinterGroup에 속한 Account의 서명
   * Fields
@@ -195,6 +454,44 @@
     * ContentHash: uint256
     * Output: AccountName
 
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 27,
+          "r" : "0a914259cc0e8513512ea6356fc3056efe104e84756cf23a6c1c1aff7a580613",
+          "s" : "71a15b331b9e7337a018b442ee978a15f0d86e71ca53d2f54a9a8ccb92646cf9"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "MintNFT" : {
+            "networkId" : 1000,
+            "createdAt" : "2022-06-08T09:00:00Z",
+            "tokenDefinitionId" : "test-token",
+            "tokenId" : "2022061710000513118",
+            "rarity" : "EPIC",
+            "dataUrl" : "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+            "contentHash" : "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "output" : "alice"
+          }
+        }
+      }
+    }
+  ]
+  
+  ```
+  
+  ```json
+  ["6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657"]
+  ```
+  
+  
+  
 * BurnNFT
   * > 토큰 소유자 서명
   * Fields
@@ -208,6 +505,46 @@
     * Inputs: Set[SignedTxHash]: UTXO Hash, 모든 토큰 종류는 동일해야 함
     * Outputs: Map[AccountName, Amount]
     * *(optional)* Memo(string)
+  
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "09a5f46d29bd8598f04cb6db32627aadd562e30e181135c2898594080db6aa79",
+          "s" : "340abd1b6618d3bbf4b586294a4f902942f597672330563a43591a14be0a6504"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "TransferFungibleToken" : {
+            "networkId" : 1000,
+            "createdAt" : "2022-06-09T09:00:00Z",
+            "tokenDefinitionId" : "test-token",
+            "inputs" : [
+              "a3f35adb3d5d08692a7350e61aaa28da992a4280ad8e558953898ef96a0051ca"
+            ],
+            "outputs" : {
+              "bob" : 10,
+              "alice" : 90
+            },
+            "memo" : "transfer from alice to bob"
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["cb3848af6eb3c006c8aa663711d5fcfa2d6b1ccdcaf9837e273a96cc5386785e"]
+  ```
+  
+  
   
 * TransferNFT
   * > 토큰 보유자 서명
