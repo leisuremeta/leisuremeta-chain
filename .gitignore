@@ -16,3 +16,10 @@ sway
 
 # workshheets
 *.worksheet.sc
+
+# gateway log
+unsent-deposits.json
+unsent-deposits.json
+sent-deposits.logs
+last-block-read.json
+last-block-read.json
