@@ -275,6 +275,51 @@ trait UpdateStateWithTokenTx:
             ),
             txWithResult,
           )
+        case tn: Transaction.TokenTx.TransferNFT =>
+          val txWithResult = TransactionWithResult(Signed(sig, tx), None)
+          type NftBalance = (Account, TokenId, Hash.Value[TransactionWithResult])
+
+          val transferNftProgram: StateT[
+            EitherT[F, String, *],
+            MerkleTrieState[NftBalance, Unit],
+            Unit,
+          ] = for
+            _ <- MerkleTrie.remove[F, NftBalance, Unit]{
+              (sig.account, tn.tokenId, tn.input).toBytes.bits
+            }
+            _ <- MerkleTrie.put[F, NftBalance, Unit](
+                (
+                  tn.output,
+                  tn.tokenId,
+                  txWithResult.toHash,
+                ).toBytes.bits,
+                (),
+            )
+          yield ()
+
+          for
+            pubKeySummary <- EitherT.fromEither[F](
+              recoverSignature(tn, sig.sig),
+            )
+            accountPubKeyOption <- MerkleTrie
+              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
+                (sig.account, pubKeySummary).toBytes.bits,
+              )
+              .runA(ms.account.keyState)
+            _ <- EitherT.fromOption[F](
+              accountPubKeyOption,
+              s"Account ${sig.account} does not have public key summary $pubKeySummary",
+            )
+            nftBalanceState <- transferNftProgram.runS(
+              ms.token.nftBalanceState,
+            )
+          yield (
+            ms.copy(token =
+              ms.token.copy(nftBalanceState = nftBalanceState),
+            ),
+            txWithResult,
+          )
+
         case sf: Transaction.TokenTx.SuggestFungibleTokenDeal =>
           val txWithResult = TransactionWithResult(Signed(sig, tx), None)
 

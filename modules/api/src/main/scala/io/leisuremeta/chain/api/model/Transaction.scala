@@ -235,15 +235,15 @@ object Transaction:
     ) extends TokenTx
         with FungibleBalance
 
-//    final case class TransferNft(
-//        networkId: NetworkId,
-//        createdAt: Instant,
-//        definitionId: TokenDefinitionId,
-//        tokenId: TokenId,
-//        input: Signed.TxHash,
-//        output: Account,
-//        memo: Option[String],
-//    ) extends TokenTx
+    final case class TransferNFT(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        tokenId: TokenId,
+        input: Signed.TxHash,
+        output: Account,
+        memo: Option[Utf8],
+    ) extends TokenTx
 
     final case class SuggestFungibleTokenDeal(
         networkId: NetworkId,
@@ -332,17 +332,19 @@ object Transaction:
           case 1  => ByteDecoder[MintFungibleToken].widen
           case 2  => ByteDecoder[MintNFT].widen
           case 4  => ByteDecoder[TransferFungibleToken].widen
+          case 5  => ByteDecoder[TransferNFT].widen
           case 6  => ByteDecoder[SuggestFungibleTokenDeal].widen
           case 10 => ByteDecoder[AcceptDeal].widen
           case 11 => ByteDecoder[CancelSuggestion].widen
-
     }
+
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
         case tx: DefineToken              => build(0)(tx)
         case tx: MintFungibleToken        => build(1)(tx)
         case tx: MintNFT                  => build(2)(tx)
         case tx: TransferFungibleToken    => build(4)(tx)
+        case tx: TransferNFT              => build(5)(tx)
         case tx: SuggestFungibleTokenDeal => build(6)(tx)
         case tx: AcceptDeal               => build(10)(tx)
         case tx: CancelSuggestion         => build(11)(tx)

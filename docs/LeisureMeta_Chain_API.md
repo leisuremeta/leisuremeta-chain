@@ -555,7 +555,42 @@
     * Output: AccountName
     * *(optional)* Memo(string)
   
+  * Example
+  
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 27,
+          "r" : "c443ed5eda3d484bcda7bf77f030d3f6c20e4130d9bc4e03ca75df3074b40239",
+          "s" : "2e7a19f1baee2099ccbef500e7ceb03c5053957a55085ef52b21c022c43242d9"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "TransferNFT" : {
+            "networkId" : 1000,
+            "createdAt" : "2022-06-09T09:00:00Z",
+            "definitionId" : "test-token",
+            "tokenId" : "2022061710000513118",
+            "input" : "6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657",
+            "output" : "bob",
+            "memo" : null
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+	```json
+  ["1e46633eb70ec8ea484aeb0ef2e7916021b4fcc591712c4ce0514c63c897c6c9"]
+	```
+
 * SuggestFungibleTokenDeal. Fungible Token 사이의 교환 거래제안. 랜덤박스 거래에도 사용된다.
+  
   * > 토큰 보유자 서명
   * Fields
     * *(optional)* OriginalSuggestion: SignedTxHash 기존 거래에 역제안할 때 기존 거래의 TxHash
@@ -566,7 +601,7 @@
     * Requirement
       * TokenDefinitionID(string)
       * Amount
-
+  
 * SuggestSellDeal NFT 판매 제안. 거래 수정 제안에도 사용한다.
   * > 토큰 보유자 서명
   * Fields
