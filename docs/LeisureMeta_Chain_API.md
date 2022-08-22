@@ -735,25 +735,151 @@
     * ClaimStartDate: 랜덤박스 개봉 가능 시점
     * Note(string): 기타 남길 내용
   
+  * Example
+  
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "64f42a33c9d96547809e13e822f819635fd70b4471feb788144cab6d21d72004",
+            "s" : "7e3217dcb37807e1c23143175f5016a64b44a38b630a5650684bef0bfa4b5426"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RandomOfferingTx" : {
+            "NoticeTokenOffering" : {
+              "networkId" : 1000,
+              "createdAt" : "2022-06-09T09:00:00Z",
+              "groupId" : "first-dao-group",
+              "offeringAccount" : "first-dao",
+              "feeReceivingAccount" : "playnomm",
+              "feeRatePerMille" : 1000,
+              "tokenDefinitionId" : "test-token",
+              "vrfPublicKey" : "",
+              "autojoin" : {
+                "alice" : 10
+              },
+              "inputs" : [
+                "6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657"
+              ],
+              "requirement" : [
+                "LM",
+                1
+              ],
+              "claimStartDate" : "2022-09-01T09:00:00Z",
+              "note" : "first-dao-token-offering"
+            }
+          }
+        }
+      }
+    ]
+    ```
+  
+    ```json
+    ["54dcad02ea3447f5005accea76aec522b228bc0fcef770f5e01fe60c03f7602a"]
+    ```
+  
+    
+  
 * JoinTokenOffering 민팅 참여
   * > 사용자 서명
+  
   * Fields
     * NoticeTxHash
     * Amount: 요청할 갯수
     * Input Token Definition ID
     * Inputs: Set[SignedTxHash]
+  
   * Result
     * Output: Amount 자신에게 되돌릴 금액
-
+  
+  * Example
+  
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "681750850eebb426faccda84c9be5ea733a4014813550ce0d463e7cd328dea35",
+            "s" : "2c62c13cbe0a2ba68b6b86556218adf7f3e30ebdf139d246324311cfda3a481a"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RandomOfferingTx" : {
+            "JoinTokenOffering" : {
+              "networkId" : 1000,
+              "createdAt" : "2022-09-01T09:00:00Z",
+              "noticeTxHash" : "54dcad02ea3447f5005accea76aec522b228bc0fcef770f5e01fe60c03f7602a",
+              "amount" : 1,
+              "inputTokenDefinitionId" : "LM",
+              "inputs" : [
+                "a3f35adb3d5d08692a7350e61aaa28da992a4280ad8e558953898ef96a0051ca"
+              ]
+            }
+          }
+        }
+      }
+    ]
+    ```
+  
+    ```json
+    ["3f5e83f725b1dd10fb2cd4b5afabeda5cd586cfde7def2d0d5c3c66e81792e44"]
+    ```
+  
+    
+  
 * InitialTokenOffering 최초 랜덤박스 제공
   * > 민팅 공지자 서명. 일반적으로는 `playnomm`
+  
   * Fields
     * NoticeTxHash: NFT 민팅 공지 트랜잭션 해시
     * Outputs: Map[AccountName, Amount]
+  
   * Result
     * TotalOutputs: Map[AccountName, Map[TokenDefinitionID, Amount]]
       * JoinTokenOffering으로 락업 걸려있던 물량 중 풀려서 되찾아갈 Fungible Token들
-
+  
+  * Example
+  
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "577bc134234b1ae9e9fd6543d0a4b19f15b07c76037fa74611fc6604fe2c05d3",
+            "s" : "391e6f3da724701e52bb77077584646da0472c8a0c35b8a17daf8e2050a1ccd1"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RandomOfferingTx" : {
+            "InitialTokenOffering" : {
+              "networkId" : 1000,
+              "createdAt" : "2022-09-01T09:00:00Z",
+              "noticeTxHash" : "54dcad02ea3447f5005accea76aec522b228bc0fcef770f5e01fe60c03f7602a",
+              "outputs" : {
+                "alice" : 10,
+                "bob" : 10
+              }
+            }
+          }
+        }
+      }
+    ]
+    ```
+  
+    ```json
+    ["8a8105d10c79a5660c0422d209abd5f0f5bb89a98105e04a12fc118431773750"]
+    ```
+  
+    
+  
 * ClaimNFT 랜덤박스 열기: 한 번에 박스 하나씩만 열 수 있음
   * > 사용자 서명
   * Fields
