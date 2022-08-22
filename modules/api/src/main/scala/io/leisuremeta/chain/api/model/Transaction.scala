@@ -8,10 +8,10 @@ import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
 import account.EthAddress
+import reward.DaoActivity
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
-import offering.{VrfPublicKey}
 import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
 
 sealed trait TransactionResult
@@ -22,23 +22,10 @@ object TransactionResult:
         case Transaction.AccountTx.AddPublicKeySummariesResult(removed) =>
           ByteVector.fromByte(0) ++ ByteEncoder[Map[PublicKeySummary, Utf8]]
             .encode(removed)
-        case Transaction.TokenTx.AcceptDealResult(outputs) =>
-          ByteVector.fromByte(1) ++ ByteEncoder[
-            Map[Account, Map[TokenDefinitionId, TokenDetail]],
-          ].encode(outputs)
-        case Transaction.TokenTx.CancelSuggestionResult(defId, tokenDetail) =>
-          ByteVector.fromByte(2)
-            ++ ByteEncoder[TokenDefinitionId].encode(defId)
-            ++ ByteEncoder[TokenDetail].encode(tokenDetail)
-          
-        case Transaction.RandomOfferingTx.JoinTokenOfferingResult(output) =>
-          ByteVector.fromByte(3) ++ ByteEncoder[BigNat].encode(output)
-        case Transaction.RandomOfferingTx.InitialTokenOfferingResult(
-              totalOutputs,
-            ) =>
-          ByteVector.fromByte(4) ++ ByteEncoder[
-            Map[Account, Map[TokenDefinitionId, BigNat]],
-          ].encode(totalOutputs)
+        case Transaction.TokenTx.BurnFungibleTokenResult(outputAmount) =>
+          ByteVector.fromByte(1) ++ ByteEncoder[BigNat].encode(outputAmount)
+        case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) =>
+          ByteVector.fromByte(2) ++ ByteEncoder[BigNat].encode(remainder)
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap {
@@ -47,21 +34,10 @@ object TransactionResult:
           Transaction.AccountTx.AddPublicKeySummariesResult(_),
         )
       case 1 =>
-        ByteDecoder[Map[Account, Map[TokenDefinitionId, TokenDetail]]].map(
-          Transaction.TokenTx.AcceptDealResult(_),
-        )
+        ByteDecoder[BigNat].map(Transaction.TokenTx.BurnFungibleTokenResult(_))
       case 2 =>
-        for
-          defId <- ByteDecoder[TokenDefinitionId]
-          tokenDetail <- ByteDecoder[TokenDetail]
-        yield Transaction.TokenTx.CancelSuggestionResult(defId, tokenDetail)
-      case 3 =>
         ByteDecoder[BigNat].map(
-          Transaction.RandomOfferingTx.JoinTokenOfferingResult(_),
-        )
-      case 4 =>
-        ByteDecoder[Map[Account, Map[TokenDefinitionId, BigNat]]].map(
-          Transaction.RandomOfferingTx.InitialTokenOfferingResult(_),
+          Transaction.TokenTx.EntrustFungibleTokenResult(_),
         )
     }
 
@@ -218,12 +194,25 @@ object Transaction:
     ) extends TokenTx
         with NftBalance
 
-//    final case class BurnNFT(
-//        networkId: NetworkId,
-//        createdAt: Instant,
-//        definitionId: TokenDefinitionId,
-//        input: Signed.TxHash,
-//    ) extends TokenTx
+    final case class BurnFungibleToken(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        amount: BigNat,
+        inputs: Set[Signed.TxHash],
+    ) extends TokenTx
+        with FungibleBalance
+
+    final case class BurnFungibleTokenResult(
+        outputAmount: BigNat,
+    ) extends TransactionResult
+
+    final case class BurnNFT(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        input: Signed.TxHash,
+    ) extends TokenTx
 
     final case class TransferFungibleToken(
         networkId: NetworkId,
@@ -245,85 +234,46 @@ object Transaction:
         memo: Option[Utf8],
     ) extends TokenTx
 
-    final case class SuggestFungibleTokenDeal(
+    final case class EntrustFungibleToken(
         networkId: NetworkId,
         createdAt: Instant,
-        originalSuggestion: Option[Signed.TxHash],
-        inputDefinitionId: TokenDefinitionId,
-        inputs: Set[Signed.TxHash],
-        output: BigNat,
-        dealDeadline: Instant,
-        requirement: FungibleRequirement,
-    ) extends TokenTx
-        with DealSuggestion
-
-    object SuggestFungibleTokenDeal:
-      given txEncoder: Encoder[SuggestFungibleTokenDeal] = deriveEncoder
-
-    case class FungibleRequirement(
         definitionId: TokenDefinitionId,
         amount: BigNat,
-    )
-
-//    final case class SuggestSellDeal(
-//        networkId: NetworkId,
-//        createdAt: Instant,
-//        originalSuggestion: Option[Signed.TxHash],
-//        inputDefinitionId: TokenDefinitionId,
-//        input: Signed.TxHash,
-//        dealDeadline: Instant,
-//        requirement: FungibleRequirement,
-//    ) extends TokenTx
-
-//    final case class SuggestBuyDeal(
-//        networkId: NetworkId,
-//        createdAt: Instant,
-//        originalSuggestion: Option[Signed.TxHash],
-//        inputDefinitionId: TokenDefinitionId,
-//        input: Signed.TxHash,
-//        dealDeadline: Instant,
-//        requirement: NftRequirement,
-//    ) extends TokenTx
-
-//    case class NftRequirement(
-//        definitionID: TokenDefinitionId,
-//        tokenID: TokenId,
-//    )
-
-//    final case class SuggestSwapDeal(
-//        networkId: NetworkId,
-//        createdAt: Instant,
-//        originalSuggestion: Option[Signed.TxHash],
-//        inputDefinitionId: TokenDefinitionId,
-//        input: Set[Signed.TxHash],
-//        dealDeadline: Instant,
-//        requirement: NftRequirement,
-//    ) extends TokenTx
-
-    final case class AcceptDeal(
-        networkId: NetworkId,
-        createdAt: Instant,
-        suggestion: Signed.TxHash,
         inputs: Set[Signed.TxHash],
+        to: Account,
     ) extends TokenTx
-        with FungibleBalance
 
-    final case class AcceptDealResult(
-        outputs: Map[Account, Map[TokenDefinitionId, TokenDetail]],
+    final case class EntrustFungibleTokenResult(
+        remainder: BigNat,
     ) extends TransactionResult
 
-    final case class CancelSuggestion(
+    final case class EntrustNFT(
         networkId: NetworkId,
         createdAt: Instant,
-        suggestion: Signed.TxHash,
+        definitionId: TokenDefinitionId,
+        tokenId: TokenId,
+        input: Signed.TxHash,
+        to: Account,
+    ) extends TokenTx
+
+    final case class DisposeEntrustedFungibleToken(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+        outputs: Map[Account, BigNat],
     ) extends TokenTx
         with FungibleBalance
-        with NftBalance
 
-    final case class CancelSuggestionResult(
-        tokenDefinitionId: TokenDefinitionId,
-        detail: TokenDetail,
-    ) extends TransactionResult
+    final case class DisposeEntrustedNFT(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        tokenId: TokenId,
+        input: Signed.TxHash,
+        output: Option[Account],
+    ) extends TokenTx
+        with NftBalance
 
     given txByteDecoder: ByteDecoder[TokenTx] = ByteDecoder[BigNat].flatMap {
       bignat =>
@@ -331,87 +281,109 @@ object Transaction:
           case 0  => ByteDecoder[DefineToken].widen
           case 1  => ByteDecoder[MintFungibleToken].widen
           case 2  => ByteDecoder[MintNFT].widen
-          case 4  => ByteDecoder[TransferFungibleToken].widen
-          case 5  => ByteDecoder[TransferNFT].widen
-          case 6  => ByteDecoder[SuggestFungibleTokenDeal].widen
-          case 10 => ByteDecoder[AcceptDeal].widen
-          case 11 => ByteDecoder[CancelSuggestion].widen
+          case 3  => ByteDecoder[BurnFungibleToken].widen
+          case 4  => ByteDecoder[BurnNFT].widen
+          case 5  => ByteDecoder[TransferFungibleToken].widen
+          case 6  => ByteDecoder[TransferNFT].widen
+          case 7  => ByteDecoder[EntrustFungibleToken].widen
+          case 8  => ByteDecoder[EntrustNFT].widen
+          case 9  => ByteDecoder[DisposeEntrustedFungibleToken].widen
+          case 10 => ByteDecoder[DisposeEntrustedNFT].widen
     }
 
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
       ttx match
-        case tx: DefineToken              => build(0)(tx)
-        case tx: MintFungibleToken        => build(1)(tx)
-        case tx: MintNFT                  => build(2)(tx)
-        case tx: TransferFungibleToken    => build(4)(tx)
-        case tx: TransferNFT              => build(5)(tx)
-        case tx: SuggestFungibleTokenDeal => build(6)(tx)
-        case tx: AcceptDeal               => build(10)(tx)
-        case tx: CancelSuggestion         => build(11)(tx)
+        case tx: DefineToken                   => build(0)(tx)
+        case tx: MintFungibleToken             => build(1)(tx)
+        case tx: MintNFT                       => build(2)(tx)
+        case tx: BurnFungibleToken             => build(3)(tx)
+        case tx: BurnNFT                       => build(4)(tx)
+        case tx: TransferFungibleToken         => build(5)(tx)
+        case tx: TransferNFT                   => build(6)(tx)
+        case tx: EntrustFungibleToken          => build(7)(tx)
+        case tx: EntrustNFT                    => build(8)(tx)
+        case tx: DisposeEntrustedFungibleToken => build(9)(tx)
+        case tx: DisposeEntrustedNFT           => build(10)(tx)
 
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder
 
   end TokenTx
 
-  sealed trait RandomOfferingTx extends Transaction
-  object RandomOfferingTx:
-    final case class NoticeTokenOffering(
+  sealed trait RewardTx extends Transaction
+  object RewardTx:
+    final case class RegisterDao(
         networkId: NetworkId,
         createdAt: Instant,
         groupId: GroupId,
-        offeringAccount: Account,
-        feeReceivingAccount: Account,
-        feeRatePerMille: BigNat,
-        tokenDefinitionId: TokenDefinitionId,
-        vrfPublicKey: VrfPublicKey,
-        autojoin: Map[Account, BigNat],
-        inputs: Set[Signed.TxHash],
-        requirement: Option[(TokenDefinitionId, BigNat)],
-        claimStartDate: Instant,
-        note: Utf8,
-    ) extends RandomOfferingTx
+        daoAccountName: Account,
+        moderators: Set[Account],
+    ) extends RewardTx
 
-    final case class JoinTokenOffering(
+    final case class UpdateDao(
         networkId: NetworkId,
         createdAt: Instant,
-        noticeTxHash: Signed.TxHash,
-        amount: BigNat,
-        inputTokenDefinitionId: TokenDefinitionId,
-        inputs: Set[Signed.TxHash],
-    ) extends RandomOfferingTx
-        with FungibleBalance
+        groupId: GroupId,
+        moderators: Set[Account],
+    ) extends RewardTx
 
-    final case class JoinTokenOfferingResult(
-        outout: BigNat,
-    ) extends TransactionResult
-
-    final case class InitialTokenOffering(
+    final case class RecordActivity(
         networkId: NetworkId,
         createdAt: Instant,
-        noticeTxHash: Signed.TxHash,
+        timestamp: Instant,
+        userActivity: Map[Account, DaoActivity],
+        tokenReceived: Map[TokenId, DaoActivity],
+    ) extends RewardTx
+
+    final case class RegisterStaking(
+        networkId: NetworkId,
+        createdAt: Instant,
+        inputs: Set[Signed.TxHash],
         outputs: Map[Account, BigNat],
-    ) extends RandomOfferingTx
-        with FungibleBalance
+    ) extends RewardTx
 
-    final case class InitialTokenOfferingResult(
-        totalOutputs: Map[Account, Map[TokenDefinitionId, BigNat]],
-    ) extends TransactionResult
+    final case class RemoveStaking(
+        networkId: NetworkId,
+        createdAt: Instant,
+        inputs: Set[Signed.TxHash],
+        outputs: Map[Account, BigNat],
+    ) extends RewardTx
 
-    given txByteDecoder: ByteDecoder[RandomOfferingTx] =
-      ByteDecoder[BigNat].flatMap { bignat =>
+//    final case class ExcuteStakingRequest(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//    ) extends RewardTx
+//    final case class ExecuteReward(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//    ) extends RewardTx
+
+    given txByteDecoder: ByteDecoder[RewardTx] = ByteDecoder[BigNat].flatMap {
+      bignat =>
         bignat.toBigInt.toInt match
-          case 0 => ByteDecoder[NoticeTokenOffering].widen
-          case 1 => ByteDecoder[JoinTokenOffering].widen
-          case 2 => ByteDecoder[InitialTokenOffering].widen
-      }
-    given txByteEncoder: ByteEncoder[RandomOfferingTx] =
-      (tx: RandomOfferingTx) =>
-        tx match
-          case tx: NoticeTokenOffering  => build(0)(tx)
-          case tx: JoinTokenOffering    => build(1)(tx)
-          case tx: InitialTokenOffering => build(2)(tx)
-  end RandomOfferingTx
+          case 0 => ByteDecoder[RegisterDao].widen
+          case 1 => ByteDecoder[UpdateDao].widen
+          case 2 => ByteDecoder[RecordActivity].widen
+          case 3 => ByteDecoder[RegisterStaking].widen
+          case 4 => ByteDecoder[RemoveStaking].widen
+//          case 5 => ByteDecoder[ExcuteStakingRequest].widen
+//          case 6 => ByteDecoder[ExecuteReward].widen
+    }
+
+    given txByteEncoder: ByteEncoder[RewardTx] = (rtx: RewardTx) =>
+      rtx match
+        case tx: RegisterDao          => build(0)(tx)
+        case tx: UpdateDao            => build(1)(tx)
+        case tx: RecordActivity       => build(2)(tx)
+        case tx: RegisterStaking      => build(3)(tx)
+        case tx: RemoveStaking        => build(4)(tx)
+//        case tx: ExcuteStakingRequest => build(5)(tx)
+//        case tx: ExecuteReward        => build(6)(tx)
+
+    given txCirceDecoder: Decoder[RewardTx] = deriveDecoder
+    given txCirceEncoder: Encoder[RewardTx] = deriveEncoder
+
+  end RewardTx
 
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
@@ -424,14 +396,14 @@ object Transaction:
         case 0 => ByteDecoder[AccountTx].widen
         case 1 => ByteDecoder[GroupTx].widen
         case 2 => ByteDecoder[TokenTx].widen
-        case 4 => ByteDecoder[RandomOfferingTx].widen
+        case 3 => ByteDecoder[RewardTx].widen
   }
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
-      case tx: AccountTx        => build(0)(tx)
-      case tx: GroupTx          => build(1)(tx)
-      case tx: TokenTx          => build(2)(tx)
-      case tx: RandomOfferingTx => build(4)(tx)
+      case tx: AccountTx => build(0)(tx)
+      case tx: GroupTx   => build(1)(tx)
+      case tx: TokenTx   => build(2)(tx)
+      case tx: RewardTx  => build(3)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 

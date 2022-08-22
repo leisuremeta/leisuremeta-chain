@@ -23,7 +23,7 @@ import api.model.{
 }
 import api.model.TransactionWithResult.ops.*
 import api.model.account.EthAddress
-import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo, RandomOfferingInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
 import api.model.token.{
   Rarity,
   NftState,
@@ -39,6 +39,7 @@ import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieState}
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import StateRepository.given
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.BurnFungibleTokenResult
 
 object StateReadService:
   def getAccountInfo[F[_]
@@ -261,67 +262,14 @@ object StateReadService:
                 totalAmount = tf.outputs.get(account).getOrElse(BigNat.Zero),
                 unused = Map(txHash -> txWithResult),
               )
-            case ad: Transaction.TokenTx.AcceptDeal =>
-              txWithResult.result match
-                case Some(Transaction.TokenTx.AcceptDealResult(outputs)) =>
-                  BalanceInfo(
-                    totalAmount = outputs
-                      .get(account)
-                      .flatMap(_.get(defId))
-                      .fold(BigNat.Zero) {
-                        case TokenDetail.FungibleDetail(amount) => amount
-                        case TokenDetail.NftDetail(_)           => BigNat.Zero
-                      },
-                    unused = Map(txHash -> txWithResult),
-                  )
-                case _ =>
-                  throw new Exception(
-                    s"AcceptDeal result is not found for $txHash",
-                  )
-            case cs: Transaction.TokenTx.CancelSuggestion =>
-              txWithResult.result match
-                case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
-                  BalanceInfo(
-                    totalAmount = {
-                      detail match
-                        case TokenDetail.FungibleDetail(amount) if cancelDefId === defId =>
-                          amount
-                        case _ =>
-                          BigNat.Zero
-                    },
-                    unused = Map(txHash -> txWithResult),
-                  )
-                case _ =>
-                  throw new Exception(
-                    s"CancelSuggestion result is not found for $txHash",
-                  )
-            case jt: Transaction.RandomOfferingTx.JoinTokenOffering =>
-              txWithResult.result match
-                case Some(Transaction.RandomOfferingTx.JoinTokenOfferingResult(output))
-                  if txWithResult.signedTx.sig.account === account =>
-
-                  BalanceInfo(
-                    totalAmount = output,
-                    unused = Map(txHash -> txWithResult),
-                  )
-                case _ =>
-                  throw new Exception(
-                    s"JoinTokenOffering result is not found for $txHash",
-                  )
-            case it: Transaction.RandomOfferingTx.InitialTokenOffering =>
-              txWithResult.result match
-                case Some(Transaction.RandomOfferingTx.InitialTokenOfferingResult(outputs)) =>
-                  BalanceInfo(
-                    totalAmount = outputs
-                      .get(account)
-                      .flatMap(_.get(defId))
-                      .getOrElse(BigNat.Zero),
-                    unused = Map(txHash -> txWithResult),
-                  )
-                case _ =>
-                  throw new Exception(
-                    s"InitialTokenOffering result is not found for $txHash",
-                  )
+            case bf: Transaction.TokenTx.BurnFungibleToken =>
+              val amount = txWithResult.result match
+                case Some(BurnFungibleTokenResult(outputAmount)) => outputAmount
+                case _ => BigNat.Zero
+              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
+            case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
+              val amount = de.outputs.get(account).getOrElse(BigNat.Zero)
+              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
 
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
@@ -405,20 +353,14 @@ object StateReadService:
                       txWithResult,
                     ),
                   )
-                case cs: Transaction.TokenTx.CancelSuggestion =>
-                  txWithResult.result match
-                    case Some(Transaction.TokenTx.CancelSuggestionResult(cancelDefId, detail)) =>
-                      detail match
-                        case TokenDetail.NftDetail(tokenId) =>
-                          Map(
-                            tokenId -> NftBalanceInfo(
-                              cancelDefId,
-                              txHash,
-                              txWithResult,
-                            ),
-                          )
-                        case _ => Map.empty
-                    case _ =>  Map.empty
+                case de: Transaction.TokenTx.DisposeEntrustedNFT =>
+                  Map(
+                    tokenId -> NftBalanceInfo(
+                      de.definitionId,
+                      txHash,
+                      txWithResult,
+                    ),
+                  )
             case _ =>
               Map.empty,
         )
@@ -480,37 +422,3 @@ object StateReadService:
         )
     }
   yield ownerOptionList.flatten.toMap
-
-  def getOffering[F[_]: Concurrent: BlockRepository: StateRepository.TokenState: StateRepository.RandomOfferingState: TransactionRepository](
-      tokenDefinitionId: TokenDefinitionId,
-  ): EitherT[F, String, Option[RandomOfferingInfo]] =
-    summon[StateRepository.RandomOfferingState[F]].randomOffering
-    for
-      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
-      bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
-      merkleState = MerkleState.from(bestHeader)
-      noticeTxHashOption <- MerkleTrie.get[F, TokenDefinitionId, Hash.Value[TransactionWithResult]](
-        tokenDefinitionId.toBytes.bits,
-      ).runA(merkleState.offering.offeringState)
-      infoOption <- noticeTxHashOption.traverse { noticeTxHash =>
-        for
-          noticeTxOption <- TransactionRepository[F].get(noticeTxHash).leftMap(_.msg)
-          noticeTx <- EitherT.right(noticeTxOption.fold{
-            Concurrent[F].raiseError(new Exception(s"No notice transaction $noticeTxHash"))
-          }{ (noticeTx) =>
-            noticeTx.signedTx.value match
-              case tx: Transaction.RandomOfferingTx.NoticeTokenOffering =>
-                for
-                  balanceMap <- getNftBalanceFromNftBalanceState[F](tx.offeringAccount, None, merkleState.token.nftBalanceState)
-                yield RandomOfferingInfo(
-                  tokenDefinitionId = tokenDefinitionId,
-                  noticeTxHash = noticeTxHash.toSignedTxHash,
-                  noticeTx = tx,
-                  currentBalance = balanceMap,
-                )
-              case tx => Concurrent[F].raiseError(new Exception(s"Not a notice transaction $tx"))
-          })
-        yield noticeTx
-      }
-    yield infoOption
-    

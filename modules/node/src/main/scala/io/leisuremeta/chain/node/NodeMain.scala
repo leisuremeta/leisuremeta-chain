@@ -134,42 +134,25 @@ object NodeMain extends IOApp:
             )
           given StateRepoStore[
             IO,
-            (Account, Hash.Value[TransactionWithResult]),
-            Unit,
-          ] <-
-            getStateRepo[(Account, Hash.Value[TransactionWithResult]), Unit](
-              Paths.get("sway", "state", "token", "lock"),
-            )
-          given StateRepoStore[
-            IO,
-            (Instant, Hash.Value[TransactionWithResult]),
-            Unit,
-          ] <-
-            getStateRepo[(Instant, Hash.Value[TransactionWithResult]), Unit](
-              Paths.get("sway", "state", "token", "deadline"),
-            )
-          given StateRepoStore[
-            IO,
-            (
-                Hash.Value[TransactionWithResult],
-                Hash.Value[TransactionWithResult],
-            ),
+            (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
             Unit,
           ] <-
             getStateRepo[
-              (
-                  Hash.Value[TransactionWithResult],
-                  Hash.Value[TransactionWithResult],
-              ),
+              (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
               Unit,
             ](
-              Paths.get("sway", "state", "token", "suggestion"),
+              Paths.get("sway", "state", "token", "entrust-fungible-balance"),
             )
-          given StateRepoStore[IO, TokenDefinitionId, Hash.Value[
-            TransactionWithResult,
-          ]] <-
-            getStateRepo[TokenDefinitionId, Hash.Value[TransactionWithResult]](
-              Paths.get("sway", "state", "offering", "content"),
+          given StateRepoStore[
+            IO,
+            (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+            Unit,
+          ] <-
+            getStateRepo[
+              (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+              Unit,
+            ](
+              Paths.get("sway", "state", "token", "entrust-nft-balance"),
             )
           given TransactionRepository[IO] <- getTransactionRepo
 

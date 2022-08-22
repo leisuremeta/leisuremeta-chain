@@ -113,9 +113,16 @@ object StateRepository:
     ]
     def nft: StateRepository[F, TokenId, NftState]
     def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit]
-    def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit]
-    def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit]
-    def suggestion: StateRepository[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit]
+    def entrustFungibleBalance: StateRepository[
+      F,
+      (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+      Unit,
+    ]
+    def entrustNftBalance: StateRepository[
+      F,
+      (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+      Unit,
+    ]
 
   object TokenState:
     def apply[F[_]: TokenState]: TokenState[F] = summon
@@ -137,9 +144,17 @@ object StateRepository:
         ],
         nftKVStore: MerkleHashStore[F, TokenId, NftState],
         rarityKVStore: MerkleHashStore[F, (TokenDefinitionId, Rarity, TokenId), Unit],
-        lockKVStore: MerkleHashStore[F, (Account, Hash.Value[TransactionWithResult]), Unit],
-        deadlineKVStore: MerkleHashStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit],
-        suggestionKVStore: MerkleHashStore[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit],
+        entrustFungibleBalanceKVStroe: MerkleHashStore[
+          F,
+          (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ],
+        entrustNftBalanceKVStore: MerkleHashStore[
+          F,
+          (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+          Unit,
+        ],
+
     ): TokenState[F] = new TokenState[F]:
       def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
         fromStores
@@ -156,11 +171,16 @@ object StateRepository:
       def nft: StateRepository[F, TokenId, NftState] = fromStores
       def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
         fromStores
-      def lock: StateRepository[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
-        fromStores
-      def deadline: StateRepository[F, (Instant, Hash.Value[TransactionWithResult]), Unit] = fromStores
-      def suggestion: StateRepository[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] =
-        fromStores
+      def entrustFungibleBalance: StateRepository[
+        F,
+        (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ] = fromStores
+      def entrustNftBalance: StateRepository[
+        F,
+        (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ] = fromStores
 
 
   given nodeStoreFromDefinition[F[_]: Functor: TokenState]
@@ -186,30 +206,16 @@ object StateRepository:
       : NodeStore[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
     Kleisli(TokenState[F].rarity.get(_).leftMap(_.msg))
 
-  given nodeStoreFromLock[F[_]: Functor: TokenState]
-      : NodeStore[F, (Account, Hash.Value[TransactionWithResult]), Unit] =
-    Kleisli(TokenState[F].lock.get(_).leftMap(_.msg))
-  given nodeStoreFromDeadline[F[_]: Functor: TokenState]
-      : NodeStore[F, (Instant, Hash.Value[TransactionWithResult]), Unit] =
-    Kleisli(TokenState[F].deadline.get(_).leftMap(_.msg))
-  given nodeStoreFromSuggestion[F[_]: Functor: TokenState]
-      : NodeStore[F, (Hash.Value[TransactionWithResult], Hash.Value[TransactionWithResult]), Unit] =
-    Kleisli(TokenState[F].suggestion.get(_).leftMap(_.msg))
+  given nodeStoreFromEntrustFungibleBalance[F[_]: Functor: TokenState]: NodeStore[
+    F,
+    (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+    Unit,
+  ] =
+    Kleisli(TokenState[F].entrustFungibleBalance.get(_).leftMap(_.msg))
 
-  /** RandomOffering */
-  trait RandomOfferingState[F[_]]:
-    def randomOffering: StateRepository[F, TokenDefinitionId, Hash.Value[TransactionWithResult]]
-  object RandomOfferingState:
-    def apply[F[_]: RandomOfferingState]: RandomOfferingState[F] = summon
-    given from[F[_]: Monad](using
-        randomOfferingKVStroe: MerkleHashStore[F, TokenDefinitionId, Hash.Value[TransactionWithResult]],
-    ): RandomOfferingState[F] = new RandomOfferingState[F]:
-      def randomOffering: StateRepository[F, TokenDefinitionId, Hash.Value[TransactionWithResult]] = fromStores
-
-  given nodeStoreFromRandomOffering[F[_]: Functor: RandomOfferingState]
-      : NodeStore[F, TokenDefinitionId, Hash.Value[TransactionWithResult]] =
-    Kleisli(RandomOfferingState[F].randomOffering.get(_).leftMap(_.msg))
-
+  given nodeStoreFromEntrustNftBalance[F[_]: Functor: TokenState]
+      : NodeStore[F, (Account, Account, TokenId, Hash.Value[TransactionWithResult]), Unit] =
+    Kleisli(TokenState[F].entrustNftBalance.get(_).leftMap(_.msg))
 
   /** General
     */
