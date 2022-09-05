@@ -185,19 +185,10 @@ object StateReadService:
   def getBalance[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
-      movableOption: Option[Api.Movable],
-  ): F[Map[TokenDefinitionId, BalanceInfo]] = movableOption match
-    case None => getAllBalance[F](account)
-    case Some(Api.Movable.Free) => getFreeBalance[F](account)
-    case Some(Api.Movable.Locked) => getEntrustBalance[F](account)
-
-  def getAllBalance[F[_]
-    : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
-      account: Account,
-  ): F[Map[TokenDefinitionId, BalanceInfo]] = for
-    free <- getFreeBalance(account)
-    entrusted <- getEntrustBalance(account)
-  yield free ++ entrusted
+      movable: Api.Movable,
+  ): F[Map[TokenDefinitionId, BalanceInfo]] = movable match
+    case Api.Movable.Free => getFreeBalance[F](account)
+    case Api.Movable.Locked => getEntrustBalance[F](account)
 
   def getFreeBalance[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](

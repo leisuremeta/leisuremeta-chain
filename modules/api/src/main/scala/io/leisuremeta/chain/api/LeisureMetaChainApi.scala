@@ -138,7 +138,7 @@ object LeisureMetaChainApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBalanceEndpoint =
     baseEndpoint.get
-      .in("balance" / path[Account].and(query[Option[Movable]]("movable")))
+      .in("balance" / path[Account].and(query[Movable]("movable")))
       .out(jsonBody[Map[TokenDefinitionId, BalanceInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -162,6 +162,14 @@ object LeisureMetaChainApi:
   enum Movable:
     case Free, Locked
   object Movable:
+    @SuppressWarnings(Array("org.wartremover.warts.ToString"))
+    given Codec[String, Movable, TextPlain] = Codec.string.mapDecode{ (s: String) =>
+      s match
+        case "free" => DecodeResult.Value(Movable.Free)
+        case "locked" => DecodeResult.Value(Movable.Locked)
+        case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
+    }(_.toString.toLowerCase(Locale.ENGLISH))
+
     @SuppressWarnings(Array("org.wartremover.warts.ToString"))
     given Codec[String, Option[Movable], TextPlain] = Codec.string.mapDecode{ (s: String) =>
       s match

@@ -6,11 +6,10 @@
 
 `GET` **/balance/{accountName}** 계정 잔고 조회
 
-> `param` *(optional)* movable: 잔고의 이동 가능성 여부
+> `param` movable: 잔고의 이동 가능성 여부
 >
 > * 'free': 유동 자산
 > * 'locked': 예치 자산
-> * 'all': 전체 자산
 
 *  Response: Map[TokenDefinitionID, BalanceInfo]
   * Token Definition ID: 토큰 정의 ID (string)
@@ -1007,7 +1006,7 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 * EntrustFungibleBalanceState: (AccountName, AccountName, TokenDefinitionId, TransactionHash) => ()
 * EntrustNftBalanceState: (AccountName, AccountName, TokenId, TransactionHash) => ()
 
-### Dao
+### Reward
 
 * DaoState: GroupID => DaoInfo
   * DaoInfo
