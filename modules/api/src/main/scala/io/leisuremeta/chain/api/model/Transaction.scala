@@ -242,6 +242,7 @@ object Transaction:
         inputs: Set[Signed.TxHash],
         to: Account,
     ) extends TokenTx
+        with FungibleBalance
 
     final case class EntrustFungibleTokenResult(
         remainder: BigNat,

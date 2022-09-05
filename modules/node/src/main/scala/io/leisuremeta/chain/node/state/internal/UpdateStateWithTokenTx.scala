@@ -355,6 +355,12 @@ trait UpdateStateWithTokenTx:
                           case other => EitherT.leftT[F, BigNat](s"burn fungible token result of $txHash has wrong result: $other")
                       case tf: Transaction.TokenTx.TransferFungibleToken =>
                         EitherT.pure(tf.outputs.get(sig.account).getOrElse(BigNat.Zero))
+
+                      case ef: Transaction.TokenTx.EntrustFungibleToken =>
+                        EitherT.pure(txWithResult.result.fold(BigNat.Zero){
+                          case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) => remainder
+                          case _ => BigNat.Zero
+                        })
                       case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
                         EitherT.pure(df.outputs.get(sig.account).getOrElse(BigNat.Zero))
                     case _ => EitherT.leftT[F, BigNat](s"input tx $txHash is not a fungible balance")
@@ -368,13 +374,17 @@ trait UpdateStateWithTokenTx:
                 .fromBigInt(inputSum- ef.amount.toBigInt)
                 .leftMap(_ => s"input sum $inputSum is less than output amount ${ef.amount}")
             }
-            fungibleBalanceState <- ef.inputs.toList.traverse { (txHash) =>
+            result = Transaction.TokenTx.EntrustFungibleTokenResult(remainder)
+            txWithResult = TransactionWithResult(Signed(sig, tx), Some(result))
+            fungibleBalanceState0 <- ef.inputs.toList.traverse { (txHash) =>
               MerkleTrie.remove[F, FungibleBalance, Unit](
                 (sig.account, ef.definitionId, txHash).toBytes.bits,
               )
             }.runS(ms.token.fungibleBalanceState)
-            result = Transaction.TokenTx.EntrustFungibleTokenResult(remainder)
-            txWithResult = TransactionWithResult(Signed(sig, tx), Some(result))
+            fungibleBalanceState <- MerkleTrie.put[F, FungibleBalance, Unit](
+              (sig.account, ef.definitionId, txWithResult.toHash).toBytes.bits,
+              (),
+            ).runS(fungibleBalanceState0)
             entrustFungibleBalanceState <- MerkleTrie.put[F, EntrustFungibleBalance, Unit](
               (
                 sig.account,

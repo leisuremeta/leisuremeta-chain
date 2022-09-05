@@ -278,6 +278,12 @@ object StateReadService:
                 case Some(BurnFungibleTokenResult(outputAmount)) => outputAmount
                 case _ => BigNat.Zero
               BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
+            case ef: Transaction.TokenTx.EntrustFungibleToken =>
+              val amount = txWithResult.result.fold(BigNat.Zero){
+                case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) => remainder
+                case _ => BigNat.Zero
+              }
+              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
             case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
               val amount = de.outputs.get(account).getOrElse(BigNat.Zero)
               BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
