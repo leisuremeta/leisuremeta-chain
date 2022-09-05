@@ -80,7 +80,7 @@
 * 트랜잭션이 invalid한 경우: 400 Bad Request
 * 블록체인 노드 내부 오류: 500 Internal Server Error
 
-## User Transactions
+## Transactions
 
 * 모든 트랜잭션 공통 필드
   * "networkId": 다른 네트워크에 똑같은 트랜잭션을 보내는 것을 막기 위한 필드. 
@@ -356,7 +356,7 @@
       * *(optional)* ContentHash: uint256
 
   * Example
-  
+
   ```json
   [
     {
@@ -398,13 +398,13 @@
     }
   ]
   ```
-  
+
   ```json
   ["b0cfd8da5ef347762b60162c772148902b54abca4760fb53e3eb752f8b953664"]
   ```
+
   
-  
-  
+
 * MintFungibleToken
   * > MinterGroup에 속한 Account의 서명
   * Fields
@@ -412,7 +412,7 @@
     * Outputs: Map[AccountName, Amount]
 
   * Example
-  
+
   ```json
   [
     {
@@ -439,12 +439,27 @@
     }
   ]
   ```
-  
+
   ```json
   ["a3f35adb3d5d08692a7350e61aaa28da992a4280ad8e558953898ef96a0051ca"]
   ```
-  
+
+* BurnFungibleToken
+
+  * MinterGroup에 속한 Account의 서명
+
+  * Fields
+    * definitionId: TokenDefinitionId
+
+    * amount
+
+    * Inputs: Set[Signed.TxHash]
+
+  * Result
+    * outputAmount
+
 * MintNFT
+
   * > MinterGroup에 속한 Account의 서명
   * Fields
     * TokenDefinitionID(string)
@@ -455,7 +470,7 @@
     * Output: AccountName
 
   * Example
-  
+
   ```json
   [
     {
@@ -485,13 +500,13 @@
   ]
   
   ```
-  
+
   ```json
   ["6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657"]
   ```
+
   
-  
-  
+
 * BurnNFT
   * > 토큰 소유자 서명
   * Fields
@@ -505,9 +520,9 @@
     * Inputs: Set[SignedTxHash]: UTXO Hash, 모든 토큰 종류는 동일해야 함
     * Outputs: Map[AccountName, Amount]
     * *(optional)* Memo(string)
-  
+
   * Example
-  
+
   ```json
   [
     {
@@ -539,13 +554,13 @@
     }
   ]
   ```
-  
+
   ```json
   ["cb3848af6eb3c006c8aa663711d5fcfa2d6b1ccdcaf9837e273a96cc5386785e"]
   ```
+
   
-  
-  
+
 * TransferNFT
   * > 토큰 보유자 서명
   * Fields
@@ -554,9 +569,9 @@
     * Input: SignedTxHash
     * Output: AccountName
     * *(optional)* Memo(string)
-  
+
   * Example
-  
+
   ```json
   [
     {
@@ -584,157 +599,25 @@
     }
   ]
   ```
-  
-	```json
+
+  ```json
   ["1e46633eb70ec8ea484aeb0ef2e7916021b4fcc591712c4ce0514c63c897c6c9"]
-	```
+  ```
 
-* SuggestFungibleTokenDeal. Fungible Token 사이의 교환 거래제안. 랜덤박스 거래에도 사용된다.
-  
+* EntrustFungibleToken 토큰 위임
   * > 토큰 보유자 서명
-  * Fields
-    * *(optional)* OriginalSuggestion: SignedTxHash 기존 거래에 역제안할 때 기존 거래의 TxHash
-    * InputTokenDefinitionID(string)
-    * Inputs: Set[SignedTxHash], 단, 모든 토큰의 종류가 동일해야 함.
-    * Output: Amount 자기에게로 되돌릴 갯수. 거래에는 input과 output의 차이만큼만 제공된다.
-    * DealDeadline(instant) 거래 데드라인. 이 시점 이후엔 제안을 취소하고 lock 되어 있던 자산을 돌려받을 수 있다.
-    * Requirement
-      * TokenDefinitionID(string)
-      * Amount
-  
-* SuggestSellDeal NFT 판매 제안. 거래 수정 제안에도 사용한다.
-  * > 토큰 보유자 서명
-  * Fields
-    * *(optional)* OriginalSuggestion: SignedTxHash 기존 거래에 역제안할 때 기존 거래의 TxHash
-    * InputTokenDefinitionID(string)
-    * InputTokenID(string)
-    * Input: SignedTxHash
-    * DealDeadline(instant) 거래 데드라인. 이 시점 이후엔 제안을 취소하고 lock 되어 있던 자산을 돌려받을 수 있다.
-    * Requirement
-      * TokenDefinitionID(string)
-      * Amount
-
-* SuggestBuyDeal NFT 구매 제안. 거래 수정 제안에도 사용한다.
-  * > 토큰 보유자 서명
-  * Fields
-    * *(optional)* OriginalSuggestion: SignedTxHash 기존 거래에 역제안할 때 기존 거래의 TxHash
-    * InputTokenDefinitionID(string)
-    * Inputs: Set[SignedTxHash] 거래에 제공할 UTXO 해시값. 토큰 종류는 동일해야 한다.
-    * Output: Amount: 자기에게 되돌릴 양. Input 총 합에서 Output을 제외한 만큼만 거래에 제공된다.
-    * DealDeadline(instant) 거래 데드라인. 이 시점 이후엔 제안을 취소하고 lock 되어 있던 자산을 돌려받을 수 있다.
-    * Requirement
-      * TokenDefinitionID(string)
-      * TokenID(string)
-
-* SuggestSwapDeal NFT 교환 딜. NFT 합성 등에 사용된다.
-  * > 토큰 보유자 서명
-  
-  * Fields
-    * *(optional)* OriginalSuggestion: SignedTxHash 기존 거래에 역제안할 때 기존 거래의 TxHash
-    * InputTokenDefinitionID(string)
-    * Inputs: Set[SignedTxHash]
-    * DealDeadline(instant) 거래 데드라인. 이 시점 이후엔 제안을 취소하고 lock 되어 있던 자산을 돌려받을 수 있다.
-    * Requirements: Set[NftDetail]
-      * NftDetail
-        * TokenDefinitionID(string)
-        * TokedID(string)
-    
-  * Result
-    * InputTokens: Set[TokenID]
-  
-* AcceptDeal 거래 수락
-  * > 거래 제안 받은 사람 서명
-  * Fields
-    * Suggestion: SignedTxHash
-    * Inputs: Set[SignedTxHash] 거래 제안의 Requirement 이상이어야 한다.
-  * Computed Fields
-    * Outputs: Map[AccountName, Set[TokenOutput]]
-      * TokenOutput은 다음 필드를 가진다
-        * TokenDefinitionID
-        * Fungible일 경우 Amount, NFT의 경우 TokenID
-
-* CancelSuggestion 거래제안 취소. 제안에 담았던 자산을 자신에게 되돌린다.
-  * > 거래 제안자 서명
-  * Fields
-    * Suggestion: SignedTxHash
-  * Result
-    * SuggestionTokenDefinitionID: 제안에 담았던 토큰 정의 ID. 돌려받는다.
-    * SuggestionTokenDetail: 돌려받을 토큰의 구체적 디테일. 
-      * Fungible인 경우: Amount
-      * Non-fungible인 경우: TokenID
-
-### DAO
-
->NFT DAO와 LM DAO 통합 관리
-
-* RegisterDao 신규 DAO 등록. Group은 미리 생성해 두어야 한다.
-  * > Group Coordinator 서명. 일반적으로는 `playnomm`
-  * Fields
-    * GroupID(string)
-    * DaoAccountName(string)
-      * 다오 보상 충전용 계정. 여기에 들어온 금액을 매주 정해진 룰에 따라 보상한다. Unique account이어야 한다.
-    * RewardRatio
-    * ModeratorSelectionRule
-  
-* UpdateDao DAO 정보 업데이트. 그룹 조정자가 업데이트 권한을 갖는다.
-  * > Group Coordinator 서명. 일반적으로는 `playnomm`
-  * Fields
-    * GroupID(string)
-    * RewardRatio
-    * ModeratorSelectionRule
-  
-* RecordActivity DAO 활동정보 추가. 그룹 조정자가 업데이트 권한을 갖는다.
-  * > Group Coordinator 서명. 일반적으로는 `playnomm`
-  * Fields
-    * Timestamp: 기준시점
-    * Set[DaoActivity]
-      * DaoActivity
-        * AccountName
-        * TokenID
-        * 좋아요
-        * 댓글
-        * 공유
-        * 신고
-  
-* RegisterStaking 스테이킹 등록. 기록되어 있다가 주간 업데이트 시점에 반영된다.
-  * > 사용자 서명
-  * Fields
-    * Inputs: Set[SignedTxHash]
-    * Outputs: Map[AccountName, Amount]
-  
-* RemoveStaking 스테이킹 취소 요청. 기록되어 있다가 주간 업데이트 시점에 반영된다.
-  * > 스테이킹한 사용자 서명
-  * Fields
-    * Inputs: Set[RegisterTxHash]
-    * Outputs: Map[AccountName, Amount]
-
-
-### RandomOffering
-
-* NoticeTokenOffering NFT 민팅 공지
-  * > MinterGroup에 속한 Account의 서명. 일반적으로는 `playnomm`
 
   * Fields
-    * GroupID(string)
-    * OfferingAccount(string)
-      * 랜덤박스 개봉 시 제공될 NFT 토큰 가지고 있을 계정. NFT를 추가 발행하고 이 계정으로 보내서 동적으로 늘려 나갈 수 있다.
-    * FeeReceivingAccount
-      * 민팅 때 받을 금액중 수수료는 여기로 보내고 나머지는 창작자에게로 보냄
-    * FeeRatePerMille
-      * 수수료 비율 퍼밀(‰)(1/1000 단위)
-    * Token Definition ID
-    * VRF Public Key
-    * AutoJoin: Map[AccountName, Amount]
-      * Requirement를 제공하는 명시적인 Join 트랜잭션 없이 자동으로 offering에 참여하는 계정
-      * 마케팅 물량 할당 등등에 이용
-      * 어떤 계정에 몇 개의 랜덤박스를 할당할것인가를 남기면 됨
-    * Inputs: Set[SignedTxHash] - NFT UTXO 목록들. Offering Account의 최초 잔고로 들어가게 된다.
-    * *(optional)* Requirement 에어드롭인 경우는 이 필드가 없음
-      * DefinitionID(string) 락업 걸 토큰 종류. 일반적으로는 LM의 Definition ID를 넣으면 됨
-      * Amount 랜덤박스 한 개 신청을 위한 락업 요구량
-    * ClaimStartDate: 랜덤박스 개봉 가능 시점
-    * Note(string): 기타 남길 내용
-  
+
+    * definitionId: TokenDefinitionId 맡길 토큰 종류
+    * amount: 맡길 토큰 수량 
+    * inputs: Set[SignedTxHash] 입력에 사용할 트랜잭션 해시값.
+    * to: Account 위임할 계정. 일반적으로 playnomm
+
+  * Results
+
+    * remainder: Amount 자신에게 돌아오는 수량
+
   * Example
   
     ```json
@@ -743,83 +626,22 @@
         "sig" : {
           "sig" : {
             "v" : 27,
-            "r" : "64f42a33c9d96547809e13e822f819635fd70b4471feb788144cab6d21d72004",
-            "s" : "7e3217dcb37807e1c23143175f5016a64b44a38b630a5650684bef0bfa4b5426"
+            "r" : "8d438670820bb788f0ef7106aa55c5fa2fa9c898eaded4d92f29d3c21a99c127",
+            "s" : "1545783ca442a5ae2fdd347c79286a1c62256cd91ac76cb392f28dc190ac9c8a"
           },
           "account" : "alice"
         },
         "value" : {
-          "RandomOfferingTx" : {
-            "NoticeTokenOffering" : {
+          "TokenTx" : {
+            "EntrustFungibleToken" : {
               "networkId" : 1000,
               "createdAt" : "2022-06-09T09:00:00Z",
-              "groupId" : "first-dao-group",
-              "offeringAccount" : "first-dao",
-              "feeReceivingAccount" : "playnomm",
-              "feeRatePerMille" : 1000,
-              "tokenDefinitionId" : "test-token",
-              "vrfPublicKey" : "",
-              "autojoin" : {
-                "alice" : 10
-              },
-              "inputs" : [
-                "6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657"
-              ],
-              "requirement" : [
-                "LM",
-                1
-              ],
-              "claimStartDate" : "2022-09-01T09:00:00Z",
-              "note" : "first-dao-token-offering"
-            }
-          }
-        }
-      }
-    ]
-    ```
-  
-    ```json
-    ["54dcad02ea3447f5005accea76aec522b228bc0fcef770f5e01fe60c03f7602a"]
-    ```
-  
-    
-  
-* JoinTokenOffering 민팅 참여
-  * > 사용자 서명
-  
-  * Fields
-    * NoticeTxHash
-    * Amount: 요청할 갯수
-    * Input Token Definition ID
-    * Inputs: Set[SignedTxHash]
-  
-  * Result
-    * Output: Amount 자신에게 되돌릴 금액
-  
-  * Example
-  
-    ```json
-    [
-      {
-        "sig" : {
-          "sig" : {
-            "v" : 27,
-            "r" : "681750850eebb426faccda84c9be5ea733a4014813550ce0d463e7cd328dea35",
-            "s" : "2c62c13cbe0a2ba68b6b86556218adf7f3e30ebdf139d246324311cfda3a481a"
-          },
-          "account" : "alice"
-        },
-        "value" : {
-          "RandomOfferingTx" : {
-            "JoinTokenOffering" : {
-              "networkId" : 1000,
-              "createdAt" : "2022-09-01T09:00:00Z",
-              "noticeTxHash" : "54dcad02ea3447f5005accea76aec522b228bc0fcef770f5e01fe60c03f7602a",
-              "amount" : 1,
-              "inputTokenDefinitionId" : "LM",
+              "definitionId" : "test-token",
+              "amount" : 1000,
               "inputs" : [
                 "a3f35adb3d5d08692a7350e61aaa28da992a4280ad8e558953898ef96a0051ca"
-              ]
+              ],
+              "to" : "alice"
             }
           }
         }
@@ -828,44 +650,91 @@
     ```
   
     ```json
-    ["3f5e83f725b1dd10fb2cd4b5afabeda5cd586cfde7def2d0d5c3c66e81792e44"]
+    ["45df6a88e74ea44f2d759251fed5a3c319e7cf9c37fafa7471418fec7b26acce"]
     ```
   
     
   
-* InitialTokenOffering 최초 랜덤박스 제공
-  * > 민팅 공지자 서명. 일반적으로는 `playnomm`
-  
+* EntrustNFT NFT 위임
+
+  * > NFT 보유자 서명
+
   * Fields
-    * NoticeTxHash: NFT 민팅 공지 트랜잭션 해시
-    * Outputs: Map[AccountName, Amount]
-  
-  * Result
-    * TotalOutputs: Map[AccountName, Map[TokenDefinitionID, Amount]]
-      * JoinTokenOffering으로 락업 걸려있던 물량 중 풀려서 되찾아갈 Fungible Token들
-  
+
+    * definitionId(string)
+    * tokenId(string)
+    * input: SignedTxHash
+    * to: Account 위임할 계정. 일반적으로 playnomm
+
   * Example
-  
+
     ```json
     [
       {
         "sig" : {
           "sig" : {
             "v" : 27,
-            "r" : "577bc134234b1ae9e9fd6543d0a4b19f15b07c76037fa74611fc6604fe2c05d3",
-            "s" : "391e6f3da724701e52bb77077584646da0472c8a0c35b8a17daf8e2050a1ccd1"
+            "r" : "05705f380f7a7fbad853094f69ff1527703476be30d2ac19f90a24a7900100c0",
+            "s" : "37fac4695829b188ebe3d8238259a212ba52588c4593a51ef81631ab9ab90581"
           },
           "account" : "alice"
         },
         "value" : {
-          "RandomOfferingTx" : {
-            "InitialTokenOffering" : {
+          "TokenTx" : {
+            "EntrustNFT" : {
               "networkId" : 1000,
-              "createdAt" : "2022-09-01T09:00:00Z",
-              "noticeTxHash" : "54dcad02ea3447f5005accea76aec522b228bc0fcef770f5e01fe60c03f7602a",
+              "createdAt" : "2020-06-09T09:00:00Z",
+              "definitionId" : "test-token",
+              "tokenId" : "2022061710000513118",
+              "input" : "6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657",
+              "to" : "alice"
+            }
+          }
+        }
+      }
+    ]
+    ```
+
+    ```json
+    ["10cb0802f3dfc85abb502bad260120a424fc583016db84d384904c1c0a580955"]
+    ```
+
+    
+
+* DisposeEntrustedFungibleToken 위임된 토큰 처분
+
+  * 위임받은 계정(일반적으로 playnomm) 서명
+
+  * Fields
+    * definitionID(string)
+    * inputs: Set[SignedTxHash]: EntrustFungibleToken 트랜잭션의 UTXO Hash
+    * outputs: Map[AccountName, Amount]
+      * 토큰을 받아갈 계정과 받아갈 양. 비어 있으면 전체를 원주인에게 반환한다.
+
+  * Example
+
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 28,
+            "r" : "fb6c99c0e26da04e8dc0855ea629708a17a8deabfabb5a488ba9faa001c4a31f",
+            "s" : "7de70d3fd15176451e46856af2dbedf05e58d7cfc0bfb0e0fac1b6d06550f5d3"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "TokenTx" : {
+            "DisposeEntrustedFungibleToken" : {
+              "networkId" : 1000,
+              "createdAt" : "2020-06-10T09:00:00Z",
+              "definitionId" : "test-token",
+              "inputs" : [
+                "45df6a88e74ea44f2d759251fed5a3c319e7cf9c37fafa7471418fec7b26acce"
+              ],
               "outputs" : {
-                "alice" : 10,
-                "bob" : 10
+                "bob" : 1000
               }
             }
           }
@@ -873,63 +742,203 @@
       }
     ]
     ```
+
+    ```json
+    ["377fef6a1d85707bb7d84c9b3f5f2a2e409ce57084fbb15a6b200a1237d04119"]
+    ```
+
+    
+
+* DisposeEntrustedNFT 위임된 NFT 처분
+
+  * 위임받은 계정(일반적으로 playnomm) 서명
+  
+  * Fields
+    * definitionID(string)
+    * tokenID(string)
+    * input: SignedTxHash
+    * output: Option[AccountName]
+      * NFT를 받아갈 계정. 없으면 원주인에게로 반환한다.
+  
+  * Example
   
     ```json
-    ["8a8105d10c79a5660c0422d209abd5f0f5bb89a98105e04a12fc118431773750"]
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 28,
+            "r" : "a03080b98925010e241783482e83a5fdfc25343406564a4e3fc4e6b2535657d3",
+            "s" : "1de0ede5ebeba4aea455094ac1b58fc24ad943f0a5422a93f60a4f2b8b59b982"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "TokenTx" : {
+            "DisposeEntrustedNFT" : {
+              "networkId" : 1000,
+              "createdAt" : "2020-06-10T09:00:00Z",
+              "definitionId" : "test-token",
+              "tokenId" : "2022061710000513118",
+              "input" : "10cb0802f3dfc85abb502bad260120a424fc583016db84d384904c1c0a580955",
+              "output" : "bob"
+            }
+          }
+        }
+      }
+    ]
+    ```
+  
+    ```json
+    ["83c783f31b95cc4a713a921ec1df0725c6675b999ba6285a70c1f777615e4281"]
     ```
   
     
-  
-* ClaimNFT 랜덤박스 열기: 한 번에 박스 하나씩만 열 수 있음
+
+
+### Reward
+
+* RegisterDao 신규 DAO 등록. Group은 미리 생성해 두어야 한다.
+  * > Group Coordinator 서명. 일반적으로는 `playnomm`
+
+  * Fields
+    * GroupId(string)
+    * DaoAccountName(string)
+      * 다오 보상 충전용 계정. 여기에 들어온 금액을 매주 정해진 룰에 따라 보상한다. Unique account이어야 한다.
+    * Moderators: Set[Account]
+      * 최초 모더레이터 목록
+
+  * Example
+
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "d4b2d1cfe009e0e5b6dea67779fd898a7f1718e7b1869b5b36b6daacc68e88f6",
+            "s" : "42d8c69e964109ceab5996abdbc59d53661904e6b56337599e9c5beebe665d51"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "RegisterDao" : {
+              "networkId" : 1000,
+              "createdAt" : "2020-06-09T09:00:00Z",
+              "groupId" : "sample-dao-group-id",
+              "daoAccountName" : "sample-dao-group-account",
+              "moderators" : [
+                "alice"
+              ]
+            }
+          }
+        }
+      }
+    ]
+    ```
+
+    ```json
+    ["dabd1e1603805080722c6397568e6fc4ef384736a2bf95bc52e0f53acd43bea3"]
+    ```
+
+    
+
+* UpdateDao DAO 정보 업데이트. 그룹 조정자가 업데이트 권한을 갖는다.
+  * > Group Coordinator 서명. 일반적으로는 `playnomm`
+
+  * Fields
+    * GroupId(string)
+    * Moderators: Set[Account]
+      * 모더레이터 목록
+
+* RecordActivity DAO 활동정보 추가. 그룹 조정자가 업데이트 권한을 갖는다.
+  * > Group Coordinator 서명. 일반적으로는 `playnomm`
+
+  * Fields
+    * Timestamp: 기준시점
+    * UserActivity: Map[AccountName, DaoActivity] 사용자활동 요약 정보
+      * DaoActivity
+        * 좋아요
+        * 댓글
+        * 공유
+        * 신고
+    * TokenReceived: Map[TokenId, DaoActivity] 토큰이 받은 사용자활동 요약정보
+      * DaoActivity
+        * 좋아요
+        * 댓글
+        * 공유
+        * 신고
+
+  * Example
+
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 28,
+            "r" : "bab685313c3030804370bbc279c558ff1cc4bf0d4936a65813527060e8b1ed1f",
+            "s" : "2ce9e898d00eaa04bbed0f2b83ad8d637677b4b85ec38fc36bbb3b243f41c417"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "RecordActivity" : {
+              "networkId" : 1000,
+              "createdAt" : "2020-06-10T09:00:00Z",
+              "timestamp" : "2020-06-09T09:00:00Z",
+              "userActivity" : {
+                "alice" : {
+                  "like" : 10,
+                  "comment" : 9,
+                  "share" : 3,
+                  "report" : 1
+                },
+                "bob" : {
+                  "like" : 20,
+                  "comment" : 13,
+                  "share" : 2,
+                  "report" : 0
+                }
+              },
+              "tokenReceived" : {
+                "2022061710000513118" : {
+                  "like" : 2,
+                  "comment" : 2,
+                  "share" : 2,
+                  "report" : 0
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+    ```
+
+    ```json
+    ["aa652cc53f042d2adeee81ba2f4d6af5ec3a4b1b55cd03845d7a516ca219655a"]
+    ```
+
+    
+
+* RegisterStaking 스테이킹 등록. 기록되어 있다가 주간 업데이트 시점에 반영된다.
   * > 사용자 서명
   * Fields
-    * Inputs: Set[SignedTxHash]: 같은 종류의 랜덤박스여야함
-  * Result
-    * TokenDefinitionID
-    * Output: Amount 자신에게 되돌려지는 랜덤박스 수량. input 총합 - 1 개.
+    * Inputs: Set[SignedTxHash]
+    * Outputs: Map[AccountName, Amount]
 
-* VerifiableRandomResult 
-  * 랜덤박스 결과 공지. 같은 컬렉션의 랜덤박스들만 한 번에 열 수 있고, 한 번에 1인당 최대 한 개씩만 열 수 있음.
-  * > 민팅 공지자 서명. 일반적으로는 `playnomm`
+* RemoveStaking 스테이킹 취소 요청. 기록되어 있다가 주간 업데이트 시점에 반영된다.
+  * > 스테이킹한 사용자 서명
   * Fields
-    * Results: Map[ClaimTxHash, (RandomNumber, Proof)]
-      * ClaimTxHash: ClaimNFT 트랜잭션 해시
-      * RandomNumber, Proof: VRF 결과로 나오는 난수와 증명
-  * Result
-    * TokenDefinitionID
-    * Outputs: Map[AccountName, TokenId]
+    * Inputs: Set[RegisterTxHash]
+    * Outputs: Map[AccountName, Amount]
 
+* ExcuteStakingRequest 스테이킹 업데이트 요청 실행. 주간 업데이트.
 
-### Agenda
-
-* SuggestAgenda
-  * > 사용자 서명
-  * Fields
-    * Agenda ID
-    * VotingDeadline
-    * DataURL
-    * ContentHash
-  
-* VoteAgenda
-  * > 사용자 서명
-  * Fields
-    * Agenda ID
-    * AgreeOrDisagree
-  
-* FinalizeVoting
-  * > 제안자 서명
-  * Fields
-    * Agenda ID
-
-
-## Node Transactions
-
-* WeeklyUpdate: Reward 분배 및 Stake 업데이트
-  * > 해당 권한을 가진 노드의 서명
-
-* ReleaseLocksAfterDeadline: 데드라인을 지난 lock 트랜잭션들의 자산을 원주인에게 되돌림
-
-  * > 블록 제안자 노드 서명
+* ExecuteReward 보상 실행.
 
 
 ## Other API
@@ -992,15 +1001,11 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
     * TokenID
     * TokenDefinitionID
     * CurrentOwner: Account
-
 * RarityState: (TokenDefinitionID, Rarity, TokenID) => ()
 * FungibleBalanceState: (AccountName, TokenDefinitionID, TransactionHash) => ()
 * NftBalanceState: (AccountName, TokenID, TransactionHash) => ()
-* LockState: (AccountName, TransactionHash) => ()
-* DeadlineState: (Instant, TransactionHash) => ()
-  * 데드라인으로 정렬되어 있는 락 트랜잭션 해시
-* SuggestionState: (SuggestionTransactionHash, DependentSuggestionTransactionHash) => ()
-  * SuggestionTransactionHash: 거래 제안 트랜잭션 Hash. NoticeTokenOffering 포함
+* EntrustFungibleBalanceState: (AccountName, AccountName, TokenDefinitionId, TransactionHash) => ()
+* EntrustNftBalanceState: (AccountName, AccountName, TokenId, TransactionHash) => ()
 
 ### Dao
 
@@ -1012,17 +1017,6 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
     * 좋아요 / 댓글 / 공유 / 신고  등등의 여부
 * StakeState: (AccountName, TransactionHash) => ()
 * StakeRequestState: TransactionHash => ()
-
-### Random Offering
-
-* RandomOfferingState: DefinitionID => NoticeTxHash
-
-### Agenda
-
-* AgendaState: AgendaID => AgendaInfo
-* AgendaVoteState: (AgendaID, AccountName) => VoteContent
-
-
 
 
 

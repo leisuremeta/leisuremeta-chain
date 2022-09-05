@@ -19,7 +19,6 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
-import api.model.offering.*
 import api.model.token.*
 import api.model.Block.ops.*
 import lib.crypto.{Hash, KeyPair, Recover, Sign, Signature}
@@ -38,13 +37,11 @@ object GossipDomain:
       account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
       token: MerkleState.TokenMerkleState,
-      offering: MerkleState.RandomOfferingMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
       account = account.toStateRoot,
       group = group.toStateRoot,
       token = token.toStateRoot,
-      offering = offering.toStateRoot,
     )
 
   object MerkleState:
@@ -52,7 +49,6 @@ object GossipDomain:
       account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
       token = TokenMerkleState.from(header.stateRoot.token),
-      offering = RandomOfferingMerkleState.from(header.stateRoot.offering),
     )
 
     case class AccountMerkleState(
@@ -110,19 +106,12 @@ object GossipDomain:
           (TokenDefinitionId, Rarity, TokenId),
           Unit,
         ],
-        lockState: MerkleTrieState[
-          (Account, Hash.Value[TransactionWithResult]),
+        entrustFungibleBalanceState: MerkleTrieState[
+          (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
-        deadlineState: MerkleTrieState[
-          (Instant, Hash.Value[TransactionWithResult]),
-          Unit,
-        ],
-        suggestionState: MerkleTrieState[
-          (
-              Hash.Value[TransactionWithResult],
-              Hash.Value[TransactionWithResult],
-          ),
+        entrustNftBalanceState: MerkleTrieState[
+          (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
     ):
@@ -132,9 +121,8 @@ object GossipDomain:
         nftBalanceRoot = nftBalanceState.root,
         nftRoot = nftState.root,
         rarityRoot = rarityState.root,
-        lockRoot = lockState.root,
-        deadlineRoot = deadlineState.root,
-        suggestionRoot = suggestionState.root,
+        entrustFungibleBalanceRoot = entrustFungibleBalanceState.root,
+        entrustNftBalanceRoot = entrustNftBalanceState.root,
       )
 
     object TokenMerkleState:
@@ -145,27 +133,10 @@ object GossipDomain:
           nftBalanceState = buildMerkleTrieState(root.nftBalanceRoot),
           nftState = buildMerkleTrieState(root.nftRoot),
           rarityState = buildMerkleTrieState(root.rarityRoot),
-          lockState = buildMerkleTrieState(root.lockRoot),
-          deadlineState = buildMerkleTrieState(root.deadlineRoot),
-          suggestionState = buildMerkleTrieState(root.suggestionRoot),
+          entrustFungibleBalanceState = buildMerkleTrieState(root.entrustFungibleBalanceRoot),
+          entrustNftBalanceState = buildMerkleTrieState(root.entrustNftBalanceRoot),
         )
 
-    case class RandomOfferingMerkleState(
-        offeringState: MerkleTrieState[TokenDefinitionId, Hash.Value[
-          TransactionWithResult,
-        ]],
-    ):
-      def toStateRoot: StateRoot.RandomOfferingStateRoot =
-        StateRoot.RandomOfferingStateRoot(
-          offeringRoot = offeringState.root,
-        )
-
-    object RandomOfferingMerkleState:
-      def from(
-          root: StateRoot.RandomOfferingStateRoot,
-      ): RandomOfferingMerkleState = RandomOfferingMerkleState(
-        offeringState = buildMerkleTrieState(root.offeringRoot),
-      )
 
   def buildMerkleTrieState[K, V](
       root: Option[MerkleRoot[K, V]],
@@ -747,15 +718,11 @@ object GossipDomain:
       )
       nftState    <- state.token.nftState.rebase(newBase.token.nftState)
       rarityState <- state.token.rarityState.rebase(newBase.token.rarityState)
-      lockState   <- state.token.lockState.rebase(newBase.token.lockState)
-      deadlineState <- state.token.deadlineState.rebase(
-        newBase.token.deadlineState,
+      entrustFungibleBalanceState <- state.token.entrustFungibleBalanceState.rebase(
+        newBase.token.entrustFungibleBalanceState,
       )
-      suggestionState <- state.token.suggestionState.rebase(
-        newBase.token.suggestionState,
-      )
-      offeringState <- state.offering.offeringState.rebase(
-        newBase.offering.offeringState,
+      entrustNftBalanceState <- state.token.entrustNftBalanceState.rebase(
+        newBase.token.entrustNftBalanceState,
       )
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState, ethState),
@@ -766,9 +733,7 @@ object GossipDomain:
         nftBalanceState,
         nftState,
         rarityState,
-        lockState,
-        deadlineState,
-        suggestionState,
+        entrustFungibleBalanceState,
+        entrustNftBalanceState,
       ),
-      MerkleState.RandomOfferingMerkleState(offeringState),
     )

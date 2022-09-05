@@ -88,9 +88,6 @@ object UpdateStateWithAccountTxTest
       token = GossipDomain.MerkleState.TokenMerkleState.from(
         StateRoot.TokenStateRoot.empty,
       ),
-      offering = GossipDomain.MerkleState.RandomOfferingMerkleState.from(
-        StateRoot.RandomOfferingStateRoot.empty,
-      ),
     )
 
     val Right((state, txResult)) =

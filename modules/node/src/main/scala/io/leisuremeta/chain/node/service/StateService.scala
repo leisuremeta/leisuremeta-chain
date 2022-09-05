@@ -13,7 +13,7 @@ import state.UpdateState
 object StateService:
 
   def updateStateWithTx[F[_]
-    : Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RandomOfferingState: TransactionRepository](
+    : Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: TransactionRepository](
       state: MerkleState,
       signedTx: Signed.Tx,
   ): EitherT[F, String, (MerkleState, TransactionWithResult)] =
@@ -25,5 +25,4 @@ object StateService:
         UpdateState[F, Transaction.GroupTx](state, signedTx.sig, tx)
       case tx: Transaction.TokenTx =>
         UpdateState[F, Transaction.TokenTx](state, signedTx.sig, tx)
-      case tx: Transaction.RandomOfferingTx =>
-        UpdateState[F, Transaction.RandomOfferingTx](state, signedTx.sig, tx)
+      case tx: Transaction.RewardTx => ???

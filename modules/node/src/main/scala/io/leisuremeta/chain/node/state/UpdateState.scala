@@ -26,8 +26,7 @@ trait UpdateState[F[_], T <: Transaction]:
 object UpdateState
     extends UpdateStateWithAccountTx
     with UpdateStateWithGroupTx
-    with UpdateStateWithTokenTx
-    with UpdateStateWithRandomOfferingTx:
+    with UpdateStateWithTokenTx:
       
   def apply[F[_], T <: Transaction](using
       ev: UpdateState[F, T],

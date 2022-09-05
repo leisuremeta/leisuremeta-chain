@@ -32,7 +32,7 @@ import service.interpreter.LocalGossipServiceInterpreter
 import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RandomOfferingState: TransactionRepository](
+  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: TransactionRepository](
     config: NodeConfig,
 ):
 
@@ -175,15 +175,6 @@ final case class NodeApp[F[_]
     (tokenDefinitionId: TokenDefinitionId) =>
       StateReadService.getOwners(tokenDefinitionId).value.map {
         case Right(ownerMap) => Right(ownerMap)
-        case Left(errMsg) => Left(Left(Api.ServerError(errMsg)))
-      }
-  }
-
-  def getOfferingServerEndpoint = Api.getOfferingEndpoint.serverLogic {
-    (tokenDefinitionId: TokenDefinitionId) =>
-      StateReadService.getOffering(tokenDefinitionId).value.map {
-        case Right(Some(offeringInfo)) => Right(offeringInfo)
-        case Right(None) => Left(Right(Api.NotFound(s"offering not found: $tokenDefinitionId")))
         case Left(errMsg) => Left(Left(Api.ServerError(errMsg)))
       }
   }
