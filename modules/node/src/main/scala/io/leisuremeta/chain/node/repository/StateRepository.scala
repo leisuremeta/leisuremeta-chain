@@ -17,6 +17,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
+import api.model.reward.{DaoActivity, DaoInfo}
 import api.model.token.{NftState, Rarity, TokenDefinition, TokenDefinitionId, TokenId}
 import lib.crypto.Hash
 import lib.datatype.BigNat
@@ -216,6 +217,48 @@ object StateRepository:
   given nodeStoreFromEntrustNftBalance[F[_]: Functor: TokenState]
       : NodeStore[F, (Account, Account, TokenId, Hash.Value[TransactionWithResult]), Unit] =
     Kleisli(TokenState[F].entrustNftBalance.get(_).leftMap(_.msg))
+
+
+  /** RewardState
+    */
+  trait RewardState[F[_]]:
+    def daoState: StateRepository[F, GroupId, DaoInfo]
+    def userActivityState: StateRepository[F, (Instant, Account), DaoActivity] 
+    def tokenReceivedState: StateRepository[F, (Instant, TokenId), DaoActivity] 
+  object RewardState:
+    def apply[F[_]: RewardState]: RewardState[F] = summon
+
+    given from[F[_]: Monad](using
+        daoKVStroe: MerkleHashStore[F, GroupId, DaoInfo],
+        userActivityKVStroe: MerkleHashStore[
+          F,
+          (Instant, Account),
+          DaoActivity,
+        ],
+        tokenReceivedKVStore: MerkleHashStore[
+          F,
+          (Instant, TokenId),
+          DaoActivity,
+        ],
+    ): RewardState[F] = new RewardState[F]:
+      def daoState: StateRepository[F, GroupId, DaoInfo] = fromStores
+      def userActivityState: StateRepository[F, (Instant, Account), DaoActivity] = fromStores
+      def tokenReceivedState: StateRepository[F, (Instant, TokenId), DaoActivity] = fromStores
+
+  end RewardState
+
+  given nodeStoreFromDaoState[F[_]: Functor: RewardState]
+      : NodeStore[F, GroupId, DaoInfo] =
+    Kleisli(RewardState[F].daoState.get(_).leftMap(_.msg))
+
+  given nodeStoreFromUserActivityState[F[_]: Functor: RewardState]
+      : NodeStore[F, (Instant, Account), DaoActivity] =
+    Kleisli(RewardState[F].userActivityState.get(_).leftMap(_.msg))
+
+  given nodeStoreFromTokenReceivedState[F[_]: Functor: RewardState]
+      : NodeStore[F, (Instant, TokenId), DaoActivity] =
+    Kleisli(RewardState[F].tokenReceivedState.get(_).leftMap(_.msg))
+
 
   /** General
     */

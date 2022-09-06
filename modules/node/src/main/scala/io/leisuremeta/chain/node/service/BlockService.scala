@@ -16,7 +16,7 @@ import lib.crypto.Hash.ops.*
 
 object BlockService:
 
-  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState](
+  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
   )(using
@@ -70,6 +70,7 @@ object BlockService:
         StateRepository.TokenState[F].rarity.put(state.token.rarityState),
         StateRepository.TokenState[F].entrustFungibleBalance.put(state.token.entrustFungibleBalanceState),
         StateRepository.TokenState[F].entrustNftBalance.put(state.token.entrustNftBalanceState),
+        StateRepository.RewardState[F].daoState.put(state.reward.daoState),
       ).sequence
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)

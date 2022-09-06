@@ -11,6 +11,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import api.{LeisureMetaChainApi as Api}
 import api.model.*
 import api.model.account.EthAddress
+import api.model.reward.*
 import api.model.token.*
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
@@ -153,6 +154,18 @@ object NodeMain extends IOApp:
               Unit,
             ](
               Paths.get("sway", "state", "token", "entrust-nft-balance"),
+            )
+          given StateRepoStore[IO, GroupId, DaoInfo] <-
+            getStateRepo[GroupId, DaoInfo](
+              Paths.get("sway", "state", "reward", "dao"),
+            )
+          given StateRepoStore[IO, (Instant, Account), DaoActivity] <-
+            getStateRepo[(Instant, Account), DaoActivity](
+              Paths.get("sway", "state", "reward", "user-activity"),
+            )
+          given StateRepoStore[IO, (Instant, TokenId), DaoActivity] <-
+            getStateRepo[(Instant, TokenId), DaoActivity](
+              Paths.get("sway", "state", "reward", "token-received"),
             )
           given TransactionRepository[IO] <- getTransactionRepo
 

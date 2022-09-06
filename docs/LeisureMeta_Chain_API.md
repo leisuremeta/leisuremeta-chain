@@ -1010,10 +1010,12 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 
 * DaoState: GroupID => DaoInfo
   * DaoInfo
-    * Moderators
-* DaoTokenActivityState: (GroupID, TokenID, AccountName) => ActivityState
-  * ActivityState
-    * 좋아요 / 댓글 / 공유 / 신고  등등의 여부
+    * Moderators: Set[AccountName]
+* UserActivityState: (Instant, Account) => DaoActivity
+  * DaoActivity
+    * Like / Comment / Share / Report
+
+* TokenReceivedState: (Instant, TokenId) => DaoActivity
 * StakeState: (AccountName, TransactionHash) => ()
 * StakeRequestState: TransactionHash => ()
 

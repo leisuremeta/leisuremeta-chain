@@ -19,6 +19,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
+import api.model.reward.*
 import api.model.token.*
 import api.model.Block.ops.*
 import lib.crypto.{Hash, KeyPair, Recover, Sign, Signature}
@@ -29,7 +30,6 @@ import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
 import lib.merkle.MerkleTrieNode.MerkleRoot
-import io.leisuremeta.chain.api.model.token
 
 object GossipDomain:
 
@@ -37,11 +37,13 @@ object GossipDomain:
       account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
       token: MerkleState.TokenMerkleState,
+      reward: MerkleState.RewardMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
       account = account.toStateRoot,
       group = group.toStateRoot,
       token = token.toStateRoot,
+      reward = reward.toStateRoot,
     )
 
   object MerkleState:
@@ -49,6 +51,7 @@ object GossipDomain:
       account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
       token = TokenMerkleState.from(header.stateRoot.token),
+      reward = RewardMerkleState.from(header.stateRoot.reward),
     )
 
     case class AccountMerkleState(
@@ -135,6 +138,25 @@ object GossipDomain:
           rarityState = buildMerkleTrieState(root.rarityRoot),
           entrustFungibleBalanceState = buildMerkleTrieState(root.entrustFungibleBalanceRoot),
           entrustNftBalanceState = buildMerkleTrieState(root.entrustNftBalanceRoot),
+        )
+
+    case class RewardMerkleState(
+        daoState: MerkleTrieState[GroupId, DaoInfo],
+        userActivityState: MerkleTrieState[(Instant, Account), DaoActivity],
+        tokenReceivedState: MerkleTrieState[(Instant, TokenId), DaoActivity],
+    ):
+      def toStateRoot: StateRoot.RewardStateRoot = StateRoot.RewardStateRoot(
+        dao = daoState.root,
+        userActivity = userActivityState.root,
+        tokenReceived = tokenReceivedState.root,
+      )
+
+    object RewardMerkleState:
+      def from(root: StateRoot.RewardStateRoot): RewardMerkleState =
+        RewardMerkleState(
+          daoState = buildMerkleTrieState(root.dao),
+          userActivityState = buildMerkleTrieState(root.userActivity),
+          tokenReceivedState = buildMerkleTrieState(root.tokenReceived),
         )
 
 
@@ -724,6 +746,9 @@ object GossipDomain:
       entrustNftBalanceState <- state.token.entrustNftBalanceState.rebase(
         newBase.token.entrustNftBalanceState,
       )
+      daoState <- state.reward.daoState.rebase(newBase.reward.daoState)
+      userActivityState <- state.reward.userActivityState.rebase(newBase.reward.userActivityState)
+      tokenReceivedState <- state.reward.tokenReceivedState.rebase(newBase.reward.tokenReceivedState)
     yield MerkleState(
       MerkleState.AccountMerkleState(namesState, keyState, ethState),
       MerkleState.GroupMerkleState(groupState, groupAccountState),
@@ -736,4 +761,9 @@ object GossipDomain:
         entrustFungibleBalanceState,
         entrustNftBalanceState,
       ),
+      MerkleState.RewardMerkleState(
+        daoState,
+        userActivityState,
+        tokenReceivedState,
+      )
     )
