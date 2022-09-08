@@ -463,6 +463,14 @@ object StateReadService:
                       txWithResult,
                     ),
                   )
+                case tn: Transaction.TokenTx.TransferNFT =>
+                  Map(
+                    tokenId -> NftBalanceInfo(
+                      tn.definitionId,
+                      txHash,
+                      txWithResult,
+                    )
+                  )
                 case de: Transaction.TokenTx.DisposeEntrustedNFT =>
                   Map(
                     tokenId -> NftBalanceInfo(

@@ -233,6 +233,7 @@ object Transaction:
         output: Account,
         memo: Option[Utf8],
     ) extends TokenTx
+        with NftBalance
 
     final case class EntrustFungibleToken(
         networkId: NetworkId,
@@ -373,11 +374,11 @@ object Transaction:
 
     given txByteEncoder: ByteEncoder[RewardTx] = (rtx: RewardTx) =>
       rtx match
-        case tx: RegisterDao          => build(0)(tx)
-        case tx: UpdateDao            => build(1)(tx)
-        case tx: RecordActivity       => build(2)(tx)
-        case tx: RegisterStaking      => build(3)(tx)
-        case tx: RemoveStaking        => build(4)(tx)
+        case tx: RegisterDao     => build(0)(tx)
+        case tx: UpdateDao       => build(1)(tx)
+        case tx: RecordActivity  => build(2)(tx)
+        case tx: RegisterStaking => build(3)(tx)
+        case tx: RemoveStaking   => build(4)(tx)
 //        case tx: ExcuteStakingRequest => build(5)(tx)
 //        case tx: ExecuteReward        => build(6)(tx)
 
