@@ -262,6 +262,7 @@ final case class NodeApp[F[_]
       val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
         .toService(leisuremetaEndpoints)
       val server = Server.builder
+        .maxRequestLength(128 * 1024 * 1024)
         .http(config.local.port.value)
         .service(tapirService)
         .build
