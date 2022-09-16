@@ -402,7 +402,7 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    nftBalanceMap <- getNftBalanceFromNftBalanceState[F](account, merkleState.token.nftBalanceState)
+    nftBalanceMap <- getEntrustedNftBalanceFromEntrustedNftBalanceState[F](account, merkleState.token.entrustNftBalanceState)
   yield nftBalanceMap
 
   def getNftBalanceFromNftBalanceState[F[_]
