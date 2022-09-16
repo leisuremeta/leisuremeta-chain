@@ -64,7 +64,7 @@ final case class NodeApp[F[_]
       .get
     CryptoOps.fromPrivate(privateKey)
 
-  val getLocalGossipService: F[LocalGossipService[F]] =
+  def getLocalGossipService(bestConfirmedBlock: Block): F[LocalGossipService[F]] =
 
     val params = GossipDomain.GossipParams(
       nodeAddresses = nodeAddresses.zipWithIndex.map { case (address, i) =>
@@ -76,8 +76,7 @@ final case class NodeApp[F[_]
     scribe.debug(s"local gossip params: $params")
     LocalGossipServiceInterpreter
       .build[F](
-        bestConfirmedBlock =
-          NodeInitializationService.genesisBlock(config.genesis.timestamp),
+        bestConfirmedBlock = bestConfirmedBlock,
         params = params,
       )
 
@@ -251,13 +250,14 @@ final case class NodeApp[F[_]
 
   def getServer(
       dispatcher: Dispatcher[F],
-  )(using LocalGossipService[F]): F[Server] = for
+  ): F[Server] = for
     initializeResult <- NodeInitializationService
       .initialize[F](config.genesis.timestamp)
       .value
-    _ <- initializeResult match
+    bestBlock <- initializeResult match
       case Left(err) => Async[F].raiseError(Exception(err))
-      case Right(_)  => Async[F].unit
+      case Right(block)  => Async[F].pure(block)
+    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
     server <- Async[F].async_[Server] { cb =>
       val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
         .toService(leisuremetaEndpoints)
@@ -273,10 +273,7 @@ final case class NodeApp[F[_]
     }
   yield server
 
-  def resource: F[Resource[F, Server]] = for localGossipService <-
-      getLocalGossipService
-  yield
-    given LocalGossipService[F] = localGossipService
+  def resource: F[Resource[F, Server]] = Async[F].delay{
     for
 //      _ <- periodicResource
       dispatcher <- Dispatcher[F]
@@ -286,3 +283,4 @@ final case class NodeApp[F[_]
           .map(_ => ()),
       )
     yield server
+  }
