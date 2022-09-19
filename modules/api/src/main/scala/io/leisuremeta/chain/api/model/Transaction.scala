@@ -283,14 +283,14 @@ object Transaction:
           case 0  => ByteDecoder[DefineToken].widen
           case 1  => ByteDecoder[MintFungibleToken].widen
           case 2  => ByteDecoder[MintNFT].widen
-          case 3  => ByteDecoder[BurnFungibleToken].widen
-          case 4  => ByteDecoder[BurnNFT].widen
-          case 5  => ByteDecoder[TransferFungibleToken].widen
-          case 6  => ByteDecoder[TransferNFT].widen
-          case 7  => ByteDecoder[EntrustFungibleToken].widen
-          case 8  => ByteDecoder[EntrustNFT].widen
-          case 9  => ByteDecoder[DisposeEntrustedFungibleToken].widen
-          case 10 => ByteDecoder[DisposeEntrustedNFT].widen
+          case 4  => ByteDecoder[TransferFungibleToken].widen
+          case 5  => ByteDecoder[TransferNFT].widen
+          case 6  => ByteDecoder[BurnFungibleToken].widen
+          case 7  => ByteDecoder[BurnNFT].widen
+          case 8  => ByteDecoder[EntrustFungibleToken].widen
+          case 9  => ByteDecoder[EntrustNFT].widen
+          case 10 => ByteDecoder[DisposeEntrustedFungibleToken].widen
+          case 11 => ByteDecoder[DisposeEntrustedNFT].widen
     }
 
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
@@ -298,14 +298,14 @@ object Transaction:
         case tx: DefineToken                   => build(0)(tx)
         case tx: MintFungibleToken             => build(1)(tx)
         case tx: MintNFT                       => build(2)(tx)
-        case tx: BurnFungibleToken             => build(3)(tx)
-        case tx: BurnNFT                       => build(4)(tx)
-        case tx: TransferFungibleToken         => build(5)(tx)
-        case tx: TransferNFT                   => build(6)(tx)
-        case tx: EntrustFungibleToken          => build(7)(tx)
-        case tx: EntrustNFT                    => build(8)(tx)
-        case tx: DisposeEntrustedFungibleToken => build(9)(tx)
-        case tx: DisposeEntrustedNFT           => build(10)(tx)
+        case tx: TransferFungibleToken         => build(4)(tx)
+        case tx: TransferNFT                   => build(5)(tx)
+        case tx: BurnFungibleToken             => build(6)(tx)
+        case tx: BurnNFT                       => build(7)(tx)
+        case tx: EntrustFungibleToken          => build(8)(tx)
+        case tx: EntrustNFT                    => build(9)(tx)
+        case tx: DisposeEntrustedFungibleToken => build(10)(tx)
+        case tx: DisposeEntrustedNFT           => build(11)(tx)
 
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder
