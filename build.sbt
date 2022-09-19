@@ -4,7 +4,7 @@ val V = new {
 
   val catsEffect = "3.3.12"
   val tapir      = "1.0.0-RC1"
-  val sttp       = "3.6.1"
+  val sttp       = "3.7.2"
   val circe      = "0.15.0-M1"
   val refined    = "0.9.28"
   val scodecBits = "1.1.30"
@@ -49,6 +49,14 @@ val Dependencies = new {
       "com.typesafe" % "config"       % V.typesafeConfig,
       "org.web3j"    % "core"         % V.web3J,
       "com.squareup.okhttp3" % "logging-interceptor" % "4.9.1",
+    ),
+  )
+
+  lazy val archieve = Seq(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "com.outr"    %% "scribe-slf4j" % V.scribe,
+      "com.typesafe" % "config"       % V.typesafeConfig,
     ),
   )
 
@@ -111,7 +119,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 ThisBuild / semanticdbEnabled := true
 
 lazy val root = (project in file("."))
-  .aggregate(node, api.jvm, api.js, lib.jvm, lib.js)
+  .aggregate(node, api.jvm, api.js, lib.jvm, lib.js, ethGateway, ethGatewayWithdraw)
 
 lazy val node = (project in file("modules/node"))
   .settings(Dependencies.node)
@@ -158,6 +166,14 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
+  )
+  .dependsOn(api.jvm)
+
+lazy val archieve = (project in file ("modules/archieve"))
+  .settings(Dependencies.archieve)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-archieve",
   )
   .dependsOn(api.jvm)
 
