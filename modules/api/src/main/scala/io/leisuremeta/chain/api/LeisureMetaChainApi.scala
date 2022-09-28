@@ -1,6 +1,7 @@
 package io.leisuremeta.chain
 package api
 
+import java.time.Instant
 import java.util.Locale
 
 import io.circe.KeyEncoder
@@ -27,7 +28,15 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
-import api.model.api_model.{AccountInfo, BalanceInfo, BlockInfo, GroupInfo, NftBalanceInfo, TxInfo}
+import api.model.api_model.{
+  AccountInfo,
+  BalanceInfo,
+  BlockInfo,
+  GroupInfo,
+  NftBalanceInfo,
+  RewardInfo,
+  TxInfo,
+}
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
 
@@ -43,13 +52,24 @@ object LeisureMetaChainApi:
     Schema.schemaForMap[K, V](KeyEncoder[K].apply)
   given [A]: Schema[Hash.Value[A]] = Schema.string
   given Schema[Signature.Header]   = Schema(SchemaType.SInteger())
-  given Schema[Transaction] = Schema.derived[Transaction]
+  given Schema[Transaction]        = Schema.derived[Transaction]
 
-  given hashValueCodec[A]: Codec[String, Hash.Value[A], TextPlain] = Codec.string.mapDecode{ (s: String) =>
-    ByteVector.fromHexDescriptive(s).left.map(new Exception(_)).flatMap(UInt256.from) match
-      case Left(e) => DecodeResult.Error(s, e)
-      case Right(v) => DecodeResult.Value(Hash.Value(v))
-  }(_.toUInt256Bytes.toBytes.toHex)
+  given hashValueCodec[A]: Codec[String, Hash.Value[A], TextPlain] =
+    Codec.string.mapDecode { (s: String) =>
+      ByteVector
+        .fromHexDescriptive(s)
+        .left
+        .map(new Exception(_))
+        .flatMap(UInt256.from) match
+        case Left(e)  => DecodeResult.Error(s, e)
+        case Right(v) => DecodeResult.Value(Hash.Value(v))
+    }(_.toUInt256Bytes.toBytes.toHex)
+  given bignatCodec: Codec[String, BigNat, TextPlain] =
+    Codec.bigInt.mapDecode{ (n: BigInt) =>
+      BigNat.fromBigInt(n) match
+        case Left(e)  => DecodeResult.Error(n.toString(10), new Exception(e))
+        case Right(v) => DecodeResult.Value(v)
+    }(_.toBigInt)
 
   final case class ServerError(msg: String)
 
@@ -131,7 +151,10 @@ object LeisureMetaChainApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockListEndpoint =
     baseEndpoint.get
-      .in("block" / query[Option[Block.BlockHash]]("from").and(query[Option[Int]]("limit")))
+      .in(
+        "block" / query[Option[Block.BlockHash]]("from")
+          .and(query[Option[Int]]("limit")),
+      )
       .out(jsonBody[List[BlockInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -170,22 +193,35 @@ object LeisureMetaChainApi:
       .in("owners" / path[TokenDefinitionId])
       .out(jsonBody[Map[TokenId, Account]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getRewardEndpoint =
+    baseEndpoint.get
+      .in("reward" / 
+        path[Account]
+          .and(query[Option[Instant]]("timestamp"))
+          .and(query[Option[Account]]("dao-account"))
+          .and(query[Option[BigNat]]("reward-amount"))
+      )
+      .out(jsonBody[RewardInfo])
+
   enum Movable:
     case Free, Locked
   object Movable:
     @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-    given Codec[String, Movable, TextPlain] = Codec.string.mapDecode{ (s: String) =>
-      s match
-        case "free" => DecodeResult.Value(Movable.Free)
-        case "locked" => DecodeResult.Value(Movable.Locked)
-        case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
+    given Codec[String, Movable, TextPlain] = Codec.string.mapDecode {
+      (s: String) =>
+        s match
+          case "free"   => DecodeResult.Value(Movable.Free)
+          case "locked" => DecodeResult.Value(Movable.Locked)
+          case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
     }(_.toString.toLowerCase(Locale.ENGLISH))
 
     @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-    given Codec[String, Option[Movable], TextPlain] = Codec.string.mapDecode{ (s: String) =>
-      s match
-        case "free" => DecodeResult.Value(Some(Movable.Free))
-        case "locked" => DecodeResult.Value(Some(Movable.Locked))
-        case "all" => DecodeResult.Value(None)
-        case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
+    given Codec[String, Option[Movable], TextPlain] = Codec.string.mapDecode {
+      (s: String) =>
+        s match
+          case "free"   => DecodeResult.Value(Some(Movable.Free))
+          case "locked" => DecodeResult.Value(Some(Movable.Locked))
+          case "all"    => DecodeResult.Value(None)
+          case _ => DecodeResult.Error(s, new Exception(s"invalid movable: $s"))
     }(_.fold("")(_.toString.toLowerCase(Locale.ENGLISH)))

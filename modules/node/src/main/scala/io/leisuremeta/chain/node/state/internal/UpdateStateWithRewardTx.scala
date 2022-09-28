@@ -3,8 +3,10 @@ package node
 package state
 package internal
 
-import java.time.Instant
+import java.time.{DayOfWeek, Instant, ZoneId, ZonedDateTime}
+import java.time.temporal.{ChronoUnit, TemporalAdjusters}
 
+import cats.Monoid
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.either.given
@@ -80,10 +82,17 @@ trait UpdateStateWithRewardTx:
         case ra: Transaction.RewardTx.RecordActivity =>
           for
             userActivityState <- ra.userActivity.toList.traverse{ case (account, activity) =>
-              MerkleTrie.put[F, (Instant, Account), DaoActivity](
-                (ra.timestamp, account).toBytes.bits,
-                activity
-              )
+              val canonicalInstant = ra.timestamp
+                .atZone(ZoneId.of("Asia/Seoul"))
+                .truncatedTo(ChronoUnit.DAYS)
+                .toInstant()
+              val keyBits = (canonicalInstant, account).toBytes.bits
+              for
+                activityOption <- MerkleTrie.get[F, (Instant, Account), DaoActivity](keyBits)
+                _ <- MerkleTrie.remove[F, (Instant, Account), DaoActivity](keyBits)
+                activity1 = activityOption.fold(activity)(Monoid[DaoActivity].combine(_, activity))
+                _ <- MerkleTrie.put[F, (Instant, Account), DaoActivity](keyBits, activity1)
+              yield ()
             }.runS(ms.reward.userActivityState)
             tokenReceivedState <- ra.tokenReceived.toList.traverse{ case (tokenId, activity) =>
               MerkleTrie.put[F, (Instant, TokenId), DaoActivity](
