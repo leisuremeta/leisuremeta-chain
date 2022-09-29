@@ -84,7 +84,9 @@
 
 `GET` **/block/{blockHash}** 블록 상세정보 조회 (포함된 트랜잭션 해시 목록 포함)
 
-`GET` **/tx**?block=(블록해시) 특정 블록에 포함된 트랜잭션 목록 조회 (아직 미구현)
+`GET` **/tx** 특정 블록에 포함된 트랜잭션 목록 조회
+
+> `param`  block: 찾을 블록 해시
 
 `GET` **/tx/{transactionHash}** 트랜잭션 상세정보 조회
 

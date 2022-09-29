@@ -27,7 +27,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
-import api.model.api_model.{AccountInfo, BalanceInfo, BlockInfo, GroupInfo, NftBalanceInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, BlockInfo, GroupInfo, NftBalanceInfo, TxInfo}
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.Signed.TxHash.given
 
@@ -82,6 +82,11 @@ object LeisureMetaChainApi:
       ),
     ),
   )
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTxSetEndpoint = baseEndpoint.get
+    .in("tx" / query[Block.BlockHash]("block"))
+    .out(jsonBody[Set[TxInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxEndpoint = baseEndpoint.get
