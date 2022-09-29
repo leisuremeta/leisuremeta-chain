@@ -72,6 +72,24 @@
 * 아래의 트랜잭션 목록 참조
 * Array로 한 번에 여러개의 트랜잭션 제출 가능
 
+### Blockchain Explorer 지원용 API
+
+`GET` **/status** 블록체인 현재상태 조회 (최신 블록 hash, 블록 number 포함)
+
+`GET` **/block **블록 목록 조회
+
+> `param` *(optional)* from: 찾기 시작할 블록 해시. 없으면 최신 블록
+>
+> `param` *(optional)* limit: 가져올 블록 갯수. 디폴트 50.
+
+`GET` **/block/{blockHash}** 블록 상세정보 조회 (포함된 트랜잭션 해시 목록 포함)
+
+`GET` **/tx** 특정 블록에 포함된 트랜잭션 목록 조회
+
+> `param`  block: 찾을 블록 해시
+
+`GET` **/tx/{transactionHash}** 트랜잭션 상세정보 조회
+
 ### Response HTTP Status Codes
 
 * 요청했을 때 해당 내용이 없는 경우: 404 Not Found
@@ -946,15 +964,12 @@
 | ------ | ----------------------------- | -------------------------------- |
 | `GET`  | **/account/{accountName}**    | 계정정보 조회                    |
 | `GET`  | **/eth/{ethAddress}**         | 이더리움 주소와 연동된 계정 조회 |
-| `GET`  | **/agenda/{agendaID}**        | 안건 조회                        |
-| `GET`  | **/block/{blockHash}**        | 블록 정보 조회                   |
 | `GET`  | **/dao**                      | DAO 목록 조회                    |
 | `GET`  | **/group/{groupID}**          | 그룹 정보 조회                   |
 | `GET`  | **/offering/{offeringID}**    | Offering 정보 조회               |
 | `GET`  | **/status**                   | 블록체인 상태 조회               |
 | `GET`  | **/token-def/{definitionID}** | 토큰 정의 정보 조회              |
 | `GET`  | **/token/{tokenID}**          | 토큰 정보 조회                   |
-| `GET`  | **/tx/{txHash}**              | 트랜잭션 조회                    |
 
 
 

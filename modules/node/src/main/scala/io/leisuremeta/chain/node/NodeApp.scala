@@ -104,6 +104,13 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getBlockListServerEndpoint = Api.getBlockListEndpoint.serverLogic {
+    (fromOption, limitOption) =>
+      BlockService.index(fromOption, limitOption).leftMap{
+        (errorMsg: String) => Left(Api.ServerError(errorMsg))
+      }.value
+  }
+
   def getBlockServerEndpoint = Api.getBlockEndpoint.serverLogic {
     (blockHash: Block.BlockHash) =>
       val result = BlockService.get(blockHash).value
@@ -174,10 +181,9 @@ final case class NodeApp[F[_]
 
   def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
     (tokenDefinitionId: TokenDefinitionId) =>
-      StateReadService.getOwners(tokenDefinitionId).value.map {
-        case Right(ownerMap) => Right(ownerMap)
-        case Left(errMsg) => Left(Left(Api.ServerError(errMsg)))
-      }
+      StateReadService.getOwners(tokenDefinitionId).leftMap {
+        (errMsg) => Left(Api.ServerError(errMsg))
+      }.value
   }
 
   def postTxServerEndpoint(using LocalGossipService[F]) =
@@ -193,6 +199,14 @@ final case class NodeApp[F[_]
           Right(txHashes)
       }
     }
+
+  def getTxSetServerEndpoint = Api.getTxSetEndpoint.serverLogic {
+    (block: Block.BlockHash) =>
+      TransactionService.index(block).leftMap{
+        case Left(serverErrorMsg) => Left(Api.ServerError(serverErrorMsg))
+        case Right(errorMessage) => Right(Api.NotFound(errorMessage))
+      }.value
+  }
 
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
     (txHash: Signed.TxHash) =>
@@ -224,6 +238,7 @@ final case class NodeApp[F[_]
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
+    getBlockListServerEndpoint,
     getBlockServerEndpoint,
     getGroupServerEndpoint,
     getStatusServerEndpoint,
@@ -233,6 +248,7 @@ final case class NodeApp[F[_]
     getNftBalanceServerEndpoint,
     getTokenServerEndpoint,
     getOwnersServerEndpoint,
+    getTxSetServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )
