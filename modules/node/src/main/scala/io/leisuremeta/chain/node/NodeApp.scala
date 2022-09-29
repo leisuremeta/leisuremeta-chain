@@ -139,23 +139,25 @@ final case class NodeApp[F[_]
 
   def getBalanceServerEndpoint = Api.getBalanceEndpoint.serverLogic {
     (account, movable) =>
-      StateReadService.getBalance(account, movable).map { balanceMap =>
-        Either.cond(
-          balanceMap.nonEmpty,
-          balanceMap,
-          Right(Api.NotFound(s"balance not found: $account")),
-        )
+      StateReadService.getBalance(account, movable).flatMap { balanceMap =>
+        if balanceMap.isEmpty then
+          StateReadService.getAccountInfo(account).map{
+            case Some(info) => Right(balanceMap)
+            case None => Left(Right(Api.NotFound(s"balance not found: $account")))
+          }
+        else Async[F].pure(Right(balanceMap))
       }
   }
 
   def getNftBalanceServerEndpoint = Api.getNftBalanceEndpoint.serverLogic {
     (account, movable) =>
-      StateReadService.getNftBalance(account, movable).map { nftBalanceMap =>
-        Either.cond(
-          nftBalanceMap.nonEmpty,
-          nftBalanceMap,
-          Right(Api.NotFound(s"nft balance not found: $account")),
-        )
+      StateReadService.getNftBalance(account, movable).flatMap { nftBalanceMap =>
+        if nftBalanceMap.isEmpty then
+          StateReadService.getAccountInfo(account).map{
+            case Some(info) => Right(nftBalanceMap)
+            case None => Left(Right(Api.NotFound(s"nft balance not found: $account")))
+          }
+        else Async[F].pure(Right(nftBalanceMap))
       }
   }
 
