@@ -104,6 +104,13 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getBlockListServerEndpoint = Api.getBlockListEndpoint.serverLogic {
+    (fromOption, limitOption) =>
+      BlockService.index(fromOption, limitOption).leftMap{
+        (errorMsg: String) => Left(Api.ServerError(errorMsg))
+      }.value
+  }
+
   def getBlockServerEndpoint = Api.getBlockEndpoint.serverLogic {
     (blockHash: Block.BlockHash) =>
       val result = BlockService.get(blockHash).value
@@ -224,6 +231,7 @@ final case class NodeApp[F[_]
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
+    getBlockListServerEndpoint,
     getBlockServerEndpoint,
     getGroupServerEndpoint,
     getStatusServerEndpoint,
