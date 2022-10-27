@@ -3,8 +3,7 @@ package merkle
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 import hedgehog.state.*
 import java.io.File
@@ -216,28 +215,29 @@ def commandFrom: CommandIO[State] = new Command[State, From, S]:
       .compile
       .toList
 
-object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
-  example("put same key value twice expect not to change state") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val program =
-      MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
+class MerkleTrieTest extends HedgehogSuite:
+  test("put same key value twice expect not to change state") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val program =
+        MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
 
-    val resultEitherT = for
-      state1 <- program.runS(initialState)
-      state2 <- program.runS(state1)
-    yield state1 ==== state2
+      val resultEitherT = for
+        state1 <- program.runS(initialState)
+        state2 <- program.runS(state1)
+      yield assertions.assertEquals(state1, state2)
 
-    val Right(result) = resultEitherT.value
-    result
-
+      resultEitherT.value
+    }
   }
 
-  example("put 10 -> put empty with empty -> put 10") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val put10 =
-      MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
-    val putEmptyWithEmpty =
-      MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
+  test("put 10 -> put empty with empty -> put 10") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val put10 =
+        MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
+      val putEmptyWithEmpty =
+        MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
 
 //    val forPrint = for
 //      state1 <- put10.runS(initialState)
@@ -250,30 +250,32 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    val initialProgram = for
-      _ <- put10
-      _ <- putEmptyWithEmpty
-    yield ()
+      val initialProgram = for
+        _ <- put10
+        _ <- putEmptyWithEmpty
+      yield ()
 
-    val resultEitherT = for
-      state1 <- initialProgram.runS(initialState)
-      state2 <- put10.runS(state1)
-    yield state1 ==== state2
+      val resultEitherT = for
+        state1 <- initialProgram.runS(initialState)
+        state2 <- put10.runS(state1)
+      yield assertions.assertEquals(state1, state2)
 
-    val Right(result) = resultEitherT.value
-    result
+      resultEitherT.value
+    }
   }
 
-  example(
+  test(
     "put (10, empty) -> put (empty, empty) -> put (10, 00) -> put (10, empty)",
   ) {
-    val initialState = MerkleTrieState.empty[K, V]
-    val put10withEmpty =
-      MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
-    val putEmptyWithEmpty =
-      MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
-    val put10with10 =
-      MerkleTrie.put[Id, K, V](hex"10".bits, hex"10")
+    withMunitAssertions { assertions =>
+
+      val initialState = MerkleTrieState.empty[K, V]
+      val put10withEmpty =
+        MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
+      val putEmptyWithEmpty =
+        MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
+      val put10with10 =
+        MerkleTrie.put[Id, K, V](hex"10".bits, hex"10")
 
 //    val forPrint = for
 //      state1 <- put10withEmpty.runS(initialState)
@@ -291,34 +293,36 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    val program = for
-      _ <- put10withEmpty
-      _ <- putEmptyWithEmpty
-      _ <- put10with10
-      _ <- put10withEmpty
-    yield ()
+      val program = for
+        _ <- put10withEmpty
+        _ <- putEmptyWithEmpty
+        _ <- put10with10
+        _ <- put10withEmpty
+      yield ()
 
-    program.runS(initialState).value match
-      case Right(state) =>
-        Result.assert(state.diff.get(state.root.get).nonEmpty)
-      case Left(error) =>
-        Result.failure
+      program.runS(initialState).value match
+        case Right(state) =>
+          assertions.assert(state.diff.get(state.root.get).nonEmpty)
+        case Left(error) =>
+          assertions.fail(error)
+    }
   }
 
-  example("put (empty, empty) -> put (00, 00) -> get (empty)") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val putEmptyWithEmpty =
-      MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
-    val put00_00 =
-      MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
-    val getEmpty =
-      MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
+  test("put (empty, empty) -> put (00, 00) -> get (empty)") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val putEmptyWithEmpty =
+        MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
+      val put00_00 =
+        MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
+      val getEmpty =
+        MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
 
-    val program = for
-      _     <- putEmptyWithEmpty
-      _     <- put00_00
-      value <- getEmpty
-    yield value ==== Some(ByteVector.empty)
+      val program = for
+        _     <- putEmptyWithEmpty
+        _     <- put00_00
+        value <- getEmpty
+      yield assertions.assertEquals(value, Some(ByteVector.empty))
 
 //    val forPrint = for
 //      state1 <- putEmptyWithEmpty.runS(initialState)
@@ -330,24 +334,25 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        println(s"root: ${s.root}")
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
-    program.runA(initialState).value.toOption.get
-
+      program.runA(initialState).value
+    }
   }
 
-  example("put 00 -> put 0000 -> put empty -> get empty") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val put00        = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
-    val put0000 = MerkleTrie.put[Id, K, V](hex"0000".bits, ByteVector.empty)
-    val putEmpty =
-      MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
-    val getEmpty = MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
+  test("put 00 -> put 0000 -> put empty -> get empty") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val put00   = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
+      val put0000 = MerkleTrie.put[Id, K, V](hex"0000".bits, ByteVector.empty)
+      val putEmpty =
+        MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
+      val getEmpty = MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
 
-    val program = for
-      _     <- put00
-      _     <- put0000
-      _     <- putEmpty
-      value <- getEmpty
-    yield value ==== Some(ByteVector.empty)
+      val program = for
+        _     <- put00
+        _     <- put0000
+        _     <- putEmpty
+        value <- getEmpty
+      yield assertions.assertEquals(value, Some(ByteVector.empty))
 
 //    val forPrint = for
 //      state1 <- put00.runS(initialState)
@@ -360,23 +365,24 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    program.runA(initialState).value.toOption.get
-
+      program.runA(initialState).value
+    }
   }
 
-  example("put 0700 -> put 07 -> put 10 -> get empty") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val put0700  = MerkleTrie.put[Id, K, V](hex"0700".bits, ByteVector.empty)
-    val put07    = MerkleTrie.put[Id, K, V](hex"07".bits, ByteVector.empty)
-    val put10    = MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
-    val getEmpty = MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
+  test("put 0700 -> put 07 -> put 10 -> get empty") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val put0700  = MerkleTrie.put[Id, K, V](hex"0700".bits, ByteVector.empty)
+      val put07    = MerkleTrie.put[Id, K, V](hex"07".bits, ByteVector.empty)
+      val put10    = MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
+      val getEmpty = MerkleTrie.get[Id, K, V](ByteVector.empty.bits)
 
-    val program = for
-      _     <- put0700
-      _     <- put07
-      _     <- put10
-      value <- getEmpty
-    yield value ==== None
+      val program = for
+        _     <- put0700
+        _     <- put07
+        _     <- put10
+        value <- getEmpty
+      yield assertions.assertEquals(value, None)
 
 //    val forPrint = for
 //      state1 <- put0700.runS(initialState)
@@ -389,21 +395,22 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    program.runA(initialState).value.toOption.get
-
+      program.runA(initialState).value
+    }
   }
 
-  example("put 00 -> put 01 -> get 00") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val put00        = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
-    val put01        = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
-    val get00        = MerkleTrie.get[Id, K, V](hex"00".bits)
+  test("put 00 -> put 01 -> get 00") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val put00 = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
+      val put01 = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
+      val get00 = MerkleTrie.get[Id, K, V](hex"00".bits)
 
-    val program = for
-      _     <- put00
-      _     <- put01
-      value <- get00
-    yield value ==== Some(ByteVector.empty)
+      val program = for
+        _     <- put00
+        _     <- put01
+        value <- get00
+      yield assertions.assertEquals(value, Some(ByteVector.empty))
 
 //    val forPrint = for
 //      state1 <- put00.runS(initialState)
@@ -415,23 +422,24 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    program.runA(initialState).value.toOption.get
-
+      program.runA(initialState).value
+    }
   }
 
-  example("put(00, empty) -> put(01, empty) -> put(00, 00) -> get 01") {
-    val initialState = MerkleTrieState.empty[K, V]
-    val put00        = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
-    val put01        = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
-    val put00_00     = MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
-    val get01        = MerkleTrie.get[Id, K, V](hex"01".bits)
+  test("put(00, empty) -> put(01, empty) -> put(00, 00) -> get 01") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
+      val put00    = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
+      val put01    = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
+      val put00_00 = MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
+      val get01    = MerkleTrie.get[Id, K, V](hex"01".bits)
 
-    val program = for
-      _     <- put00
-      _     <- put01
-      _     <- put00_00
-      value <- get01
-    yield value
+      val program = for
+        _     <- put00
+        _     <- put01
+        _     <- put00_00
+        value <- get01
+      yield value
 
 //    val forPrint = for
 //      state1 <- put00.runS(initialState)
@@ -444,21 +452,24 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    program.runA(initialState).value ==== Right(Some(ByteVector.empty))
+      val result = program.runA(initialState).value
+      assertions.assertEquals(result, Right(Some(ByteVector.empty)))
+    }
   }
 
-  example("put 50 -> put 5000 -> remove 00") {
-    val initialState = MerkleTrieState.empty[K, V]
+  test("put 50 -> put 5000 -> remove 00") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
 
-    def put(key: ByteVector) =
-      MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
-    def remove(key: ByteVector) = MerkleTrie.remove[Id, K, V](key.bits)
+      def put(key: ByteVector) =
+        MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
+      def remove(key: ByteVector) = MerkleTrie.remove[Id, K, V](key.bits)
 
-    val program = for
-      _      <- put(hex"50")
-      _      <- put(hex"5000")
-      result <- remove(hex"00")
-    yield result
+      val program = for
+        _      <- put(hex"50")
+        _      <- put(hex"5000")
+        result <- remove(hex"00")
+      yield result
 
 //    val forPrint = for
 //      state1 <- put(hex"50").runS(initialState)
@@ -472,23 +483,26 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //      }
 //      println(s"result: ${result._2}")
 
-    program.runA(initialState).value ==== Right(false)
+      val result = program.runA(initialState).value
+      assertions.assertEquals(result, Right(false))
+    }
   }
 
-  example("put d0 -> put d000 -> put empty -> put 000000 -> remove d000") {
-    val initialState = MerkleTrieState.empty[K, V]
+  test("put d0 -> put d000 -> put empty -> put 000000 -> remove d000") {
+    withMunitAssertions { assertions =>
+      val initialState = MerkleTrieState.empty[K, V]
 
-    def put(key: ByteVector) =
-      MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
-    def remove(key: ByteVector) = MerkleTrie.remove[Id, K, V](key.bits)
+      def put(key: ByteVector) =
+        MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
+      def remove(key: ByteVector) = MerkleTrie.remove[Id, K, V](key.bits)
 
-    val program = for
-      _ <- put(hex"d0")
-      _ <- put(hex"d000")
-      _ <- put(hex"")
-      _ <- put(hex"000000")
-      _ <- remove(hex"d000")
-    yield ()
+      val program = for
+        _ <- put(hex"d0")
+        _ <- put(hex"d000")
+        _ <- put(hex"")
+        _ <- put(hex"000000")
+        _ <- remove(hex"d000")
+      yield ()
 
 //    val forPrint = for
 //      state1 <- put(hex"d0").runS(initialState)
@@ -503,7 +517,9 @@ object MerkleTrieTest extends SimpleTestSuite with HedgehogSupport:
 //        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
 //      }
 
-    program.runA(initialState).value ==== Right(())
+      val result = program.runA(initialState).value
+      assertions.assertEquals(result, Right(()))
+    }
   }
 
   property("test merkle trie") {

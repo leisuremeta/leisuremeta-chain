@@ -7,12 +7,11 @@ import crypto.Hash
 import datatype.UInt256
 import util.refined.bitVector.given
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 import scodec.bits.ByteVector
 
-object MerkleTrieNodeTest extends SimpleTestSuite with HedgehogSupport:
+class MerkleTrieNodeTest extends HedgehogSuite:
 
   def genPrefix: Gen[MerkleTrieNode.Prefix] = for
     prefixByteArray <- Gen.bytes(Range.linear(0, 64))

@@ -1,11 +1,10 @@
 package io.leisuremeta.chain.lib.datatype
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 import scodec.bits.ByteVector
 
-object UInt256Test extends SimpleTestSuite with HedgehogSupport:
+class UInt256Test extends HedgehogSuite:
 
   property("roundtrip of uint256bytes") {
     for bytes <- Gen.bytes(Range.singleton(32)).map(ByteVector.view).forAll

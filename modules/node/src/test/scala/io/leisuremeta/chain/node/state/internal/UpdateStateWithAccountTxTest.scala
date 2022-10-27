@@ -28,13 +28,10 @@ import lib.failure.DecodingFailure
 import repository.StateRepository
 import repository.StateRepository.{*, given}
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 
-object UpdateStateWithAccountTxTest
-    extends SimpleTestSuite
-    with HedgehogSupport:
+class UpdateStateWithAccountTxTest extends HedgehogSuite:
 
   given testKVStore[K, V]: store.KeyValueStore[IO, K, V] =
     new store.KeyValueStore[IO, K, V]:
@@ -52,61 +49,63 @@ object UpdateStateWithAccountTxTest
   given testStateRepo[K, V]: StateRepository[IO, K, V] =
     StateRepository.fromStores[IO, K, V]
 
-  example("create account") {
+  test("create account") {
+    withMunitAssertions { assertions =>
 
-    val keyPair = CryptoOps.fromPrivate(
-      BigInt(
-        "d0bdcacd4bf48ae4536694d64f1dc47ec33e1c05558c9b11d126ab29df10c86e",
-        16,
-      ),
-    )
-
-    val account = Account(Utf8.unsafeFrom("minter"))
-
-    val pubKeySummary: PublicKeySummary =
-      PublicKeySummary.fromPublicKeyHash(keyPair.publicKey.toHash)
-
-    val tx: Transaction = Transaction.AccountTx.CreateAccount(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2022-06-20T00:00:00Z"),
-      account = account,
-      ethAddress = None,
-      guardian = None,
-    )
-
-    val Right(sig) = keyPair.sign(tx)
-
-    val accountSig = AccountSignature(sig = sig, account = account)
-
-    val signedTx = Signed(sig = accountSig, value = tx)
-
-    val baseState = GossipDomain.MerkleState(
-      account = GossipDomain.MerkleState.AccountMerkleState
-        .from(StateRoot.AccountStateRoot.empty),
-      group = GossipDomain.MerkleState.GroupMerkleState
-        .from(StateRoot.GroupStateRoot.empty),
-      token = GossipDomain.MerkleState.TokenMerkleState.from(
-        StateRoot.TokenStateRoot.empty,
-      ),
-      reward = GossipDomain.MerkleState.RewardMerkleState.from(
-        StateRoot.RewardStateRoot.empty,
-      ),
-    )
-
-    val Right((state, txResult)) =
-      summon[UpdateState[IO, Transaction.AccountTx]](
-        baseState,
-        accountSig,
-        tx.asInstanceOf[Transaction.AccountTx],
-      ).value.unsafeRunSync()
-
-    val result = MerkleTrie
-      .get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
-        (account, pubKeySummary).toBytes.bits,
+      val keyPair = CryptoOps.fromPrivate(
+        BigInt(
+          "d0bdcacd4bf48ae4536694d64f1dc47ec33e1c05558c9b11d126ab29df10c86e",
+          16,
+        ),
       )
-      .runA(state.account.keyState)
-      .value
-      .unsafeRunSync()
 
-    Result.assert(result.isRight)
+      val account = Account(Utf8.unsafeFrom("minter"))
+
+      val pubKeySummary: PublicKeySummary =
+        PublicKeySummary.fromPublicKeyHash(keyPair.publicKey.toHash)
+
+      val tx: Transaction = Transaction.AccountTx.CreateAccount(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2022-06-20T00:00:00Z"),
+        account = account,
+        ethAddress = None,
+        guardian = None,
+      )
+
+      val Right(sig) = keyPair.sign(tx)
+
+      val accountSig = AccountSignature(sig = sig, account = account)
+
+      val signedTx = Signed(sig = accountSig, value = tx)
+
+      val baseState = GossipDomain.MerkleState(
+        account = GossipDomain.MerkleState.AccountMerkleState
+          .from(StateRoot.AccountStateRoot.empty),
+        group = GossipDomain.MerkleState.GroupMerkleState
+          .from(StateRoot.GroupStateRoot.empty),
+        token = GossipDomain.MerkleState.TokenMerkleState.from(
+          StateRoot.TokenStateRoot.empty,
+        ),
+        reward = GossipDomain.MerkleState.RewardMerkleState.from(
+          StateRoot.RewardStateRoot.empty,
+        ),
+      )
+
+      val Right((state, txResult)) =
+        summon[UpdateState[IO, Transaction.AccountTx]](
+          baseState,
+          accountSig,
+          tx.asInstanceOf[Transaction.AccountTx],
+        ).value.unsafeRunSync()
+
+      val result = MerkleTrie
+        .get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
+          (account, pubKeySummary).toBytes.bits,
+        )
+        .runA(state.account.keyState)
+        .value
+        .unsafeRunSync()
+
+      assertions.assert(result.isRight)
+    }
   }

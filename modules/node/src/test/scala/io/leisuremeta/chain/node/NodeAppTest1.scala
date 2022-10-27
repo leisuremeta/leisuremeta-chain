@@ -32,11 +32,10 @@ import repository.{BlockRepository, StateRepository, TransactionRepository}
 import service.LocalGossipService
 import service.interpreter.LocalGossipServiceInterpreter
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 
-object NodeAppTest1 extends SimpleTestSuite with HedgehogSupport:
+class NodeAppTest1 extends HedgehogSuite:
 
   val confString = """
 local {
@@ -165,152 +164,158 @@ genesis {
 
     NodeApp[IO](conf)
 
-  example("app generate genesis block in initialization") {
+  test("app generate genesis block in initialization") {
+    withMunitAssertions { assertions =>
+      getApp.resource
+        .flatMap { appResource =>
+          appResource.use { _ =>
+            IO {
+              val backend: SttpBackend[Identity, Any] =
+                HttpURLConnectionBackend()
 
-    getApp.resource
-      .flatMap { appResource =>
-        appResource.use { _ =>
-          IO {
-            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+              val response = basicRequest
+                .response(asStringAlways)
+                .get(uri"http://localhost:8081/status")
+                .send(backend)
+              println(
+                s"status request result: body: ${response.body}, status code: ${response.code}",
+              )
 
-            val response = basicRequest
-              .response(asStringAlways)
-              .get(uri"http://localhost:8081/status")
-              .send(backend)
-            println(
-              s"status request result: body: ${response.body}, status code: ${response.code}",
-            )
-
-            Result.all(
-              List(
-                response.code ==== StatusCode.Ok,
-                decode[NodeStatus](response.body) ==== Right(expectedNodeStatus),
-              ),
-            )
+              assertions.assertEquals(response.code, StatusCode.Ok)
+              assertions.assertEquals(
+                decode[NodeStatus](response.body),
+                Right(expectedNodeStatus),
+              )
+            }
           }
         }
-      }
-      .unsafeRunSync()
+        .unsafeRunSync()
+    }
   }
 
-  example("define group is defined") {
+  test("define group is defined") {
+    withMunitAssertions { assertions =>
 
-    val account = Account(Utf8.unsafeFrom("alice"))
+      val account = Account(Utf8.unsafeFrom("alice"))
 
-    val keyPair = CryptoOps.fromPrivate(
-      BigInt(
-        "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
-        16,
-      ),
-    )
+      val keyPair = CryptoOps.fromPrivate(
+        BigInt(
+          "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
+          16,
+        ),
+      )
 
-    given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
-      (a: A) =>
-        val serialized = a.asJson.noSpaces
-        StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
+      given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
+        (a: A) =>
+          val serialized = a.asJson.noSpaces
+          StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
 
-    val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+      val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
-    def sign(tx: Transaction): Signed.Tx =
-      val Right(sig) = keyPair.sign(tx)
-      Signed(AccountSignature(sig, account), tx)
+      def sign(tx: Transaction): Signed.Tx =
+        val Right(sig) = keyPair.sign(tx)
+        Signed(AccountSignature(sig, account), tx)
 
-    def submit(tx: Transaction) =
-      val Right(sig) = keyPair.sign(tx)
+      def submit(tx: Transaction) =
+        val Right(sig) = keyPair.sign(tx)
 
 //      given io.circe.Encoder[Transaction] = {
 //        import io.circe.generic.semiauto.*
 //        deriveEncoder[Transaction]
 //      }
 
-      basicRequest
-        .response(asStringAlways)
-        .post(uri"http://localhost:8081/tx")
-        .body(Seq(Signed(AccountSignature(sig, account), tx)))
-        .send(backend)
+        basicRequest
+          .response(asStringAlways)
+          .post(uri"http://localhost:8081/tx")
+          .body(Seq(Signed(AccountSignature(sig, account), tx)))
+          .send(backend)
 
-    val tx0: Transaction = Transaction.AccountTx.CreateAccount(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
-      account = account,
-      ethAddress = None,
-      guardian = None,
-    )
+      val tx0: Transaction = Transaction.AccountTx.CreateAccount(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
+        account = account,
+        ethAddress = None,
+        guardian = None,
+      )
 
-    val tx1: Transaction = Transaction.GroupTx.CreateGroup(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:01:00.00Z"),
-      groupId = GroupId(Utf8.unsafeFrom("group-core")),
-      name = Utf8.unsafeFrom("group-core"),
-      coordinator = account,
-    )
+      val tx1: Transaction = Transaction.GroupTx.CreateGroup(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:01:00.00Z"),
+        groupId = GroupId(Utf8.unsafeFrom("group-core")),
+        name = Utf8.unsafeFrom("group-core"),
+        coordinator = account,
+      )
 
-    val tx2: Transaction = Transaction.GroupTx.AddAccounts(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:02:00.00Z"),
-      groupId = GroupId(Utf8.unsafeFrom("group-core")),
-      accounts = Set(account),
-    )
+      val tx2: Transaction = Transaction.GroupTx.AddAccounts(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:02:00.00Z"),
+        groupId = GroupId(Utf8.unsafeFrom("group-core")),
+        accounts = Set(account),
+      )
 
-    val tx3: Transaction = Transaction.TokenTx.DefineToken(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:03:00.00Z"),
-      definitionId = TokenDefinitionId(Utf8.unsafeFrom("token-core")),
-      name = Utf8.unsafeFrom("token-core"),
-      symbol = Some(Utf8.unsafeFrom("TC")),
-      minterGroup = Some(GroupId(Utf8.unsafeFrom("group-core"))),
-      nftInfo = Some(NftInfo(
-        minter = account,
-        rarity = Map(
-          Rarity(Utf8.unsafeFrom("LEGENDARY")) -> BigNat.unsafeFromLong(8L),
-          Rarity(Utf8.unsafeFrom("UNIQUE")) -> BigNat.unsafeFromLong(6L),
-          Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(4L),
-          Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(2L),
+      val tx3: Transaction = Transaction.TokenTx.DefineToken(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:03:00.00Z"),
+        definitionId = TokenDefinitionId(Utf8.unsafeFrom("token-core")),
+        name = Utf8.unsafeFrom("token-core"),
+        symbol = Some(Utf8.unsafeFrom("TC")),
+        minterGroup = Some(GroupId(Utf8.unsafeFrom("group-core"))),
+        nftInfo = Some(
+          NftInfo(
+            minter = account,
+            rarity = Map(
+              Rarity(Utf8.unsafeFrom("LEGENDARY")) -> BigNat.unsafeFromLong(8L),
+              Rarity(Utf8.unsafeFrom("UNIQUE"))    -> BigNat.unsafeFromLong(6L),
+              Rarity(Utf8.unsafeFrom("EPIC"))      -> BigNat.unsafeFromLong(4L),
+              Rarity(Utf8.unsafeFrom("RARE"))      -> BigNat.unsafeFromLong(2L),
+            ),
+            dataUrl = Utf8.unsafeFrom("https://example.com/data"),
+            contentHash = UInt256
+              .from(
+                hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+              )
+              .toOption
+              .get,
+          ),
         ),
-        dataUrl = Utf8.unsafeFrom("https://example.com/data"),
+      )
+
+      val tx4: Transaction = Transaction.TokenTx.MintNFT(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:04:00.00Z"),
+        tokenDefinitionId = TokenDefinitionId(Utf8.unsafeFrom("token-core")),
+        tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
+        rarity = Rarity(Utf8.unsafeFrom("EPIC")),
+        dataUrl = Utf8.unsafeFrom(
+          "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+        ),
         contentHash = UInt256
-          .from(hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+          .from(
+            hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          )
           .toOption
           .get,
-      )),
-    )
+        output = account,
+      )
 
-    val tx4: Transaction = Transaction.TokenTx.MintNFT(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:04:00.00Z"),
-      tokenDefinitionId = TokenDefinitionId(Utf8.unsafeFrom("token-core")),
-      tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
-      rarity = Rarity(Utf8.unsafeFrom("EPIC")),
-      dataUrl = Utf8.unsafeFrom(
-        "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
-      ),
-      contentHash = UInt256
-        .from(hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
-        .toOption
-        .get,
-      output = account,
-    )
+      getApp.resource
+        .flatMap { appResource =>
+          appResource.use { _ =>
+            IO({
+              List(tx0, tx1, tx2, tx3, tx4).foreach { tx =>
+                println(
+                  s"===> submitting tx: $tx",
+                )
+                val response = submit(tx)
+                println(
+                  s"submit tx result: body: ${response.body}, status code: ${response.code}",
+                )
 
-    getApp.resource
-      .flatMap { appResource =>
-        appResource.use { _ =>
-
-          IO(Result.all{
-            List(tx0, tx1, tx2, tx3, tx4).flatMap{ tx =>
-              println(
-                s"===> submitting tx: $tx",
-              )
-              val response = submit(tx)
-              println(
-                s"submit tx result: body: ${response.body}, status code: ${response.code}",
-              )
-              
-              List(
-                response.code ==== StatusCode.Ok,
-              )
-            }
-          })
+                assertions.assertEquals(response.code, StatusCode.Ok)
+              }
+            })
+          }
         }
-      }
-      .unsafeRunSync()
+        .unsafeRunSync()
+    }
   }

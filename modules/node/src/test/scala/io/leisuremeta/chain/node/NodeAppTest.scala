@@ -31,11 +31,10 @@ import repository.{BlockRepository, StateRepository, TransactionRepository}
 import service.LocalGossipService
 import service.interpreter.LocalGossipServiceInterpreter
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 
-object NodeAppTest extends SimpleTestSuite with HedgehogSupport:
+class NodeAppTest extends HedgehogSuite:
 
   val confString = """
 local {
@@ -164,179 +163,187 @@ genesis {
 
     NodeApp[IO](conf)
 
-  example("app generate genesis block in initialization") {
+  test("app generate genesis block in initialization") {
+    withMunitAssertions { assertions =>
+      getApp.resource
+        .flatMap { appResource =>
+          appResource.use { _ =>
+            IO {
+              val backend: SttpBackend[Identity, Any] =
+                HttpURLConnectionBackend()
 
-    getApp.resource
-      .flatMap { appResource =>
-        appResource.use { _ =>
-          IO {
-            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
-
-            val response = basicRequest
-              .response(asStringAlways)
-              .get(uri"http://localhost:8081/status")
-              .send(backend)
-            println(
-              s"status request result: body: ${response.body}, status code: ${response.code}",
-            )
-
-            Result.all(
-              List(
-                response.code ==== StatusCode.Ok,
-                decode[NodeStatus](response.body) ==== Right(expectedNodeStatus),
-              ),
-            )
-          }
-        }
-      }
-      .unsafeRunSync()
-  }
-
-  example("post tx is defined") {
-
-    val account = Account(Utf8.unsafeFrom("alice"))
-
-    val tx: Transaction = Transaction.AccountTx.CreateAccount(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
-      account = account,
-      ethAddress = None,
-      guardian = None,
-    )
-
-    val txHash = tx.toHash
-
-    val keyPair = CryptoOps.fromPrivate(
-      BigInt(
-        "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
-        16,
-      ),
-    )
-
-    val Right(sig) = keyPair.sign(tx)
-
-    val accountSig = AccountSignature(sig, account)
-
-    val signedTx = Signed(accountSig, tx)
-
-    given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
-      (a: A) =>
-        val serialized = a.asJson.noSpaces
-        StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
-
-    getApp.resource
-      .flatMap { appResource =>
-        appResource.use { _ =>
-          IO {
-            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
-            val response0 = basicRequest
-              .response(asStringAlways)
-              .post(uri"http://localhost:8081/tx")
-              .body(Seq(signedTx))
-              .send(backend)
-            println(
-              s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
-            )
-            val response1 = basicRequest
-              .response(asStringAlways)
-              .get(
-                uri"http://localhost:8081/tx/${txHash.toUInt256Bytes.toBytes.toHex}",
+              val response = basicRequest
+                .response(asStringAlways)
+                .get(uri"http://localhost:8081/status")
+                .send(backend)
+              println(
+                s"status request result: body: ${response.body}, status code: ${response.code}",
               )
-              .send(backend)
-            println(
-              s"get tx request result: body: ${response1.body}, status code: ${response1.code}",
-            )
-            val response2 = basicRequest
-              .response(asStringAlways)
-              .get(uri"http://localhost:8081/account/alice")
-              .send(backend)
 
-            println(
-              s"get account request result: body: ${response2.body}, status code: ${response2.code}",
-            )
-
-            Result.all(
-              List(
-                response0.code ==== StatusCode.Ok,
-                decode[Seq[Signed.TxHash]](response0.body) ==== Right(
-                  Seq(tx.toHash),
+              assertions.assertEquals(response.code, StatusCode.Ok)
+              assertions.assertEquals(
+                decode[NodeStatus](response.body),
+                Right(
+                  expectedNodeStatus,
                 ),
-                response1.code ==== StatusCode.Ok,
-                response2.code ==== StatusCode.Ok,
-                decode[AccountInfo](response2.body)
-                  .map(_.publicKeySummaries.nonEmpty) ==== Right(true),
-              ),
-            )
+              )
+            }
           }
         }
-      }
-      .unsafeRunSync()
+        .unsafeRunSync()
+    }
   }
 
-  example("get group is defined") {
+  test("post tx is defined") {
+    withMunitAssertions { assertions =>
 
-    val account = Account(Utf8.unsafeFrom("alice"))
+      val account = Account(Utf8.unsafeFrom("alice"))
 
-    val tx: Transaction = Transaction.AccountTx.CreateAccount(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
-      account = account,
-      ethAddress = None,
-      guardian = None,
-    )
+      val tx: Transaction = Transaction.AccountTx.CreateAccount(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
+        account = account,
+        ethAddress = None,
+        guardian = None,
+      )
 
-    val txHash = tx.toHash
+      val txHash = tx.toHash
 
-    val keyPair = CryptoOps.fromPrivate(
-      BigInt(
-        "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
-        16,
-      ),
-    )
+      val keyPair = CryptoOps.fromPrivate(
+        BigInt(
+          "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
+          16,
+        ),
+      )
 
-    val Right(sig) = keyPair.sign(tx)
+      val Right(sig) = keyPair.sign(tx)
 
-    val accountSig = AccountSignature(sig, account)
+      val accountSig = AccountSignature(sig, account)
 
-    val signedTx = Signed(accountSig, tx)
+      val signedTx = Signed(accountSig, tx)
 
-    val tx2: Transaction = Transaction.GroupTx.CreateGroup(
-      networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
-      createdAt = Instant.parse("2020-05-22T09:01:00.00Z"),
-      groupId = GroupId(Utf8.unsafeFrom("group-core")),
-      name = Utf8.unsafeFrom("group-core"),
-      coordinator = account,
-    )
-    val Right(sig2) = keyPair.sign(tx2)
-    val accountSig2 = AccountSignature(sig2, account)
-    val signedTx2   = Signed(accountSig2, tx2)
+      given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
+        (a: A) =>
+          val serialized = a.asJson.noSpaces
+          StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
 
-    given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
-      (a: A) =>
-        val serialized = a.asJson.noSpaces
-        StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
+      getApp.resource
+        .flatMap { appResource =>
+          appResource.use { _ =>
+            IO {
+              val backend: SttpBackend[Identity, Any] =
+                HttpURLConnectionBackend()
+              val response0 = basicRequest
+                .response(asStringAlways)
+                .post(uri"http://localhost:8081/tx")
+                .body(Seq(signedTx))
+                .send(backend)
+              println(
+                s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
+              )
+              val response1 = basicRequest
+                .response(asStringAlways)
+                .get(
+                  uri"http://localhost:8081/tx/${txHash.toUInt256Bytes.toBytes.toHex}",
+                )
+                .send(backend)
+              println(
+                s"get tx request result: body: ${response1.body}, status code: ${response1.code}",
+              )
+              val response2 = basicRequest
+                .response(asStringAlways)
+                .get(uri"http://localhost:8081/account/alice")
+                .send(backend)
 
-    getApp.resource
-      .flatMap { appResource =>
-        appResource.use { _ =>
-          IO {
-            val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
-            val response0 = basicRequest
-              .response(asStringAlways)
-              .post(uri"http://localhost:8081/tx")
-              .body(Seq(signedTx))
-              .send(backend)
-            println(
-              s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
-            )
-            val response1 = basicRequest
-              .response(asStringAlways)
-              .post(uri"http://localhost:8081/tx")
-              .body(Seq(signedTx2))
-              .send(backend)
-            println(
-              s"post tx request result: body: ${response1.body}, status code: ${response1.code}",
-            )
+              println(
+                s"get account request result: body: ${response2.body}, status code: ${response2.code}",
+              )
+
+              assertions.assertEquals(response0.code, StatusCode.Ok)
+              assertions.assertEquals(
+                decode[Seq[Signed.TxHash]](response0.body),
+                Right(Seq(signedTx.toHash)),
+              )
+              assertions.assertEquals(response1.code, StatusCode.Ok)
+              assertions.assertEquals(response2.code, StatusCode.Ok)
+              assertions.assertEquals(
+                decode[AccountInfo](response2.body)
+                  .map(_.publicKeySummaries.nonEmpty),
+                Right(true),
+              )
+            }
+          }
+        }
+        .unsafeRunSync()
+    }
+  }
+
+  test("get group is defined") {
+    withMunitAssertions { assertions =>
+
+      val account = Account(Utf8.unsafeFrom("alice"))
+
+      val tx: Transaction = Transaction.AccountTx.CreateAccount(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:00:00.00Z"),
+        account = account,
+        ethAddress = None,
+        guardian = None,
+      )
+
+      val txHash = tx.toHash
+
+      val keyPair = CryptoOps.fromPrivate(
+        BigInt(
+          "f7f0bad6ea0f32173c539a3d38913fd4b221a8a4d709197f2f83a05e62f9f602",
+          16,
+        ),
+      )
+
+      val Right(sig) = keyPair.sign(tx)
+
+      val accountSig = AccountSignature(sig, account)
+
+      val signedTx = Signed(accountSig, tx)
+
+      val tx2: Transaction = Transaction.GroupTx.CreateGroup(
+        networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
+        createdAt = Instant.parse("2020-05-22T09:01:00.00Z"),
+        groupId = GroupId(Utf8.unsafeFrom("group-core")),
+        name = Utf8.unsafeFrom("group-core"),
+        coordinator = account,
+      )
+      val Right(sig2) = keyPair.sign(tx2)
+      val accountSig2 = AccountSignature(sig2, account)
+      val signedTx2   = Signed(accountSig2, tx2)
+
+      given bodyJsonSerializer[A: Encoder]: BodySerializer[A] =
+        (a: A) =>
+          val serialized = a.asJson.noSpaces
+          StringBody(serialized, "UTF-8", MediaType.ApplicationJson)
+
+      getApp.resource
+        .flatMap { appResource =>
+          appResource.use { _ =>
+            IO {
+              val backend: SttpBackend[Identity, Any] =
+                HttpURLConnectionBackend()
+              val response0 = basicRequest
+                .response(asStringAlways)
+                .post(uri"http://localhost:8081/tx")
+                .body(Seq(signedTx))
+                .send(backend)
+              println(
+                s"post tx request result: body: ${response0.body}, status code: ${response0.code}",
+              )
+              val response1 = basicRequest
+                .response(asStringAlways)
+                .post(uri"http://localhost:8081/tx")
+                .body(Seq(signedTx2))
+                .send(backend)
+              println(
+                s"post tx request result: body: ${response1.body}, status code: ${response1.code}",
+              )
 //            val response2 = basicRequest
 //              .response(asStringAlways)
 //              .get(uri"http://localhost:8081/group/group-core")
@@ -346,25 +353,26 @@ genesis {
 //              s"get account request result: body: ${response2.body}, status code: ${response2.code}",
 //            )
 
-            Result.all(
-              List(
-                response0.code ==== StatusCode.Ok,
-                decode[Seq[Signed.TxHash]](response0.body) ==== Right(
-                  Seq(tx.toHash),
-                ),
-                response1.code ==== StatusCode.Ok,
-//                response2.code ==== StatusCode.Ok,
+//              assertions.assertEquals(response0.code, StatusCode.Ok)
+//              assertions.assertEquals(
+//                decode[Seq[Signed.TxHash]](response0.body),
+//                Right(Seq(signedTx.toHash)),
+//              )
+              assertions.assertEquals(response1.code, StatusCode.Ok)
+//              assertions.assertEquals(response2.code, StatusCode.Ok)
+//              assertions.assertEquals(
 //                decode[AccountInfo](response2.body)
-//                  .map(_.publicKeySummaries.nonEmpty) ==== Right(true),
-              ),
-            )
+//                  .map(_.publicKeySummaries.nonEmpty),
+//                Right(true),
+//              )
+            }
           }
         }
-      }
-      .unsafeRunSync()
+        .unsafeRunSync()
+    }
   }
 /*
-  example("get token definition is defined") {
+  test("get token definition is defined") {
 
     val account = Account(Utf8.unsafeFrom("alice"))
 
@@ -394,7 +402,7 @@ genesis {
       networkId = NetworkId(BigNat.unsafeFromLong(1000L)),
       createdAt = Instant.parse("2020-05-22T09:01:00.00Z"),
       definitionId = TokenDefinitionId(Utf8.unsafeFrom("test-token")),
-      name = Utf8.unsafeFrom("test-token"), 
+      name = Utf8.unsafeFrom("test-token"),
       symbol = Some(Utf8.unsafeFrom("TT")),
       minterGroup = None,
       nftInfo =  None,
@@ -456,4 +464,4 @@ genesis {
       }
       .unsafeRunSync()
   }
-*/
+ */

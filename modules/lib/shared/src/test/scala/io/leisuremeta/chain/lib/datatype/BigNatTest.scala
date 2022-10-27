@@ -8,13 +8,12 @@ import io.circe.refined.given
 import io.circe.syntax.given
 import scodec.bits.ByteVector
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
 
-object BigNatTest extends SimpleTestSuite with HedgehogSupport:
+class BigNatTest extends HedgehogSuite:
 
   property("roundtrip of bignat byte codec") {
     for

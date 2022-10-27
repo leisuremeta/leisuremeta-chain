@@ -31,11 +31,10 @@ import repository.{StateRepository, TransactionRepository}
 import service.StateService
 import store.KeyValueStore
 
-import minitest.SimpleTestSuite
-import hedgehog.minitest.HedgehogSupport
+import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 
-object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
+class GossipDomainTest extends HedgehogSuite:
 
   val initial: LocalGossip =
     LocalGossip.empty(
@@ -105,25 +104,29 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
     ): EitherT[IO, String, (MerkleState, TransactionWithResult)] =
       StateService.updateStateWithTx[IO](state, tx)
 
-  example("onNewTx") {
+  test("onNewTx") {
+    withMunitAssertions { assertions =>
 
-    val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync()
+      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync()
 
-    gossip1.newTxs.contains(tx.toHash) ==== true
+      assertions.assert(gossip1.newTxs.contains(tx.toHash))
+    }
   }
 
-  example("generateNewBlockSuggestion") {
-    val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync()
-    val now            = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
+  test("generateNewBlockSuggestion") {
+    withMunitAssertions { assertions =>
+      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync()
+      val now = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
 
-    val Right((_, blockSuggestion)) =
-      generateNewBlockSuggestion[IO](gossip1, now, params0).value
-        .unsafeRunSync()
+      val Right((_, blockSuggestion)) =
+        generateNewBlockSuggestion[IO](gossip1, now, params0).value
+          .unsafeRunSync()
 
-    blockSuggestion.transactionHashes ==== Set(tx.toHash)
+      assertions.assertEquals(blockSuggestion.transactionHashes, Set(tx.toHash))
+    }
   }
 /*
-  example("onNewBlockSuggestion - self signed") {
+  test("onNewBlockSuggestion - self signed") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
     val Right((blockHash, blockSuggestion)) =
@@ -141,7 +144,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
     )
   }
 
-  example("onNewBlockSuggestion - peer signed") {
+  test("onNewBlockSuggestion - peer signed") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
     val Right((_, blockSuggestion)) =
@@ -158,7 +161,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
     )
   }
 
-  example("onNewBlockSuggestion - wrong time window") {
+  test("onNewBlockSuggestion - wrong time window") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:50Z") // 1636645730000
     val Right((_, blockSuggestion)) =
@@ -170,7 +173,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
     Result.assert(blockEither.isLeft)
   }
 
-  example("onNewBlockVote - peer vote") {
+  test("onNewBlockVote - peer vote") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
     val Right((blockHash, blockSuggestion)) =
@@ -195,7 +198,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
         Result.failure
   }
 
-  example("onNewBlockVote - peer suggest, self vote") {
+  test("onNewBlockVote - peer suggest, self vote") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:50Z") // 1636645730000
     val Right((blockHash, blockSuggestion)) =
@@ -225,7 +228,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
         Result.failure
   }
 
-  example("onNewBlockVote - suggestor's vote") {
+  test("onNewBlockVote - suggestor's vote") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
     val Right((blockHash, blockSuggestion)) =
@@ -244,7 +247,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
     Result.assert(ans.isLeft)
   }
 
-  example("tryFinalizeBlockWithBlockHash") {
+  test("tryFinalizeBlockWithBlockHash") {
     // initial state with one tx
     val Right(gossip0) = onNewTx[Id](initial, tx).value
     // generate block suggestion from node 0
@@ -290,7 +293,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
         Result.failure
   }
 
-  example("tryFinalizeBlockWithBlockHash - unfinalizable case") {
+  test("tryFinalizeBlockWithBlockHash - unfinalizable case") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val now            = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
     val Right((blockHash, blockSuggestion)) =
@@ -308,7 +311,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
     ans ==== Left("not enough number of vote to finalize: currently 0")
   }
 
-  example("tryFinalizeBlock - multi block finalization") {
+  test("tryFinalizeBlock - multi block finalization") {
     val Right(gossip1) = onNewTx[Id](initial, tx).value
     val instant0       = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
     val Right((blockHash, blockSuggestion)) =
@@ -351,7 +354,7 @@ object GossipDomainTest extends SimpleTestSuite with HedgehogSupport:
         blocks.unzip._1 ==== List(blockHash, blockHash2)
   }
 
-  example(
+  test(
     "tryFinalizeBlock - remaining block suggestion states expect to be based on new confirmed state",
   ) {
 

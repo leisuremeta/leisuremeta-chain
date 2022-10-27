@@ -18,7 +18,7 @@ val V = new {
   val web3J = "4.9.2"
 
   val scribe          = "3.8.2"
-  val hedgehog        = "0.8.0"
+  val hedgehog        = "0.9.0"
   val organiseImports = "0.6.0"
 
   val scalaJavaTime = "2.3.0"
@@ -105,9 +105,8 @@ val Dependencies = new {
 
   lazy val tests = Def.settings(
     libraryDependencies ++= Seq(
-      "qa.hedgehog" %% "hedgehog-minitest" % V.hedgehog % Test,
+      "qa.hedgehog" %%% "hedgehog-munit" % V.hedgehog % Test,
     ),
-    testFrameworks += TestFramework("minitest.runner.Framework"),
     Test / fork := true,
   )
 }

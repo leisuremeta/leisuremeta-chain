@@ -11,6 +11,6 @@ addSbtPlugin("ch.epfl.scala"             % "sbt-scalafix" % "0.10.0")
 addSbtPlugin("com.timushev.sbt"          % "sbt-updates"  % "0.6.2")
 addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.3.1")
 
-addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta37")
+addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta39")
 
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.2.0")
