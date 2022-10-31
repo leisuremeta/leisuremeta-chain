@@ -89,7 +89,10 @@ trait UpdateStateWithAccountTx:
             case None =>
               for
                 accountState1 <- MerkleTrie
-                  .put(sig.account.toBytes.bits, AccountData(ca.ethAddress, ca.guardian))
+                  .put(
+                    sig.account.toBytes.bits,
+                    AccountData(ca.ethAddress, ca.guardian),
+                  )
                   .runS(ms.account.namesState)
                 keyState1 <-
                   if ca.guardian === Some(sig.account) then
@@ -133,31 +136,71 @@ trait UpdateStateWithAccountTx:
           getAccount.flatMap {
             case None => EitherT.leftT("Account does not exist")
             case Some(accountData) =>
-              if sig.account === ua.account || Option(sig.account) === accountData.guardian then
+              if sig.account === ua.account || Option(
+                  sig.account,
+                ) === accountData.guardian
+              then
                 for
                   accountState1 <- {
                     for
-                      _ <- MerkleTrie.remove[F, Account, AccountData](ua.account.toBytes.bits)
-                      _ <- MerkleTrie.put[F, Account, AccountData](ua.account.toBytes.bits, AccountData(ua.ethAddress, ua.guardian))
+                      _ <- MerkleTrie.remove[F, Account, AccountData](
+                        ua.account.toBytes.bits,
+                      )
+                      _ <- MerkleTrie.put[F, Account, AccountData](
+                        ua.account.toBytes.bits,
+                        AccountData(ua.ethAddress, ua.guardian),
+                      )
                     yield ()
                   }.runS(ms.account.namesState)
-                  ethState1 <-
-                    if accountData.ethAddress == ua.ethAddress then
-                      EitherT.pure[F, String](ms.account.ethState)
-                    else {
-                      for
-                        _ <- accountData.ethAddress match
-                          case Some(ethAddress) =>
-                            MerkleTrie.remove[F, EthAddress, Account](ethAddress.toBytes.bits)
-                          case None =>
-                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
-                        _ <- ua.ethAddress match
-                          case Some(ethAddress) =>
-                            MerkleTrie.put[F, EthAddress, Account](ethAddress.toBytes.bits, ua.account)
-                          case None =>
-                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
-                      yield ()
-                    }.runS(ms.account.ethState)
+                  ethState1 <- {
+                    accountData.ethAddress match
+                      case None =>
+                        EitherT.pure[F, String](ms.account.ethState)
+                      case Some(ethAddress) =>
+                        MerkleTrie
+                          .get[F, EthAddress, Account](ethAddress.toBytes.bits)
+                          .runA(ms.account.ethState)
+                          .flatMap {
+                            case Some(account) if account === ua.account =>
+                              EitherT.pure[F, String](ms.account.ethState)
+                            case Some(otherAccount) =>
+                              {
+                                for
+                                  _ <- MerkleTrie
+                                    .remove[F, EthAddress, Account](
+                                      ethAddress.toBytes.bits,
+                                    )
+                                  _ <- MerkleTrie.put[F, EthAddress, Account](
+                                    ethAddress.toBytes.bits,
+                                    ua.account,
+                                  )
+                                yield ()
+                              }.runS(ms.account.ethState)
+                            case None =>
+                              MerkleTrie
+                                .put[F, EthAddress, Account](
+                                  ethAddress.toBytes.bits,
+                                  ua.account,
+                                )
+                                .runS(ms.account.ethState)
+                          }
+                  }
+//                    if accountData.ethAddress == ua.ethAddress then
+//                      EitherT.pure[F, String](ms.account.ethState)
+//                    else {
+//                      for
+//                        _ <- accountData.ethAddress match
+//                          case Some(ethAddress) =>
+//                            MerkleTrie.remove[F, EthAddress, Account](ethAddress.toBytes.bits)
+//                          case None =>
+//                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
+//                        _ <- ua.ethAddress match
+//                          case Some(ethAddress) =>
+//                            MerkleTrie.put[F, EthAddress, Account](ethAddress.toBytes.bits, ua.account)
+//                          case None =>
+//                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
+//                      yield ()
+//                    }.runS(ms.account.ethState)
                 yield (
                   ms.copy(
                     account = ms.account.copy(
@@ -168,14 +211,17 @@ trait UpdateStateWithAccountTx:
                   TransactionWithResult(Signed(sig, ua), None),
                 )
               else
-                EitherT.leftT(s"Account ${sig.account} does not authorize update of ${ua.account}")
+                EitherT.leftT(
+                  s"Account ${sig.account} does not authorize update of ${ua.account}",
+                )
           }
 
         case ap: Transaction.AccountTx.AddPublicKeySummaries =>
           getAccount
             .flatMap {
               case None => EitherT.leftT("Account does not exist")
-              case Some(AccountData(_, Some(guardian))) if sig.account === guardian =>
+              case Some(AccountData(_, Some(guardian)))
+                  if sig.account === guardian =>
                 for
                   pubKeySummary <- EitherT
                     .fromEither[F](recoverSignature(ap, sig.sig))
