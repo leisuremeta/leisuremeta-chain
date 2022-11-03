@@ -5,6 +5,7 @@ import java.math.BigInteger
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.util.{Arrays, ArrayList, Collections}
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.jdk.CollectionConverters.*
 import scala.jdk.FutureConverters.*
 import scala.concurrent.duration.*
@@ -16,6 +17,8 @@ import cats.syntax.bifunctor.*
 import cats.syntax.eq.*
 import cats.syntax.traverse.*
 
+import com.github.jasync.sql.db.{Connection, QueryResult}
+import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.Encoder
 import io.circe.syntax.given
@@ -74,6 +77,11 @@ object EthGatewayMain extends IOApp:
       lmPrivate: String,
       lmAddress: String,
       gatewayEthAddress: String,
+      mysqlHost: String,
+      mysqlPort: Int,
+      mysqlDatabase: String,
+      mysqlUsername: String,
+      mysqlPassword: String,
   )
   object GatewayConf:
     def fromConfig(config: Config): GatewayConf =
@@ -85,7 +93,18 @@ object EthGatewayMain extends IOApp:
         lmPrivate = config.getString("lm-private"),
         lmAddress = config.getString("lm-address"),
         gatewayEthAddress = config.getString("gateway-eth-address"),
+        mysqlHost = config.getString("mysql-host"),
+        mysqlPort = config.getInt("mysql-port"),
+        mysqlDatabase = config.getString("mysql-database"),
+        mysqlUsername = config.getString("mysql-username"), 
+        mysqlPassword = config.getString("mysql-password"),
       )
+
+  def mysqlResource(config: GatewayConf): Resource[IO, Connection] = Resource.make(IO{
+    MySQLConnectionBuilder.createConnectionPool(
+      s"jdbc:mysql://${config.mysqlHost}:${config.mysqlPort}/${config.mysqlDatabase}?user=${config.mysqlUsername}&password=${config.mysqlPassword}",
+    )
+  })(connection => IO.fromCompletableFuture(IO(connection.disconnect())).map(_ => ()))
 
   def web3Resource(url: String): Resource[IO, Web3j] = Resource.make {
 
@@ -98,6 +117,12 @@ object EthGatewayMain extends IOApp:
 
     IO(Web3j.build(new HttpService(url, client)))
   }(web3j => IO(web3j.shutdown()))
+
+  def allResource(config: GatewayConf, url: String): Resource[IO, (Connection, Web3j)] =
+    for
+      conn <- mysqlResource(config)
+      web3j <- web3Resource(url)
+    yield (conn, web3j)
 
   case class TransferTokenEvent(
       blockNumber: BigInt,
@@ -154,15 +179,17 @@ object EthGatewayMain extends IOApp:
     seqEither match
       case Right(seq) => seq
       case Left(e) =>
+        e.printStackTrace()
         scribe.error(s"Error reading unsent deposits: ${e.getMessage}")
         Seq.empty
   }
 
-  def logSentDeposits(deposits: Seq[(Account, TransferTokenEvent)]): IO[Unit] = IO.blocking {
-    val path = Paths.get("sent-deposits.logs")
-    val jsons = deposits.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
-    Files.write(path, jsons.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
-  }
+  def logSentDeposits(deposits: Seq[(Account, TransferTokenEvent)]): IO[Unit] =
+    if deposits.isEmpty then IO.unit else IO.blocking {
+      val path = Paths.get("sent-deposits.logs")
+      val jsons = deposits.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
+      Files.write(path, jsons.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
+    }
 
   def writeLastBlockRead(blockNumber: BigInt): IO[Unit] = IO.blocking {
     val path = Paths.get("last-block-read.json")
@@ -210,6 +237,14 @@ object EthGatewayMain extends IOApp:
     IO.fromCompletableFuture(IO(web3j.ethGetLogs(filter).sendAsync())).map {
       ethLog => ethLog.getLogs.asScala.map(_.toTransferTokenEvent).toSeq
     }
+
+  def getEthBlockTime(web3j: Web3j)(blockNumber: BigInt): IO[Instant] =
+    for
+      ethBlock <- IO.fromCompletableFuture(IO.delay {
+        web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNumber.bigInteger), false).sendAsync()
+      })
+    yield Instant.ofEpochSecond(ethBlock.getBlock().getTimestamp().longValue())
+
 
   def transferToken(
       web3j: Web3j,
@@ -368,6 +403,7 @@ object EthGatewayMain extends IOApp:
 
   def checkDepositAndMint(
       web3j: Web3j,
+      mysqlConnection: Connection,
       lmAddress: String,
       ethContract: String,
       gatewayEthAddress: String,
@@ -401,16 +437,27 @@ object EthGatewayMain extends IOApp:
       }
       (known, unknown) = eventAndAccountOptions.partition(_._2.nonEmpty)
       toMints = known.map{
-        case (event, Some(account)) => (account, event.value)
+        case (event, Some(account)) => (account, event)
         case (event, None) => throw new Exception(
           s"Internal error: Account ${event.from} not found",
         )
       }
       _ <- IO.delay(scribe.info(s"toMints: $toMints"))
-      _ <- toMints.traverse { case (account, amount) =>
-        mintLM(lmAddress, keyPair, account, amount)
+      _ <- toMints.traverse { case (account, event) =>
+        mintLM(lmAddress, keyPair, account, event.value)
       }
       _ <- logSentDeposits(toMints.map(_._1).zip(known.map(_._1)))
+      _ <- toMints.traverse { case (account, event) =>
+        logToMysql(mysqlConnection)(
+          ethTxHash = event.txHash,
+          timestamp = Instant.now(),
+          userEthAccount = "0xFcd1853d09F7Df77f17003B69dDc78b3f8bD5D0f",
+          userLmcAccount = "acf8526119abe74fb9cb371ce480fba8009cbaea",
+          amount = BigInt("1") * BigInt(10).pow(16),
+        ).map{ queryResult =>
+          println(s"Result: $queryResult")
+        }
+      }
       unsent = unknown.map(_._1)
       _ <- IO.delay(scribe.info(s"unsent: $unsent"))
       _ <- writeUnsentDeposits(unsent)
@@ -423,6 +470,7 @@ object EthGatewayMain extends IOApp:
       ethContract: String,
       gatewayEthAddress: String,
       keyPair: KeyPair,
+      mysqlConnection: Connection,
   ): IO[Unit] =
     def run: IO[BigInt] = for
       _ <- IO.delay(scribe.info(s"Checking for deposit / withdrawal events"))
@@ -442,6 +490,7 @@ object EthGatewayMain extends IOApp:
       )
       _ <- checkDepositAndMint(
         web3j,
+        mysqlConnection,
         lmAddress,
         ethContract,
         gatewayEthAddress,
@@ -608,6 +657,35 @@ object EthGatewayMain extends IOApp:
       yield ()
   }
 
+  def logToMysql(connection: Connection)(
+    ethTxHash: String,
+    timestamp: Instant,
+    userEthAccount: String,
+    userLmcAccount: String,
+    amount: BigInt,
+  ): IO[QueryResult] = IO.fromCompletableFuture(IO{
+
+    val query =  s"""CALL DPLAYNOMMDB.SP_INS_CX_TRADE_INFO_MAINNET_DEPOSIT_T(
+'$ethTxHash'	-- 체결주소
+, '${timestamp.truncatedTo(ChronoUnit.SECONDS).toString}' 		-- 체결일시
+, '521ffc8f1e07eef80c634245c6f0551e30c3d5d0'	-- BLC계정 (playnomm) 주소
+, '$userEthAccount'		-- 전달해주는 메인넷 지갑 주소(= Metamask LM지갑 주소)
+, '$userLmcAccount'	-- 사용자 지갑주소
+, '${BigDecimal(amount, 18)}'	-- 입금금액
+, 'LM'	-- tokenDefinitionId": "LM"
+, 'T' -- T(Trade)
+, 'TM01'	-- TM01 [자산][입금][FT이동 - 메인넷에서 입금]
+, 'EN'	-- Default('EN')
+);"""
+    
+    scribe.info(s"Query: $query")
+
+    connection.sendQuery(query)
+  }).map{ queryResult =>
+    scribe.info(s"Result: $queryResult")
+    queryResult
+  }
+
   def run(args: List[String]): IO[ExitCode] =
     for
       conf <- getConfig
@@ -615,9 +693,13 @@ object EthGatewayMain extends IOApp:
       keyPair = CryptoOps.fromPrivate(
         BigInt(gatewayConf.ethPrivate.drop(2), 16),
       )
-      _ <- web3Resource(gatewayConf.ethAddress).use { web3 =>
+      _ <- allResource(gatewayConf, gatewayConf.ethAddress).use{ (connection, web3) =>
 
 //        initializeLmChain(gatewayConf.lmAddress, keyPair)
+
+        getEthBlockTime(web3)(BigInt(15574432)).map{ timestamp =>
+          println(s"Timestamp: $timestamp")
+        }
 
         checkLoop(
           web3j = web3,
@@ -626,7 +708,38 @@ object EthGatewayMain extends IOApp:
           ethContract = gatewayConf.ethContract,
           gatewayEthAddress = gatewayConf.gatewayEthAddress,
           keyPair = keyPair,
+          mysqlConnection = connection,
         )
+      }
+
+//      _ <- mysqlResource(gatewayConf).use{ connection =>
+//        logToMysql(connection)(
+//          ethTxHash = "0xa7e0c93ad25346e2c53b19c3ca29e7d4139741bc5ae233316c5a8dd3fe8ee620",
+//          timestamp = Instant.parse(s"2022-09-19T06:05:00Z"),
+//          userEthAccount = "0xFcd1853d09F7Df77f17003B69dDc78b3f8bD5D0f",
+//          userLmcAccount = "acf8526119abe74fb9cb371ce480fba8009cbaea",
+//          amount = BigInt("1") * BigInt(10).pow(16),
+//        ).map{ queryResult =>
+//          println(s"Result: $queryResult")
+//        }
+//      }
+
+
+//      keyPair = CryptoOps.fromPrivate(
+//        BigInt(gatewayConf.ethPrivate.drop(2), 16),
+//      )
+//      _ <- web3Resource(gatewayConf.ethAddress).use { web3 =>
+
+//        initializeLmChain(gatewayConf.lmAddress, keyPair)
+
+//        checkLoop(
+//          web3j = web3,
+//          ethChainId = gatewayConf.ethChainId,
+//          lmAddress = gatewayConf.lmAddress,
+//          ethContract = gatewayConf.ethContract,
+//          gatewayEthAddress = gatewayConf.gatewayEthAddress,
+//          keyPair = keyPair,
+//        )
 
 //        val dest = "0xa0d311fdC182Df002C90469098D3a2B6F40E5cDF"
 ////        val dest = "0xa0d311fdc182df002c90469098d3a2b6f40e5cdf"
@@ -644,6 +757,4 @@ object EthGatewayMain extends IOApp:
 //          )
 //        yield
 //          ()
-
-      }
     yield ExitCode.Success
