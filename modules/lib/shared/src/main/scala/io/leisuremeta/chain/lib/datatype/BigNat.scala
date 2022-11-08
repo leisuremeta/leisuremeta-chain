@@ -30,7 +30,17 @@ object BigNat:
 
   def fromBigInt(n: BigInt): Either[String, BigNat] = refineV[NonNegative](n)
 
-  extension (bignat: BigNat) def toBigInt: BigInt = bignat.value
+  extension (bignat: BigNat)
+    @annotation.targetName("plus")
+    def +(that: BigNat): BigNat = BigNat.add(bignat, that)
+
+    @annotation.targetName("times")
+    def *(that: BigNat): BigNat = BigNat.multiply(bignat, that)
+
+    @annotation.targetName("diviedBy")
+    def /(that: BigNat): BigNat = BigNat.divide(bignat, that)
+
+    def toBigInt: BigInt = bignat.value
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafeFromBigInt(n: BigInt): BigNat = fromBigInt(n) match

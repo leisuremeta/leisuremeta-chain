@@ -209,7 +209,17 @@ trait UpdateStateWithTokenTx:
                 Unit,
               ](balanceItem.toBytes.bits, ())
               .runS(ms.token.nftBalanceState)
-            nftStateItem = NftState(mn.tokenId, mn.tokenDefinitionId, mn.output)
+            weightOption = for
+              nftInfo <- tokenDefinition.nftInfo
+              weight <- nftInfo.rarity.get(mn.rarity)
+            yield weight
+            nftStateItem = NftState(
+              tokenId = mn.tokenId,
+              tokenDefinitionId = mn.tokenDefinitionId,
+              rarity = mn.rarity,
+              weight = weightOption.getOrElse(BigNat.Zero),
+              currentOwner = mn.output,
+            )
             nftState <- MerkleTrie
               .put[F, TokenId, NftState](mn.tokenId.toBytes.bits, nftStateItem)
               .runS(ms.token.nftState)

@@ -25,6 +25,7 @@ import service.{
   LocalStatusService,
   NodeInitializationService,
   PeriodicActionService,
+  RewardService,
   StateReadService,
   TransactionService,
 }
@@ -64,7 +65,9 @@ final case class NodeApp[F[_]
       .get
     CryptoOps.fromPrivate(privateKey)
 
-  def getLocalGossipService(bestConfirmedBlock: Block): F[LocalGossipService[F]] =
+  def getLocalGossipService(
+      bestConfirmedBlock: Block,
+  ): F[LocalGossipService[F]] =
 
     val params = GossipDomain.GossipParams(
       nodeAddresses = nodeAddresses.zipWithIndex.map { case (address, i) =>
@@ -92,7 +95,8 @@ final case class NodeApp[F[_]
     (ethAddress: EthAddress) =>
       StateReadService.getEthAccount(ethAddress).map {
         case Some(account) => Right(account)
-        case None       => Left(Right(Api.NotFound(s"account not found: $ethAddress")))
+        case None =>
+          Left(Right(Api.NotFound(s"account not found: $ethAddress")))
       }
   }
 
@@ -106,9 +110,12 @@ final case class NodeApp[F[_]
 
   def getBlockListServerEndpoint = Api.getBlockListEndpoint.serverLogic {
     (fromOption, limitOption) =>
-      BlockService.index(fromOption, limitOption).leftMap{
-        (errorMsg: String) => Left(Api.ServerError(errorMsg))
-      }.value
+      BlockService
+        .index(fromOption, limitOption)
+        .leftMap { (errorMsg: String) =>
+          Left(Api.ServerError(errorMsg))
+        }
+        .value
   }
 
   def getBlockServerEndpoint = Api.getBlockEndpoint.serverLogic {
@@ -176,12 +183,14 @@ final case class NodeApp[F[_]
       }
   }
 
-
   def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
     (tokenDefinitionId: TokenDefinitionId) =>
-      StateReadService.getOwners(tokenDefinitionId).leftMap {
-        (errMsg) => Left(Api.ServerError(errMsg))
-      }.value
+      StateReadService
+        .getOwners(tokenDefinitionId)
+        .leftMap { (errMsg) =>
+          Left(Api.ServerError(errMsg))
+        }
+        .value
   }
 
   def postTxServerEndpoint(using LocalGossipService[F]) =
@@ -200,10 +209,13 @@ final case class NodeApp[F[_]
 
   def getTxSetServerEndpoint = Api.getTxSetEndpoint.serverLogic {
     (block: Block.BlockHash) =>
-      TransactionService.index(block).leftMap{
-        case Left(serverErrorMsg) => Left(Api.ServerError(serverErrorMsg))
-        case Right(errorMessage) => Right(Api.NotFound(errorMessage))
-      }.value
+      TransactionService
+        .index(block)
+        .leftMap {
+          case Left(serverErrorMsg) => Left(Api.ServerError(serverErrorMsg))
+          case Right(errorMessage)  => Right(Api.NotFound(errorMessage))
+        }
+        .value
   }
 
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
@@ -231,6 +243,22 @@ final case class NodeApp[F[_]
       Right(txs.map(_.toHash))
     }
 
+  def getRewardServerEndpoint = Api.getRewardEndpoint.serverLogic {
+    (
+        account: Account,
+        timestamp: Option[Instant],
+        daoAccount: Option[Account],
+        rewardAmount: Option[BigNat],
+    ) =>
+      RewardService
+        .getRewardInfoFromBestHeader(account, timestamp, daoAccount, rewardAmount)
+        .value
+        .map {
+          case Left(err) => Left(Left(Api.ServerError(err)))
+          case Right(rewardInfo) => Right(rewardInfo)
+        }
+  }
+
   def leisuremetaEndpoints(using
       LocalGossipService[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
@@ -247,6 +275,7 @@ final case class NodeApp[F[_]
     getTokenServerEndpoint,
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
+    getRewardServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )
@@ -271,8 +300,8 @@ final case class NodeApp[F[_]
       .initialize[F](config.genesis.timestamp)
       .value
     bestBlock <- initializeResult match
-      case Left(err) => Async[F].raiseError(Exception(err))
-      case Right(block)  => Async[F].pure(block)
+      case Left(err)    => Async[F].raiseError(Exception(err))
+      case Right(block) => Async[F].pure(block)
     given LocalGossipService[F] <- getLocalGossipService(bestBlock)
     server <- Async[F].async_[Server] { cb =>
       val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
@@ -289,7 +318,7 @@ final case class NodeApp[F[_]
     }
   yield server
 
-  def resource: F[Resource[F, Server]] = Async[F].delay{
+  def resource: F[Resource[F, Server]] = Async[F].delay {
     for
 //      _ <- periodicResource
       dispatcher <- Dispatcher[F]

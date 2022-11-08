@@ -31,30 +31,37 @@
     *  TxHash
     *  Tx
 
-
-`GET` **/reward-expectation/{accountName}** 예상 보상량 조회
-
-* Response: Map[RewardType, RewardAmount]
-  * RewardType: 보상 유형 (string). 다음 네 가지 중 하나이다.
-    * "Basic": 기본적인 NFT 보유 보상
-    * "Rarity": 보유한 NFT의 Rarity에 따르는 추가 보상
-    * "Activity": DAO 활동 보상
-    * "Staking": LM토큰을 스테이킹했을 때 주어지는 보상
-
-  * RewardAmount: 해당 유형의 보상 총량
-
 `GET` **/reward/{accountName}** 보상 조회
 
-> `param` *(optional)* timestamp: 기준 시점. 없으면 가장 최근 보상.
+> `param` *(optional)* timestamp: 기준 시점. 없으면 가장 최근 보상. (월요일 0시 ~ 일요일 23시59분 주기)
+>
+> `param` *(optional)* dao-account: 마스터 다오 계정. 없으면  `DAO-M` 사용
+>
+> `param` *(optional)* reward-amount: 리워드 총량. 없으면 마스터 다오 계정의 현재 LM 밸런스. 
 
 * Response:
-  * value: Map[RewardType, RewardAmount]. 예상 보상량 조회의 응답과 같은 타입의 object이다.
-  * rewardedAt: 보상된 시각
+  * account: 계정이름 
+  * reward: 보상
+    * total: 총 보상량
+    * activity: 활동보상
+    * token: 토큰이 받은 사용자액션 보상
+    * rarity: 보유 토큰의 희귀도에 따른 보상
+    * bonus: 모더레이터인 경우 주어지는 추가 보상 총합 
+  * point: 활동내역에 따르는 보상 포인트(1/1000 포인트 단위의 정수)
+    * activity: 활동 내역.
+      * like: 좋아요
+      * comment: 댓글
+      * share: 공유
+      * report: 신고
+    * token: 토큰이 받은 내역
+      * like: 좋아요
+      * comment: 댓글
+      * share: 공유
+      * report: 신고
+    * rarity: Map[String, Number] 희귀도에 따르는 포인트
+  * timestamp: 기준 시점
+  * totalNumberOfDao: 시스템에 개설된 다오 총 수
 
-`GET` **/nft-reward/{tokenId}** NFT별 주별 예상 보상량 조회
-
-* Response: RewardAmount
-  * RewardAmount: 보상 총량
 
 `GET`  **/dao/{groupID}** 특정 그룹의 DAO 정보 조회
 
@@ -1014,6 +1021,8 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
   * NftState
     * TokenID
     * TokenDefinitionID
+    * Rarity
+    * Weight
     * CurrentOwner: Account
 * RarityState: (TokenDefinitionID, Rarity, TokenID) => ()
 * FungibleBalanceState: (AccountName, TokenDefinitionID, TransactionHash) => ()
@@ -1033,99 +1042,4 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 * TokenReceivedState: (Instant, TokenId) => DaoActivity
 * StakeState: (AccountName, TransactionHash) => ()
 * StakeRequestState: TransactionHash => ()
-
-
-
-## Use Scenario
-
-### Case #1: 판매등록 $\rightarrow$ 구매
-
-```mermaid
-sequenceDiagram
-	actor S as 판매자
-	actor B as 구매자
-	participant P as Playnomm서버
-	participant L as LM체인
-	
-	S ->> +P : NFT 잔고 조회
-	P ->> +L : GET /nft-balance/{accountName} 계정 NFT 잔고 조회
-	L -->>-P : 계정 잔고 NFT UTXO 목록 반환
-	P -->>-S : 계정 잔고 NFT UTXO 목록 반환
-	S ->> +P : SuggestSellDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx SuggestDeal 트랜잭션 전송
-	L -->>-P : SuggestSellDeal 트랜잭션 해시
-	P -->>-S : 판매 등록 완료 통보
-	B ->> +P : KM 코인 잔고 조회
-	P ->> +L : GET /balance/{accountName} 계정 잔고 조회
-	L -->>-P : 계정 잔고 UTXO 반환
-	P -->>-B : 계정 KM 잔고 UTXO 반환
-	B ->> +P : AcceptDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx AcceptDeal 트랜잭션 전송
-	L -->>-P : AcceptDeal 트랜잭션 해시
-	P -->>-B : 거래완료 통보
-```
----
-
-### Case #2: 판매등록 $\rightarrow$ 역제안  $\rightarrow$ 수락
-
-```mermaid
-sequenceDiagram
-	actor S as 판매자
-	actor B as 구매자
-	participant P as Playnomm서버
-	participant L as LM체인
-	
-	S ->> +P : NFT 잔고 조회
-	P ->> +L : GET /nft-balance/{accountName} 계정 NFT 잔고 조회
-	L -->>-P : 계정 잔고 NFT UTXO 목록 반환
-	P -->>-S : 계정 잔고 NFT UTXO 목록 반환
-	S ->> +P : SuggestSellDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx SuggestDeal 트랜잭션 전송
-	L -->>-P : SuggestSellDeal 트랜잭션 해시
-	P -->>-S : 판매 등록 완료 통보
-	B ->> +P : KM 코인 잔고 조회
-	P ->> +L : GET /balance/{accountName} 계정 잔고 조회
-	L -->>-P : 계정 잔고 UTXO 반환
-	P -->>-B : 계정 KM 잔고 UTXO 반환
-	B ->> +P : SuggestBuyDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx SuggestDeal 트랜잭션 전송
-	L -->>-P : SuggestBuyDeal 트랜잭션 해시
-	P -->>-B : 역제안 등록 완료 통보
-	S ->> +P : AcceptDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx AcceptDeal 트랜잭션 전송
-	L -->>-P : AcceptDeal 트랜잭션 해시
-	P -->>-S : 거래완료 통보
-```
----
-
-### Case #3: 판매등록 $\rightarrow$ 역제안  $\rightarrow$ 제안 취소
-
-```mermaid
-sequenceDiagram
-	actor S as 판매자
-	actor B as 구매자
-	participant P as Playnomm서버
-	participant L as LM체인
-	
-	S ->> +P : NFT 잔고 조회
-	P ->> +L : GET /nft-balance/{accountName} 계정 NFT 잔고 조회
-	L -->>-P : 계정 잔고 NFT UTXO 목록 반환
-	P -->>-S : 계정 잔고 NFT UTXO 목록 반환
-	S ->> +P : SuggestSellDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx SuggestDeal 트랜잭션 전송
-	L -->>-P : SuggestSellDeal 트랜잭션 해시
-	P -->>-S : 판매 등록 완료 통보
-	B ->> +P : KM 코인 잔고 조회
-	P ->> +L : GET /balance/{accountName} 계정 잔고 조회
-	L -->>-P : 계정 잔고 UTXO 반환
-	P -->>-B : 계정 KM 잔고 UTXO 반환
-	B ->> +P : SuggestBuyDeal 트랜잭션 서명후 전송
-	P ->> +L : POST /tx SuggestDeal 트랜잭션 전송
-	L -->>-P : SuggestBuyDeal 트랜잭션 해시
-	P -->>-B : 역제안 등록 완료 통보
-	B ->> +P : CancelSuggestion  트랜잭션 서명후 전송
-	P ->> +L : POST /tx CancelSuggestion  트랜잭션 전송
-	L -->>-P : CancelSuggestion  트랜잭션 해시
-	P -->>-B : 취소완료 통보
-```
 
