@@ -4,6 +4,7 @@ package archieve
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.Instant
 
+import scala.concurrent.duration.*
 import scala.io.Source
 
 import cats.Monad
@@ -11,6 +12,7 @@ import cats.data.EitherT
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.bifunctor.*
 import cats.syntax.eq.*
+import cats.syntax.flatMap.toFlatMapOps
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
@@ -42,7 +44,8 @@ final case class PHeader(
 object ArchieveMain extends IOApp:
 
 //  val baseUri = "http://test.chain.leisuremeta.io:8080"
-  val baseUri = "http://localhost:7080"
+//  val baseUri = "http://localhost:7080"
+  val baseUri = "http://localhost:8080"
 
   val archieveFileName = "txs.archieve"
 
@@ -102,39 +105,39 @@ object ArchieveMain extends IOApp:
       uri"$baseUri/status"
     }
 
-  def loop[F[_]: Monad](backend: SttpBackend[F, Any])(next: Block.BlockHash, genesis: Block.BlockHash, acc: List[Set[Signed.TxHash]]): EitherT[F, String, List[Set[Signed.TxHash]]] =
+  def loop[F[_]: Monad](backend: SttpBackend[F, Any])(next: Block.BlockHash, genesis: Block.BlockHash, count: Long)(run: Set[Signed.TxHash] => EitherT[F, String, Unit]): EitherT[F, String, Long] =
     for
       block <- getBlock[F](backend)(next)
-      acc1 = block.transactionHashes :: acc
-      result <-
-        if block.header.parentHash === genesis then
-          EitherT.pure[F, String](acc1)
-        else
-          loop[F](backend)(block.header.parentHash, genesis, acc1)
-    yield result
+      _ <- run(block.transactionHashes)
+      count1 <- loop[F](backend)(block.header.parentHash, genesis, count + 1)(run)
+    yield count1
     
   def run(args: List[String]): IO[ExitCode] =
-    for _ <- ArmeriaCatsBackend.resource[IO]().use { backend => {
+    for _ <- ArmeriaCatsBackend.resource[IO](
+      SttpBackendOptions.Default.connectionTimeout(10.minutes)
+    ).use { backend => {
         for
           status <- getStatus[IO](backend)
           block <- getBlock[IO](backend)(status.bestHash)
-          allTxHash <- loop[IO](backend)(status.bestHash, status.genesisHash, Nil)
-          _ <- allTxHash.traverse{ txSet =>
+          count <- loop[IO](backend)(status.bestHash, status.genesisHash, 0){ txSet =>
             for
               txs <- txSet.toList.traverse{ getTransaciton[IO](backend) }
               _ <- EitherT.right(logTxs(txs.map(_.signedTx).asJson.noSpaces + "\n"))
             yield ()
           }
         yield
-          println(s"total blocks: ${allTxHash.size}")
+          println(s"total number of block: count")
 
-//        Source.fromFile(archieveFileName).getLines.to(LazyList).traverse{ line =>
-//          put[IO](backend)(uri"$baseUri/tx")(line).recover{
-//            case msg: String =>
-//              println(s"Error: $msg")
-//              println(s"Error Request: $line")
-//              Nil
-//          }
+//        val n = 1
+//        Source.fromFile(archieveFileName).getLines.to(LazyList).zipWithIndex.drop(n - 1).traverse{
+//          (line, i) =>
+//            println(i)
+//            put[IO](backend)(uri"$baseUri/tx")(line).recover{
+//              case msg: String =>
+//                println(s"Error: $msg")
+////                println(s"Error Request: $line")
+//                Nil
+//            }
 //        }
       }.value
     }

@@ -308,6 +308,7 @@ final case class NodeApp[F[_]
         .toService(leisuremetaEndpoints)
       val server = Server.builder
         .maxRequestLength(128 * 1024 * 1024)
+        .requestTimeout(java.time.Duration.ofMinutes(10))
         .http(config.local.port.value)
         .service(tapirService)
         .build
