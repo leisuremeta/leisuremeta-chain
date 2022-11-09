@@ -84,6 +84,7 @@ object RewardService:
 
     for
       totalNumberOfDao <- countDao[F](rewardMerkleState.daoState)
+//      _ <- EitherT.pure(scribe.info(s"Total number of DAO: ${totalNumberOfDao}"))
       userActivities <- getWeeklyUserActivities[F](
         timestamp,
         account,
@@ -92,37 +93,45 @@ object RewardService:
       userActivityMilliPoint = userActivities.flatten
         .map(dailyDaoActivityToMilliPoint)
         .foldLeft(BigNat.Zero)(BigNat.add)
+//      _ <- EitherT.pure(scribe.info(s"userActivities: ${userActivities.flatten}"))
       totalActivityMilliPoint <- getWeeklyTotalActivityPoint[F](
         timestamp,
         userActivityState,
       )
+//      _ <- EitherT.pure(scribe.info(s"totalActivityMilliPoint: ${totalActivityMilliPoint}"))
       userActivityReward = calculateUserActivityReward(
         totalNumberOfDao,
         userActivityMilliPoint,
         totalActivityMilliPoint,
       )
       stateRoot <- findStateRootAt(canonicalTimestamp)
+//      _ <- EitherT.pure(scribe.info(s"stateRoot: ${stateRoot}"))
       tokens    <- getNftOwned(account, stateRoot.token.nftBalanceState)
+//      _ <- EitherT.pure(scribe.info(s"tokens: ${tokens}"))
       tokenReceivedDaoActivity <- getWeeklyTokenReceived(
         tokens,
         canonicalTimestamp,
         tokenReceivedState,
       )
+//      _ <- EitherT.pure(scribe.info(s"tokenReceivedDaoActivity: ${tokenReceivedDaoActivity}"))
       totalReceivedMilliPoint <- getWeeklyTotalReceivedPoint(
         timestamp,
         tokenReceivedState,
       )
+//      _ <- EitherT.pure(scribe.info(s"totalReceivedMilliPoint: ${totalReceivedMilliPoint}"))
       tokenReceivedReward = calculateTokenReceivedReward(
         totalNumberOfDao,
         tokenReceivedDaoActivity,
         totalReceivedMilliPoint,
       )
       userRarityRewardItems <- getUserRarityItem(account, tokenMerkleState)
+//      _ <- EitherT.pure(scribe.info(s"userRarityRewardItems: ${userRarityRewardItems}"))
       userRarityReward = rarityItemsToRewardDetailMap(userRarityRewardItems)
       totalRarityRewardValue <- getTotalRarityRewardValue(
         account,
         tokenMerkleState,
       )
+      _ <- EitherT.pure(scribe.info(s"totalRarityRewardValue: ${totalRarityRewardValue}"))
       userRarityRewardValue = calculateUserRarityRewardValue(
         totalNumberOfDao,
         userRarityRewardItems,
@@ -174,7 +183,7 @@ object RewardService:
   ): BigNat =
     val limit = BigInt(120_000L) * 1000 * numberOfDao
     val milliPoint: BigNat =
-      if totalActivityMilliPoint.toBigInt < limit then userActivityMilliPoint
+      if totalActivityMilliPoint.toBigInt <= limit then userActivityMilliPoint
       else
         BigNat.unsafeFromBigInt(
           limit,
@@ -321,7 +330,9 @@ object RewardService:
       ],
   ): EitherT[F, String, List[TokenId]] =
     for
-      stream <- MerkleTrie.from(user.toBytes.bits).runA(state)
+      stream <- MerkleTrie
+        .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](user.toBytes.bits)
+        .runA(state)
       tokenIds <- stream
         .evalMap { case (keyBits, ()) =>
           EitherT.fromEither[F] {
@@ -412,18 +423,19 @@ object RewardService:
       tokenReceivedActivity: DaoActivity,
       totalReceivedMilliPoint: BigNat,
   ): BigNat =
-    val limit = BigInt(125_000L) * 1000 * numberOfDao - 50_000L
-    val tokenReceivedMilliPoint = BigNat
-      .fromBigInt(daoActivityToMilliPoint(tokenReceivedActivity))
-      .toOption
-      .getOrElse(BigNat.Zero)
-    val milliPoint: BigNat =
-      if totalReceivedMilliPoint.toBigInt < limit then tokenReceivedMilliPoint
-      else
-        BigNat.unsafeFromBigInt(
-          limit,
-        ) * tokenReceivedMilliPoint / totalReceivedMilliPoint
-    milliPoint * BigNat.unsafeFromBigInt(BigInt(10).pow(15))
+    if numberOfDao <= 0 then BigNat.Zero else
+      val limit = BigInt(125_000L) * 1000 * numberOfDao - 50_000L
+      val tokenReceivedMilliPoint = BigNat
+        .fromBigInt(daoActivityToMilliPoint(tokenReceivedActivity))
+        .toOption
+        .getOrElse(BigNat.Zero)
+      val milliPoint: BigNat =
+        if totalReceivedMilliPoint.toBigInt < limit then tokenReceivedMilliPoint
+        else
+          BigNat.unsafeFromBigInt(
+            limit,
+          ) * tokenReceivedMilliPoint / totalReceivedMilliPoint
+      milliPoint * BigNat.unsafeFromBigInt(BigInt(10).pow(15))
 
   def getUserRarityReward[F[_]
     : Concurrent: StateRepository.TokenState: StateRepository.RewardState](
@@ -526,7 +538,7 @@ object RewardService:
         .last
         .compile
         .toList
-    yield ansList.flatten.head._1._2
+    yield ansList.flatten.headOption.fold(BigNat.Zero)(_._1._2)
 
   def getWeightfromTokenDef(
       tokenDef: TokenDefinition,
@@ -547,7 +559,7 @@ object RewardService:
     val userRarityReward =
       userRarityRewardItems.map(_._2).foldLeft(BigNat.Zero)(BigNat.add)
     val point: BigNat =
-      if totalRarityRewardValue.toBigInt < limit.toBigInt then userRarityReward
+      if totalRarityRewardValue.toBigInt <= limit.toBigInt then userRarityReward
       else limit * userRarityReward / totalRarityRewardValue
     point * BigNat.unsafeFromBigInt(BigInt(10).pow(18))
 
