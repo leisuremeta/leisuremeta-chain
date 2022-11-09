@@ -73,6 +73,8 @@ object BlockService:
         StateRepository.TokenState[F].entrustFungibleBalance.put(state.token.entrustFungibleBalanceState),
         StateRepository.TokenState[F].entrustNftBalance.put(state.token.entrustNftBalanceState),
         StateRepository.RewardState[F].daoState.put(state.reward.daoState),
+        StateRepository.RewardState[F].userActivityState.put(state.reward.userActivityState),
+        StateRepository.RewardState[F].tokenReceivedState.put(state.reward.tokenReceivedState),
       ).sequence
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)
