@@ -18,7 +18,13 @@ import api.model.{
 }
 import api.model.account.EthAddress
 import api.model.reward.{DaoActivity, DaoInfo}
-import api.model.token.{NftState, Rarity, TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.{
+  NftState,
+  Rarity,
+  TokenDefinition,
+  TokenDefinitionId,
+  TokenId,
+}
 import lib.crypto.Hash
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
@@ -144,10 +150,19 @@ object StateRepository:
           Unit,
         ],
         nftKVStore: MerkleHashStore[F, TokenId, NftState],
-        rarityKVStore: MerkleHashStore[F, (TokenDefinitionId, Rarity, TokenId), Unit],
+        rarityKVStore: MerkleHashStore[
+          F,
+          (TokenDefinitionId, Rarity, TokenId),
+          Unit,
+        ],
         entrustFungibleBalanceKVStroe: MerkleHashStore[
           F,
-          (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          (
+              Account,
+              Account,
+              TokenDefinitionId,
+              Hash.Value[TransactionWithResult],
+          ),
           Unit,
         ],
         entrustNftBalanceKVStore: MerkleHashStore[
@@ -155,7 +170,6 @@ object StateRepository:
           (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
-
     ): TokenState[F] = new TokenState[F]:
       def definition: StateRepository[F, TokenDefinitionId, TokenDefinition] =
         fromStores
@@ -170,11 +184,17 @@ object StateRepository:
         Unit,
       ] = fromStores
       def nft: StateRepository[F, TokenId, NftState] = fromStores
-      def rarity: StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
+      def rarity
+          : StateRepository[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
         fromStores
       def entrustFungibleBalance: StateRepository[
         F,
-        (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+        (
+            Account,
+            Account,
+            TokenDefinitionId,
+            Hash.Value[TransactionWithResult],
+        ),
         Unit,
       ] = fromStores
       def entrustNftBalance: StateRepository[
@@ -182,7 +202,6 @@ object StateRepository:
         (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
         Unit,
       ] = fromStores
-
 
   given nodeStoreFromDefinition[F[_]: Functor: TokenState]
       : NodeStore[F, TokenDefinitionId, TokenDefinition] =
@@ -195,36 +214,47 @@ object StateRepository:
   ] =
     Kleisli(TokenState[F].fungibleBalance.get(_).leftMap(_.msg))
 
-  given nodeStoreFromNftBalance[F[_]: Functor: TokenState]
-      : NodeStore[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit] =
+  given nodeStoreFromNftBalance[F[_]: Functor: TokenState]: NodeStore[
+    F,
+    (Account, TokenId, Hash.Value[TransactionWithResult]),
+    Unit,
+  ] =
     Kleisli(TokenState[F].nftBalance.get(_).leftMap(_.msg))
-  
+
   given nodeStoreFromNft[F[_]: Functor: TokenState]
       : NodeStore[F, TokenId, NftState] =
     Kleisli(TokenState[F].nft.get(_).leftMap(_.msg))
-  
+
   given nodeStoreFromRarity[F[_]: Functor: TokenState]
       : NodeStore[F, (TokenDefinitionId, Rarity, TokenId), Unit] =
     Kleisli(TokenState[F].rarity.get(_).leftMap(_.msg))
 
-  given nodeStoreFromEntrustFungibleBalance[F[_]: Functor: TokenState]: NodeStore[
-    F,
-    (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
-    Unit,
-  ] =
+  given nodeStoreFromEntrustFungibleBalance[F[_]: Functor: TokenState]
+      : NodeStore[
+        F,
+        (
+            Account,
+            Account,
+            TokenDefinitionId,
+            Hash.Value[TransactionWithResult],
+        ),
+        Unit,
+      ] =
     Kleisli(TokenState[F].entrustFungibleBalance.get(_).leftMap(_.msg))
 
-  given nodeStoreFromEntrustNftBalance[F[_]: Functor: TokenState]
-      : NodeStore[F, (Account, Account, TokenId, Hash.Value[TransactionWithResult]), Unit] =
+  given nodeStoreFromEntrustNftBalance[F[_]: Functor: TokenState]: NodeStore[
+    F,
+    (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+    Unit,
+  ] =
     Kleisli(TokenState[F].entrustNftBalance.get(_).leftMap(_.msg))
-
 
   /** RewardState
     */
   trait RewardState[F[_]]:
     def daoState: StateRepository[F, GroupId, DaoInfo]
-    def userActivityState: StateRepository[F, (Instant, Account), DaoActivity] 
-    def tokenReceivedState: StateRepository[F, (Instant, TokenId), DaoActivity] 
+    def userActivityState: StateRepository[F, (Instant, Account), DaoActivity]
+    def tokenReceivedState: StateRepository[F, (Instant, TokenId), DaoActivity]
   object RewardState:
     def apply[F[_]: RewardState]: RewardState[F] = summon
 
@@ -242,8 +272,10 @@ object StateRepository:
         ],
     ): RewardState[F] = new RewardState[F]:
       def daoState: StateRepository[F, GroupId, DaoInfo] = fromStores
-      def userActivityState: StateRepository[F, (Instant, Account), DaoActivity] = fromStores
-      def tokenReceivedState: StateRepository[F, (Instant, TokenId), DaoActivity] = fromStores
+      def userActivityState
+          : StateRepository[F, (Instant, Account), DaoActivity] = fromStores
+      def tokenReceivedState
+          : StateRepository[F, (Instant, TokenId), DaoActivity] = fromStores
 
   end RewardState
 
@@ -259,7 +291,6 @@ object StateRepository:
       : NodeStore[F, (Instant, TokenId), DaoActivity] =
     Kleisli(RewardState[F].tokenReceivedState.get(_).leftMap(_.msg))
 
-
   /** General
     */
   given nodeStore[F[_]: Functor, K, V](using
@@ -267,7 +298,7 @@ object StateRepository:
   ): NodeStore[F, K, V] = Kleisli(sr.get(_).leftMap(_.msg))
 
   type MerkleHashStore[F[_], K, V] =
-    KeyValueStore[F, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
+    KeyValueStore[F, MerkleHash[K, V], MerkleTrieNode[K, V]]
 
   def fromStores[F[_]: Monad, K, V](using
       stateKvStore: MerkleHashStore[F, K, V],
@@ -276,22 +307,14 @@ object StateRepository:
     def get(
         merkleRoot: MerkleRoot[K, V],
     ): EitherT[F, DecodingFailure, Option[MerkleTrieNode[K, V]]] =
-      OptionT(stateKvStore.get(merkleRoot)).map(_._1).value
+      stateKvStore.get(merkleRoot)
 
     def put(state: MerkleTrieState[K, V]): F[Unit] = for
       _ <- Monad[F].pure(scribe.debug(s"Putting state: $state"))
       _ <- state.diff.toList.traverse { case (hash, (node, count)) =>
         stateKvStore.get(hash).value.flatMap {
-          case Right(Some((node0, count0))) =>
-            val count1 = count0.toBigInt.toLong + count
-            if count1 <= 0 then stateKvStore.remove(hash)
-            else if count > 0 then
-              stateKvStore.put(hash, (node, BigNat.unsafeFromLong(count1)))
-            else Monad[F].unit
-          case Right(None) =>
-            if count > 0 then
-              stateKvStore.put(hash, (node, BigNat.unsafeFromLong(count)))
-            else Monad[F].unit
+          case Right(None) if count > 0 => stateKvStore.put(hash, node)
+          case Right(_) => Monad[F].unit
           case Left(err) => throw new Exception(s"Error: $err")
         }
       }

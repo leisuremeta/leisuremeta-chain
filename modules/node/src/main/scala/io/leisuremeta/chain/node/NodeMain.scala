@@ -51,12 +51,12 @@ object NodeMain extends IOApp:
     yield BlockRepository.fromStores[IO]
 
     type StateRepoStore[F[_], K, V] =
-      StoreIndex[IO, MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)]
+      StoreIndex[IO, MerkleHash[K, V], MerkleTrieNode[K, V]]
 
     def getStateRepo[K: ByteCodec, V: ByteCodec](
         dir: Path,
     ): IO[StateRepoStore[IO, K, V]] =
-      sway[MerkleHash[K, V], (MerkleTrieNode[K, V], BigNat)](dir)
+      sway[MerkleHash[K, V], MerkleTrieNode[K, V]](dir)
 
     def getTransactionRepo: IO[TransactionRepository[IO]] =
       for given StoreIndex[IO, Hash.Value[

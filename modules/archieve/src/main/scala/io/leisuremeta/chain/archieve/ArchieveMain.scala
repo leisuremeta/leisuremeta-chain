@@ -128,10 +128,11 @@ object ArchieveMain extends IOApp:
         yield
           println(s"total number of block: count")
 
-//        val n = 1
-//        Source.fromFile(archieveFileName).getLines.to(LazyList).zipWithIndex.drop(n - 1).traverse{
+//        val from = 0
+//        val to = 100000
+//        Source.fromFile(archieveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
 //          (line, i) =>
-//            println(i)
+//            println(s"$i: $line")
 //            put[IO](backend)(uri"$baseUri/tx")(line).recover{
 //              case msg: String =>
 //                println(s"Error: $msg")

@@ -321,9 +321,15 @@ trait UpdateStateWithTokenTx:
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
             )
+//            _ <- EitherT.pure{
+//              scribe.info(s"Old NftBalanceState: ${ms.token.nftBalanceState}")
+//            }
             nftBalanceState <- transferNftProgram.runS(
               ms.token.nftBalanceState,
             )
+//            _ <- EitherT.pure{
+//              scribe.info(s"New NftBalanceState: ${nftBalanceState}")
+//            }
           yield (
             ms.copy(token =
               ms.token.copy(nftBalanceState = nftBalanceState),
