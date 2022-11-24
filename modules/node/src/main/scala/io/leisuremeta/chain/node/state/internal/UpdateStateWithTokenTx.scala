@@ -379,6 +379,13 @@ trait UpdateStateWithTokenTx:
                         })
                       case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
                         EitherT.pure(df.outputs.get(sig.account).getOrElse(BigNat.Zero))
+                      case xr: Transaction.RewardTx.ExecuteReward =>
+                        EitherT.pure {
+                          txWithResult.result match
+                            case Some(Transaction.RewardTx.ExecuteRewardResult(outputs)) =>
+                              outputs.get(sig.account).getOrElse(BigNat.Zero)
+                            case _ => BigNat.Zero
+                        }
                     case _ => EitherT.leftT[F, BigNat](s"input tx $txHash is not a fungible balance")
                 case None =>
                   EitherT.leftT[F, BigNat](s"input tx $txHash does not exist")

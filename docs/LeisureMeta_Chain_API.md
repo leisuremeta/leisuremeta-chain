@@ -964,6 +964,24 @@
 
 * ExecuteReward 보상 실행.
 
+  * > 보상 실행 주체. 일반적으로 Playnomm
+  
+  * Fields
+  
+    * *(optional)* daoAccount: 보상이 담긴 계정. 없으면 "DAO-M"
+  
+  * Results
+  
+    * outputs: Map[Account, Amount] 보상 실행 결과
+  
+  * Example
+  
+    ```json
+    ```
+  
+    
+
+
 
 ## Other API
 

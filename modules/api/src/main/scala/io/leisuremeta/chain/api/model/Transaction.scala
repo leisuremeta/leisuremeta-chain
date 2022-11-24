@@ -26,6 +26,8 @@ object TransactionResult:
           ByteVector.fromByte(1) ++ ByteEncoder[BigNat].encode(outputAmount)
         case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) =>
           ByteVector.fromByte(2) ++ ByteEncoder[BigNat].encode(remainder)
+        case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
+          ByteVector.fromByte(3) ++ ByteEncoder[Map[Account, BigNat]].encode(outputs)
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap {
@@ -38,6 +40,10 @@ object TransactionResult:
       case 2 =>
         ByteDecoder[BigNat].map(
           Transaction.TokenTx.EntrustFungibleTokenResult(_),
+        )
+      case 3 =>
+        ByteDecoder[Map[Account, BigNat]].map(
+          Transaction.RewardTx.ExecuteRewardResult(_),
         )
     }
 
@@ -360,6 +366,17 @@ object Transaction:
 //        createdAt: Instant,
 //    ) extends RewardTx
 
+    final case class ExecuteReward(
+        networkId: NetworkId,
+        createdAt: Instant,
+        daoAccount: Option[Account],
+    ) extends RewardTx
+        with FungibleBalance
+
+    final case class ExecuteRewardResult(
+        outputs: Map[Account, BigNat],
+    ) extends TransactionResult
+
     given txByteDecoder: ByteDecoder[RewardTx] = ByteDecoder[BigNat].flatMap {
       bignat =>
         bignat.toBigInt.toInt match
@@ -369,7 +386,7 @@ object Transaction:
           case 3 => ByteDecoder[RegisterStaking].widen
           case 4 => ByteDecoder[RemoveStaking].widen
 //          case 5 => ByteDecoder[ExcuteStakingRequest].widen
-//          case 6 => ByteDecoder[ExecuteReward].widen
+          case 6 => ByteDecoder[ExecuteReward].widen
     }
 
     given txByteEncoder: ByteEncoder[RewardTx] = (rtx: RewardTx) =>
@@ -380,7 +397,7 @@ object Transaction:
         case tx: RegisterStaking => build(3)(tx)
         case tx: RemoveStaking   => build(4)(tx)
 //        case tx: ExcuteStakingRequest => build(5)(tx)
-//        case tx: ExecuteReward        => build(6)(tx)
+        case tx: ExecuteReward        => build(6)(tx)
 
     given txCirceDecoder: Decoder[RewardTx] = deriveDecoder
     given txCirceEncoder: Encoder[RewardTx] = deriveEncoder
