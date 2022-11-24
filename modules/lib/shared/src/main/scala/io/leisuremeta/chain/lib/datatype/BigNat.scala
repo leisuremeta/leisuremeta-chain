@@ -67,6 +67,12 @@ object BigNat:
       case Right(nat) => nat
       case Left(e)    => throw new Exception(e)
 
+  def max(x: BigNat, y: BigNat): BigNat =
+    if x.toBigInt >= y.toBigInt then x else y
+  
+  def min(x: BigNat, y: BigNat): BigNat =
+    if x.toBigInt <= y.toBigInt then x else y
+
   given bignatByteDecoder: ByteDecoder[BigNat] = ByteDecoder.bignatByteDecoder
 
   given bignatByteEncoder: ByteEncoder[BigNat] = ByteEncoder.bignatByteEncoder

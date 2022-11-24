@@ -11,6 +11,7 @@ import cats.effect.Concurrent
 import cats.syntax.either.catsSyntaxEither
 import cats.syntax.eq.catsSyntaxEq
 import cats.syntax.foldable.toFoldableOps
+import cats.syntax.functor.toFunctorOps
 import cats.syntax.traverse.toTraverseOps
 
 import fs2.Stream
@@ -33,7 +34,7 @@ import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
-import lib.datatype.BigNat
+import lib.datatype.{BigNat, Utf8}
 import lib.merkle.{MerkleTrie, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
 import repository.{BlockRepository, StateRepository, TransactionRepository}
@@ -106,7 +107,7 @@ object RewardService:
       )
       stateRoot <- findStateRootAt(canonicalTimestamp)
 //      _ <- EitherT.pure(scribe.info(s"stateRoot: ${stateRoot}"))
-      tokens    <- getNftOwned(account, stateRoot.token.nftBalanceState)
+      tokens <- getNftOwned(account, stateRoot.token.nftBalanceState)
 //      _ <- EitherT.pure(scribe.info(s"tokens: ${tokens}"))
       tokenReceivedDaoActivity <- getWeeklyTokenReceived(
         tokens,
@@ -124,6 +125,10 @@ object RewardService:
         tokenReceivedDaoActivity,
         totalReceivedMilliPoint,
       )
+      totalRarityRewardAmount <- getTotalRarityRewardAmount(
+        rewardAmount,
+        daoAccount,
+      )
       userRarityRewardItems <- getUserRarityItem(account, tokenMerkleState)
 //      _ <- EitherT.pure(scribe.info(s"userRarityRewardItems: ${userRarityRewardItems}"))
       userRarityReward = rarityItemsToRewardDetailMap(userRarityRewardItems)
@@ -131,8 +136,11 @@ object RewardService:
         account,
         tokenMerkleState,
       )
-      _ <- EitherT.pure(scribe.info(s"totalRarityRewardValue: ${totalRarityRewardValue}"))
+      _ <- EitherT.pure(
+        scribe.info(s"totalRarityRewardValue: ${totalRarityRewardValue}"),
+      )
       userRarityRewardValue = calculateUserRarityRewardValue(
+        totalRarityRewardAmount,
         totalNumberOfDao,
         userRarityRewardItems,
         totalRarityRewardValue,
@@ -331,7 +339,9 @@ object RewardService:
   ): EitherT[F, String, List[TokenId]] =
     for
       stream <- MerkleTrie
-        .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](user.toBytes.bits)
+        .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
+          user.toBytes.bits,
+        )
         .runA(state)
       tokenIds <- stream
         .evalMap { case (keyBits, ()) =>
@@ -423,7 +433,8 @@ object RewardService:
       tokenReceivedActivity: DaoActivity,
       totalReceivedMilliPoint: BigNat,
   ): BigNat =
-    if numberOfDao <= 0 then BigNat.Zero else
+    if numberOfDao <= 0 then BigNat.Zero
+    else
       val limit = BigInt(125_000L) * 1000 * numberOfDao - 50_000L
       val tokenReceivedMilliPoint = BigNat
         .fromBigInt(daoActivityToMilliPoint(tokenReceivedActivity))
@@ -436,6 +447,23 @@ object RewardService:
             limit,
           ) * tokenReceivedMilliPoint / totalReceivedMilliPoint
       milliPoint * BigNat.unsafeFromBigInt(BigInt(10).pow(15))
+
+  def getTotalRarityRewardAmount[F[_]
+    : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
+      rewardAmount: Option[BigNat],
+      daoAccount: Option[Account],
+  ): EitherT[F, String, BigNat] = rewardAmount match
+    case Some(amount) => EitherT.pure(amount)
+    case None =>
+      val targetAccount =
+        daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
+      EitherT.right{
+        StateReadService.getFreeBalance[F](targetAccount).map { balanceMap =>
+          balanceMap
+            .get(TokenDefinitionId(Utf8.unsafeFrom("LM")))
+            .fold(BigNat.Zero)(_.totalAmount)
+        }
+      }
 
   def getUserRarityReward[F[_]
     : Concurrent: StateRepository.TokenState: StateRepository.RewardState](
@@ -551,18 +579,18 @@ object RewardService:
   }.getOrElse(BigNat.Zero)
 
   def calculateUserRarityRewardValue(
+      totalRarityRewardAmount: BigNat,
       totalNumberOfDao: Int,
       userRarityRewardItems: List[(Rarity, BigNat)],
       totalRarityRewardValue: BigNat,
   ): BigNat =
     val limit = BigNat.unsafeFromLong(250_000L * totalNumberOfDao)
+    val totalAmount = BigNat.min(totalRarityRewardAmount, limit)
     val userRarityReward =
       userRarityRewardItems.map(_._2).foldLeft(BigNat.Zero)(BigNat.add)
-    val point: BigNat =
-      if totalRarityRewardValue.toBigInt <= limit.toBigInt then userRarityReward
-      else limit * userRarityReward / totalRarityRewardValue
-    point * BigNat.unsafeFromBigInt(BigInt(10).pow(18))
-
+      
+    totalAmount * userRarityReward / totalRarityRewardValue
+    
   def isModerator[F[_]: Concurrent: StateRepository.RewardState](
       user: Account,
       root: MerkleTrieState[GroupId, DaoInfo],
