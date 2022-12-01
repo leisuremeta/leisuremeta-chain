@@ -136,9 +136,9 @@ object RewardService:
         account,
         tokenMerkleState,
       )
-      _ <- EitherT.pure(
-        scribe.info(s"totalRarityRewardValue: ${totalRarityRewardValue}"),
-      )
+//      _ <- EitherT.pure(
+//        scribe.info(s"totalRarityRewardValue: ${totalRarityRewardValue}"),
+//      )
       userRarityRewardValue = calculateUserRarityRewardValue(
         totalRarityRewardAmount,
         totalNumberOfDao,
@@ -484,6 +484,7 @@ object RewardService:
         )
         .runA(state.nftBalanceState)
       result <- stream
+        .takeWhile(_._1.startsWith(user.toBytes.bits))
         .evalMap { (keyBits, _) =>
           for
             decodeResult <- EitherT.fromEither {
@@ -493,6 +494,9 @@ object RewardService:
                 .decode(keyBits.bytes)
                 .leftMap(_.msg)
             }
+//            _ <- EitherT.pure{
+//              scribe.info(s"Decode Result: $decodeResult")
+//            }
             DecodeResult((_, tokenId, _), remainder) = decodeResult
             _ <- EitherT.cond[F](
               remainder.isEmpty,
