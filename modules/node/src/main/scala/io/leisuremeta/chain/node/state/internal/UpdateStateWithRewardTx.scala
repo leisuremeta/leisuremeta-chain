@@ -129,13 +129,15 @@ trait UpdateStateWithRewardTx:
         case xr: Transaction.RewardTx.ExecuteReward =>
           val sourceAccount =
             xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
-          val LM = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+          val LM     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
           val txHash = Hash[Transaction].apply(xr).toResultHashValue
           for
             balance <- getBalance[F](sourceAccount, LM, ms)
             (totalAmount, utxos) = balance
+//            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
             totalNumberOfDao <- RewardService.countDao[F](ms.reward.daoState)
             rarityItemMap    <- getRarityItem[F](ms.token)
+//            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
             outputs = calculateRarityReward(
               totalAmount,
               totalNumberOfDao,
@@ -308,14 +310,17 @@ trait UpdateStateWithRewardTx:
       totalNumberOfDao: Int,
       rarityRewardPoint: Map[Account, BigNat],
   ): Map[Account, BigNat] =
-    val limit       = BigNat.unsafeFromLong(250_000L * totalNumberOfDao)
+    val e18 = BigInt(10).pow(18)
+    val limit =
+      BigNat.unsafeFromBigInt(BigInt(250_000L) * e18 * totalNumberOfDao)
     val totalAmount = BigNat.min(totalRarityRewardAmount, limit)
     val pointSum    = rarityRewardPoint.values.foldLeft(BigNat.Zero)(_ + _)
     rarityRewardPoint.view.mapValues { point =>
       totalAmount * point / pointSum
     }.toMap
 
-  type BalanceKey = (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
+  type BalanceKey =
+    (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
 
   def updateBalanceWithReward[F[_]: cats.Monad: StateRepository.TokenState](
       sourceAccount: Account,
@@ -327,13 +332,18 @@ trait UpdateStateWithRewardTx:
   ): EitherT[F, String, MerkleTrieState[BalanceKey, Unit]] =
     val program = for
       _ <- utxos.traverse { utxo =>
-        MerkleTrie.remove[F, BalanceKey, Unit]((sourceAccount, tokenDef, utxo).toBytes.bits)
+        MerkleTrie.remove[F, BalanceKey, Unit](
+          (sourceAccount, tokenDef, utxo).toBytes.bits,
+        )
       }
       _ <- outputs.toList.traverse { case (account, amount) =>
-        MerkleTrie.put[F, BalanceKey, Unit]((account, tokenDef, txHash).toBytes.bits, ())
+        MerkleTrie.put[F, BalanceKey, Unit](
+          (account, tokenDef, txHash).toBytes.bits,
+          (),
+        )
       }
     yield ()
-    
+
     program.runS(balanceState)
 
 end UpdateStateWithRewardTx
