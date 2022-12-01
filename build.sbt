@@ -175,6 +175,14 @@ lazy val archieve = (project in file ("modules/archieve"))
   .settings(Dependencies.tests)
   .settings(
     name := "leisuremeta-chain-archieve",
+    assemblyMergeStrategy := {
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
   )
   .dependsOn(api.jvm)
 

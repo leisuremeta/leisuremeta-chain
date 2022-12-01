@@ -45,9 +45,9 @@ object ArchieveMain extends IOApp:
 
 //  val baseUri = "http://test.chain.leisuremeta.io:8080"
 //  val baseUri = "http://localhost:7080"
-  val baseUri = "http://localhost:8080"
+  val baseUri = "http://localhost:8081"
 
-  val archieveFileName = "txs.archieve"
+  val archieveFileName = "txs1.archieve"
 
   val backend = ArmeriaCatsBackend[IO]()
 
@@ -116,30 +116,30 @@ object ArchieveMain extends IOApp:
     for _ <- ArmeriaCatsBackend.resource[IO](
       SttpBackendOptions.Default.connectionTimeout(10.minutes)
     ).use { backend => {
-        for
-          status <- getStatus[IO](backend)
-          block <- getBlock[IO](backend)(status.bestHash)
-          count <- loop[IO](backend)(status.bestHash, status.genesisHash, 0){ txSet =>
-            for
-              txs <- txSet.toList.traverse{ getTransaciton[IO](backend) }
-              _ <- EitherT.right(logTxs(txs.map(_.signedTx).asJson.noSpaces + "\n"))
-            yield ()
-          }
-        yield
-          println(s"total number of block: count")
+//        for
+//          status <- getStatus[IO](backend)
+//          block <- getBlock[IO](backend)(status.bestHash)
+//          count <- loop[IO](backend)(status.bestHash, status.genesisHash, 0){ txSet =>
+//            for
+//              txs <- txSet.toList.traverse{ getTransaciton[IO](backend) }
+//              _ <- EitherT.right(logTxs(txs.map(_.signedTx).asJson.noSpaces + "\n"))
+//            yield ()
+//          }
+//        yield
+//          println(s"total number of block: count")
 
-//        val from = 0
-//        val to = 100000
-//        Source.fromFile(archieveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
-//          (line, i) =>
+        val from = 0
+        val to = 1000000
+        Source.fromFile(archieveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
+          (line, i) =>
 //            println(s"$i: $line")
-//            put[IO](backend)(uri"$baseUri/tx")(line).recover{
-//              case msg: String =>
-//                println(s"Error: $msg")
-////                println(s"Error Request: $line")
-//                Nil
-//            }
-//        }
+            put[IO](backend)(uri"$baseUri/tx")(line).recover{
+              case msg: String =>
+                println(s"Error: $msg")
+                println(s"Error Request: $line")
+                Nil
+            }
+        }
       }.value
     }
     yield ExitCode.Success
