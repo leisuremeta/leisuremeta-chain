@@ -588,12 +588,22 @@ object RewardService:
       userRarityRewardItems: List[(Rarity, BigNat)],
       totalRarityRewardValue: BigNat,
   ): BigNat =
-    val limit = BigNat.unsafeFromLong(250_000L * totalNumberOfDao)
+    val e18 = BigInt(10).pow(18)
+    val limit =
+      BigNat.unsafeFromBigInt(BigInt(250_000L) * e18 * totalNumberOfDao)
     val totalAmount = BigNat.min(totalRarityRewardAmount, limit)
     val userRarityReward =
       userRarityRewardItems.map(_._2).foldLeft(BigNat.Zero)(BigNat.add)
       
-    totalAmount * userRarityReward / totalRarityRewardValue
+    val ans = (totalAmount * userRarityReward / totalRarityRewardValue).floorAt(16)
+
+//    scribe.info(s"totalRarityRewardAmount: ${totalRarityRewardAmount}")
+//    scribe.info(s"limit: ${limit}")
+//    scribe.info(s"totalAmount: ${totalAmount}")
+//    scribe.info(s"userRarityReward: ${userRarityReward}")
+//    scribe.info(s"userRarityRewardValue: ${ans}")
+
+    ans
     
   def isModerator[F[_]: Concurrent: StateRepository.RewardState](
       user: Account,

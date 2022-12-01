@@ -42,6 +42,11 @@ object BigNat:
 
     def toBigInt: BigInt = bignat.value
 
+    def floorAt(e: Int): BigNat =
+      val n = BigInt(10).pow(e)
+      unsafeFromBigInt(bignat.value / n * n)
+
+
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafeFromBigInt(n: BigInt): BigNat = fromBigInt(n) match
     case Right(nat) => nat

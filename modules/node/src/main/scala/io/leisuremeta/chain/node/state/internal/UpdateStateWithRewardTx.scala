@@ -139,6 +139,7 @@ trait UpdateStateWithRewardTx:
             rarityItemMap    <- getRarityItem[F](ms.token)
 //            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
             outputs = calculateRarityReward(
+              sourceAccount,
               totalAmount,
               totalNumberOfDao,
               rarityItemMap,
@@ -306,6 +307,7 @@ trait UpdateStateWithRewardTx:
     yield result.head
 
   def calculateRarityReward(
+      sourceAccount: Account,
       totalRarityRewardAmount: BigNat,
       totalNumberOfDao: Int,
       rarityRewardPoint: Map[Account, BigNat],
@@ -315,9 +317,16 @@ trait UpdateStateWithRewardTx:
       BigNat.unsafeFromBigInt(BigInt(250_000L) * e18 * totalNumberOfDao)
     val totalAmount = BigNat.min(totalRarityRewardAmount, limit)
     val pointSum    = rarityRewardPoint.values.foldLeft(BigNat.Zero)(_ + _)
-    rarityRewardPoint.view.mapValues { point =>
-      totalAmount * point / pointSum
+
+    val rewardMap = rarityRewardPoint.view.mapValues { point =>
+      (totalAmount * point / pointSum).floorAt(16)
     }.toMap
+    val rewardSum = rewardMap.values.foldLeft(BigNat.Zero)(_ + _)
+    val remainder = BigNat.unsafeFromBigInt{
+      totalRarityRewardAmount.toBigInt - rewardSum.toBigInt
+    } 
+
+    rewardMap + (sourceAccount -> remainder)
 
   type BalanceKey =
     (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
