@@ -37,14 +37,14 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import repository.{StateRepository, TransactionRepository}
+import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 import service.{RewardService, StateReadService}
 
 trait UpdateStateWithRewardTx:
 
   given updateStateWithRewardTx[F[_]
-    : Concurrent: TransactionRepository: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState]
+    : Concurrent: BlockRepository: TransactionRepository: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState]
       : UpdateState[F, Transaction.RewardTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.RewardTx) =>
       tx match
@@ -135,8 +135,10 @@ trait UpdateStateWithRewardTx:
             balance <- getBalance[F](sourceAccount, LM, ms)
             (totalAmount, utxos) = balance
 //            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
-            totalNumberOfDao <- RewardService.countDao[F](ms.reward.daoState)
-            rarityItemMap    <- getRarityItem[F](ms.token)
+            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(xr.createdAt)
+            rewardCriterionState <- RewardService.findStateRootAt(rewardCriterionInstant)
+            totalNumberOfDao <- RewardService.countDao[F](rewardCriterionState.reward.daoState)
+            rarityItemMap    <- getRarityItem[F](rewardCriterionState.token)
 //            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
             outputs = calculateRarityReward(
               sourceAccount,

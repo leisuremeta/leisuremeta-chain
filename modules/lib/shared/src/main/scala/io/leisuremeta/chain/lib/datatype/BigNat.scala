@@ -1,6 +1,8 @@
 package io.leisuremeta.chain.lib
 package datatype
 
+import scala.math.Ordering
+
 import cats.implicits.given
 
 import eu.timepit.refined.api.Refined
@@ -46,7 +48,6 @@ object BigNat:
       val n = BigInt(10).pow(e)
       unsafeFromBigInt(bignat.value / n * n)
 
-
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafeFromBigInt(n: BigInt): BigNat = fromBigInt(n) match
     case Right(nat) => nat
@@ -74,7 +75,7 @@ object BigNat:
 
   def max(x: BigNat, y: BigNat): BigNat =
     if x.toBigInt >= y.toBigInt then x else y
-  
+
   def min(x: BigNat, y: BigNat): BigNat =
     if x.toBigInt <= y.toBigInt then x else y
 
@@ -87,3 +88,5 @@ object BigNat:
 
   given bignatCirceEncoder: CirceEncoder[BigNat] =
     refinedEncoder[BigInt, NonNegative, Refined]
+
+  given bignatOrdering: Ordering[BigNat] = Ordering.by(_.toBigInt)

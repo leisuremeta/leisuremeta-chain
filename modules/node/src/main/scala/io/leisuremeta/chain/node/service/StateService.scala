@@ -7,13 +7,13 @@ import cats.effect.Concurrent
 
 import GossipDomain.MerkleState
 import api.model.{Signed, Transaction, TransactionWithResult}
-import repository.{StateRepository, TransactionRepository}
+import repository.{BlockRepository, StateRepository, TransactionRepository}
 import state.UpdateState
 
 object StateService:
 
   def updateStateWithTx[F[_]
-    : Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState: TransactionRepository](
+    : Concurrent: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState: TransactionRepository](
       state: MerkleState,
       signedTx: Signed.Tx,
   ): EitherT[F, String, (MerkleState, TransactionWithResult)] =

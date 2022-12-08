@@ -36,7 +36,7 @@ object NodeMain extends IOApp:
         Paths.get("sway", "block", "best"),
       )
       given SingleValueStore[IO, Block.Header] = SingleValueStore
-        .fromKeyValueStore[IO, Block.Header](bestBlockKVStore)
+        .fromKeyValueStore[IO, Block.Header](using bestBlockKVStore)
       given StoreIndex[IO, Block.BlockHash, Block] <- sway[Hash.Value[
         Block,
       ], Block](Paths.get("sway", "block"))

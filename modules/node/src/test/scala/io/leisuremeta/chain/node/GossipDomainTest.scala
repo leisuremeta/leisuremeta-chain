@@ -3,6 +3,8 @@ package node
 
 import java.time.Instant
 
+import scala.collection.immutable.TreeMap
+
 import cats.Id
 import cats.data.EitherT
 import cats.effect.IO
@@ -27,9 +29,9 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
 import lib.failure.DecodingFailure
-import repository.{StateRepository, TransactionRepository}
+import repository.{BlockRepository, StateRepository, TransactionRepository}
 import service.StateService
-import store.KeyValueStore
+import store.{KeyValueStore, SingleValueStore, StoreIndex}
 
 import hedgehog.munit.HedgehogSuite
 import hedgehog.*
@@ -86,6 +88,23 @@ class GossipDomainTest extends HedgehogSuite:
   val accountSig    = AccountSignature(sig, account)
   val tx: Signed.Tx = Signed(accountSig, txRaw)
   given updateState: UpdateState[IO] = new UpdateState[IO]:
+    given storeIndex[K: Ordering, V]: StoreIndex[IO, K, V] =
+      new StoreIndex[IO, K, V]:
+        private var store: TreeMap[K, V] = TreeMap.empty
+        override def get(key: K): EitherT[IO, DecodingFailure, Option[V]] =
+          EitherT.rightT[IO, DecodingFailure](store.get(key))
+        override def put(key: K, value: V): IO[Unit] =
+          IO.pure(store += (key -> value))
+        override def remove(key: K): IO[Unit] = IO.pure{
+          this.store = store.removed(key)
+        }
+        override def from(
+            key: K,
+            offset: Int,
+            limit: Int,
+        ): EitherT[IO, DecodingFailure, List[(K, V)]] =
+          EitherT.pure(store.iteratorFrom(key).drop(offset).take(limit).toList)
+
     given kvStore[K, V]: KeyValueStore[IO, K, V] =
       new KeyValueStore[IO, K, V]:
         private var store: Map[K, V] = Map.empty
@@ -94,8 +113,13 @@ class GossipDomainTest extends HedgehogSuite:
         override def put(key: K, value: V): IO[Unit] =
           IO.pure(store += (key -> value))
         override def remove(key: K): IO[Unit] = IO.pure(store -= key)
+
+    given sStore[A]: SingleValueStore[IO, A] =
+      SingleValueStore.fromKeyValueStore[IO, A]
     given stateRepo[K, V]: StateRepository[IO, K, V] =
       StateRepository.fromStores[IO, K, V]
+    given blockRepo: BlockRepository[IO] =
+      BlockRepository.fromStores[IO]
     given txRepo: TransactionRepository[IO] =
       TransactionRepository.fromStores[IO]
     override def apply(

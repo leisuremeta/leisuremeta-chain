@@ -11,7 +11,7 @@ trait SingleValueStore[F[_], A]:
   def put(a: A): F[Unit]
 
 object SingleValueStore:
-  def fromKeyValueStore[F[_], A](
+  def fromKeyValueStore[F[_], A](using
       kvStore: KeyValueStore[F, UInt256Bytes, A],
   ): SingleValueStore[F, A] = new SingleValueStore[F, A]:
     override def get(): EitherT[F, DecodingFailure, Option[A]] =
