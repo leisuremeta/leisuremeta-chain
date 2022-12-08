@@ -211,13 +211,14 @@ trait UpdateStateWithTokenTx:
               .runS(ms.token.nftBalanceState)
             weightOption = for
               nftInfo <- tokenDefinition.nftInfo
-              weight <- nftInfo.rarity.get(mn.rarity)
+              weight  <- nftInfo.rarity.get(mn.rarity)
             yield weight
             nftStateItem = NftState(
               tokenId = mn.tokenId,
               tokenDefinitionId = mn.tokenDefinitionId,
               rarity = mn.rarity,
-              weight = weightOption.getOrElse(BigNat.Zero),
+              // Set default weight as 2
+              weight = weightOption.getOrElse(BigNat.unsafeFromLong(2)),
               currentOwner = mn.output,
             )
             nftState <- MerkleTrie
@@ -288,23 +289,24 @@ trait UpdateStateWithTokenTx:
           )
         case tn: Transaction.TokenTx.TransferNFT =>
           val txWithResult = TransactionWithResult(Signed(sig, tx), None)
-          type NftBalance = (Account, TokenId, Hash.Value[TransactionWithResult])
+          type NftBalance =
+            (Account, TokenId, Hash.Value[TransactionWithResult])
 
           val transferNftProgram: StateT[
             EitherT[F, String, *],
             MerkleTrieState[NftBalance, Unit],
             Unit,
           ] = for
-            _ <- MerkleTrie.remove[F, NftBalance, Unit]{
+            _ <- MerkleTrie.remove[F, NftBalance, Unit] {
               (sig.account, tn.tokenId, tn.input).toBytes.bits
             }
             _ <- MerkleTrie.put[F, NftBalance, Unit](
-                (
-                  tn.output,
-                  tn.tokenId,
-                  txWithResult.toHash,
-                ).toBytes.bits,
-                (),
+              (
+                tn.output,
+                tn.tokenId,
+                txWithResult.toHash,
+              ).toBytes.bits,
+              (),
             )
           yield ()
 
@@ -331,19 +333,22 @@ trait UpdateStateWithTokenTx:
 //              scribe.info(s"New NftBalanceState: ${nftBalanceState}")
 //            }
           yield (
-            ms.copy(token =
-              ms.token.copy(nftBalanceState = nftBalanceState),
-            ),
+            ms.copy(token = ms.token.copy(nftBalanceState = nftBalanceState)),
             txWithResult,
           )
         case bf: Transaction.TokenTx.BurnFungibleToken => ???
-        case bn: Transaction.TokenTx.BurnNFT => ???
+        case bn: Transaction.TokenTx.BurnNFT           => ???
         case ef: Transaction.TokenTx.EntrustFungibleToken =>
           type FungibleBalance =
             (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
 
           type EntrustFungibleBalance =
-            (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
+            (
+                Account,
+                Account,
+                TokenDefinitionId,
+                Hash.Value[TransactionWithResult],
+            )
           for
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(ef, sig.sig),
@@ -357,66 +362,117 @@ trait UpdateStateWithTokenTx:
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
             )
-            inputAmounts <- ef.inputs.toList.traverse { (txHash: Signed.TxHash) =>
-              TransactionRepository[F].get(txHash.toResultHashValue).leftMap(_.msg).flatMap{
-                case Some(txWithResult) =>
-                  txWithResult.signedTx.value match
-                    case fb: Transaction.FungibleBalance => fb match
-                      case mf: Transaction.TokenTx.MintFungibleToken =>
-                        EitherT.pure(mf.outputs.get(sig.account).getOrElse(BigNat.Zero))
-                      case bf: Transaction.TokenTx.BurnFungibleToken =>
-                        txWithResult.result match
-                          case Some(Transaction.TokenTx.BurnFungibleTokenResult(outputAmount)) =>
-                            EitherT.pure(outputAmount)
-                          case other => EitherT.leftT[F, BigNat](s"burn fungible token result of $txHash has wrong result: $other")
-                      case tf: Transaction.TokenTx.TransferFungibleToken =>
-                        EitherT.pure(tf.outputs.get(sig.account).getOrElse(BigNat.Zero))
+            inputAmounts <- ef.inputs.toList.traverse {
+              (txHash: Signed.TxHash) =>
+                TransactionRepository[F]
+                  .get(txHash.toResultHashValue)
+                  .leftMap(_.msg)
+                  .flatMap {
+                    case Some(txWithResult) =>
+                      txWithResult.signedTx.value match
+                        case fb: Transaction.FungibleBalance =>
+                          fb match
+                            case mf: Transaction.TokenTx.MintFungibleToken =>
+                              EitherT.pure(
+                                mf.outputs
+                                  .get(sig.account)
+                                  .getOrElse(BigNat.Zero),
+                              )
+                            case bf: Transaction.TokenTx.BurnFungibleToken =>
+                              txWithResult.result match
+                                case Some(
+                                      Transaction.TokenTx
+                                        .BurnFungibleTokenResult(outputAmount),
+                                    ) =>
+                                  EitherT.pure(outputAmount)
+                                case other =>
+                                  EitherT.leftT[F, BigNat](
+                                    s"burn fungible token result of $txHash has wrong result: $other",
+                                  )
+                            case tf: Transaction.TokenTx.TransferFungibleToken =>
+                              EitherT.pure(
+                                tf.outputs
+                                  .get(sig.account)
+                                  .getOrElse(BigNat.Zero),
+                              )
 
-                      case ef: Transaction.TokenTx.EntrustFungibleToken =>
-                        EitherT.pure(txWithResult.result.fold(BigNat.Zero){
-                          case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) => remainder
-                          case _ => BigNat.Zero
-                        })
-                      case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
-                        EitherT.pure(df.outputs.get(sig.account).getOrElse(BigNat.Zero))
-                      case xr: Transaction.RewardTx.ExecuteReward =>
-                        EitherT.pure {
-                          txWithResult.result match
-                            case Some(Transaction.RewardTx.ExecuteRewardResult(outputs)) =>
-                              outputs.get(sig.account).getOrElse(BigNat.Zero)
-                            case _ => BigNat.Zero
-                        }
-                    case _ => EitherT.leftT[F, BigNat](s"input tx $txHash is not a fungible balance")
-                case None =>
-                  EitherT.leftT[F, BigNat](s"input tx $txHash does not exist")
-              }
+                            case ef: Transaction.TokenTx.EntrustFungibleToken =>
+                              EitherT.pure(
+                                txWithResult.result.fold(BigNat.Zero) {
+                                  case Transaction.TokenTx
+                                        .EntrustFungibleTokenResult(
+                                          remainder,
+                                        ) =>
+                                    remainder
+                                  case _ => BigNat.Zero
+                                },
+                              )
+                            case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
+                              EitherT.pure(
+                                df.outputs
+                                  .get(sig.account)
+                                  .getOrElse(BigNat.Zero),
+                              )
+                            case xr: Transaction.RewardTx.ExecuteReward =>
+                              EitherT.pure {
+                                txWithResult.result match
+                                  case Some(
+                                        Transaction.RewardTx
+                                          .ExecuteRewardResult(outputs),
+                                      ) =>
+                                    outputs
+                                      .get(sig.account)
+                                      .getOrElse(BigNat.Zero)
+                                  case _ => BigNat.Zero
+                              }
+                        case _ =>
+                          EitherT.leftT[F, BigNat](
+                            s"input tx $txHash is not a fungible balance",
+                          )
+                    case None =>
+                      EitherT.leftT[F, BigNat](
+                        s"input tx $txHash does not exist",
+                      )
+                  }
             }
-            remainder <- EitherT.fromEither[F]{
-              val inputSum = inputAmounts.map(_.toBigInt).sum 
+            remainder <- EitherT.fromEither[F] {
+              val inputSum = inputAmounts.map(_.toBigInt).sum
               BigNat
-                .fromBigInt(inputSum- ef.amount.toBigInt)
-                .leftMap(_ => s"input sum $inputSum is less than output amount ${ef.amount}")
+                .fromBigInt(inputSum - ef.amount.toBigInt)
+                .leftMap(_ =>
+                  s"input sum $inputSum is less than output amount ${ef.amount}",
+                )
             }
             result = Transaction.TokenTx.EntrustFungibleTokenResult(remainder)
             txWithResult = TransactionWithResult(Signed(sig, tx), Some(result))
-            fungibleBalanceState0 <- ef.inputs.toList.traverse { (txHash) =>
-              MerkleTrie.remove[F, FungibleBalance, Unit](
-                (sig.account, ef.definitionId, txHash).toBytes.bits,
+            fungibleBalanceState0 <- ef.inputs.toList
+              .traverse { (txHash) =>
+                MerkleTrie.remove[F, FungibleBalance, Unit](
+                  (sig.account, ef.definitionId, txHash).toBytes.bits,
+                )
+              }
+              .runS(ms.token.fungibleBalanceState)
+            fungibleBalanceState <- MerkleTrie
+              .put[F, FungibleBalance, Unit](
+                (
+                  sig.account,
+                  ef.definitionId,
+                  txWithResult.toHash,
+                ).toBytes.bits,
+                (),
               )
-            }.runS(ms.token.fungibleBalanceState)
-            fungibleBalanceState <- MerkleTrie.put[F, FungibleBalance, Unit](
-              (sig.account, ef.definitionId, txWithResult.toHash).toBytes.bits,
-              (),
-            ).runS(fungibleBalanceState0)
-            entrustFungibleBalanceState <- MerkleTrie.put[F, EntrustFungibleBalance, Unit](
-              (
-                sig.account,
-                ef.to,
-                ef.definitionId,
-                txWithResult.toHash,
-              ).toBytes.bits,
-              (),
-            ).runS(ms.token.entrustFungibleBalanceState)
+              .runS(fungibleBalanceState0)
+            entrustFungibleBalanceState <- MerkleTrie
+              .put[F, EntrustFungibleBalance, Unit](
+                (
+                  sig.account,
+                  ef.to,
+                  ef.definitionId,
+                  txWithResult.toHash,
+                ).toBytes.bits,
+                (),
+              )
+              .runS(ms.token.entrustFungibleBalanceState)
           yield (
             ms.copy(token =
               ms.token.copy(
@@ -426,10 +482,12 @@ trait UpdateStateWithTokenTx:
             ),
             txWithResult,
           )
-        case en: Transaction.TokenTx.EntrustNFT => 
+        case en: Transaction.TokenTx.EntrustNFT =>
           val txWithResult = TransactionWithResult(Signed(sig, tx), None)
-          type NftBalance = (Account, TokenId, Hash.Value[TransactionWithResult])
-          type EntrustNftBalance = (Account, Account, TokenId, Hash.Value[TransactionWithResult])
+          type NftBalance =
+            (Account, TokenId, Hash.Value[TransactionWithResult])
+          type EntrustNftBalance =
+            (Account, Account, TokenId, Hash.Value[TransactionWithResult])
 
           for
             pubKeySummary <- EitherT.fromEither[F](
@@ -444,10 +502,13 @@ trait UpdateStateWithTokenTx:
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
             )
-            nftBalanceState <- MerkleTrie.remove[F, NftBalance, Unit]{
-              (sig.account, en.tokenId, en.input).toBytes.bits
-            }.runS(ms.token.nftBalanceState)
-            entrustNftBalanceState <- MerkleTrie.put[F, EntrustNftBalance, Unit](
+            nftBalanceState <- MerkleTrie
+              .remove[F, NftBalance, Unit] {
+                (sig.account, en.tokenId, en.input).toBytes.bits
+              }
+              .runS(ms.token.nftBalanceState)
+            entrustNftBalanceState <- MerkleTrie
+              .put[F, EntrustNftBalance, Unit](
                 (
                   sig.account,
                   en.to,
@@ -455,7 +516,8 @@ trait UpdateStateWithTokenTx:
                   txWithResult.toHash,
                 ).toBytes.bits,
                 (),
-            ).runS(ms.token.entrustNftBalanceState)
+              )
+              .runS(ms.token.entrustNftBalanceState)
           yield (
             ms.copy(token =
               ms.token.copy(
@@ -466,14 +528,18 @@ trait UpdateStateWithTokenTx:
             txWithResult,
           )
         case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
-
           val txWithResult = TransactionWithResult(Signed(sig, tx), None)
 
           type FungibleBalance =
             (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
 
           type EntrustFungibleBalance =
-            (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
+            (
+                Account,
+                Account,
+                TokenDefinitionId,
+                Hash.Value[TransactionWithResult],
+            )
           for
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(de, sig.sig),
@@ -487,34 +553,50 @@ trait UpdateStateWithTokenTx:
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
             )
-            inputs <- de.inputs.toList.traverse{ (txHash) =>
-              TransactionRepository[F].get(txHash.toResultHashValue).leftMap(_.msg).flatMap{
-                case None => EitherT.leftT(s"Entrust Input $txHash does not exist.")
-                case Some(txWithResult) => txWithResult.signedTx.value match
-                  case ef: Transaction.TokenTx.EntrustFungibleToken =>
-                    EitherT.pure(((txWithResult.signedTx.sig.account, txHash), ef.amount.toBigInt))
-                  case otherTx =>
-                    EitherT.leftT(s"input tx $txHash is not EntrustFunbleToken: $otherTx")
-              }
+            inputs <- de.inputs.toList.traverse { (txHash) =>
+              TransactionRepository[F]
+                .get(txHash.toResultHashValue)
+                .leftMap(_.msg)
+                .flatMap {
+                  case None =>
+                    EitherT.leftT(s"Entrust Input $txHash does not exist.")
+                  case Some(txWithResult) =>
+                    txWithResult.signedTx.value match
+                      case ef: Transaction.TokenTx.EntrustFungibleToken =>
+                        EitherT.pure(
+                          (
+                            (txWithResult.signedTx.sig.account, txHash),
+                            ef.amount.toBigInt,
+                          ),
+                        )
+                      case otherTx =>
+                        EitherT.leftT(
+                          s"input tx $txHash is not EntrustFunbleToken: $otherTx",
+                        )
+                }
             }
             inputBalance = inputs.unzip._2.sum
-            outputSum = de.outputs.values.map(_.toBigInt).sum
+            outputSum    = de.outputs.values.map(_.toBigInt).sum
             _ <- EitherT.cond(
               inputBalance >= outputSum,
               (),
               s"Input balance $inputBalance is less than output sum $outputSum",
             )
-            entrustFungibleBalanceState <- inputs.unzip._1.traverse { case (account, txHash) =>
-              MerkleTrie.remove[F, EntrustFungibleBalance, Unit](
-                (account, sig.account, de.definitionId, txHash).toBytes.bits,
-              )
-            }.runS(ms.token.entrustFungibleBalanceState)
-            fungibleBalanceState <- de.outputs.toList.traverse{ case (account, amount) =>
-              MerkleTrie.put[F, FungibleBalance, Unit](
-                (account, de.definitionId, txWithResult.toHash).toBytes.bits,
-                (),
-              )
-            }.runS(ms.token.fungibleBalanceState)
+            entrustFungibleBalanceState <- inputs.unzip._1
+              .traverse { case (account, txHash) =>
+                MerkleTrie.remove[F, EntrustFungibleBalance, Unit](
+                  (account, sig.account, de.definitionId, txHash).toBytes.bits,
+                )
+              }
+              .runS(ms.token.entrustFungibleBalanceState)
+            fungibleBalanceState <- de.outputs.toList
+              .traverse { case (account, amount) =>
+                MerkleTrie.put[F, FungibleBalance, Unit](
+                  (account, de.definitionId, txWithResult.toHash).toBytes.bits,
+                  (),
+                )
+              }
+              .runS(ms.token.fungibleBalanceState)
           yield (
             ms.copy(token =
               ms.token.copy(
@@ -525,9 +607,11 @@ trait UpdateStateWithTokenTx:
             txWithResult,
           )
         case dn: Transaction.TokenTx.DisposeEntrustedNFT =>
-          type NftBalance = (Account, TokenId, Hash.Value[TransactionWithResult])
-          type EntrustNftBalance = (Account, Account, TokenId, Hash.Value[TransactionWithResult])
-          
+          type NftBalance =
+            (Account, TokenId, Hash.Value[TransactionWithResult])
+          type EntrustNftBalance =
+            (Account, Account, TokenId, Hash.Value[TransactionWithResult])
+
           for
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(dn, sig.sig),
@@ -541,29 +625,40 @@ trait UpdateStateWithTokenTx:
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
             )
-            inputTxOption <- TransactionRepository[F].get(dn.input.toResultHashValue).leftMap(_.msg)
+            inputTxOption <- TransactionRepository[F]
+              .get(dn.input.toResultHashValue)
+              .leftMap(_.msg)
             inputTx <- inputTxOption match
               case None => EitherT.leftT(s"Input tx ${dn.input} does not exist")
-              case Some(txWithResult) => txWithResult.signedTx.value match
-                case eb: Transaction.TokenTx.EntrustNFT =>
-                  if eb.to === sig.account then EitherT.pure((txWithResult.signedTx.sig.account, eb))
-                  else EitherT.leftT(s"Input $eb is not entrusted to ${sig.account}")
-                case other =>
-                  EitherT.leftT(s"input tx $other is not a EntrustNft tx")
-            inputAccount = inputTx._1
+              case Some(txWithResult) =>
+                txWithResult.signedTx.value match
+                  case eb: Transaction.TokenTx.EntrustNFT =>
+                    if eb.to === sig.account then
+                      EitherT.pure((txWithResult.signedTx.sig.account, eb))
+                    else
+                      EitherT.leftT(
+                        s"Input $eb is not entrusted to ${sig.account}",
+                      )
+                  case other =>
+                    EitherT.leftT(s"input tx $other is not a EntrustNft tx")
+            inputAccount  = inputTx._1
             outputAccount = dn.output.getOrElse(inputAccount)
-            entrustNftBalanceState <- MerkleTrie.remove[F, EntrustNftBalance, Unit]{
-              (inputAccount, sig.account, dn.tokenId, dn.input).toBytes.bits
-            }.runS(ms.token.entrustNftBalanceState)
+            entrustNftBalanceState <- MerkleTrie
+              .remove[F, EntrustNftBalance, Unit] {
+                (inputAccount, sig.account, dn.tokenId, dn.input).toBytes.bits
+              }
+              .runS(ms.token.entrustNftBalanceState)
             txWithResult = TransactionWithResult(Signed(sig, tx), None)
-            nftBalanceState <- MerkleTrie.put[F, NftBalance, Unit](
+            nftBalanceState <- MerkleTrie
+              .put[F, NftBalance, Unit](
                 (
                   outputAccount,
                   dn.tokenId,
                   txWithResult.toHash,
                 ).toBytes.bits,
                 (),
-            ).runS(ms.token.nftBalanceState)
+              )
+              .runS(ms.token.nftBalanceState)
           yield (
             ms.copy(token =
               ms.token.copy(

@@ -135,10 +135,16 @@ trait UpdateStateWithRewardTx:
             balance <- getBalance[F](sourceAccount, LM, ms)
             (totalAmount, utxos) = balance
 //            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
-            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(xr.createdAt)
-            rewardCriterionState <- RewardService.findStateRootAt(rewardCriterionInstant)
-            totalNumberOfDao <- RewardService.countDao[F](rewardCriterionState.reward.daoState)
-            rarityItemMap    <- getRarityItem[F](rewardCriterionState.token)
+            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(
+              xr.createdAt,
+            )
+            rewardCriterionState <- RewardService.findStateRootAt(
+              rewardCriterionInstant,
+            )
+            totalNumberOfDao <- RewardService.countDao[F](
+              rewardCriterionState.reward.daoState,
+            )
+            rarityItemMap <- getRarityItem[F](rewardCriterionState.token)
 //            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
             outputs = calculateRarityReward(
               sourceAccount,
@@ -298,7 +304,11 @@ trait UpdateStateWithRewardTx:
               nftStateOption,
               s"Nft state not found: $tokenId",
             )
-          yield (account, nftState.weight)
+            /* Set default weight as 2 */
+            weight =
+              if nftState.weight == BigNat.Zero then BigNat.unsafeFromLong(2)
+              else nftState.weight
+          yield (account, weight)
         }
         .fold(Map.empty[Account, BigNat]) { case (map, (account, weight)) =>
           val weight1 = map.get(account).fold(weight)(_ + weight)
@@ -324,9 +334,9 @@ trait UpdateStateWithRewardTx:
       (totalAmount * point / pointSum).floorAt(16)
     }.toMap
     val rewardSum = rewardMap.values.foldLeft(BigNat.Zero)(_ + _)
-    val remainder = BigNat.unsafeFromBigInt{
+    val remainder = BigNat.unsafeFromBigInt {
       totalRarityRewardAmount.toBigInt - rewardSum.toBigInt
-    } 
+    }
 
     rewardMap + (sourceAccount -> remainder)
 

@@ -457,7 +457,7 @@ object RewardService:
     case None =>
       val targetAccount =
         daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
-      EitherT.right{
+      EitherT.right {
         StateReadService.getFreeBalance[F](targetAccount).map { balanceMap =>
           balanceMap
             .get(TokenDefinitionId(Utf8.unsafeFrom("LM")))
@@ -510,7 +510,11 @@ object RewardService:
               nftStateOption,
               s"Nft state not found: $tokenId",
             )
-          yield (nftState.rarity, nftState.weight)
+            /* Set default rarity as 2 */
+            weight =
+              if nftState.weight === BigNat.Zero then BigNat.unsafeFromLong(2)
+              else nftState.weight
+          yield (nftState.rarity, weight)
         }
         .compile
         .toList
@@ -594,8 +598,9 @@ object RewardService:
     val totalAmount = BigNat.min(totalRarityRewardAmount, limit)
     val userRarityReward =
       userRarityRewardItems.map(_._2).foldLeft(BigNat.Zero)(BigNat.add)
-      
-    val ans = (totalAmount * userRarityReward / totalRarityRewardValue).floorAt(16)
+
+    val ans =
+      (totalAmount * userRarityReward / totalRarityRewardValue).floorAt(16)
 
 //    scribe.info(s"totalRarityRewardAmount: ${totalRarityRewardAmount}")
 //    scribe.info(s"limit: ${limit}")
@@ -604,7 +609,7 @@ object RewardService:
 //    scribe.info(s"userRarityRewardValue: ${ans}")
 
     ans
-    
+
   def isModerator[F[_]: Concurrent: StateRepository.RewardState](
       user: Account,
       root: MerkleTrieState[GroupId, DaoInfo],

@@ -3,6 +3,7 @@ package datatype
 
 import scala.math.Ordering
 
+import cats.Eq
 import cats.implicits.given
 
 import eu.timepit.refined.api.Refined
@@ -90,3 +91,5 @@ object BigNat:
     refinedEncoder[BigInt, NonNegative, Refined]
 
   given bignatOrdering: Ordering[BigNat] = Ordering.by(_.toBigInt)
+
+  given bignatEq: Eq[BigNat] = Eq.by(_.toBigInt)
