@@ -336,8 +336,77 @@ trait UpdateStateWithTokenTx:
             ms.copy(token = ms.token.copy(nftBalanceState = nftBalanceState)),
             txWithResult,
           )
-        case bf: Transaction.TokenTx.BurnFungibleToken => ???
-        case bn: Transaction.TokenTx.BurnNFT           => ???
+        case bf: Transaction.TokenTx.BurnFungibleToken =>
+          type FungibleBalance =
+            (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
+
+          def burnFungibleTokenProgram(
+              txWithResult: TransactionWithResult,
+          ): StateT[
+            EitherT[F, String, *],
+            MerkleTrieState[FungibleBalance, Unit],
+            Unit,
+          ] =
+            val txHash = txWithResult.toHash
+            for
+              _ <- bf.inputs.toList.traverse { (txHash) =>
+                MerkleTrie.remove[F, FungibleBalance, Unit](
+                  (sig.account, bf.definitionId, txHash).toBytes.bits,
+                )
+              }
+              _ <- MerkleTrie.put[F, FungibleBalance, Unit](
+                (
+                  sig.account,
+                  bf.definitionId,
+                  txHash,
+                ).toBytes.bits,
+                (),
+              )
+            yield ()
+
+          for
+            pubKeySummary <- EitherT.fromEither[F](
+              recoverSignature(bf, sig.sig),
+            )
+            accountPubKeyOption <- MerkleTrie
+              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
+                (sig.account, pubKeySummary).toBytes.bits,
+              )
+              .runA(ms.account.keyState)
+            _ <- EitherT.fromOption[F](
+              accountPubKeyOption,
+              s"Account ${sig.account} does not have public key summary $pubKeySummary",
+            )
+            inputList = bf.inputs.toList
+            inputAmountList <- inputList.traverse { (txHash) =>
+              for
+                txOption <- TransactionRepository[F]
+                  .get(txHash.toResultHashValue)
+                  .leftMap(_.msg)
+                tx <- EitherT
+                  .fromOption[F](txOption, s"input $txHash is not exist")
+                amount <- EitherT.fromEither[F](fungibleAmount(tx, sig.account))
+              yield amount
+            }
+            remainder <- EitherT.fromEither[F] {
+              BigNat.fromBigInt(
+                inputAmountList.map(_.toBigInt).sum - bf.amount.toBigInt,
+              )
+            }
+            txWithResult = TransactionWithResult(
+              Signed(sig, tx),
+              Some(Transaction.TokenTx.BurnFungibleTokenResult(remainder)),
+            )
+            fungibleBalanceState <- burnFungibleTokenProgram(txWithResult).runS(
+              ms.token.fungibleBalanceState,
+            )
+          yield (
+            ms.copy(token =
+              ms.token.copy(fungibleBalanceState = fungibleBalanceState),
+            ),
+            txWithResult,
+          )
+        case bn: Transaction.TokenTx.BurnNFT => ???
         case ef: Transaction.TokenTx.EntrustFungibleToken =>
           type FungibleBalance =
             (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
@@ -668,3 +737,59 @@ trait UpdateStateWithTokenTx:
             ),
             txWithResult,
           )
+
+  def fungibleAmount(
+      tx: TransactionWithResult,
+      account: Account,
+  ): Either[String, BigNat] =
+    tx.signedTx.value match
+      case fb: Transaction.FungibleBalance =>
+        fb match
+          case mf: Transaction.TokenTx.MintFungibleToken =>
+            Either.fromOption(
+              mf.outputs.get(account),
+              s"Account $account does not have output of tx $mf",
+            )
+          case bf: Transaction.TokenTx.BurnFungibleToken =>
+            tx.result match
+              case Some(
+                    Transaction.TokenTx.BurnFungibleTokenResult(outputAmount),
+                  ) =>
+                Either.cond(
+                  account === tx.signedTx.sig.account,
+                  outputAmount,
+                  s"Account $account is not owner of tx $tx",
+                )
+              case _ => Either.left(s"Invalid transaction result: $tx")
+          case tf: Transaction.TokenTx.TransferFungibleToken =>
+            Either.fromOption(
+              tf.outputs.get(account),
+              s"Account $account does not have output of tx $tf",
+            )
+          case ef: Transaction.TokenTx.EntrustFungibleToken =>
+            tx.result match
+              case Some(
+                    Transaction.TokenTx.EntrustFungibleTokenResult(remainder),
+                  ) =>
+                Either.cond(
+                  account === tx.signedTx.sig.account,
+                  remainder,
+                  s"Account $account is not owner of tx $tx",
+                )
+              case _ => Either.left(s"Invalid transaction result: $tx")
+          case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
+            Either.fromOption(
+              de.outputs.get(account),
+              s"Account $account does not have output of tx $de",
+            )
+          case er: Transaction.RewardTx.ExecuteReward =>
+            tx.result match
+              case Some(
+                    Transaction.RewardTx.ExecuteRewardResult(outputs),
+                  ) =>
+                Either.fromOption(
+                  outputs.get(account),
+                  s"Account $account does not have output of tx $tx",
+                )
+              case _ => Either.left(s"Invalid transaction result: $tx")
+      case _ => Either.left(s"Transaction $tx is not a fungible balance")
