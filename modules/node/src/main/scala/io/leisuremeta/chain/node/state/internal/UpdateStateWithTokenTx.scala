@@ -400,9 +400,32 @@ trait UpdateStateWithTokenTx:
             fungibleBalanceState <- burnFungibleTokenProgram(txWithResult).runS(
               ms.token.fungibleBalanceState,
             )
+            tokenDefinitionOption <- MerkleTrie
+              .get[F, TokenDefinitionId, TokenDefinition](
+                bf.definitionId.toBytes.bits,
+              )
+              .runA(ms.token.tokenDefinitionState)
+            tokenDefinition <- EitherT.fromOption(
+              tokenDefinitionOption,
+              s"No token definition of ${bf.definitionId}",
+            )
+            totalAmount <- EitherT.fromEither[F] {
+              BigNat.fromBigInt(
+                tokenDefinition.totalAmount.toBigInt - bf.amount.toBigInt,
+              )
+            }
+            tokenDefinitionState <- MerkleTrie
+              .put[F, TokenDefinitionId, TokenDefinition](
+                bf.definitionId.toBytes.bits,
+                tokenDefinition.copy(totalAmount = totalAmount),
+              )
+              .runS(ms.token.tokenDefinitionState)
           yield (
             ms.copy(token =
-              ms.token.copy(fungibleBalanceState = fungibleBalanceState),
+              ms.token.copy(
+                fungibleBalanceState = fungibleBalanceState,
+                tokenDefinitionState = tokenDefinitionState,
+              ),
             ),
             txWithResult,
           )
