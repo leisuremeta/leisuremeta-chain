@@ -456,7 +456,8 @@ object Transaction:
 
   sealed trait FungibleBalance
 
-  sealed trait NftBalance
+  sealed trait NftBalance:
+    def tokenId: TokenId
 
   sealed trait DealSuggestion:
     def originalSuggestion: Option[Signed.TxHash]

@@ -12,6 +12,7 @@ import cats.syntax.eq.given
 import cats.syntax.foldable.given
 import cats.syntax.traverse.given
 
+import fs2.Stream
 import scodec.bits.BitVector
 
 import GossipDomain.MerkleState
@@ -292,7 +293,7 @@ trait UpdateStateWithTokenTx:
           type NftBalance =
             (Account, TokenId, Hash.Value[TransactionWithResult])
 
-          val transferNftProgram: StateT[
+          val nftBalanceProgram: StateT[
             EitherT[F, String, *],
             MerkleTrieState[NftBalance, Unit],
             Unit,
@@ -307,6 +308,22 @@ trait UpdateStateWithTokenTx:
                 txWithResult.toHash,
               ).toBytes.bits,
               (),
+            )
+          yield ()
+
+          val nftStateProgram: StateT[
+            EitherT[F, String, *],
+            MerkleTrieState[TokenId, NftState],
+            Unit,
+          ] = for
+            nftStateOption <- MerkleTrie.get[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
+            nftState <- StateT.liftF{
+              EitherT.fromOption(nftStateOption, s"No nft state in token ${tn.tokenId}")
+            }
+            _ <- MerkleTrie.remove[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
+            _ <- MerkleTrie.put[F, TokenId, NftState](
+              tn.tokenId.toBytes.bits,
+              nftState.copy(currentOwner = tn.output),
             )
           yield ()
 
@@ -326,14 +343,20 @@ trait UpdateStateWithTokenTx:
 //            _ <- EitherT.pure{
 //              scribe.info(s"Old NftBalanceState: ${ms.token.nftBalanceState}")
 //            }
-            nftBalanceState <- transferNftProgram.runS(
+            nftBalanceState <- nftBalanceProgram.runS(
               ms.token.nftBalanceState,
             )
 //            _ <- EitherT.pure{
 //              scribe.info(s"New NftBalanceState: ${nftBalanceState}")
 //            }
+            nftState <- nftStateProgram.runS(ms.token.nftState)
           yield (
-            ms.copy(token = ms.token.copy(nftBalanceState = nftBalanceState)),
+            ms.copy(token =
+              ms.token.copy(
+                nftBalanceState = nftBalanceState,
+                nftState = nftState,
+              ),
+            ),
             txWithResult,
           )
         case bf: Transaction.TokenTx.BurnFungibleToken =>
@@ -429,7 +452,93 @@ trait UpdateStateWithTokenTx:
             ),
             txWithResult,
           )
-        case bn: Transaction.TokenTx.BurnNFT => ???
+        case bn: Transaction.TokenTx.BurnNFT =>
+          val txWithResult = TransactionWithResult(Signed(sig, tx), None)
+          type NftBalance =
+            (Account, TokenId, Hash.Value[TransactionWithResult])
+
+          for
+            pubKeySummary <- EitherT.fromEither[F](
+              recoverSignature(bn, sig.sig),
+            )
+            accountPubKeyOption <- MerkleTrie
+              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
+                (sig.account, pubKeySummary).toBytes.bits,
+              )
+              .runA(ms.account.keyState)
+            _ <- EitherT.fromOption[F](
+              accountPubKeyOption,
+              s"Account ${sig.account} does not have public key summary $pubKeySummary",
+            )
+//            _ <- EitherT.pure{
+//              scribe.info(s"Old NftBalanceState: ${ms.token.nftBalanceState}")
+//            }
+            inputTxOption <- TransactionRepository[F]
+              .get(bn.input.toResultHashValue)
+              .leftMap(_.msg)
+            inputTx <- EitherT.fromOption(
+              inputTxOption,
+              s"input ${bn.input} does not exist",
+            )
+            tokenId <- {
+              inputTx.signedTx.value match
+                case nftBalance: Transaction.NftBalance =>
+                  EitherT.pure(nftBalance.tokenId)
+                case _ =>
+                  EitherT.leftT(s"input ${bn.input} is not an NFT balance")
+            }
+            nftBalanceState <- MerkleTrie
+              .remove[F, NftBalance, Unit] {
+                (sig.account, tokenId, bn.input).toBytes.bits
+              }
+              .runS(ms.token.nftBalanceState)
+//            _ <- EitherT.pure{
+//              scribe.info(s"New NftBalanceState: ${nftBalanceState}")
+//            }
+            nftState <- MerkleTrie
+              .remove[F, TokenId, NftState](tokenId.toBytes.bits)
+              .runS(ms.token.nftState)
+            rarityStream <- MerkleTrie
+              .from[F, (TokenDefinitionId, Rarity, TokenId), Unit](
+                bn.definitionId.toBytes.bits,
+              )
+              .runA(ms.token.rarityState)
+            rarityList <- rarityStream
+              .flatMap { case element =>
+                Stream.eval {
+                  EitherT.fromEither {
+                    ByteDecoder[(TokenDefinitionId, Rarity, TokenId)]
+                      .decode(element._1.bytes)
+                      .leftMap(_.msg)
+                      .map { case DecodeResult((defId, rarity, tokenId), _) =>
+                        (rarity, tokenId)
+                      }
+                  }
+                }
+              }
+              .filter { _._2 === tokenId }
+              .compile
+              .toList
+            rarity <- EitherT.fromOption(
+              rarityList.headOption,
+              s"No rarity item of tokenId ${tokenId} in rarity state",
+            )
+            rarityState <- MerkleTrie
+              .remove[F, (TokenDefinitionId, Rarity, TokenId), Unit](
+                (bn.definitionId, rarity, tokenId).toBytes.bits,
+              )
+              .runS(ms.token.rarityState)
+          yield (
+            ms.copy(token =
+              ms.token.copy(
+                nftBalanceState = nftBalanceState,
+                nftState = nftState,
+                rarityState = rarityState,
+              ),
+            ),
+            txWithResult,
+          )
+
         case ef: Transaction.TokenTx.EntrustFungibleToken =>
           type FungibleBalance =
             (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
