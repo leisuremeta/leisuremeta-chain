@@ -968,6 +968,7 @@
   
   * Fields
   
+    * timestamp: 보상 기준 시점
     * *(optional)* daoAccount: 보상이 담긴 계정. 없으면 "DAO-M"
   
   * Results
