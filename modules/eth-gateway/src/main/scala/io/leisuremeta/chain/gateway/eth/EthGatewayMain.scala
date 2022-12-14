@@ -510,11 +510,11 @@ object EthGatewayMain extends IOApp:
 //        keyPair,
 //      )
 //      _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
-      _ <- IO.sleep(10000.millis)
     yield endBlockNumber
 
     def loop: IO[Unit] = for
       _ <- run.orElse(IO.unit)
+      _ <- IO.sleep(10000.millis)
       _ <- loop
     yield ()
 
