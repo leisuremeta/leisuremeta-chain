@@ -31,3 +31,5 @@ object TokenId:
       case Left(e) => DecodeResult.Error(s, e)
       case Right(a) => DecodeResult.Value(TokenId(a))
   }(_.utf8.value)
+
+  given cats.Eq[TokenId] = cats.Eq.fromUniversalEquals
