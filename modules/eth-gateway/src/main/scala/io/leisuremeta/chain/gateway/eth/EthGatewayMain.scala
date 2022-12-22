@@ -404,6 +404,7 @@ object EthGatewayMain extends IOApp:
   def checkDepositAndMint(
       web3j: Web3j,
       mysqlConnection: Connection,
+      mysqlDatabase: String,
       lmAddress: String,
       ethContract: String,
       gatewayEthAddress: String,
@@ -449,6 +450,7 @@ object EthGatewayMain extends IOApp:
       _ <- logSentDeposits(toMints.map(_._1).zip(known.map(_._1)))
       _ <- toMints.traverse { case (account, event) =>
         logToMysql(mysqlConnection)(
+          mysqlDatabase = mysqlDatabase,
           ethTxHash = event.txHash,
           timestamp = Instant.now(),
           userEthAccount = "0xFcd1853d09F7Df77f17003B69dDc78b3f8bD5D0f",
@@ -471,6 +473,7 @@ object EthGatewayMain extends IOApp:
       gatewayEthAddress: String,
       keyPair: KeyPair,
       mysqlConnection: Connection,
+      mysqlDatabase: String,
   ): IO[Unit] =
     def run: IO[BigInt] = for
       _ <- IO.delay(scribe.info(s"Checking for deposit / withdrawal events"))
@@ -491,6 +494,7 @@ object EthGatewayMain extends IOApp:
       _ <- checkDepositAndMint(
         web3j,
         mysqlConnection,
+        mysqlDatabase,
         lmAddress,
         ethContract,
         gatewayEthAddress,
@@ -658,6 +662,7 @@ object EthGatewayMain extends IOApp:
   }
 
   def logToMysql(connection: Connection)(
+    mysqlDatabase: String,
     ethTxHash: String,
     timestamp: Instant,
     userEthAccount: String,
@@ -665,7 +670,7 @@ object EthGatewayMain extends IOApp:
     amount: BigInt,
   ): IO[QueryResult] = IO.fromCompletableFuture(IO{
 
-    val query =  s"""CALL DPLAYNOMMDB.SP_INS_CX_TRADE_INFO_MAINNET_DEPOSIT_T(
+    val query =  s"""CALL $mysqlDatabase.SP_INS_CX_TRADE_INFO_MAINNET_DEPOSIT_T(
 '$ethTxHash'	-- 체결주소
 , '${timestamp.truncatedTo(ChronoUnit.SECONDS).toString}' 		-- 체결일시
 , '521ffc8f1e07eef80c634245c6f0551e30c3d5d0'	-- BLC계정 (playnomm) 주소
@@ -709,6 +714,7 @@ object EthGatewayMain extends IOApp:
           gatewayEthAddress = gatewayConf.gatewayEthAddress,
           keyPair = keyPair,
           mysqlConnection = connection,
+          mysqlDatabase = gatewayConf.mysqlDatabase,
         )
       }
 
