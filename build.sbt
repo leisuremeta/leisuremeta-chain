@@ -14,7 +14,7 @@ val V = new {
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
-  val jasync = "2.0.8"
+  val jasync = "2.1.8"
 
   val web3J = "4.9.2"
 
