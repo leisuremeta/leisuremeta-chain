@@ -74,7 +74,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
         guardian = None,
       )
 
-      val Right(sig) = keyPair.sign(tx)
+      val Right(sig) = keyPair.sign(tx): @unchecked
 
       val accountSig = AccountSignature(sig = sig, account = account)
 
@@ -98,7 +98,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
           baseState,
           accountSig,
           tx.asInstanceOf[Transaction.AccountTx],
-        ).value.unsafeRunSync()
+        ).value.unsafeRunSync(): @unchecked
 
       val result = MerkleTrie
         .get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
@@ -133,12 +133,12 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       val bob   = Account(Utf8.unsafeFrom("bob"))
 
       def signAlice(tx: Transaction): Signed.Tx =
-        val Right(sig) = aliceKey.sign(tx)
+        val Right(sig) = aliceKey.sign(tx): @unchecked
         val accountSig = AccountSignature(sig = sig, account = alice)
         Signed(sig = accountSig, value = tx)
 
       def signBob(tx: Transaction): Signed.Tx =
-        val Right(sig) = bobKey.sign(tx)
+        val Right(sig) = bobKey.sign(tx): @unchecked
         val accountSig = AccountSignature(sig = sig, account = bob)
         Signed(sig = accountSig, value = tx)
 

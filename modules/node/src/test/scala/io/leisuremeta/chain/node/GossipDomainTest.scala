@@ -84,7 +84,7 @@ class GossipDomainTest extends HedgehogSuite:
       16,
     ),
   )
-  val Right(sig)    = keyPair.sign(txRaw)
+  val Right(sig)    = keyPair.sign(txRaw): @unchecked
   val accountSig    = AccountSignature(sig, account)
   val tx: Signed.Tx = Signed(accountSig, txRaw)
   given updateState: UpdateState[IO] = new UpdateState[IO]:
@@ -131,7 +131,7 @@ class GossipDomainTest extends HedgehogSuite:
   test("onNewTx") {
     withMunitAssertions { assertions =>
 
-      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync()
+      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync(): @unchecked
 
       assertions.assert(gossip1.newTxs.contains(tx.toHash))
     }
@@ -139,12 +139,12 @@ class GossipDomainTest extends HedgehogSuite:
 
   test("generateNewBlockSuggestion") {
     withMunitAssertions { assertions =>
-      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync()
+      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync(): @unchecked
       val now = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
 
       val Right((_, blockSuggestion)) =
         generateNewBlockSuggestion[IO](gossip1, now, params0).value
-          .unsafeRunSync()
+          .unsafeRunSync(): @unchecked
 
       assertions.assertEquals(blockSuggestion.transactionHashes, Set(tx.toHash))
     }

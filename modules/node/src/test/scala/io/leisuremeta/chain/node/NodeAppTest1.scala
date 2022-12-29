@@ -160,7 +160,7 @@ genesis {
     val Right(conf) = NodeConfig
       .load(IO(ConfigFactory.parseString(confString)))
       .value
-      .unsafeRunSync()
+      .unsafeRunSync(): @unchecked
 
     NodeApp[IO](conf)
 
@@ -213,11 +213,11 @@ genesis {
       val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
       def sign(tx: Transaction): Signed.Tx =
-        val Right(sig) = keyPair.sign(tx)
+        val Right(sig) = keyPair.sign(tx): @unchecked
         Signed(AccountSignature(sig, account), tx)
 
       def submit(tx: Transaction) =
-        val Right(sig) = keyPair.sign(tx)
+        val Right(sig) = keyPair.sign(tx): @unchecked
 
 //      given io.circe.Encoder[Transaction] = {
 //        import io.circe.generic.semiauto.*
