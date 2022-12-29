@@ -21,7 +21,7 @@ val V = new {
   val web3J = "5.0.0"
 
   val scribe          = "3.10.5"
-  val hedgehog        = "0.9.0"
+  val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
 
   val scalaJavaTime = "2.3.0"
