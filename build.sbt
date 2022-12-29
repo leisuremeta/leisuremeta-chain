@@ -8,7 +8,7 @@ val V = new {
   val circe      = "0.15.0-M1"
   val refined    = "0.9.28"
   val scodecBits = "1.1.30"
-  val shapeless  = "3.0.4"
+  val shapeless  = "3.2.0"
   val fs2        = "3.2.7"
 
   val typesafeConfig = "1.4.2"
