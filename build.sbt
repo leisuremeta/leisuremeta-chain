@@ -7,7 +7,7 @@ val V = new {
   val sttp       = "3.8.5"
   val circe      = "0.15.0-M1"
   val refined    = "0.10.1"
-  val scodecBits = "1.1.30"
+  val scodecBits = "1.1.34"
   val shapeless  = "3.3.0"
   val fs2        = "3.4.0"
 
