@@ -46,6 +46,7 @@ object CryptoOps:
       s <- UInt256.from(BigInt(jsSig.s.toString_hex(hex), 16)).left.map(_.msg)
     yield Signature(v, r, s)
 
+  @SuppressWarnings(Array("org.wartremover.warts.TripleQuestionMark"))
   def recover(
       signature: Signature,
       hashArray: Array[Byte],

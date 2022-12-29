@@ -208,7 +208,7 @@ object EthGatewayWithdrawMain extends IOApp:
       keyPair: KeyPair,
       tx: Transaction,
   ) =
-    val Right(sig) = keyPair.sign(tx)
+    val Right(sig) = keyPair.sign(tx): @unchecked
     val signedTxs  = Seq(Signed(AccountSignature(sig, account), tx))
 
     scribe.info(s"Sending signed transactions: $signedTxs")

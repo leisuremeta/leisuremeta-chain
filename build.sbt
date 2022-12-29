@@ -1,25 +1,27 @@
 val V = new {
-  val Scala      = "3.1.2"
-  val ScalaGroup = "3.1"
+  val Scala      = "3.2.1"
+  val ScalaGroup = "3.2"
 
-  val catsEffect = "3.3.12"
-  val tapir      = "1.0.0-RC1"
-  val sttp       = "3.7.2"
+  val catsEffect = "3.4.3"
+  val tapir      = "1.2.4"
+  val sttp       = "3.8.5"
   val circe      = "0.15.0-M1"
-  val refined    = "0.9.28"
-  val scodecBits = "1.1.30"
-  val shapeless  = "3.0.4"
-  val fs2        = "3.2.7"
+  val refined    = "0.10.1"
+  val scodecBits = "1.1.34"
+  val shapeless  = "3.3.0"
+  val fs2        = "3.4.0"
 
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
-  val jasync = "2.0.8"
+  val jasync = "2.1.8"
 
-  val web3J = "4.9.2"
+  val okhttp3LoggingInterceptor = "4.10.0"
 
-  val scribe          = "3.8.2"
-  val hedgehog        = "0.9.0"
+  val web3J = "5.0.0"
+
+  val scribe          = "3.10.5"
+  val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
 
   val scalaJavaTime = "2.3.0"
@@ -49,7 +51,7 @@ val Dependencies = new {
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
       "org.web3j"    % "core"         % V.web3J,
-      "com.squareup.okhttp3" % "logging-interceptor" % "4.9.1",
+      "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
       "com.github.jasync-sql" % "jasync-mysql" % V.jasync,
     ),
   )

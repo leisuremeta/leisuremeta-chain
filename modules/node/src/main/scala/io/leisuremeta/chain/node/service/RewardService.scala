@@ -266,7 +266,7 @@ object RewardService:
                     Left(
                       s"Non-empty remainder: $remainder in account: ${keyBits.bytes}",
                     )
-                },
+                }
             }
           }
           .takeWhile(_._1.compareTo(to) <= 0)
@@ -415,7 +415,7 @@ object RewardService:
                     Left(
                       s"Non-empty remainder: $remainder in token: ${keyBits.bytes}",
                     )
-                },
+                }
             }
           }
           .takeWhile(_._1.compareTo(to) <= 0)

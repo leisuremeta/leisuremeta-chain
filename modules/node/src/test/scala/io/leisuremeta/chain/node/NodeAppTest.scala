@@ -159,7 +159,7 @@ genesis {
     val Right(conf) = NodeConfig
       .load(IO(ConfigFactory.parseString(confString)))
       .value
-      .unsafeRunSync()
+      .unsafeRunSync(): @unchecked
 
     NodeApp[IO](conf)
 
@@ -216,7 +216,7 @@ genesis {
         ),
       )
 
-      val Right(sig) = keyPair.sign(tx)
+      val Right(sig) = keyPair.sign(tx): @unchecked
 
       val accountSig = AccountSignature(sig, account)
 
@@ -300,7 +300,7 @@ genesis {
         ),
       )
 
-      val Right(sig) = keyPair.sign(tx)
+      val Right(sig) = keyPair.sign(tx): @unchecked
 
       val accountSig = AccountSignature(sig, account)
 
@@ -313,7 +313,7 @@ genesis {
         name = Utf8.unsafeFrom("group-core"),
         coordinator = account,
       )
-      val Right(sig2) = keyPair.sign(tx2)
+      val Right(sig2) = keyPair.sign(tx2): @unchecked
       val accountSig2 = AccountSignature(sig2, account)
       val signedTx2   = Signed(accountSig2, tx2)
 
