@@ -2,7 +2,7 @@ val V = new {
   val Scala      = "3.2.1"
   val ScalaGroup = "3.2"
 
-  val catsEffect = "3.3.12"
+  val catsEffect = "3.4.3"
   val tapir      = "1.0.0-RC1"
   val sttp       = "3.7.2"
   val circe      = "0.15.0-M1"

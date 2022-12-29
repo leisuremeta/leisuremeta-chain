@@ -322,7 +322,7 @@ final case class NodeApp[F[_]
   def resource: F[Resource[F, Server]] = Async[F].delay {
     for
 //      _ <- periodicResource
-      dispatcher <- Dispatcher[F]
+      dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(getServer(dispatcher))(server =>
         Async[F]
           .fromCompletableFuture(Async[F].delay(server.closeAsync()))
