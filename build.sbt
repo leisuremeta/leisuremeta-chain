@@ -18,7 +18,7 @@ val V = new {
 
   val okhttp3LoggingInterceptor = "4.10.0"
 
-  val web3J = "4.9.2"
+  val web3J = "5.0.0"
 
   val scribe          = "3.10.5"
   val hedgehog        = "0.9.0"
