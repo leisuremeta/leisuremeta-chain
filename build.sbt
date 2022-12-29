@@ -6,9 +6,9 @@ val V = new {
   val tapir      = "1.2.4"
   val sttp       = "3.8.5"
   val circe      = "0.15.0-M1"
-  val refined    = "0.9.28"
+  val refined    = "0.10.1"
   val scodecBits = "1.1.30"
-  val shapeless  = "3.2.0"
+  val shapeless  = "3.3.0"
   val fs2        = "3.4.0"
 
   val typesafeConfig = "1.4.2"
