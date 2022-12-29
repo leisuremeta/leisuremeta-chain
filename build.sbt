@@ -9,7 +9,7 @@ val V = new {
   val refined    = "0.9.28"
   val scodecBits = "1.1.30"
   val shapeless  = "3.2.0"
-  val fs2        = "3.2.7"
+  val fs2        = "3.4.0"
 
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
