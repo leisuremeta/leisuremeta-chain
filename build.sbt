@@ -16,9 +16,11 @@ val V = new {
   val sway           = "0.16.2"
   val jasync = "2.1.8"
 
+  val okhttp3LoggingInterceptor = "4.10.0"
+
   val web3J = "4.9.2"
 
-  val scribe          = "3.8.2"
+  val scribe          = "3.10.5"
   val hedgehog        = "0.9.0"
   val organiseImports = "0.6.0"
 
@@ -49,7 +51,7 @@ val Dependencies = new {
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
       "org.web3j"    % "core"         % V.web3J,
-      "com.squareup.okhttp3" % "logging-interceptor" % "4.9.1",
+      "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
       "com.github.jasync-sql" % "jasync-mysql" % V.jasync,
     ),
   )
