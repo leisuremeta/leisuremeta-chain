@@ -57,7 +57,7 @@ val Dependencies = new {
     ),
   )
 
-  lazy val archieve = Seq(
+  lazy val archive = Seq(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
       "com.outr"                      %% "scribe-slf4j"         % V.scribe,
@@ -182,11 +182,11 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
   )
   .dependsOn(api.jvm)
 
-lazy val archieve = (project in file("modules/archieve"))
-  .settings(Dependencies.archieve)
+lazy val archive = (project in file("modules/archive"))
+  .settings(Dependencies.archive)
   .settings(Dependencies.tests)
   .settings(
-    name := "leisuremeta-chain-archieve",
+    name := "leisuremeta-chain-archive",
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first

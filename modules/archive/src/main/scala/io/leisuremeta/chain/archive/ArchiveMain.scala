@@ -1,5 +1,5 @@
 package io.leisuremeta.chain
-package archieve
+package archive
 
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.Instant
@@ -41,18 +41,18 @@ final case class PHeader(
     timestamp: Instant,
 )
 
-object ArchieveMain extends IOApp:
+object ArchiveMain extends IOApp:
 
 //  val baseUri = "http://test.chain.leisuremeta.io:8080"
 //  val baseUri = "http://localhost:7080"
   val baseUri = "http://localhost:8081"
 
-  val archieveFileName = "txs1.archieve"
+  val archiveFileName = "txs1.archive"
 
   val backend = ArmeriaCatsBackend[IO]()
 
   def logTxs(txs: String): IO[Unit] = IO.blocking {
-    val path = Paths.get(archieveFileName)
+    val path = Paths.get(archiveFileName)
     Files.write(path, txs.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
   }
 
@@ -130,7 +130,7 @@ object ArchieveMain extends IOApp:
 
         val from = 0
         val to = 1000000
-        Source.fromFile(archieveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
+        Source.fromFile(archiveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
           (line, i) =>
 //            println(s"$i: $line")
             put[IO](backend)(uri"$baseUri/tx")(line).recover{
