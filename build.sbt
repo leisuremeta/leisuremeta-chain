@@ -14,7 +14,7 @@ val V = new {
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
-  val jasync = "2.1.8"
+  val jasync         = "2.1.8"
 
   val okhttp3LoggingInterceptor = "4.10.0"
 
@@ -23,6 +23,7 @@ val V = new {
   val scribe          = "3.10.5"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
+  val zerowaste       = "0.2.1"
 
   val scalaJavaTime = "2.3.0"
   val jsSha3        = "0.8.0"
@@ -59,8 +60,8 @@ val Dependencies = new {
   lazy val archieve = Seq(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
-      "com.outr"    %% "scribe-slf4j" % V.scribe,
-      "com.typesafe" % "config"       % V.typesafeConfig,
+      "com.outr"                      %% "scribe-slf4j"         % V.scribe,
+      "com.typesafe" % "config" % V.typesafeConfig,
     ),
   )
 
@@ -86,6 +87,7 @@ val Dependencies = new {
       "org.typelevel" %%% "shapeless3-deriving" % V.shapeless,
       "org.typelevel" %%% "shapeless3-typeable" % V.shapeless,
       "co.fs2"        %%% "fs2-core"            % V.fs2,
+      "com.github.ghik" %% "zerowaste" % V.zerowaste cross CrossVersion.full,
     ),
   )
 
@@ -122,7 +124,15 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 ThisBuild / semanticdbEnabled := true
 
 lazy val root = (project in file("."))
-  .aggregate(node, api.jvm, api.js, lib.jvm, lib.js, ethGateway, ethGatewayWithdraw)
+  .aggregate(
+    node,
+    api.jvm,
+    api.js,
+    lib.jvm,
+    lib.js,
+    ethGateway,
+    ethGatewayWithdraw,
+  )
 
 lazy val node = (project in file("modules/node"))
   .settings(Dependencies.node)
@@ -172,7 +182,7 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
   )
   .dependsOn(api.jvm)
 
-lazy val archieve = (project in file ("modules/archieve"))
+lazy val archieve = (project in file("modules/archieve"))
   .settings(Dependencies.archieve)
   .settings(Dependencies.tests)
   .settings(
