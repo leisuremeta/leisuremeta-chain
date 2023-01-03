@@ -25,6 +25,8 @@ val V = new {
   val organiseImports = "0.6.0"
   val zerowaste       = "0.2.1"
 
+  val tyrian = "0.6.0"
+
   val scalaJavaTime = "2.3.0"
   val jsSha3        = "0.8.0"
   val elliptic      = "6.5.4"
@@ -142,6 +144,13 @@ val Dependencies = new {
       "com.outr" %%% "scribe" % V.scribe,
     ),
   )
+
+  lazy val lmscanFrontend = Seq(
+    libraryDependencies ++= Seq(
+      "io.indigoengine" %%% "tyrian-io" % V.tyrian,
+    ),
+  )
+
 }
 
 ThisBuild / organization := "org.leisuremeta"
@@ -289,3 +298,20 @@ lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
     project
       .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   }
+
+lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
+  .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
+  .settings(Dependencies.lmscanFrontend)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-lmscan-frontend",
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+    externalNpm := {
+      scala.sys.process.Process("yarn", baseDirectory.value).!
+      baseDirectory.value
+    },
+    scalacOptions ++= Seq("-scalajs"), // sbt-tpolecat bug: https://github.com/typelevel/sbt-tpolecat/issues/102
+//    scalaJSUseMainModuleInitializer := true,
+  )
+  .dependsOn(lmscanCommon.js)

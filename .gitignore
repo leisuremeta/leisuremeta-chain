@@ -21,3 +21,11 @@ sway
 unsent-deposits.json
 sent-deposits.logs
 last-block-read.json
+
+# npm
+node_modules
+
+# parcel
+.parcel-cache
+dist
+.env
