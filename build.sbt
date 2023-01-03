@@ -151,6 +151,15 @@ val Dependencies = new {
     ),
   )
 
+  lazy val lmscanBackend = Seq(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
+      "com.softwaremill.sttp.tapir" %% "tapir-json-circe"          % V.tapir,
+      "com.outr"                    %% "scribe-slf4j"              % V.scribe,
+      "com.outr"                    %% "scribe-cats"               % V.scribe,
+      "com.typesafe" % "config" % V.typesafeConfig,
+    ),
+  )
 }
 
 ThisBuild / organization := "org.leisuremeta"
@@ -170,6 +179,7 @@ lazy val root = (project in file("."))
     ethGatewayWithdraw,
     lmscanCommon.jvm,
     lmscanCommon.js,
+    lmscanFrontend,
   )
 
 lazy val node = (project in file("modules/node"))
@@ -315,3 +325,19 @@ lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
 //    scalaJSUseMainModuleInitializer := true,
   )
   .dependsOn(lmscanCommon.js)
+
+lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
+  .settings(Dependencies.lmscanBackend)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-lmscan-backend",
+    assemblyMergeStrategy := {
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
+  )
+  .dependsOn(lmscanCommon.jvm)
