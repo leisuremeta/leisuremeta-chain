@@ -115,6 +115,33 @@ val Dependencies = new {
     ),
     Test / fork := true,
   )
+
+  lazy val lmscanCommon = Seq(
+    libraryDependencies ++= Seq(
+      "org.typelevel"               %%% "cats-effect"      % V.catsEffect,
+      "io.circe"                    %%% "circe-generic"    % V.circe,
+      "io.circe"                    %%% "circe-parser"     % V.circe,
+      "io.circe"                    %%% "circe-refined"    % V.circe,
+      "eu.timepit"                  %%% "refined"          % V.refined,
+      "com.softwaremill.sttp.tapir" %%% "tapir-core"       % V.tapir,
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % V.tapir,
+      "org.scodec"                  %%% "scodec-bits"      % V.scodecBits,
+      "co.fs2"                      %%% "fs2-core"         % V.fs2,
+      "com.github.ghik" %% "zerowaste" % V.zerowaste cross CrossVersion.full,
+    ),
+  )
+
+  lazy val lmscanCommonJVM = Seq(
+    libraryDependencies ++= Seq(
+      "com.outr" %% "scribe-slf4j" % V.scribe,
+    ),
+  )
+
+  lazy val lmscanCommonJS = Seq(
+    libraryDependencies ++= Seq(
+      "com.outr" %%% "scribe" % V.scribe,
+    ),
+  )
 }
 
 ThisBuild / organization := "org.leisuremeta"
@@ -132,6 +159,8 @@ lazy val root = (project in file("."))
     lib.js,
     ethGateway,
     ethGatewayWithdraw,
+    lmscanCommon.jvm,
+    lmscanCommon.js,
   )
 
 lazy val node = (project in file("modules/node"))
@@ -232,4 +261,31 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
     project
       .enablePlugins(ScalaJSBundlerPlugin)
       .enablePlugins(ScalablyTypedConverterPlugin)
+  }
+
+lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/lmscan-common"))
+  .settings(Dependencies.lmscanCommon)
+  .settings(Dependencies.tests)
+  .jvmSettings(Dependencies.lmscanCommonJVM)
+  .jvmSettings(
+    Test / fork := true,
+  )
+  .jsSettings(Dependencies.lmscanCommonJS)
+  .jsSettings(
+    useYarn := true,
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    },
+    externalNpm := {
+      scala.sys.process.Process("yarn", baseDirectory.value).!
+      baseDirectory.value
+    },
+    Test / fork := false,
+    Compile / compile / wartremoverErrors ++= Warts.all,
+  )
+  .jsConfigure { project =>
+    project
+      .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   }
