@@ -1,4 +1,4 @@
-package io.leisuremeta.chain.explorer.frontend
+package io.leisuremeta.chain.lmscan.frontend
 
 import scala.scalajs.js.annotation.*
 
