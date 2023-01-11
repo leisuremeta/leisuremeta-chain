@@ -14,19 +14,16 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
 
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
     case navMsg: NavMsg => NavUpdate.update(model)(navMsg)
-    case mainMsg: MainMsg =>
-      mainMsg match
-        case MainMsg.Increment =>
-          (model.copy(value = model.value + 1), Cmd.None)
-        case MainMsg.Decrement =>
-          (model.copy(value = model.value - 1), Cmd.None)
+    // case mainMsg: MainMsg =>
+    //   mainMsg match
+    //     case MainMsg.Increment =>
+    //       (model.copy(value = model.value + 1), Cmd.None)
+    //     case MainMsg.Decrement =>
+    //       (model.copy(value = model.value - 1), Cmd.None)
 
   def view(model: Model): Html[Msg] =
     div(
-      NavView.view(model),
-      button(onClick(MainMsg.Decrement))("-"),
-      div(model.toString),
-      button(onClick(MainMsg.Increment))("+"),
+      div(`class` := "main")(NavView.view(model), PagesView.view(model)),
     )
 
   def subscriptions(model: Model): Sub[IO, Msg] =
@@ -38,9 +35,6 @@ final case class Model(
 )
 
 sealed trait Msg
-
-enum MainMsg extends Msg:
-  case Increment, Decrement
 
 enum NavMsg extends Msg:
   case DashBoard, Blocks, Transactions

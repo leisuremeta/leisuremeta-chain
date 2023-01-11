@@ -54,3 +54,7 @@ nav #playnomm {
 #buttons {
     padding-top: 10px;
 }
+
+.main {
+    display: flex;
+}
