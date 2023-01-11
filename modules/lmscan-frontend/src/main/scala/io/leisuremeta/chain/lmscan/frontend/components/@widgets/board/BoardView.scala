@@ -14,19 +14,19 @@ object BoardView:
         div(`class` := "board-container center")(
           div(
             `class` := "board-text center",
-          )("Block Number 123,456,789"),
+          )("Block Number 21,872,421"),
         ),
       ),
       div(`class` := "board-list center")(
         div(`class` := "board-container center")(
           div(
             `class` := "board-text center",
-          )("24h Transactions 123,456,789"),
+          )("24h Transactions 3,572,245"),
         ),
         div(`class` := "board-container center")(
           div(
             `class` := "board-text center",
-          )("Total Accounts 123,456,789"),
+          )("Total Accounts 194,142,552"),
         ),
       ),
     )
