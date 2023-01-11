@@ -1,0 +1,33 @@
+.board-area {
+    padding: 25px;
+    /* background-color: blanchedalmond; */
+}
+
+.board-list {
+    gap: 40px;
+    padding: 20px 0;
+    /* background: rgba(0, 0, 0, 0.069); */
+}
+
+.board-container {
+    width: 350px;
+    height: 80px;
+    padding: 10px;
+    background-color: rgba(5, 67, 121, 0.268);
+    border: 1px solid #d3dede3e;
+    border-radius: 10px;
+}
+
+.board-text {
+    display: flex;
+    padding: 0 5px ;
+    width: 400px;
+    cursor: pointer;
+}
+.board-text::placeholder {
+    padding: 0 5px ;
+    color: rgba(0, 0, 0, 0.323);
+    width: 400px;
+    cursor: pointer;
+}
+
