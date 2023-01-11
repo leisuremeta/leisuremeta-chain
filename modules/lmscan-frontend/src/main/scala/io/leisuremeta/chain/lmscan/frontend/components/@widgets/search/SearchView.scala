@@ -18,14 +18,4 @@ object SearchView:
           ),
         ),
       ),
-      div(`class` := "search-area center")(
-        div(`class` := "search-container center")(
-          div(`class` := "search-text center")(
-            "block number, block hash, account, tx hash",
-          ),
-          div(`class` := "search-icon center material-symbols-outlined")(
-            "search",
-          ),
-        ),
-      ),
     )

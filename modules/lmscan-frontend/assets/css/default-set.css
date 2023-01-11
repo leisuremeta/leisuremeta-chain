@@ -1,6 +1,9 @@
 * {
     margin: 0
 }
+input {
+    all: unset;
+}
 
 textarea {
     background-color: transparent;
