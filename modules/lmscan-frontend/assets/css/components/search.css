@@ -1,14 +1,19 @@
 .search-area {
     padding: 25px;
+    margin-bottom: 20px;
     /* background-color: blanchedalmond; */
 }
 
 .search-container {
-    width: 350px;
+    position: absolute;
+    top: 10px;
+    left: 120px;
+    width: 450px;
     height: 46px;
     padding: 10px;
-    background-color: rgba(240, 248, 255, 0.394);
-
+    padding-left: 20px;
+    background-color: rgba(12, 17, 109, 0.081);
+    margin-left: 180px;
     border: 1px solid #d3dede3e;
     border-radius: 30px;
 }

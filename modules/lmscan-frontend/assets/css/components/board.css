@@ -10,11 +10,12 @@
 }
 
 .board-container {
-    width: 350px;
-    height: 80px;
+    width: 500px;
+    height: 120px;
     padding: 10px;
     background-color: rgba(5, 67, 121, 0.268);
     border: 1px solid #d3dede3e;
+    font-size: 25px;
     border-radius: 10px;
 }
 
