@@ -10,7 +10,7 @@ import scala.scalajs.js.annotation.*
 object LmscanFrontendApp extends TyrianApp[Msg, Model]:
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
-    (Model(0, Tab.S1), Cmd.None)
+    (Model(0, NavMsg.DashBoard), Cmd.None)
 
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
     case navMsg: NavMsg => NavUpdate.update(model)(navMsg)
@@ -34,7 +34,7 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
 
 final case class Model(
     value: Int,
-    tab: Tab,
+    tab: NavMsg,
 )
 
 sealed trait Msg
@@ -43,7 +43,4 @@ enum MainMsg extends Msg:
   case Increment, Decrement
 
 enum NavMsg extends Msg:
-  case S1, S2, S3
-
-enum Tab:
-  case S1, S2, S3
+  case DashBoard, Blocks, Transactions

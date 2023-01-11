@@ -6,12 +6,12 @@ import tyrian.*
 
 object NavUpdate:
   def update(model: Model): NavMsg => (Model, Cmd[IO, Msg]) =
-    case NavMsg.S1 =>
+    case NavMsg.DashBoard =>
       println(model)
-      (model.copy(tab = Tab.S1), Cmd.None)
-    case NavMsg.S2 =>
+      (model.copy(tab = NavMsg.DashBoard), Cmd.None)
+    case NavMsg.Blocks =>
       println(model)
-      (model.copy(tab = Tab.S2), Cmd.None)
-    case NavMsg.S3 =>
+      (model.copy(tab = NavMsg.Blocks), Cmd.None)
+    case NavMsg.Transactions =>
       println(model)
-      (model.copy(tab = Tab.S3), Cmd.None)
+      (model.copy(tab = NavMsg.Transactions), Cmd.None)
