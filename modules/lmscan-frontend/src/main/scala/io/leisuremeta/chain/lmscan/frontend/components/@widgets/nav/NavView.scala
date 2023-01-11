@@ -5,7 +5,7 @@ import tyrian.*
 
 object NavView:
   def view(model: Model): Html[Msg] =
-    nav(`class` := "bg-gray-800 h-screen w-[50px]")(
+    nav(`class` := "")(
       div(id := "playnomm")("playNomm"),
       div(
         id := "buttons",

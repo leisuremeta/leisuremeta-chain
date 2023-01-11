@@ -14,4 +14,4 @@ object Pages:
 
 object PagesView:
   def view(model: Model): Html[Msg] =
-    div(SearchView.view(model), Pages.render(model))
+    div(`class` := "w-[100%]")(SearchView.view(model), Pages.render(model))

@@ -1,0 +1,24 @@
+.search-area {
+    padding: 25px;
+    /* background-color: blanchedalmond; */
+}
+
+.search-container {
+    width: 350px;
+    height: 46px;
+    padding: 10px;
+    background-color: rgba(240, 248, 255, 0.394);
+
+    border: 1px solid #d3dede3e;
+    border-radius: 30px;
+}
+
+.search-text {
+    padding: 0 5px ;
+    color: rgba(0, 0, 0, 0.323);
+}
+
+.search-icon {
+    padding: 0 5px 0 15px;
+    color: rgba(0, 0, 0, 0.323);
+}

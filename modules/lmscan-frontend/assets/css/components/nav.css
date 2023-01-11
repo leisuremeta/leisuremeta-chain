@@ -1,7 +1,3 @@
-* {
-    margin: 0
-}
-
 button {
     all: unset;
     cursor: pointer;
@@ -9,6 +5,7 @@ button {
     width: 40px;
     color: black;
 }
+
 
 nav {
     height: 100vh;
@@ -53,8 +50,4 @@ nav #playnomm {
 
 #buttons {
     padding-top: 10px;
-}
-
-.main {
-    display: flex;
 }
