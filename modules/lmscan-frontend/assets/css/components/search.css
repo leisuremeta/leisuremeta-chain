@@ -1,19 +1,19 @@
 .search-area {
-    padding: 25px;
-    margin-bottom: 20px;
+    /* padding: 25px; */
+    /* margin-bottom: 20px; */
+    margin-bottom: 25px;
     /* background-color: blanchedalmond; */
 }
 
 .search-container {
-    position: absolute;
-    top: 10px;
-    left: 120px;
-    width: 450px;
-    height: 46px;
-    padding: 10px;
-    padding-left: 20px;
-    background-color: rgba(12, 17, 109, 0.081);
-    margin-left: 180px;
+    /* position: absolute; */
+    /* top: 10px; */
+    /* left: 120px; */
+    width: 500px;
+    height: 50px;
+    /* padding: 10px; */
+    padding-left: 0px;
+    background-color: white;
     border: 1px solid #d3dede3e;
     border-radius: 30px;
 }
@@ -32,6 +32,8 @@
 }
 
 .search-icon {
-    padding: 0 5px 0 15px;
-    color: rgba(0, 0, 0, 0.323);
+    padding: 0;
+    padding-left: 10px;
+    color: black;
+    font-weight: bold;
 }

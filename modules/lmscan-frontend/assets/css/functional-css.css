@@ -2,8 +2,22 @@
     width: 100%;
 }
 
-.center {
+.x {
+    display: flex;
+}
+
+.xy-center {
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
+.x-center {
+    justify-content: center;
+}
+
+.y-start {
+    align-items: flex-start
+}
+
+
