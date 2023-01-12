@@ -3,7 +3,7 @@ import tyrian.Html.*
 import tyrian.*
 
 object Row:
-  val title = div(`class` := "row table-title ")(
+  val title = div(`class` := "row table-title ", onClick(NavMsg.Blocks))(
     div(`class` := "cell type-1")(span()("최신 블록")),
     div(`class` := "cell")(span()("")),
     div(`class` := "cell")(span()("")),
