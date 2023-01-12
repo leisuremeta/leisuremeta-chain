@@ -7,7 +7,7 @@ import tyrian.*
 object NavUpdate:
   def update(model: Model): NavMsg => (Model, Cmd[IO, Msg]) =
     case NavMsg.DashBoard =>
-      println(model)
+      println(NavMsg)
       (model.copy(tab = NavMsg.DashBoard), Cmd.None)
     case NavMsg.Blocks =>
       println(model)

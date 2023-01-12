@@ -38,3 +38,8 @@ sealed trait Msg
 
 enum NavMsg extends Msg:
   case DashBoard, Blocks, Transactions
+
+// enum NavMsg extends Msg:
+//   case DashBoard(e: String)    extends NavMsg
+//   case Blocks(e: String)       extends NavMsg
+//   case Transactions(e: String) extends NavMsg
