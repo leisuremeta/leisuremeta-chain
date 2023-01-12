@@ -1,0 +1,41 @@
+.cell.type-1 {
+    /* background-color: aliceblue; */
+    height: 60px;
+    text-align: center;
+    font-size: 15px;
+}
+
+.cell.type-2{
+    text-align: center;
+}
+
+.cell.type-2 span {
+    padding: 5px 15px;
+    text-align: center;
+    font-size: 13px;
+    border: 1px rgb(26, 180, 62) solid;
+    border-radius: 7px;
+    color: green;
+    cursor: pointer;
+    -webkit-transition: background-color 0.2s;
+    -moz-transition:    background-color 0.2s;
+    -ms-transition:     background-color 0.2s;
+    -o-transition:      background-color 0.2s;
+    transition:         background-color 0.2s;
+}
+
+.cell.type-2 span:hover {
+    background-color: rgba(7, 21, 19, 0.892);
+    padding: 5px 15px;
+    text-align: center;
+    font-size: 13px;
+    border: 1px rgb(3, 20, 7) solid;
+    border-radius: 7px;
+    color: white;
+    font-weight: bold;
+}
+
+.cell.type-3 {
+    color: green;
+    font-weight: 600;
+}

@@ -1,12 +1,18 @@
-
+/* oop :: table > row > cell */
 .table-area {
     padding: 0px;
+    font-size: 12px;
+    font-family: JSDongkang,Roboto,sans-serif;
+    font-style: normal;
+    /* text-align: center */
 }
+
 .table-list {
     gap: 10px;
     padding: 15px 0 0px 0px;
     width: 100%;
 }
+
 .table-container {
     width: 100%;
     padding: 10px;
@@ -16,9 +22,7 @@
     border: 1px solid #d3dede3e;
     border-radius: 10px;
 }
-.table-title{
-    height: 60px;
-}
+
 .table-title-1{
     font-style: normal;
     font-weight: 700;
@@ -27,10 +31,25 @@
 .table-title-2{
     border: 1px solid #00ae87;
 }
-#table-blocks table{
-    width: 100%;
+
+.table-area .row {
+    height: 35px;
 }
-.table-cell {
-    display: table-cell;
-    vertical-align: middle
+
+.table-area .cell {
+    height: 35px;
+    border-top: 1px rgba(40, 50, 42, 0.1) solid;
 }
+
+.table-area .table-title .cell {
+    border-top: 0px
+}
+
+
+
+
+
+/* #oop-table-blocks > table > row > cell */
+/* .table-area .table-title {
+   height: 100px;
+} */

@@ -14,4 +14,4 @@ object Pages:
 
 object PagesView:
   def view(model: Model): Html[Msg] =
-    div(id := "page", `class` := "w-[100%]")(Pages.render(model))
+    div(id := "page", `class` := "")(Pages.render(model))

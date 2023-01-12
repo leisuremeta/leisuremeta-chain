@@ -7,11 +7,6 @@
 }
 .cell { 
     display: table-cell;    
-}
-
-/* table > row > cell  :: custom */
-.table-area .row {
-    font-size: 12px;
-    font-family: JSDongkang,Roboto,sans-serif;
-    font-style: normal;
+    vertical-align: middle;
+    
 }
