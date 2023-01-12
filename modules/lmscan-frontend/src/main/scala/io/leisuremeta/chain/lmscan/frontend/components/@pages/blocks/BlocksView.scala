@@ -4,19 +4,8 @@ import tyrian.*
 
 object BlocksView:
   def view(model: Model): Html[Msg] =
-    div(`class` := "")(
-      ul(
-        li(`class` := "")(
-          div(id := "LMPrice", `class` := "resultBox")(
-            span("BlocksView1"),
-            strong(" 0.294"),
-            span(" USDT"),
-          ),
-        ),
-        li(`class` := "")(
-          div(id := "blockHeight", `class` := "resultBox")(
-            "안녕",
-          ),
-        ),
+    div(`class` := "table-area")(
+      div(id := "oop-table-blocks", `class` := "table-list x")(
+        TableBlockView.view(model),
       ),
     )
