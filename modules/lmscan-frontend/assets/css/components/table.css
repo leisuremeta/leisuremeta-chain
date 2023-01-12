@@ -1,19 +1,12 @@
+
 .table-area {
-    /* padding: 25px; */
-    /* background-color: blanchedalmond; */
+    padding: 0px;
 }
-
-.table { display: table; }
-.row { display: table-row; }
-.cell { display: table-cell; }
-
 .table-list {
     gap: 10px;
     padding: 15px 0 0px 0px;
     width: 100%;
-    /* background: rgba(0, 0, 0, 0.069); */
 }
-
 .table-container {
     width: 100%;
     padding: 10px;
@@ -21,15 +14,10 @@
     box-shadow: 0 2px 4px 0 rgb(0 0 0 / 10%);
     border-radius: 5px;
     border: 1px solid #d3dede3e;
-    font-size: 12px;
-    font-family: JSDongkang,Roboto,sans-serif;
-    font-style: normal;
     border-radius: 10px;
-    
 }
 .table-title{
     height: 60px;
-    font-size: 15px;
 }
 .table-title-1{
     font-style: normal;
@@ -39,13 +27,9 @@
 .table-title-2{
     border: 1px solid #00ae87;
 }
-
-
 #table-blocks table{
-    /* background-color: wheat; */
     width: 100%;
 }
-
 .table-cell {
     display: table-cell;
     vertical-align: middle

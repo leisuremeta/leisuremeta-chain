@@ -9,19 +9,19 @@ object Table:
   val Accounts     = "Total Accounts 194,142,552"
 
 object Row:
-  val title = div(`class` := "row")(
+  val title = div(`class` := "row table-title ")(
     div(`class` := "cell")(span()("최신블록")),
     div(`class` := "cell")(span()("")),
     div(`class` := "cell")(span()("")),
     div(`class` := "cell")(span()("더 보기")),
   )
-  val head = div(`class` := "row")(
+  val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
     div(`class` := "cell")(span()("Timestamp")),
     div(`class` := "cell")(span()("Block Hash")),
     div(`class` := "cell")(span()("TX Count")),
   )
-  val body = div(`class` := "row")(
+  val body = div(`class` := "row table-body")(
     div(`class` := "cell")(span()("123458")),
     div(`class` := "cell")(span()("YYYY-MM-DD HH:MM:SS")),
     div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
@@ -31,7 +31,7 @@ object Row:
 object TableView:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-area")(
-      div(id := "table-blocks", `class` := "table-list x")(
+      div(id := "oop-table-blocks", `class` := "table-list x")(
         div(`class` := "table table-container")(
           Row.title,
           Row.head,

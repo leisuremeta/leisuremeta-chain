@@ -2,8 +2,18 @@
     width: 100%;
 }
 
+.h-12px {
+
+}
+
 .x {
     display: flex;
+}
+
+.center {
+    /* table center */
+    text-align: center;
+    vertical-align: middle;  
 }
 
 .xy-center {
