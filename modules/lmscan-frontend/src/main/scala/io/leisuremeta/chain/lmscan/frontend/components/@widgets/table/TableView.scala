@@ -11,16 +11,124 @@ object Table:
 object TableView:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-area")(
-      div(`class` := "table-list x")(
+      div(id := "table-blocks", `class` := "table-list x")(
         div(`class` := "table-container xy-center")(
+          table()(
+            thead()(
+              tr()(
+                td()(span()("Block")),
+                td()(span()("Timestamp")),
+                td()(span()("Block Hash")),
+                td()(span()("TX Count")),
+              ),
+            ),
+            tbody()(
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+            ),
+          ),
         ),
         div(`class` := "table-container xy-center")(
-        ),
-      ),
-      div(`class` := "table-list x")(
-        div(`class` := "table-container xy-center")(
-        ),
-        div(`class` := "table-container xy-center")(
+          table()(
+            thead()(
+              tr()(
+                td()(span()("Block")),
+                td()(span()("Timestamp")),
+                td()(span()("Block Hash")),
+                td()(span()("TX Count")),
+              ),
+            ),
+            tbody()(
+              tr()(
+                td()(span()("1234")),
+                td()(span()("YYYY-MM-DD HH:MM:SS")),
+                td()(span()("0x40e4c52e")),
+                td()(span()("123")),
+              ),
+            ),
+          ),
         ),
       ),
     )

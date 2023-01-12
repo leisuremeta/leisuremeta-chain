@@ -12,22 +12,17 @@
 
 .table-container {
     width: 100%;
-    height: 120px;
     padding: 10px;
-    background-color: hsla(0,0%,100%,.5);
+    background-color: rgb(255 255 255 / 80%);
     box-shadow: 0 2px 4px 0 rgb(0 0 0 / 10%);
     border-radius: 5px;
     border: 1px solid #d3dede3e;
-    font-size: 25px;
+    font-size: 12px;
+    font-family: JSDongkang,Roboto,sans-serif;
+    font-style: normal;
     border-radius: 10px;
 }
 
-.table-text {
-    display: flex;
-    padding: 0 5px ;
-    width: 400px;
-    cursor: pointer;
-}
 .table-text::placeholder {
     padding: 0 5px ;
     color: rgba(0, 0, 0, 0.323);
@@ -35,3 +30,7 @@
     cursor: pointer;
 }
 
+#table-blocks table{
+    /* background-color: wheat; */
+    width: 100%;
+}
