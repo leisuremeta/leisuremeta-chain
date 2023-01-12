@@ -26,7 +26,7 @@
 }
 .search-text::placeholder {
     padding: 0 5px ;
-    color: rgba(0, 0, 0, 0.323);
+    color: rgba(0, 0, 0, 0.4);
     width: 400px;
     cursor: pointer;
 }

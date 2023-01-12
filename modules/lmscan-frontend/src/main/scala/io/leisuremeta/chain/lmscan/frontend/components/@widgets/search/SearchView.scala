@@ -9,7 +9,7 @@ object SearchView:
         input(
           `class` := "search-text xy-center",
           `placeholder` := (
-            "block number, block hash, account, tx hash",
+            "block number, block hash, account, tx hash..",
           ),
         ),
         div(`class` := "search-icon xy-center material-symbols-outlined")(

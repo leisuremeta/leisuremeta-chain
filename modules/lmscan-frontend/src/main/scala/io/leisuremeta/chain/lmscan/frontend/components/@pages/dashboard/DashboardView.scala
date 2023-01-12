@@ -7,4 +7,5 @@ object DashboardView:
     div(`class` := "")(
       SearchView.view(model),
       BoardView.view(model),
+      TableView.view(model),
     )
