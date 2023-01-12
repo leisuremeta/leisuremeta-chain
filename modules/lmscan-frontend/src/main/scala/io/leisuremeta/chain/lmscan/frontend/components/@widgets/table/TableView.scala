@@ -8,127 +8,49 @@ object Table:
   val Transactions = "24h Transactions 3,572,245"
   val Accounts     = "Total Accounts 194,142,552"
 
+object Row:
+  val title = div(`class` := "row")(
+    div(`class` := "cell")(span()("최신블록")),
+    div(`class` := "cell")(span()("")),
+    div(`class` := "cell")(span()("")),
+    div(`class` := "cell")(span()("더 보기")),
+  )
+  val head = div(`class` := "row")(
+    div(`class` := "cell")(span()("Block")),
+    div(`class` := "cell")(span()("Timestamp")),
+    div(`class` := "cell")(span()("Block Hash")),
+    div(`class` := "cell")(span()("TX Count")),
+  )
+  val body = div(`class` := "row")(
+    div(`class` := "cell")(span()("123458")),
+    div(`class` := "cell")(span()("YYYY-MM-DD HH:MM:SS")),
+    div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
+    div(`class` := "cell")(span()("123")),
+  )
+
 object TableView:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-area")(
       div(id := "table-blocks", `class` := "table-list x")(
-        div(`class` := "table-container xy-center")(
-          table()(
-            thead()(
-              tr()(
-                td()(span()("Block")),
-                td()(span()("Timestamp")),
-                td()(span()("Block Hash")),
-                td()(span()("TX Count")),
-              ),
-            ),
-            tbody()(
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-            ),
-          ),
+        div(`class` := "table table-container")(
+          Row.title,
+          Row.head,
+          Row.body,
+          Row.body,
+          Row.body,
+          Row.body,
+          Row.body,
+          Row.body,
         ),
-        div(`class` := "table-container xy-center")(
-          table()(
-            thead()(
-              tr()(
-                td()(span()("Block")),
-                td()(span()("Timestamp")),
-                td()(span()("Block Hash")),
-                td()(span()("TX Count")),
-              ),
-            ),
-            tbody()(
-              tr()(
-                td()(span()("1234")),
-                td()(span()("YYYY-MM-DD HH:MM:SS")),
-                td()(span()("0x40e4c52e")),
-                td()(span()("123")),
-              ),
-            ),
-          ),
+        div(`class` := "table table-container")(
+          Row.title,
+          Row.head,
+          Row.body,
+          Row.body,
+          Row.body,
+          Row.body,
+          Row.body,
+          Row.body,
         ),
       ),
     )

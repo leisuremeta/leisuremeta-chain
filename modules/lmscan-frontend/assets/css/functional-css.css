@@ -13,11 +13,18 @@
 }
 
 .x-center {
+    display: flex;
     justify-content: center;
 }
 
 .y-start {
+    display: flex;
     align-items: flex-start
+}
+
+.y-center {
+    display: flex;
+    align-items: center;
 }
 
 
