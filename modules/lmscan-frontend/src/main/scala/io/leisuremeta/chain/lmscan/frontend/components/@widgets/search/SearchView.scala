@@ -7,7 +7,11 @@ object SearchView:
     div(`class` := "search-area")(
       div(`class` := "search-container xy-center")(
         input(
-          `class` := "search-text xy-center",
+          // _class := "sub-search",
+          // `class` := "sub-sear ch",
+          onInput(s => InputMsg.Get(s)),
+          // onBlur(InputMsg.Patch),
+          `class` := "search-text xy-center sub-search ",
           `placeholder` := (
             "block number, block hash, account, tx hash..",
           ),
