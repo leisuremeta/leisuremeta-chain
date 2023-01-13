@@ -10,5 +10,5 @@ object InputUpdate:
       println(model.searchValue)
       (model.copy(searchValue = s), Cmd.None)
     case InputMsg.Patch =>
-      println(s"InputMsg.Patch:: $model")
-      (model, Cmd.None)
+      println(s"InputMsg.Patch >>  $model")
+      (model.copy(searchValue = ""), Cmd.None)

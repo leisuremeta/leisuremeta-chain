@@ -11,6 +11,7 @@ object SearchView:
           // `class` := "sub-sear ch",
           onInput(s => InputMsg.Get(s)),
           // onBlur(InputMsg.Patch),
+          value   := s"${model.searchValue}",
           `class` := "search-text xy-center sub-search ",
           `placeholder` := (
             "block number, block hash, account, tx hash..",
