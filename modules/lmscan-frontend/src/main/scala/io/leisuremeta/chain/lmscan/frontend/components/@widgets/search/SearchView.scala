@@ -9,7 +9,7 @@ object SearchView:
         input(
           onInput(s => InputMsg.Get(s)),
           value   := s"${model.searchValue}",
-          `class` := "search-text xy-center sub-search ",
+          `class` := "search-text xy-center DOM-search ",
           `placeholder` := (
             "block number, block hash, account, tx hash..",
           ),
