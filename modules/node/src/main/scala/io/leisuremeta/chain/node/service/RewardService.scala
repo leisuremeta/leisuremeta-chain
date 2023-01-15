@@ -35,12 +35,12 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import io.leisuremeta.chain.api.model.reward.DaoActivity
 
 object RewardService:
@@ -175,7 +175,7 @@ object RewardService:
     *   number of dao (if larger than 100, return 100)
     */
   def countDao[F[_]: Concurrent: StateRepository.RewardState](
-      daoState: MerkleTrieState[GroupId, DaoInfo],
+      daoState: GenericMerkleTrieState[GroupId, DaoInfo],
   ): EitherT[F, String, Int] =
     for
       stream <- MerkleTrie
@@ -201,7 +201,7 @@ object RewardService:
   def getWeeklyUserActivities[F[_]: Concurrent: StateRepository.RewardState](
       timestamp: Instant,
       user: Account,
-      root: MerkleTrieState[(Instant, Account), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, Account), DaoActivity],
   ): EitherT[F, String, Seq[Option[DaoActivity]]] =
     val refInstants = getWeeklyRefTime(
       getLatestRewardInstantBefore(timestamp),
@@ -244,7 +244,7 @@ object RewardService:
   def getWeeklyTotalActivityPoint[F[_]
     : Concurrent: StateRepository.RewardState](
       timestamp: Instant,
-      root: MerkleTrieState[(Instant, Account), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, Account), DaoActivity],
   ): EitherT[F, String, BigNat] =
     val to: Instant   = getLatestRewardInstantBefore(timestamp)
     val from: Instant = getLatestRewardInstantBefore(to)
@@ -332,7 +332,7 @@ object RewardService:
 
   def getNftOwned[F[_]: Concurrent: StateRepository.TokenState](
       user: Account,
-      state: MerkleTrieState[
+      state: GenericMerkleTrieState[
         (Account, TokenId, Hash.Value[TransactionWithResult]),
         Unit,
       ],
@@ -369,7 +369,7 @@ object RewardService:
   def getWeeklyTokenReceived[F[_]: Monad: StateRepository.RewardState](
       tokenList: List[TokenId],
       canonicalTimestamp: Instant,
-      root: MerkleTrieState[(Instant, TokenId), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
   ): EitherT[F, String, DaoActivity] =
     val refInstants = getWeeklyRefTime(
       getLatestRewardInstantBefore(canonicalTimestamp),
@@ -393,7 +393,7 @@ object RewardService:
   def getWeeklyTotalReceivedPoint[F[_]
     : Concurrent: StateRepository.RewardState](
       timestamp: Instant,
-      root: MerkleTrieState[(Instant, TokenId), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
   ): EitherT[F, String, BigNat] =
     val to: Instant   = getLatestRewardInstantBefore(timestamp)
     val from: Instant = getLatestRewardInstantBefore(to)
@@ -612,7 +612,7 @@ object RewardService:
 
   def isModerator[F[_]: Concurrent: StateRepository.RewardState](
       user: Account,
-      root: MerkleTrieState[GroupId, DaoInfo],
+      root: GenericMerkleTrieState[GroupId, DaoInfo],
   ): EitherT[F, String, Boolean] =
     for
       stream <- MerkleTrie

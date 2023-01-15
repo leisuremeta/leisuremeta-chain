@@ -31,7 +31,7 @@ import api.model.{
 import api.model.reward.*
 import api.model.token.{NftState, TokenDefinitionId, TokenId}
 import api.model.TransactionWithResult.ops.*
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -349,8 +349,8 @@ trait UpdateStateWithRewardTx:
       utxos: List[Hash.Value[TransactionWithResult]],
       txHash: Hash.Value[TransactionWithResult],
       outputs: Map[Account, BigNat],
-      balanceState: MerkleTrieState[BalanceKey, Unit],
-  ): EitherT[F, String, MerkleTrieState[BalanceKey, Unit]] =
+      balanceState: GenericMerkleTrieState[BalanceKey, Unit],
+  ): EitherT[F, String, GenericMerkleTrieState[BalanceKey, Unit]] =
     val program = for
       _ <- utxos.traverse { utxo =>
         MerkleTrie.remove[F, BalanceKey, Unit](

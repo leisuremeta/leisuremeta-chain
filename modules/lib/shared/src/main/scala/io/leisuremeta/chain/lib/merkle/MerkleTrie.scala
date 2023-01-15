@@ -16,7 +16,7 @@ import scodec.bits.{BitVector, ByteVector}
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
 import codec.byte.ByteEncoder.ops.*
 import crypto.Hash.ops.*
-import MerkleTrieNode.{Children, ChildrenCondition, MerkleHash}
+import GenericMerkleTrieNode.{Children, ChildrenCondition, MerkleHash}
 
 import util.refined.bitVector.given
 
@@ -25,7 +25,7 @@ object MerkleTrie:
 
   type NodeStore[F[_], K, V] =
     Kleisli[EitherT[F, String, *], MerkleHash[K, V], Option[
-      MerkleTrieNode[K, V],
+      GenericMerkleTrieNode[K, V],
     ]]
 
   @SuppressWarnings(
@@ -85,7 +85,7 @@ object MerkleTrie:
     StateT.modifyF((state: GenericMerkleTrieState[K, V]) =>
       state.root match
         case None =>
-          val leaf = MerkleTrieNode
+          val leaf = GenericMerkleTrieNode
             .leaf[K, V](ensurePrefix(key), value.toBytes)
           val leafHash = leaf.toHash
           EitherT.rightT[F, String](
@@ -95,12 +95,12 @@ object MerkleTrie:
             ),
           )
         case Some(root) =>
-          getNode[F, K, V](state).flatMap { (node: MerkleTrieNode[K, V]) =>
+          getNode[F, K, V](state).flatMap { (node: GenericMerkleTrieNode[K, V]) =>
 
             val prefix0: BitVector = node.prefix.value
 
             node match
-              case MerkleTrieNode.Leaf(_, value0) =>
+              case GenericMerkleTrieNode.Leaf(_, value0) =>
                 val (commonPrefix, remainder0, remainder1) =
                   getCommonPrefixNibbleAndRemainders(prefix0, key)
                 (remainder0.nonEmpty, remainder1.nonEmpty) match
@@ -108,7 +108,7 @@ object MerkleTrie:
                     if value0 === value.toBytes then
                       EitherT.rightT[F, String](state)
                     else
-                      val leaf1 = MerkleTrieNode
+                      val leaf1 = GenericMerkleTrieNode
                         .leaf[K, V](ensurePrefix(prefix0), value.toBytes)
                       val leaf1Hash = leaf1.toHash
                       EitherT.rightT[F, String](
@@ -121,13 +121,13 @@ object MerkleTrie:
                       )
                   case (false, true) =>
                     val (index10, prefix10) = remainder1.splitAt(4)
-                    val leaf1 = MerkleTrieNode
+                    val leaf1 = GenericMerkleTrieNode
                       .leaf[K, V](ensurePrefix(prefix10), value.toBytes)
                     val leaf1Hash = leaf1.toHash
                     val children: Children[K, V] = Children
                       .empty[K, V]
                       .updated(index10.toInt(signed = false), Some(leaf1Hash))
-                    val branch = MerkleTrieNode.branchWithData(
+                    val branch = GenericMerkleTrieNode.branchWithData(
                       node.prefix,
                       children,
                       value0,
@@ -144,13 +144,13 @@ object MerkleTrie:
                     )
                   case (true, false) =>
                     val (index00, prefix00) = remainder0.splitAt(4)
-                    val leaf0 = MerkleTrieNode
+                    val leaf0 = GenericMerkleTrieNode
                       .leaf[K, V](ensurePrefix(prefix00), value0)
                     val leaf0Hash = leaf0.toHash
                     val children: Children[K, V] = Children
                       .empty[K, V]
                       .updated(index00.toInt(signed = false), Some(leaf0Hash))
-                    val branch = MerkleTrieNode.branchWithData(
+                    val branch = GenericMerkleTrieNode.branchWithData(
                       ensurePrefix(commonPrefix),
                       children,
                       value.toBytes,
@@ -167,18 +167,18 @@ object MerkleTrie:
                     )
                   case (true, true) =>
                     val (index00, prefix00) = remainder0.splitAt(4)
-                    val leaf0 = MerkleTrieNode
+                    val leaf0 = GenericMerkleTrieNode
                       .leaf[K, V](ensurePrefix(prefix00), value0)
                     val leaf0Hash           = leaf0.toHash
                     val (index10, prefix10) = remainder1.splitAt(4)
-                    val leaf1 = MerkleTrieNode
+                    val leaf1 = GenericMerkleTrieNode
                       .leaf[K, V](ensurePrefix(prefix10), value.toBytes)
                     val leaf1Hash = leaf1.toHash
                     val children: Children[K, V] = Children
                       .empty[K, V]
                       .updated(index00.toInt(signed = false), Some(leaf0Hash))
                       .updated(index10.toInt(signed = false), Some(leaf1Hash))
-                    val branch = MerkleTrieNode.branch(
+                    val branch = GenericMerkleTrieNode.branch(
                       ensurePrefix(commonPrefix),
                       children,
                     )
@@ -217,7 +217,7 @@ object MerkleTrie:
                     val (index10, prefix10) = remainder1.splitAt(4)
                     children.value(index10.toInt(signed = false)) match
                       case None =>
-                        val leaf1 = MerkleTrieNode
+                        val leaf1 = GenericMerkleTrieNode
                           .leaf[K, V](ensurePrefix(prefix10), value.toBytes)
                         val leaf1Hash = leaf1.toHash
                         val children1 = refineV[ChildrenCondition] {
@@ -259,11 +259,11 @@ object MerkleTrie:
                     val (index00, prefix00) = remainder0.splitAt(4)
                     val child0     = node.setPrefix(ensurePrefix(prefix00))
                     val child0Hash = child0.toHash
-                    val children1 = MerkleTrieNode.Children.empty.updated(
+                    val children1 = GenericMerkleTrieNode.Children.empty.updated(
                       index00.toInt(signed = false),
                       Some(child0Hash),
                     )
-                    val branch1 = MerkleTrieNode.branchWithData(
+                    val branch1 = GenericMerkleTrieNode.branchWithData(
                       ensurePrefix(commonPrefix),
                       children1,
                       value.toBytes,
@@ -283,14 +283,14 @@ object MerkleTrie:
                     val (index10, prefix10) = remainder1.splitAt(4)
                     val child0     = node.setPrefix(ensurePrefix(prefix00))
                     val child0Hash = child0.toHash
-                    val child1 = MerkleTrieNode
+                    val child1 = GenericMerkleTrieNode
                       .leaf[K, V](ensurePrefix(prefix10), value.toBytes)
                     val child1Hash = child1.toHash
                     val children1 = Children
                       .empty[K, V]
                       .updated(index00.toInt(signed = false), Some(child0Hash))
                       .updated(index10.toInt(signed = false), Some(child1Hash))
-                    val branch1 = MerkleTrieNode.branch(
+                    val branch1 = GenericMerkleTrieNode.branch(
                       ensurePrefix(commonPrefix),
                       children1,
                     )
@@ -326,7 +326,7 @@ object MerkleTrie:
         case Some(root) =>
           getNode[F, K, V](state).flatMap { node =>
             node match
-              case MerkleTrieNode.Leaf(prefix, _) if prefix.value === key =>
+              case GenericMerkleTrieNode.Leaf(prefix, _) if prefix.value === key =>
                 EitherT.rightT[F, String](
                   (
                     state.copy(
@@ -336,12 +336,12 @@ object MerkleTrie:
                     true,
                   ),
                 )
-              case MerkleTrieNode.Leaf(_, _) =>
+              case GenericMerkleTrieNode.Leaf(_, _) =>
                 EitherT.pure[F, String]((state, false))
-              case MerkleTrieNode.BranchWithData(prefix, children, value)
+              case GenericMerkleTrieNode.BranchWithData(prefix, children, value)
                   if prefix.value === key =>
-                val branch1: MerkleTrieNode[K, V] =
-                  MerkleTrieNode.Branch(prefix, children)
+                val branch1: GenericMerkleTrieNode[K, V] =
+                  GenericMerkleTrieNode.Branch(prefix, children)
                 val branch1Hash = branch1.toHash
 
                 EitherT.rightT[F, String](
@@ -398,8 +398,8 @@ object MerkleTrie:
                             ),
                           ).toOption.get
                           val branch = valueOption.fold(
-                            MerkleTrieNode.branch(prefix, children1),
-                          )(MerkleTrieNode.branchWithData(prefix, children1, _))
+                            GenericMerkleTrieNode.branch(prefix, children1),
+                          )(GenericMerkleTrieNode.branchWithData(prefix, children1, _))
                           val branchHash = branch.toHash
 
                           EitherT.rightT[F, String](
@@ -435,7 +435,7 @@ object MerkleTrie:
         case None => EitherT.rightT[F, String](Stream.empty)
         case Some(_) =>
           getNode[F, K, V](state).flatMap {
-            case MerkleTrieNode.Leaf(prefix, value) =>
+            case GenericMerkleTrieNode.Leaf(prefix, value) =>
               if key <= prefix.value then
                 EitherT.fromEither[F](
                   ByteDecoder[V].decode(value).left.map(_.msg).flatMap {
@@ -523,14 +523,14 @@ object MerkleTrie:
 
   def getNode[F[_]: Monad, K, V](state: GenericMerkleTrieState[K, V])(implicit
       ns: NodeStore[F, K, V],
-  ): EitherT[F, String, MerkleTrieNode[K, V]] = for
+  ): EitherT[F, String, GenericMerkleTrieNode[K, V]] = for
     root <- EitherT.fromOption[F](
       state.root,
       s"Cannot get node from empty merkle trie: $state",
     )
     nodeOption = state.diff.get(root)
-    node <- nodeOption.fold[EitherT[F, String, MerkleTrieNode[K, V]]] {
-      ns.run(root).subflatMap[String, MerkleTrieNode[K, V]] {
+    node <- nodeOption.fold[EitherT[F, String, GenericMerkleTrieNode[K, V]]] {
+      ns.run(root).subflatMap[String, GenericMerkleTrieNode[K, V]] {
         _.toRight(s"Merkle trie node $root is not found: $state")
       }
     }(EitherT.rightT[F, String](_))
@@ -551,11 +551,11 @@ object MerkleTrie:
     val (commonPrefix, remainder1) = bits1 splitAt nextPrefixBitSize
     (commonPrefix, remainder0, remainder1)
 
-  type PrefixBits = BitVector Refined MerkleTrieNode.PrefixCondition
+  type PrefixBits = BitVector Refined GenericMerkleTrieNode.PrefixCondition
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def ensurePrefix(bits: BitVector): PrefixBits =
-    refineV[MerkleTrieNode.PrefixCondition](bits).toOption.get
+    refineV[GenericMerkleTrieNode.PrefixCondition](bits).toOption.get
 
   extension (bits: BitVector)
     def <=(that: BitVector): Boolean =

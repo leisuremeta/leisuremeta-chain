@@ -23,7 +23,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.Utf8
@@ -193,12 +193,12 @@ trait UpdateStateWithAccountTx:
 //                          case Some(ethAddress) =>
 //                            MerkleTrie.remove[F, EthAddress, Account](ethAddress.toBytes.bits)
 //                          case None =>
-//                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
+//                            StateT.pure[EitherT[F, String, *], GenericMerkleTrieState[EthAddress, Account], Unit](())
 //                        _ <- ua.ethAddress match
 //                          case Some(ethAddress) =>
 //                            MerkleTrie.put[F, EthAddress, Account](ethAddress.toBytes.bits, ua.account)
 //                          case None =>
-//                            StateT.pure[EitherT[F, String, *], MerkleTrieState[EthAddress, Account], Unit](())
+//                            StateT.pure[EitherT[F, String, *], GenericMerkleTrieState[EthAddress, Account], Unit](())
 //                      yield ()
 //                    }.runS(ms.account.ethState)
                 yield (

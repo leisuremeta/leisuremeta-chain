@@ -26,8 +26,8 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, UInt256, Utf8}
 import lib.failure.DecodingFailure
-import lib.merkle.{MerkleTrieNode, MerkleTrieState}
-import lib.merkle.MerkleTrieNode.MerkleRoot
+import lib.merkle.{GenericMerkleTrieNode, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrieNode.MerkleRoot
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import service.LocalGossipService
 import service.interpreter.LocalGossipServiceInterpreter

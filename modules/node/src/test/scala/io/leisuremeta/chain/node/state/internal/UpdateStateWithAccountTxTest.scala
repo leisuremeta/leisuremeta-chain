@@ -25,7 +25,7 @@ import lib.crypto.CryptoOps
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import lib.failure.DecodingFailure
 import repository.StateRepository
 import repository.StateRepository.{*, given}

@@ -1,6 +1,6 @@
 package io.leisuremeta.chain.lib.merkle
 
-import MerkleTrieNode.MerkleRoot
+import GenericMerkleTrieNode.MerkleRoot
 
 final case class GenericMerkleTrieState[K, V](
     root: Option[MerkleRoot[K, V]],

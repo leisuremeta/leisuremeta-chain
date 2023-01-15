@@ -36,7 +36,7 @@ import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import StateRepository.given
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.BurnFungibleTokenResult
@@ -415,7 +415,7 @@ object StateReadService:
   def getNftBalanceFromNftBalanceState[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
-      nftBalanceState: MerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
+      nftBalanceState: GenericMerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
     ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- MerkleTrie
       .from[
@@ -499,7 +499,7 @@ object StateReadService:
   def getEntrustedNftBalanceFromEntrustedNftBalanceState[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
-      entrustedNftBalanceState: MerkleTrieState[(Account, Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
+      entrustedNftBalanceState: GenericMerkleTrieState[(Account, Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
     ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- MerkleTrie
       .from[

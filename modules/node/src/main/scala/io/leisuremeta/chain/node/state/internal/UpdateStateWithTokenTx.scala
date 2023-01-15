@@ -29,7 +29,7 @@ import api.model.{
 }
 import api.model.token.*
 import api.model.TransactionWithResult.ops.*
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -246,7 +246,7 @@ trait UpdateStateWithTokenTx:
 
           val transferFungibleTokenProgram: StateT[
             EitherT[F, String, *],
-            MerkleTrieState[FungibleBalance, Unit],
+            GenericMerkleTrieState[FungibleBalance, Unit],
             Unit,
           ] = for
             _ <- tf.inputs.toList.traverse { (txHash) =>
@@ -295,7 +295,7 @@ trait UpdateStateWithTokenTx:
 
           val nftBalanceProgram: StateT[
             EitherT[F, String, *],
-            MerkleTrieState[NftBalance, Unit],
+            GenericMerkleTrieState[NftBalance, Unit],
             Unit,
           ] = for
             _ <- MerkleTrie.remove[F, NftBalance, Unit] {
@@ -313,7 +313,7 @@ trait UpdateStateWithTokenTx:
 
           val nftStateProgram: StateT[
             EitherT[F, String, *],
-            MerkleTrieState[TokenId, NftState],
+            GenericMerkleTrieState[TokenId, NftState],
             Unit,
           ] = for
             nftStateOption <- MerkleTrie.get[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
@@ -367,7 +367,7 @@ trait UpdateStateWithTokenTx:
               txWithResult: TransactionWithResult,
           ): StateT[
             EitherT[F, String, *],
-            MerkleTrieState[FungibleBalance, Unit],
+            GenericMerkleTrieState[FungibleBalance, Unit],
             Unit,
           ] =
             val txHash = txWithResult.toHash
