@@ -44,6 +44,18 @@ final case class DecodeResult[+A](value: A, remainder: ByteVector)
 object ByteDecoder:
   def apply[A: ByteDecoder]: ByteDecoder[A] = summon
 
+  object ops:
+    extension (bytes: ByteVector)
+      def to[A: ByteDecoder]: Either[DecodingFailure, A] = for
+        result <- ByteDecoder[A].decode(bytes)
+        DecodeResult(a, r) = result
+        _ <- Either.cond(
+          r.isEmpty,
+          (),
+          DecodingFailure(s"non empty remainder: $r"),
+        )
+      yield a
+
   given ByteDecoder[EmptyTuple] = bytes =>
     Right[DecodingFailure, DecodeResult[EmptyTuple]](
       DecodeResult(EmptyTuple, bytes),
