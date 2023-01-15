@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lib.merkle
 
 import MerkleTrieNode.MerkleRoot
 
-final case class MerkleTrieState[K, V](
+final case class GenericMerkleTrieState[K, V](
     root: Option[MerkleRoot[K, V]],
     base: Option[MerkleRoot[K, V]],
     diff: GenericMerkleTrieStateDiff[K, V],
@@ -11,8 +11,8 @@ final case class MerkleTrieState[K, V](
     Array("org.wartremover.warts.Equals", "org.wartremover.warts.Nothing"),
   )
   def rebase(
-      that: MerkleTrieState[K, V],
-  ): Either[String, MerkleTrieState[K, V]] =
+      that: GenericMerkleTrieState[K, V],
+  ): Either[String, GenericMerkleTrieState[K, V]] =
     if that.base != base then Left(s"Different base")
     else
       val thisMap = this.diff.toMap
@@ -30,14 +30,14 @@ final case class MerkleTrieState[K, V](
         ),
       )
 
-object MerkleTrieState:
-  def empty[K, V]: MerkleTrieState[K, V] = MerkleTrieState(
+object GenericMerkleTrieState:
+  def empty[K, V]: GenericMerkleTrieState[K, V] = GenericMerkleTrieState(
     None,
     None,
     GenericMerkleTrieStateDiff.empty[K, V],
   )
-  def fromRoot[K, V](root: MerkleRoot[K, V]): MerkleTrieState[K, V] =
-    MerkleTrieState[K, V](
+  def fromRoot[K, V](root: MerkleRoot[K, V]): GenericMerkleTrieState[K, V] =
+    GenericMerkleTrieState[K, V](
       root = Some(root),
       base = Some(root),
       diff = GenericMerkleTrieStateDiff.empty[K, V],

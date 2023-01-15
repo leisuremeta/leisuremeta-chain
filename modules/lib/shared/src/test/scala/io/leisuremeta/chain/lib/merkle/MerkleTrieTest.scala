@@ -54,7 +54,8 @@ case class From(key: BitVector)
 given emptyNodeStore[K, V]: NodeStore[Id, K, V] =
   Kleisli { (_: MerkleHash[K, V]) => EitherT.rightT[Id, String](None) }
 
-var merkleTrieState: MerkleTrieState[K, V] = MerkleTrieState.empty[K, V]
+var merkleTrieState: GenericMerkleTrieState[K, V] =
+  GenericMerkleTrieState.empty[K, V]
 
 val genByteVector = Gen.bytes(Range.linear(0, 64)).map(ByteVector.view)
 def commandGet: CommandIO[State] = new Command[State, Get, Option[V]]:
@@ -96,7 +97,7 @@ def commandPut: CommandIO[State] = new Command[State, Put, Unit]:
 
     val program = MerkleTrie.put[Id, K, V](i.key, i.value)
     program.runS(merkleTrieState).value.map {
-      (newState: MerkleTrieState[K, V]) =>
+      (newState: GenericMerkleTrieState[K, V]) =>
         merkleTrieState = newState
     }
 
@@ -218,7 +219,7 @@ def commandFrom: CommandIO[State] = new Command[State, From, S]:
 class MerkleTrieTest extends HedgehogSuite:
   test("put same key value twice expect not to change state") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val program =
         MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
 
@@ -233,7 +234,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put 10 -> put empty with empty -> put 10") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val put10 =
         MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
       val putEmptyWithEmpty =
@@ -269,7 +270,7 @@ class MerkleTrieTest extends HedgehogSuite:
   ) {
     withMunitAssertions { assertions =>
 
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val put10withEmpty =
         MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
       val putEmptyWithEmpty =
@@ -310,7 +311,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put (empty, empty) -> put (00, 00) -> get (empty)") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val putEmptyWithEmpty =
         MerkleTrie.put[Id, K, V](ByteVector.empty.bits, ByteVector.empty)
       val put00_00 =
@@ -340,7 +341,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put 00 -> put 0000 -> put empty -> get empty") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val put00   = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
       val put0000 = MerkleTrie.put[Id, K, V](hex"0000".bits, ByteVector.empty)
       val putEmpty =
@@ -371,7 +372,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put 0700 -> put 07 -> put 10 -> get empty") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val put0700  = MerkleTrie.put[Id, K, V](hex"0700".bits, ByteVector.empty)
       val put07    = MerkleTrie.put[Id, K, V](hex"07".bits, ByteVector.empty)
       val put10    = MerkleTrie.put[Id, K, V](hex"10".bits, ByteVector.empty)
@@ -401,7 +402,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put 00 -> put 01 -> get 00") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val put00 = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
       val put01 = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
       val get00 = MerkleTrie.get[Id, K, V](hex"00".bits)
@@ -428,7 +429,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put(00, empty) -> put(01, empty) -> put(00, 00) -> get 01") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
       val put00    = MerkleTrie.put[Id, K, V](hex"00".bits, ByteVector.empty)
       val put01    = MerkleTrie.put[Id, K, V](hex"01".bits, ByteVector.empty)
       val put00_00 = MerkleTrie.put[Id, K, V](hex"00".bits, hex"00")
@@ -459,7 +460,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put 50 -> put 5000 -> remove 00") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
 
       def put(key: ByteVector) =
         MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
@@ -490,7 +491,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
   test("put d0 -> put d000 -> put empty -> put 000000 -> remove d000") {
     withMunitAssertions { assertions =>
-      val initialState = MerkleTrieState.empty[K, V]
+      val initialState = GenericMerkleTrieState.empty[K, V]
 
       def put(key: ByteVector) =
         MerkleTrie.put[Id, K, V](key.bits, ByteVector.empty)
@@ -527,6 +528,6 @@ class MerkleTrieTest extends HedgehogSuite:
       range = Range.linear(1, 100),
       initial = State.empty,
       commands = List(commandGet, commandPut, commandRemove, commandFrom),
-      cleanup = () => merkleTrieState = MerkleTrieState.empty[K, V],
+      cleanup = () => merkleTrieState = GenericMerkleTrieState.empty[K, V],
     )
   }

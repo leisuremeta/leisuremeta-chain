@@ -20,6 +20,7 @@ import MerkleTrieNode.{Children, ChildrenCondition, MerkleHash}
 
 import util.refined.bitVector.given
 
+import io.leisuremeta.chain.lib.merkle.GenericMerkleTrieState
 object MerkleTrie:
 
   type NodeStore[F[_], K, V] =
@@ -36,8 +37,8 @@ object MerkleTrie:
   )
   def get[F[_]: Monad, K, V: ByteDecoder](key: BitVector)(implicit
       ns: NodeStore[F, K, V],
-  ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Option[V]] =
-    StateT.inspectF { (state: MerkleTrieState[K, V]) =>
+  ): StateT[EitherT[F, String, *], GenericMerkleTrieState[K, V], Option[V]] =
+    StateT.inspectF { (state: GenericMerkleTrieState[K, V]) =>
       if state.root.isEmpty then EitherT.rightT[F, String](None)
       else
         for
@@ -80,8 +81,8 @@ object MerkleTrie:
   )
   def put[F[_]: Monad, K, V: ByteEncoder](key: BitVector, value: V)(implicit
       ns: NodeStore[F, K, V],
-  ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Unit] =
-    StateT.modifyF((state: MerkleTrieState[K, V]) =>
+  ): StateT[EitherT[F, String, *], GenericMerkleTrieState[K, V], Unit] =
+    StateT.modifyF((state: GenericMerkleTrieState[K, V]) =>
       state.root match
         case None =>
           val leaf = MerkleTrieNode
@@ -317,8 +318,8 @@ object MerkleTrie:
   )
   def remove[F[_]: Monad, K, V](key: BitVector)(implicit
       ns: NodeStore[F, K, V],
-  ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Boolean] =
-    StateT((state: MerkleTrieState[K, V]) =>
+  ): StateT[EitherT[F, String, *], GenericMerkleTrieState[K, V], Boolean] =
+    StateT((state: GenericMerkleTrieState[K, V]) =>
       state.root match
         case None =>
           EitherT.pure[F, String]((state, false))
@@ -425,11 +426,11 @@ object MerkleTrie:
   )
   def from[F[_]: Monad, K, V: ByteDecoder](key: BitVector)(implicit
       ns: NodeStore[F, K, V],
-  ): StateT[EitherT[F, String, *], MerkleTrieState[K, V], Stream[
+  ): StateT[EitherT[F, String, *], GenericMerkleTrieState[K, V], Stream[
     EitherT[F, String, *],
     (BitVector, V),
   ]] =
-    StateT.inspectF((state: MerkleTrieState[K, V]) =>
+    StateT.inspectF((state: GenericMerkleTrieState[K, V]) =>
       state.root match
         case None => EitherT.rightT[F, String](Stream.empty)
         case Some(_) =>
@@ -520,7 +521,7 @@ object MerkleTrie:
           },
     )
 
-  def getNode[F[_]: Monad, K, V](state: MerkleTrieState[K, V])(implicit
+  def getNode[F[_]: Monad, K, V](state: GenericMerkleTrieState[K, V])(implicit
       ns: NodeStore[F, K, V],
   ): EitherT[F, String, MerkleTrieNode[K, V]] = for
     root <- EitherT.fromOption[F](
