@@ -25,7 +25,7 @@ import lib.crypto.CryptoOps
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
-import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.failure.DecodingFailure
 import repository.StateRepository
 import repository.StateRepository.{*, given}
@@ -100,7 +100,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
           tx.asInstanceOf[Transaction.AccountTx],
         ).value.unsafeRunSync(): @unchecked
 
-      val result = MerkleTrie
+      val result = GenericMerkleTrie
         .get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
           (account, pubKeySummary).toBytes.bits,
         )
@@ -200,7 +200,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       ): StateT[EitherT[IO, String, *], GossipDomain.MerkleState, Option[
         Account,
       ]] = StateT.inspectF { (ms: GossipDomain.MerkleState) =>
-        MerkleTrie
+        GenericMerkleTrie
           .get[IO, EthAddress, Account](ethAddress.toBytes.bits)
           .runA(ms.account.ethState)
       }

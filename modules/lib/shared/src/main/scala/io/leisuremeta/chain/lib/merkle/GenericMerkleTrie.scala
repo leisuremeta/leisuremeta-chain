@@ -21,7 +21,7 @@ import GenericMerkleTrieNode.{Children, ChildrenCondition, MerkleHash}
 import util.refined.bitVector.given
 
 import io.leisuremeta.chain.lib.merkle.GenericMerkleTrieState
-object MerkleTrie:
+object GenericMerkleTrie:
 
   type NodeStore[F[_], K, V] =
     Kleisli[EitherT[F, String, *], MerkleHash[K, V], Option[
@@ -571,4 +571,4 @@ object MerkleTrie:
           thisBytes.get(i) <= thatBytes.get(i)
         }
 
-end MerkleTrie
+end GenericMerkleTrie

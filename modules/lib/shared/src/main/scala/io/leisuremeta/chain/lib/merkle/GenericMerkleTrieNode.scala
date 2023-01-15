@@ -118,7 +118,7 @@ object GenericMerkleTrieNode:
 
   given [K, V]: Eq[GenericMerkleTrieNode[K, V]] = Eq.fromUniversalEquals
 
-  given merkleTrieNodeEncoder[K, V]: ByteEncoder[GenericMerkleTrieNode[K, V]] = node =>
+  given GenericMerkleTrieNodeEncoder[K, V]: ByteEncoder[GenericMerkleTrieNode[K, V]] = node =>
     val encodePrefix: ByteVector =
       val prefixNibbleSize: Long = node.prefix.value.size / 4
       ByteEncoder[BigNat].encode(
@@ -146,7 +146,7 @@ object GenericMerkleTrieNode:
         ) ++ encodeValue(value)
     encoded
 
-  given merkleTrieNodeDecoder[K, V]: ByteDecoder[GenericMerkleTrieNode[K, V]] =
+  given GenericMerkleTrieNodeDecoder[K, V]: ByteDecoder[GenericMerkleTrieNode[K, V]] =
     val prefixDecoder: ByteDecoder[GenericMerkleTrieNode.Prefix] =
       val unrefinedPrefixDecoder = for
         prefixNibbleSize <- ByteDecoder[BigNat]
@@ -229,4 +229,4 @@ object GenericMerkleTrieNode:
           yield BranchWithData(prefix, children, value)
       }
 
-  given merkleTrieNodeHash[K, V]: Hash[GenericMerkleTrieNode[K, V]] = Hash.build
+  given GenericMerkleTrieNodeHash[K, V]: Hash[GenericMerkleTrieNode[K, V]] = Hash.build

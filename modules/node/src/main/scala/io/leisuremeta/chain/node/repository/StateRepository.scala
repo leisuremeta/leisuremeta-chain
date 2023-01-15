@@ -27,8 +27,8 @@ import api.model.token.{
 }
 import lib.crypto.Hash
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
-import lib.merkle.MerkleTrie.NodeStore
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrie.NodeStore
 import lib.merkle.GenericMerkleTrieNode.{MerkleHash, MerkleRoot}
 import lib.failure.DecodingFailure
 import store.KeyValueStore

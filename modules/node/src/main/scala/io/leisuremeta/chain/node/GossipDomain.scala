@@ -27,8 +27,8 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
-import lib.merkle.MerkleTrie.NodeStore
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrie.NodeStore
 import lib.merkle.GenericMerkleTrieNode.MerkleRoot
 
 object GossipDomain:
@@ -307,7 +307,7 @@ object GossipDomain:
         txState = txSet.toList.foldLeft(
           GenericMerkleTrieState.empty[Signed.TxHash, Unit],
         ) { (state, txHash) =>
-          MerkleTrie
+          GenericMerkleTrie
             .put[cats.Id, Signed.TxHash, Unit](
               txHash.toUInt256Bytes.toBytes.bits,
               (),

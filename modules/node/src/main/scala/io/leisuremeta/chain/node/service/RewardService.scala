@@ -35,12 +35,12 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
-import lib.merkle.MerkleTrie.NodeStore
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrie.NodeStore
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 
-import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import io.leisuremeta.chain.api.model.reward.DaoActivity
 
 object RewardService:
@@ -178,7 +178,7 @@ object RewardService:
       daoState: GenericMerkleTrieState[GroupId, DaoInfo],
   ): EitherT[F, String, Int] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, GroupId, DaoInfo](BitVector.empty)
         .runA(daoState)
       size <- stream.take(100).compile.count
@@ -209,7 +209,7 @@ object RewardService:
 
     refInstants
       .traverse { (refInstant) =>
-        MerkleTrie.get[F, (Instant, Account), DaoActivity](
+        GenericMerkleTrie.get[F, (Instant, Account), DaoActivity](
           (refInstant, user).toBytes.bits,
         )
       }
@@ -250,7 +250,7 @@ object RewardService:
     val from: Instant = getLatestRewardInstantBefore(to)
     val timestampBits = from.toBytes.bits
 
-    MerkleTrie
+    GenericMerkleTrie
       .from[F, (Instant, Account), DaoActivity](timestampBits)
       .runA(root)
       .flatMap { stream =>
@@ -338,7 +338,7 @@ object RewardService:
       ],
   ): EitherT[F, String, List[TokenId]] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
           user.toBytes.bits,
         )
@@ -382,7 +382,7 @@ object RewardService:
 
     keyList
       .traverse { (refInstant, tokenId) =>
-        MerkleTrie
+        GenericMerkleTrie
           .get[F, (Instant, TokenId), DaoActivity](
             (refInstant, tokenId).toBytes.bits,
           )
@@ -399,7 +399,7 @@ object RewardService:
     val from: Instant = getLatestRewardInstantBefore(to)
     val timestampBits = from.toBytes.bits
 
-    MerkleTrie
+    GenericMerkleTrie
       .from[F, (Instant, TokenId), DaoActivity](timestampBits)
       .runA(root)
       .flatMap { stream =>
@@ -478,7 +478,7 @@ object RewardService:
       state: GossipDomain.MerkleState.TokenMerkleState,
   ): EitherT[F, String, List[(Rarity, BigNat)]] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
           user.toBytes.bits,
         )
@@ -503,7 +503,7 @@ object RewardService:
               (),
               s"Non-empty remainder: $remainder in nft-balance: ${keyBits.bytes}",
             )
-            nftStateOption <- MerkleTrie
+            nftStateOption <- GenericMerkleTrie
               .get[F, TokenId, NftState](tokenId.toBytes.bits)
               .runA(state.nftState)
             nftState <- EitherT.fromOption(
@@ -530,7 +530,7 @@ object RewardService:
       state: GossipDomain.MerkleState.TokenMerkleState,
   ): EitherT[F, String, BigNat] =
     for
-      keyBitsStream <- MerkleTrie
+      keyBitsStream <- GenericMerkleTrie
         .from[F, (TokenDefinitionId, Rarity, TokenId), Unit](BitVector.empty)
         .runA(state.rarityState)
       stream = keyBitsStream
@@ -560,7 +560,7 @@ object RewardService:
             }
           case ((_, acc), (defId, rarity, _)) =>
             for
-              tokenDefOption <- MerkleTrie
+              tokenDefOption <- GenericMerkleTrie
                 .get[F, TokenDefinitionId, TokenDefinition](defId.toBytes.bits)
                 .runA(state.tokenDefinitionState)
               tokenDef <- EitherT.fromOption(
@@ -615,7 +615,7 @@ object RewardService:
       root: GenericMerkleTrieState[GroupId, DaoInfo],
   ): EitherT[F, String, Boolean] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, GroupId, DaoInfo](BitVector.empty)
         .runA(root)
       ansList <- stream

@@ -36,7 +36,7 @@ import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import StateRepository.given
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.BurnFungibleTokenResult
@@ -53,14 +53,14 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    accountStateEither <- MerkleTrie
+    accountStateEither <- GenericMerkleTrie
       .get[F, Account, AccountData](account.toBytes.bits)
       .runA(merkleState.account.namesState)
       .value
     accountStateOption <- accountStateEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(accountStateOption) => Concurrent[F].pure(accountStateOption)
-    keyListEither <- MerkleTrie
+    keyListEither <- GenericMerkleTrie
       .from[F, (Account, PublicKeySummary), PublicKeySummary.Info](
         account.toBytes.bits,
       )
@@ -103,7 +103,7 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    ethStateEither <- MerkleTrie
+    ethStateEither <- GenericMerkleTrie
       .get[F, EthAddress, Account](ethAddress.toBytes.bits)
       .runA(merkleState.account.ethState)
       .value
@@ -123,14 +123,14 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    groupDataEither <- MerkleTrie
+    groupDataEither <- GenericMerkleTrie
       .get[F, GroupId, GroupData](groupId.toBytes.bits)
       .runA(merkleState.group.groupState)
       .value
     groupDataOption <- groupDataEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(groupDataOption) => Concurrent[F].pure(groupDataOption)
-    accountListEither <- MerkleTrie
+    accountListEither <- GenericMerkleTrie
       .from[F, (GroupId, Account), Unit](
         groupId.toBytes.bits,
       )
@@ -171,7 +171,7 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    tokenDefEither <- MerkleTrie
+    tokenDefEither <- GenericMerkleTrie
       .get[F, TokenDefinitionId, TokenDefinition](
         tokenDefinitionId.toBytes.bits,
       )
@@ -202,7 +202,7 @@ object StateReadService:
           Concurrent[F].raiseError(new Exception("No best header"))
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
       merkleState = MerkleState.from(bestHeader)
-      balanceListEither <- MerkleTrie
+      balanceListEither <- GenericMerkleTrie
         .from[
           F,
           (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
@@ -306,7 +306,7 @@ object StateReadService:
           Concurrent[F].raiseError(new Exception("No best header"))
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
       merkleState = MerkleState.from(bestHeader)
-      balanceListEither <- MerkleTrie
+      balanceListEither <- GenericMerkleTrie
         .from[
           F,
           (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
@@ -417,7 +417,7 @@ object StateReadService:
       account: Account,
       nftBalanceState: GenericMerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
     ): F[Map[TokenId, NftBalanceInfo]] = for
-    balanceListEither <- MerkleTrie
+    balanceListEither <- GenericMerkleTrie
       .from[
         F,
         (Account, TokenId, Hash.Value[TransactionWithResult]),
@@ -501,7 +501,7 @@ object StateReadService:
       account: Account,
       entrustedNftBalanceState: GenericMerkleTrieState[(Account, Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
     ): F[Map[TokenId, NftBalanceInfo]] = for
-    balanceListEither <- MerkleTrie
+    balanceListEither <- GenericMerkleTrie
       .from[
         F,
         (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
@@ -569,7 +569,7 @@ object StateReadService:
     bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
     bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
     merkleState = MerkleState.from(bestHeader)
-    nftStateOption <- MerkleTrie
+    nftStateOption <- GenericMerkleTrie
       .get[F, TokenId, NftState](tokenId.toBytes.bits)
       .runA(merkleState.token.nftState)
   yield nftStateOption
@@ -580,7 +580,7 @@ object StateReadService:
     bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
     bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
     merkleState = MerkleState.from(bestHeader)
-    tokenIdList <- MerkleTrie
+    tokenIdList <- GenericMerkleTrie
       .from[F, (TokenDefinitionId, Rarity, TokenId), Unit](
         tokenDefinitionId.toBytes.bits,
       )
@@ -606,7 +606,7 @@ object StateReadService:
           },
       )
     ownerOptionList <- tokenIdList.traverse { (tokenId: TokenId) =>
-      MerkleTrie
+      GenericMerkleTrie
         .get[F, TokenId, NftState](tokenId.toBytes.bits)
         .runA(merkleState.token.nftState)
         .map(nftStateOption =>

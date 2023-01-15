@@ -29,7 +29,7 @@ import api.model.{
 }
 import api.model.token.*
 import api.model.TransactionWithResult.ops.*
-import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -48,7 +48,7 @@ trait UpdateStateWithTokenTx:
       tx match
         case dt: Transaction.TokenTx.DefineToken =>
           for
-            tokenDefinitionOption <- MerkleTrie
+            tokenDefinitionOption <- GenericMerkleTrie
               .get[F, TokenDefinitionId, TokenDefinition](
                 dt.definitionId.toBytes.bits,
               )
@@ -66,7 +66,7 @@ trait UpdateStateWithTokenTx:
               totalAmount = BigNat.Zero,
               nftInfo = dt.nftInfo,
             )
-            tokenDefinitionState <- MerkleTrie
+            tokenDefinitionState <- GenericMerkleTrie
               .put[F, TokenDefinitionId, TokenDefinition](
                 dt.definitionId.toBytes.bits,
                 tokenDefinition,
@@ -84,7 +84,7 @@ trait UpdateStateWithTokenTx:
             )
         case mf: Transaction.TokenTx.MintFungibleToken =>
           for
-            tokenDefinitionOption <- MerkleTrie
+            tokenDefinitionOption <- GenericMerkleTrie
               .get[F, TokenDefinitionId, TokenDefinition](
                 mf.definitionId.toBytes.bits,
               )
@@ -97,7 +97,7 @@ trait UpdateStateWithTokenTx:
               tokenDefinition.adminGroup,
               s"Admin group does not exist in token $tokenDefinition",
             )
-            groupAccountOption <- MerkleTrie
+            groupAccountOption <- GenericMerkleTrie
               .get[F, (GroupId, Account), Unit](
                 (adminGroupId, sig.account).toBytes.bits,
               )
@@ -110,7 +110,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(mf, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -127,7 +127,7 @@ trait UpdateStateWithTokenTx:
             fungibleBalanceState <- items.toList.foldLeftM(
               ms.token.fungibleBalanceState,
             ) { case (state, item) =>
-              MerkleTrie
+              GenericMerkleTrie
                 .put[
                   F,
                   (
@@ -145,10 +145,10 @@ trait UpdateStateWithTokenTx:
             )
             tokenDefinitionState1 <- {
               for
-                _ <- MerkleTrie.remove[F, TokenDefinitionId, TokenDefinition](
+                _ <- GenericMerkleTrie.remove[F, TokenDefinitionId, TokenDefinition](
                   mf.definitionId.toBytes.bits,
                 )
-                _ <- MerkleTrie.put[F, TokenDefinitionId, TokenDefinition](
+                _ <- GenericMerkleTrie.put[F, TokenDefinitionId, TokenDefinition](
                   mf.definitionId.toBytes.bits,
                   tokenDefinition1,
                 )
@@ -165,7 +165,7 @@ trait UpdateStateWithTokenTx:
           )
         case mn: Transaction.TokenTx.MintNFT =>
           for
-            tokenDefinitionOption <- MerkleTrie
+            tokenDefinitionOption <- GenericMerkleTrie
               .get[F, TokenDefinitionId, TokenDefinition](
                 mn.tokenDefinitionId.toBytes.bits,
               )
@@ -178,7 +178,7 @@ trait UpdateStateWithTokenTx:
               tokenDefinition.adminGroup,
               s"Admin group does not exist in token $tokenDefinition",
             )
-            groupAccountOption <- MerkleTrie
+            groupAccountOption <- GenericMerkleTrie
               .get[F, (GroupId, Account), Unit](
                 (adminGroupId, sig.account).toBytes.bits,
               )
@@ -191,7 +191,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(mn, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -203,7 +203,7 @@ trait UpdateStateWithTokenTx:
             )
             txWithResult = TransactionWithResult(Signed(sig, mn), None)
             balanceItem  = (mn.output, mn.tokenId, txWithResult.toHash)
-            nftBalanceState <- MerkleTrie
+            nftBalanceState <- GenericMerkleTrie
               .put[
                 F,
                 (Account, TokenId, Hash.Value[TransactionWithResult]),
@@ -222,11 +222,11 @@ trait UpdateStateWithTokenTx:
               weight = weightOption.getOrElse(BigNat.unsafeFromLong(2)),
               currentOwner = mn.output,
             )
-            nftState <- MerkleTrie
+            nftState <- GenericMerkleTrie
               .put[F, TokenId, NftState](mn.tokenId.toBytes.bits, nftStateItem)
               .runS(ms.token.nftState)
             rarityItem = (mn.tokenDefinitionId, mn.rarity, mn.tokenId)
-            rarityState <- MerkleTrie
+            rarityState <- GenericMerkleTrie
               .put[F, (TokenDefinitionId, Rarity, TokenId), Unit](
                 rarityItem.toBytes.bits,
                 (),
@@ -250,12 +250,12 @@ trait UpdateStateWithTokenTx:
             Unit,
           ] = for
             _ <- tf.inputs.toList.traverse { (txHash) =>
-              MerkleTrie.remove[F, FungibleBalance, Unit](
+              GenericMerkleTrie.remove[F, FungibleBalance, Unit](
                 (sig.account, tf.tokenDefinitionId, txHash).toBytes.bits,
               )
             }
             _ <- tf.outputs.toList.traverse { (account, amount) =>
-              MerkleTrie.put[F, FungibleBalance, Unit](
+              GenericMerkleTrie.put[F, FungibleBalance, Unit](
                 (
                   account,
                   tf.tokenDefinitionId,
@@ -270,7 +270,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(tf, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -298,10 +298,10 @@ trait UpdateStateWithTokenTx:
             GenericMerkleTrieState[NftBalance, Unit],
             Unit,
           ] = for
-            _ <- MerkleTrie.remove[F, NftBalance, Unit] {
+            _ <- GenericMerkleTrie.remove[F, NftBalance, Unit] {
               (sig.account, tn.tokenId, tn.input).toBytes.bits
             }
-            _ <- MerkleTrie.put[F, NftBalance, Unit](
+            _ <- GenericMerkleTrie.put[F, NftBalance, Unit](
               (
                 tn.output,
                 tn.tokenId,
@@ -316,12 +316,12 @@ trait UpdateStateWithTokenTx:
             GenericMerkleTrieState[TokenId, NftState],
             Unit,
           ] = for
-            nftStateOption <- MerkleTrie.get[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
+            nftStateOption <- GenericMerkleTrie.get[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
             nftState <- StateT.liftF{
               EitherT.fromOption(nftStateOption, s"No nft state in token ${tn.tokenId}")
             }
-            _ <- MerkleTrie.remove[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
-            _ <- MerkleTrie.put[F, TokenId, NftState](
+            _ <- GenericMerkleTrie.remove[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
+            _ <- GenericMerkleTrie.put[F, TokenId, NftState](
               tn.tokenId.toBytes.bits,
               nftState.copy(currentOwner = tn.output),
             )
@@ -331,7 +331,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(tn, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -373,11 +373,11 @@ trait UpdateStateWithTokenTx:
             val txHash = txWithResult.toHash
             for
               _ <- bf.inputs.toList.traverse { (txHash) =>
-                MerkleTrie.remove[F, FungibleBalance, Unit](
+                GenericMerkleTrie.remove[F, FungibleBalance, Unit](
                   (sig.account, bf.definitionId, txHash).toBytes.bits,
                 )
               }
-              _ <- MerkleTrie.put[F, FungibleBalance, Unit](
+              _ <- GenericMerkleTrie.put[F, FungibleBalance, Unit](
                 (
                   sig.account,
                   bf.definitionId,
@@ -391,7 +391,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(bf, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -423,7 +423,7 @@ trait UpdateStateWithTokenTx:
             fungibleBalanceState <- burnFungibleTokenProgram(txWithResult).runS(
               ms.token.fungibleBalanceState,
             )
-            tokenDefinitionOption <- MerkleTrie
+            tokenDefinitionOption <- GenericMerkleTrie
               .get[F, TokenDefinitionId, TokenDefinition](
                 bf.definitionId.toBytes.bits,
               )
@@ -437,7 +437,7 @@ trait UpdateStateWithTokenTx:
                 tokenDefinition.totalAmount.toBigInt - bf.amount.toBigInt,
               )
             }
-            tokenDefinitionState <- MerkleTrie
+            tokenDefinitionState <- GenericMerkleTrie
               .put[F, TokenDefinitionId, TokenDefinition](
                 bf.definitionId.toBytes.bits,
                 tokenDefinition.copy(totalAmount = totalAmount),
@@ -461,7 +461,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(bn, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -487,7 +487,7 @@ trait UpdateStateWithTokenTx:
                 case _ =>
                   EitherT.leftT(s"input ${bn.input} is not an NFT balance")
             }
-            nftBalanceState <- MerkleTrie
+            nftBalanceState <- GenericMerkleTrie
               .remove[F, NftBalance, Unit] {
                 (sig.account, tokenId, bn.input).toBytes.bits
               }
@@ -495,10 +495,10 @@ trait UpdateStateWithTokenTx:
 //            _ <- EitherT.pure{
 //              scribe.info(s"New NftBalanceState: ${nftBalanceState}")
 //            }
-            nftState <- MerkleTrie
+            nftState <- GenericMerkleTrie
               .remove[F, TokenId, NftState](tokenId.toBytes.bits)
               .runS(ms.token.nftState)
-            rarityStream <- MerkleTrie
+            rarityStream <- GenericMerkleTrie
               .from[F, (TokenDefinitionId, Rarity, TokenId), Unit](
                 bn.definitionId.toBytes.bits,
               )
@@ -523,7 +523,7 @@ trait UpdateStateWithTokenTx:
               rarityList.headOption,
               s"No rarity item of tokenId ${tokenId} in rarity state",
             )
-            rarityState <- MerkleTrie
+            rarityState <- GenericMerkleTrie
               .remove[F, (TokenDefinitionId, Rarity, TokenId), Unit](
                 (bn.definitionId, rarity, tokenId).toBytes.bits,
               )
@@ -554,7 +554,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(ef, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -648,12 +648,12 @@ trait UpdateStateWithTokenTx:
             txWithResult = TransactionWithResult(Signed(sig, tx), Some(result))
             fungibleBalanceState0 <- ef.inputs.toList
               .traverse { (txHash) =>
-                MerkleTrie.remove[F, FungibleBalance, Unit](
+                GenericMerkleTrie.remove[F, FungibleBalance, Unit](
                   (sig.account, ef.definitionId, txHash).toBytes.bits,
                 )
               }
               .runS(ms.token.fungibleBalanceState)
-            fungibleBalanceState <- MerkleTrie
+            fungibleBalanceState <- GenericMerkleTrie
               .put[F, FungibleBalance, Unit](
                 (
                   sig.account,
@@ -663,7 +663,7 @@ trait UpdateStateWithTokenTx:
                 (),
               )
               .runS(fungibleBalanceState0)
-            entrustFungibleBalanceState <- MerkleTrie
+            entrustFungibleBalanceState <- GenericMerkleTrie
               .put[F, EntrustFungibleBalance, Unit](
                 (
                   sig.account,
@@ -694,7 +694,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(en, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -703,12 +703,12 @@ trait UpdateStateWithTokenTx:
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
             )
-            nftBalanceState <- MerkleTrie
+            nftBalanceState <- GenericMerkleTrie
               .remove[F, NftBalance, Unit] {
                 (sig.account, en.tokenId, en.input).toBytes.bits
               }
               .runS(ms.token.nftBalanceState)
-            entrustNftBalanceState <- MerkleTrie
+            entrustNftBalanceState <- GenericMerkleTrie
               .put[F, EntrustNftBalance, Unit](
                 (
                   sig.account,
@@ -745,7 +745,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(de, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -785,14 +785,14 @@ trait UpdateStateWithTokenTx:
             )
             entrustFungibleBalanceState <- inputs.unzip._1
               .traverse { case (account, txHash) =>
-                MerkleTrie.remove[F, EntrustFungibleBalance, Unit](
+                GenericMerkleTrie.remove[F, EntrustFungibleBalance, Unit](
                   (account, sig.account, de.definitionId, txHash).toBytes.bits,
                 )
               }
               .runS(ms.token.entrustFungibleBalanceState)
             fungibleBalanceState <- de.outputs.toList
               .traverse { case (account, amount) =>
-                MerkleTrie.put[F, FungibleBalance, Unit](
+                GenericMerkleTrie.put[F, FungibleBalance, Unit](
                   (account, de.definitionId, txWithResult.toHash).toBytes.bits,
                   (),
                 )
@@ -817,7 +817,7 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(dn, sig.sig),
             )
-            accountPubKeyOption <- MerkleTrie
+            accountPubKeyOption <- GenericMerkleTrie
               .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
                 (sig.account, pubKeySummary).toBytes.bits,
               )
@@ -844,13 +844,13 @@ trait UpdateStateWithTokenTx:
                     EitherT.leftT(s"input tx $other is not a EntrustNft tx")
             inputAccount  = inputTx._1
             outputAccount = dn.output.getOrElse(inputAccount)
-            entrustNftBalanceState <- MerkleTrie
+            entrustNftBalanceState <- GenericMerkleTrie
               .remove[F, EntrustNftBalance, Unit] {
                 (inputAccount, sig.account, dn.tokenId, dn.input).toBytes.bits
               }
               .runS(ms.token.entrustNftBalanceState)
             txWithResult = TransactionWithResult(Signed(sig, tx), None)
-            nftBalanceState <- MerkleTrie
+            nftBalanceState <- GenericMerkleTrie
               .put[F, NftBalance, Unit](
                 (
                   outputAccount,

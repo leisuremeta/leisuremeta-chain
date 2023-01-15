@@ -23,7 +23,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
-import lib.merkle.{MerkleTrie, GenericMerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.Utf8
@@ -35,21 +35,21 @@ trait UpdateStateWithAccountTx:
       : UpdateState[F, Transaction.AccountTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.AccountTx) =>
 
-      def getAccount: EitherT[F, String, Option[AccountData]] = MerkleTrie
+      def getAccount: EitherT[F, String, Option[AccountData]] = GenericMerkleTrie
         .get[F, Account, AccountData](tx.account.toBytes.bits)
         .runA(ms.account.namesState)
 
       def getKeyInfo(
           account: Account,
           publicKeySummary: PublicKeySummary,
-      ): EitherT[F, String, Option[PublicKeySummary.Info]] = MerkleTrie
+      ): EitherT[F, String, Option[PublicKeySummary.Info]] = GenericMerkleTrie
         .get((account, publicKeySummary).toBytes.bits)
         .runA(ms.account.keyState)
 
       def getKeyList(
           account: Account,
       ): EitherT[F, String, Vector[(PublicKeySummary, PublicKeySummary.Info)]] =
-        MerkleTrie
+        GenericMerkleTrie
           .from[F, (Account, PublicKeySummary), PublicKeySummary.Info](
             account.toBytes.bits,
           )
@@ -88,7 +88,7 @@ trait UpdateStateWithAccountTx:
           getAccount.flatMap {
             case None =>
               for
-                accountState1 <- MerkleTrie
+                accountState1 <- GenericMerkleTrie
                   .put(
                     sig.account.toBytes.bits,
                     AccountData(ca.ethAddress, ca.guardian),
@@ -108,13 +108,13 @@ trait UpdateStateWithAccountTx:
                           ),
                         ca.createdAt,
                       )
-                      keyState <- MerkleTrie
+                      keyState <- GenericMerkleTrie
                         .put((ca.account, pubKeySummary).toBytes.bits, info)
                         .runS(ms.account.keyState)
                     yield keyState
                 ethState1 <- ca.ethAddress match
                   case Some(ethAddress) =>
-                    MerkleTrie
+                    GenericMerkleTrie
                       .put(ethAddress.toBytes.bits, ca.account)
                       .runS(ms.account.ethState)
                   case None =>
@@ -143,10 +143,10 @@ trait UpdateStateWithAccountTx:
                 for
                   accountState1 <- {
                     for
-                      _ <- MerkleTrie.remove[F, Account, AccountData](
+                      _ <- GenericMerkleTrie.remove[F, Account, AccountData](
                         ua.account.toBytes.bits,
                       )
-                      _ <- MerkleTrie.put[F, Account, AccountData](
+                      _ <- GenericMerkleTrie.put[F, Account, AccountData](
                         ua.account.toBytes.bits,
                         AccountData(ua.ethAddress, ua.guardian),
                       )
@@ -157,7 +157,7 @@ trait UpdateStateWithAccountTx:
                       case None =>
                         EitherT.pure[F, String](ms.account.ethState)
                       case Some(ethAddress) =>
-                        MerkleTrie
+                        GenericMerkleTrie
                           .get[F, EthAddress, Account](ethAddress.toBytes.bits)
                           .runA(ms.account.ethState)
                           .flatMap {
@@ -166,18 +166,18 @@ trait UpdateStateWithAccountTx:
                             case Some(otherAccount) =>
                               {
                                 for
-                                  _ <- MerkleTrie
+                                  _ <- GenericMerkleTrie
                                     .remove[F, EthAddress, Account](
                                       ethAddress.toBytes.bits,
                                     )
-                                  _ <- MerkleTrie.put[F, EthAddress, Account](
+                                  _ <- GenericMerkleTrie.put[F, EthAddress, Account](
                                     ethAddress.toBytes.bits,
                                     ua.account,
                                   )
                                 yield ()
                               }.runS(ms.account.ethState)
                             case None =>
-                              MerkleTrie
+                              GenericMerkleTrie
                                 .put[F, EthAddress, Account](
                                   ethAddress.toBytes.bits,
                                   ua.account,
@@ -191,12 +191,12 @@ trait UpdateStateWithAccountTx:
 //                      for
 //                        _ <- accountData.ethAddress match
 //                          case Some(ethAddress) =>
-//                            MerkleTrie.remove[F, EthAddress, Account](ethAddress.toBytes.bits)
+//                            GenericMerkleTrie.remove[F, EthAddress, Account](ethAddress.toBytes.bits)
 //                          case None =>
 //                            StateT.pure[EitherT[F, String, *], GenericMerkleTrieState[EthAddress, Account], Unit](())
 //                        _ <- ua.ethAddress match
 //                          case Some(ethAddress) =>
-//                            MerkleTrie.put[F, EthAddress, Account](ethAddress.toBytes.bits, ua.account)
+//                            GenericMerkleTrie.put[F, EthAddress, Account](ethAddress.toBytes.bits, ua.account)
 //                          case None =>
 //                            StateT.pure[EitherT[F, String, *], GenericMerkleTrieState[EthAddress, Account], Unit](())
 //                      yield ()
@@ -240,7 +240,7 @@ trait UpdateStateWithAccountTx:
                   keyState <- {
                     for
                       _ <- toRemove.traverse { case (key, _) =>
-                        MerkleTrie
+                        GenericMerkleTrie
                           .remove[
                             F,
                             (Account, PublicKeySummary),
@@ -249,7 +249,7 @@ trait UpdateStateWithAccountTx:
                       }
                       _ <- ap.summaries.toVector
                         .traverse { case (key, description) =>
-                          MerkleTrie
+                          GenericMerkleTrie
                             .put[
                               F,
                               (Account, PublicKeySummary),
@@ -289,7 +289,7 @@ trait UpdateStateWithAccountTx:
                   keyState <- {
                     for
                       _ <- toRemove.traverse { case (key, _) =>
-                        MerkleTrie
+                        GenericMerkleTrie
                           .remove[
                             F,
                             (Account, PublicKeySummary),
@@ -298,7 +298,7 @@ trait UpdateStateWithAccountTx:
                       }
                       _ <- ap.summaries.toVector
                         .traverse { case (key, description) =>
-                          MerkleTrie
+                          GenericMerkleTrie
                             .put[
                               F,
                               (Account, PublicKeySummary),
