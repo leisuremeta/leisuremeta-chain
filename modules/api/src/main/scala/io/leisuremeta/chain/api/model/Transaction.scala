@@ -335,13 +335,13 @@ object Transaction:
         moderators: Set[Account],
     ) extends RewardTx
 
-    final case class RecordActivity(
-        networkId: NetworkId,
-        createdAt: Instant,
-        timestamp: Instant,
-        userActivity: Map[Account, DaoActivity],
-        tokenReceived: Map[TokenId, DaoActivity],
-    ) extends RewardTx
+//    final case class RecordActivity(
+//        networkId: NetworkId,
+//        createdAt: Instant,
+//        timestamp: Instant,
+//        userActivity: Map[Account, DaoActivity],
+//        tokenReceived: Map[TokenId, DaoActivity],
+//    ) extends RewardTx
 
     final case class RegisterStaking(
         networkId: NetworkId,
@@ -382,7 +382,7 @@ object Transaction:
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[RegisterDao].widen
           case 1 => ByteDecoder[UpdateDao].widen
-          case 2 => ByteDecoder[RecordActivity].widen
+//          case 2 => ByteDecoder[RecordActivity].widen
           case 3 => ByteDecoder[RegisterStaking].widen
           case 4 => ByteDecoder[RemoveStaking].widen
 //          case 5 => ByteDecoder[ExcuteStakingRequest].widen
@@ -393,7 +393,7 @@ object Transaction:
       rtx match
         case tx: RegisterDao     => build(0)(tx)
         case tx: UpdateDao       => build(1)(tx)
-        case tx: RecordActivity  => build(2)(tx)
+//        case tx: RecordActivity  => build(2)(tx)
         case tx: RegisterStaking => build(3)(tx)
         case tx: RemoveStaking   => build(4)(tx)
 //        case tx: ExcuteStakingRequest => build(5)(tx)

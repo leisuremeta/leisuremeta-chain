@@ -883,16 +883,20 @@
   * Fields
 
     * Timestamp: 기준시점
-    * UserActivity: Map[AccountName, Set[DaoActivity]] 사용자활동 요약 정보
+
+    * UserActivity: Map[AccountName, Map[ActivityName, DaoActivity]] 사용자활동 요약 정보
+
+      * ActivityName (string) 활동 이름
       * DaoActivity 활동정보
-        * name 활동이름
         * weight 가중치. int. 음수가능
-        * number 활동횟수
-    * PostingReceived: Map[TokenId, Set[DaoActivity]] 토큰이 받은 사용자활동 요약정보
+        * count 활동횟수
+
+    * PostingReceived: Map[TokenId, Map[ActivityName, DaoActivity]] 토큰이 받은 사용자활동 요약정보
+      * ActivityName (string) 활동 이름
+
       * DaoActivity 활동정보
-        * name 활동이름
         * weight 가중치. int. 음수가능
-        * number 활동횟수
+        * count 활동횟수
 
   * Example
 
@@ -950,9 +954,9 @@
 | `GET`  | **/snapshot/account/{account}**   | 보상받을 활동 조회               |
 | `GET`  | **/snapshot/token/{tokenID}**     | 보상받을 토큰 점수 조회          |
 | `GET`  | **/snapshot/ownership/{tokenID}** | 받을 토큰 소유보상 점수 조회     |
-| `GET`  | **/reward/account/{account}**     | 최근에 받은 활동보상 조회        |
-| `GET`  | **/reward/token/{tokenID}**       | 최근에 받은 토큰보상 조회        |
-| `GET`  | **/reward/ownership/{tokenID}**   | 최근에 받은 토큰 소유보상 조회   |
+| `GET`  | **/rewarded/account/{account}**   | 최근에 받은 활동보상 조회        |
+| `GET`  | **/rewarded/token/{tokenID}**     | 최근에 받은 토큰보상 조회        |
+| `GET`  | **/rewarded/ownership/{tokenID}** | 최근에 받은 토큰 소유보상 조회   |
 
 
 
@@ -1016,7 +1020,7 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
     * Weight (음수 가능)
     * Count
 * TokenReceivedState: (Instant, TokenId) => Map[ActivityName, DaoActivity]
-* AccountActivitySnapshotToRewardState: (Account) => Map[ActivityName, ActivitySnapshot]
+* AccountSnapshotState: (Account) => Map[ActivityName, ActivitySnapshot]
   * ActivitySnapshot
     * account
     * from: Instant
@@ -1025,16 +1029,22 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
     * weight (음수 가능)
     * count
 
-* TokenReceivedSnapshotToRewardState: (TokenId) => Map[ActivityName, ActivitySnapshot]
-* TokenOwnershipSnapshotToRewardState: (TokenId) => OwnershipSnapshot
+* TokenSnapshotState: (TokenId) => Map[ActivityName, ActivitySnapshot]
+* OwnershipSnapshotState: (TokenId) => OwnershipSnapshot
   * OwnershipSnapshot
     * account
     * score
 
-* UserActivityRewardedState: (Account) => Map[ActivityName, RewardedLog]
-  * RewardedLog
+* AccountRewardedState: (Account) => Map[ActivityName, ActivityRewardLog]
+  * ActivityRewardLog
     * ActivitySnapshot
-    * RewardedAt: Instant
+    * ExecuteReward  TxHash
 
-* TokenReceivedRewardedState: (Account, TokenId) => Map[ActivityName, RewardedLog]
+* TokenRewardedState: (TokenId) => Map[ActivityName, ActivityRewardLog]
+
+* OwnershipRewardedState: (TokenId) => OwnershipRewardLog
+  * OwnershipRewardLog
+    * OwnershipShapshot
+    * ExecuteReward TxHash
+
 
