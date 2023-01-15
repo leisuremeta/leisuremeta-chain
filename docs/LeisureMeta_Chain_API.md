@@ -876,126 +876,83 @@
     * Moderators: Set[Account]
       * 모더레이터 목록
 
-* RecordActivity DAO 활동정보 추가. 그룹 조정자가 업데이트 권한을 갖는다.
+* RecordActivity 활동정보 추가. 그룹 조정자가 업데이트 권한을 갖는다.
+
   * > Group Coordinator 서명. 일반적으로는 `playnomm`
 
   * Fields
+
     * Timestamp: 기준시점
-    * UserActivity: Map[AccountName, DaoActivity] 사용자활동 요약 정보
-      * DaoActivity
-        * 좋아요
-        * 댓글
-        * 공유
-        * 신고
-    * TokenReceived: Map[TokenId, DaoActivity] 토큰이 받은 사용자활동 요약정보
-      * DaoActivity
-        * 좋아요
-        * 댓글
-        * 공유
-        * 신고
+    * UserActivity: Map[AccountName, Set[DaoActivity]] 사용자활동 요약 정보
+      * DaoActivity 활동정보
+        * name 활동이름
+        * weight 가중치. int. 음수가능
+        * number 활동횟수
+    * PostingReceived: Map[TokenId, Set[DaoActivity]] 토큰이 받은 사용자활동 요약정보
+      * DaoActivity 활동정보
+        * name 활동이름
+        * weight 가중치. int. 음수가능
+        * number 활동횟수
 
   * Example
 
     ```json
-    [
-      {
-        "sig" : {
-          "sig" : {
-            "v" : 28,
-            "r" : "bab685313c3030804370bbc279c558ff1cc4bf0d4936a65813527060e8b1ed1f",
-            "s" : "2ce9e898d00eaa04bbed0f2b83ad8d637677b4b85ec38fc36bbb3b243f41c417"
-          },
-          "account" : "alice"
-        },
-        "value" : {
-          "RewardTx" : {
-            "RecordActivity" : {
-              "networkId" : 1000,
-              "createdAt" : "2020-06-10T09:00:00Z",
-              "timestamp" : "2020-06-09T09:00:00Z",
-              "userActivity" : {
-                "alice" : {
-                  "like" : 10,
-                  "comment" : 9,
-                  "share" : 3,
-                  "report" : 1
-                },
-                "bob" : {
-                  "like" : 20,
-                  "comment" : 13,
-                  "share" : 2,
-                  "report" : 0
-                }
-              },
-              "tokenReceived" : {
-                "2022061710000513118" : {
-                  "like" : 2,
-                  "comment" : 2,
-                  "share" : 2,
-                  "report" : 0
-                }
-              }
-            }
-          }
-        }
-      }
-    ]
-    ```
-
-    ```json
-    ["aa652cc53f042d2adeee81ba2f4d6af5ec3a4b1b55cd03845d7a516ca219655a"]
     ```
 
     
 
-* RegisterStaking 스테이킹 등록. 기록되어 있다가 주간 업데이트 시점에 반영된다.
-  * > 사용자 서명
-  * Fields
-    * Inputs: Set[SignedTxHash]
-    * Outputs: Map[AccountName, Amount]
-
-* RemoveStaking 스테이킹 취소 요청. 기록되어 있다가 주간 업데이트 시점에 반영된다.
-  * > 스테이킹한 사용자 서명
-  * Fields
-    * Inputs: Set[RegisterTxHash]
-    * Outputs: Map[AccountName, Amount]
-
-* ExcuteStakingRequest 스테이킹 업데이트 요청 실행. 주간 업데이트.
-
-* ExecuteReward 보상 실행.
+* BuildSnapshot: 보상을 위한 스냅샷 생성. 사용자가 한 활동, 토큰이 받은 활동, 토큰 소유보상의 세 가지 스냅샷을 동시에 만든다
 
   * > 보상 실행 주체. 일반적으로 Playnomm
-  
+
   * Fields
-  
-    * timestamp: 보상 기준 시점
-    * *(optional)* daoAccount: 보상이 담긴 계정. 없으면 "DAO-M"
-  
-  * Results
-  
-    * outputs: Map[Account, Amount] 보상 실행 결과
-  
+
+    * Timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
+
   * Example
-  
+
+    ```json
+    
+    ```
+
+* ExecuteReward: 스냅샷의 자료를 기반으로 보상 실행.
+
+  * 보상 실행 주체. 일반적으로 Playnomm
+
+  * Fields
+
+    * 
+
+  * Example
+
     ```json
     ```
-  
+
     
+
 
 
 
 ## Other API
 
-| Method | URL                           | Description                      |
-| ------ | ----------------------------- | -------------------------------- |
-| `GET`  | **/account/{accountName}**    | 계정정보 조회                    |
-| `GET`  | **/eth/{ethAddress}**         | 이더리움 주소와 연동된 계정 조회 |
-| `GET`  | **/dao**                      | DAO 목록 조회                    |
-| `GET`  | **/group/{groupID}**          | 그룹 정보 조회                   |
-| `GET`  | **/offering/{offeringID}**    | Offering 정보 조회               |
-| `GET`  | **/status**                   | 블록체인 상태 조회               |
-| `GET`  | **/token-def/{definitionID}** | 토큰 정의 정보 조회              |
-| `GET`  | **/token/{tokenID}**          | 토큰 정보 조회                   |
+| Method | URL                               | Description                      |
+| ------ | --------------------------------- | -------------------------------- |
+| `GET`  | **/account/{accountName}**        | 계정정보 조회                    |
+| `GET`  | **/eth/{ethAddress}**             | 이더리움 주소와 연동된 계정 조회 |
+| `GET`  | **/dao**                          | DAO 목록 조회                    |
+| `GET`  | **/group/{groupID}**              | 그룹 정보 조회                   |
+| `GET`  | **/offering/{offeringID}**        | Offering 정보 조회               |
+| `GET`  | **/status**                       | 블록체인 상태 조회               |
+| `GET`  | **/token-def/{definitionID}**     | 토큰 정의 정보 조회              |
+| `GET`  | **/token/{tokenID}**              | 토큰 정보 조회                   |
+| `GET`  | **/activity/account/{account}**   | 계정 활동정보 조회               |
+| `GET`  | **/activity/token/{tokenID}**     | 토큰이 받은 활동정보 조회        |
+| `GET`  | **/snapshot/account/{account}**   | 보상받을 활동 조회               |
+| `GET`  | **/snapshot/token/{tokenID}**     | 보상받을 토큰 점수 조회          |
+| `GET`  | **/snapshot/ownership/{tokenID}** | 받을 토큰 소유보상 점수 조회     |
+| `GET`  | **/reward/account/{account}**     | 최근에 받은 활동보상 조회        |
+| `GET`  | **/reward/token/{tokenID}**       | 최근에 받은 토큰보상 조회        |
+| `GET`  | **/reward/ownership/{tokenID}**   | 최근에 받은 토큰 소유보상 조회   |
 
 
 
@@ -1054,11 +1011,30 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 * DaoState: GroupID => DaoInfo
   * DaoInfo
     * Moderators: Set[AccountName]
-* UserActivityState: (Instant, Account) => DaoActivity
+* AccountActivityState: (Instant, Account) => Map[ActivityName, DaoActivity]
   * DaoActivity
-    * Like / Comment / Share / Report
+    * Weight (음수 가능)
+    * Count
+* TokenReceivedState: (Instant, TokenId) => Map[ActivityName, DaoActivity]
+* AccountActivitySnapshotToRewardState: (Account) => Map[ActivityName, ActivitySnapshot]
+  * ActivitySnapshot
+    * account
+    * from: Instant
+    * to: Instant
+    * name 활동명
+    * weight (음수 가능)
+    * count
 
-* TokenReceivedState: (Instant, TokenId) => DaoActivity
-* StakeState: (AccountName, TransactionHash) => ()
-* StakeRequestState: TransactionHash => ()
+* TokenReceivedSnapshotToRewardState: (TokenId) => Map[ActivityName, ActivitySnapshot]
+* TokenOwnershipSnapshotToRewardState: (TokenId) => OwnershipSnapshot
+  * OwnershipSnapshot
+    * account
+    * score
+
+* UserActivityRewardedState: (Account) => Map[ActivityName, RewardedLog]
+  * RewardedLog
+    * ActivitySnapshot
+    * RewardedAt: Instant
+
+* TokenReceivedRewardedState: (Account, TokenId) => Map[ActivityName, RewardedLog]
 
