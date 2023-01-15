@@ -6,7 +6,7 @@ import java.time.Instant
 import cats.Eq
 
 import lib.crypto.Hash
-import lib.merkle.MerkleTrieNode.MerkleRoot
+import lib.merkle.GenericMerkleTrieNode.MerkleRoot
 import account.EthAddress
 import reward.*
 import token.*

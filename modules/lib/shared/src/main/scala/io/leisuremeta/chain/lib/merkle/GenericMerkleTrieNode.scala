@@ -20,44 +20,44 @@ import crypto.Hash
 import failure.DecodingFailure
 import util.refined.bitVector.given
 
-sealed trait MerkleTrieNode[K, V]:
+sealed trait GenericMerkleTrieNode[K, V]:
 
-  def prefix: MerkleTrieNode.Prefix
+  def prefix: GenericMerkleTrieNode.Prefix
 
-  def getChildren: Option[MerkleTrieNode.Children[K, V]] = this match
-    case MerkleTrieNode.Leaf(_, _)                     => None
-    case MerkleTrieNode.Branch(_, children)            => Some(children)
-    case MerkleTrieNode.BranchWithData(_, children, _) => Some(children)
+  def getChildren: Option[GenericMerkleTrieNode.Children[K, V]] = this match
+    case GenericMerkleTrieNode.Leaf(_, _)                     => None
+    case GenericMerkleTrieNode.Branch(_, children)            => Some(children)
+    case GenericMerkleTrieNode.BranchWithData(_, children, _) => Some(children)
 
   def getValue: Option[ByteVector] = this match
-    case MerkleTrieNode.Leaf(_, value)              => Some(value)
-    case MerkleTrieNode.Branch(_, _)                => None
-    case MerkleTrieNode.BranchWithData(_, _, value) => Some(value)
+    case GenericMerkleTrieNode.Leaf(_, value)              => Some(value)
+    case GenericMerkleTrieNode.Branch(_, _)                => None
+    case GenericMerkleTrieNode.BranchWithData(_, _, value) => Some(value)
 
-  def setPrefix(prefix: MerkleTrieNode.Prefix): MerkleTrieNode[K, V] =
+  def setPrefix(prefix: GenericMerkleTrieNode.Prefix): GenericMerkleTrieNode[K, V] =
     this match
-      case MerkleTrieNode.Leaf(_, value) => MerkleTrieNode.Leaf(prefix, value)
-      case MerkleTrieNode.Branch(_, children) =>
-        MerkleTrieNode.Branch(prefix, children)
-      case MerkleTrieNode.BranchWithData(_, key, value) =>
-        MerkleTrieNode.BranchWithData(prefix, key, value)
+      case GenericMerkleTrieNode.Leaf(_, value) => GenericMerkleTrieNode.Leaf(prefix, value)
+      case GenericMerkleTrieNode.Branch(_, children) =>
+        GenericMerkleTrieNode.Branch(prefix, children)
+      case GenericMerkleTrieNode.BranchWithData(_, key, value) =>
+        GenericMerkleTrieNode.BranchWithData(prefix, key, value)
 
   def setChildren(
-      children: MerkleTrieNode.Children[K, V],
-  ): MerkleTrieNode[K, V] = this match
-    case MerkleTrieNode.Leaf(prefix, value) =>
-      MerkleTrieNode.BranchWithData(prefix, children, value)
-    case MerkleTrieNode.Branch(prefix, _) =>
-      MerkleTrieNode.Branch(prefix, children)
-    case MerkleTrieNode.BranchWithData(prefix, _, value) =>
-      MerkleTrieNode.BranchWithData(prefix, children, value)
+      children: GenericMerkleTrieNode.Children[K, V],
+  ): GenericMerkleTrieNode[K, V] = this match
+    case GenericMerkleTrieNode.Leaf(prefix, value) =>
+      GenericMerkleTrieNode.BranchWithData(prefix, children, value)
+    case GenericMerkleTrieNode.Branch(prefix, _) =>
+      GenericMerkleTrieNode.Branch(prefix, children)
+    case GenericMerkleTrieNode.BranchWithData(prefix, _, value) =>
+      GenericMerkleTrieNode.BranchWithData(prefix, children, value)
 
-  def setValue(value: ByteVector): MerkleTrieNode[K, V] = this match
-    case MerkleTrieNode.Leaf(prefix, _) => MerkleTrieNode.Leaf(prefix, value)
-    case MerkleTrieNode.Branch(prefix, children) =>
-      MerkleTrieNode.BranchWithData(prefix, children, value)
-    case MerkleTrieNode.BranchWithData(prefix, children, _) =>
-      MerkleTrieNode.BranchWithData(prefix, children, value)
+  def setValue(value: ByteVector): GenericMerkleTrieNode[K, V] = this match
+    case GenericMerkleTrieNode.Leaf(prefix, _) => GenericMerkleTrieNode.Leaf(prefix, value)
+    case GenericMerkleTrieNode.Branch(prefix, children) =>
+      GenericMerkleTrieNode.BranchWithData(prefix, children, value)
+    case GenericMerkleTrieNode.BranchWithData(prefix, children, _) =>
+      GenericMerkleTrieNode.BranchWithData(prefix, children, value)
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def toString: String =
@@ -65,35 +65,35 @@ sealed trait MerkleTrieNode[K, V]:
       val ss = for i <- 0 until 16 yield f"${i}%x: ${childrenRefined.value(i)}"
       ss.mkString("[", ",", "]")
     }
-    s"MerkleTrieNode(${prefix.value.toHex}, $childrenString, $getValue)"
+    s"GenericMerkleTrieNode(${prefix.value.toHex}, $childrenString, $getValue)"
 
-object MerkleTrieNode:
+object GenericMerkleTrieNode:
 
   final case class Leaf[K, V](prefix: Prefix, value: ByteVector)
-      extends MerkleTrieNode[K, V]
+      extends GenericMerkleTrieNode[K, V]
   final case class Branch[K, V](prefix: Prefix, children: Children[K, V])
-      extends MerkleTrieNode[K, V]
+      extends GenericMerkleTrieNode[K, V]
   final case class BranchWithData[K, V](
       prefix: Prefix,
       children: Children[K, V],
       value: ByteVector,
-  ) extends MerkleTrieNode[K, V]
+  ) extends GenericMerkleTrieNode[K, V]
 
-  def leaf[K, V](prefix: Prefix, value: ByteVector): MerkleTrieNode[K, V] =
+  def leaf[K, V](prefix: Prefix, value: ByteVector): GenericMerkleTrieNode[K, V] =
     Leaf(prefix, value)
 
   def branch[K, V](
       prefix: Prefix,
       children: Children[K, V],
-  ): MerkleTrieNode[K, V] = Branch(prefix, children)
+  ): GenericMerkleTrieNode[K, V] = Branch(prefix, children)
 
   def branchWithData[K, V](
       prefix: Prefix,
       children: Children[K, V],
       value: ByteVector,
-  ): MerkleTrieNode[K, V] = BranchWithData(prefix, children, value)
+  ): GenericMerkleTrieNode[K, V] = BranchWithData(prefix, children, value)
 
-  type MerkleHash[K, V] = Hash.Value[MerkleTrieNode[K, V]]
+  type MerkleHash[K, V] = Hash.Value[GenericMerkleTrieNode[K, V]]
   type MerkleRoot[K, V] = MerkleHash[K, V]
 
   type Prefix = BitVector Refined PrefixCondition
@@ -116,16 +116,16 @@ object MerkleTrieNode:
       Vector.fill(16)(Option.empty[MerkleHash[K, V]]),
     ).toOption.get
 
-  given [K, V]: Eq[MerkleTrieNode[K, V]] = Eq.fromUniversalEquals
+  given [K, V]: Eq[GenericMerkleTrieNode[K, V]] = Eq.fromUniversalEquals
 
-  given merkleTrieNodeEncoder[K, V]: ByteEncoder[MerkleTrieNode[K, V]] = node =>
+  given GenericMerkleTrieNodeEncoder[K, V]: ByteEncoder[GenericMerkleTrieNode[K, V]] = node =>
     val encodePrefix: ByteVector =
       val prefixNibbleSize: Long = node.prefix.value.size / 4
       ByteEncoder[BigNat].encode(
         BigNat.unsafeFromBigInt(BigInt(prefixNibbleSize)),
       ) ++ node.prefix.bytes
 
-    def encodeChildren(children: MerkleTrieNode.Children[K, V]): ByteVector =
+    def encodeChildren(children: GenericMerkleTrieNode.Children[K, V]): ByteVector =
       val existanceBytes = BitVector.bits(children.value.map(_.nonEmpty)).bytes
       children.value
         .flatMap(_.toList)
@@ -146,8 +146,8 @@ object MerkleTrieNode:
         ) ++ encodeValue(value)
     encoded
 
-  given merkleTrieNodeDecoder[K, V]: ByteDecoder[MerkleTrieNode[K, V]] =
-    val prefixDecoder: ByteDecoder[MerkleTrieNode.Prefix] =
+  given GenericMerkleTrieNodeDecoder[K, V]: ByteDecoder[GenericMerkleTrieNode[K, V]] =
+    val prefixDecoder: ByteDecoder[GenericMerkleTrieNode.Prefix] =
       val unrefinedPrefixDecoder = for
         prefixNibbleSize <- ByteDecoder[BigNat]
         prefixNibbleSizeLong = prefixNibbleSize.toBigInt.toLong
@@ -166,7 +166,7 @@ object MerkleTrieNode:
         refineV[PrefixCondition](prefix).left.map(DecodingFailure(_)),
       )
 
-    val childrenDecoder: ByteDecoder[MerkleTrieNode.Children[K, V]] =
+    val childrenDecoder: ByteDecoder[GenericMerkleTrieNode.Children[K, V]] =
       ByteDecoder
         .fromFixedSizeBytes(2)(_.bits)
         .flatMap { (existanceBits) => (bytes) =>
@@ -192,7 +192,7 @@ object MerkleTrieNode:
                   loop(
                     bits.tail,
                     rest,
-                    Some(Hash.Value[MerkleTrieNode[K, V]](hash)) :: acc,
+                    Some(Hash.Value[GenericMerkleTrieNode[K, V]](hash)) :: acc,
                   )
           end loop
           loop(existanceBits, bytes, Nil)
@@ -229,4 +229,4 @@ object MerkleTrieNode:
           yield BranchWithData(prefix, children, value)
       }
 
-  given merkleTrieNodeHash[K, V]: Hash[MerkleTrieNode[K, V]] = Hash.build
+  given GenericMerkleTrieNodeHash[K, V]: Hash[GenericMerkleTrieNode[K, V]] = Hash.build

@@ -21,7 +21,7 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import lib.merkle.MerkleTrie
+import lib.merkle.GenericMerkleTrie
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.Utf8
@@ -36,7 +36,7 @@ trait UpdateStateWithGroupTx:
       tx match
         case cg: Transaction.GroupTx.CreateGroup =>
           if cg.coordinator === sig.account then
-            for groupState <- MerkleTrie
+            for groupState <- GenericMerkleTrie
                 .put(
                   cg.groupId.toBytes.bits,
                   GroupData(cg.name, cg.coordinator),
@@ -52,7 +52,7 @@ trait UpdateStateWithGroupTx:
             )
         case ag: Transaction.GroupTx.AddAccounts =>
           for
-            groupDataOption <- MerkleTrie
+            groupDataOption <- GenericMerkleTrie
               .get[F, GroupId, GroupData](ag.groupId.toBytes.bits)
               .runA(ms.group.groupState)
             groupData <- EitherT.fromOption[F](
@@ -67,7 +67,7 @@ trait UpdateStateWithGroupTx:
             groupAccountState <- ag.accounts.toList.foldLeftM(
               ms.group.groupAccountState,
             ) { (state, account) =>
-              MerkleTrie
+              GenericMerkleTrie
                 .put[F, (GroupId, Account), Unit](
                   (ag.groupId, account).toBytes.bits,
                   (),

@@ -35,12 +35,12 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import lib.merkle.{MerkleTrie, MerkleTrieState}
-import lib.merkle.MerkleTrie.NodeStore
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrie.NodeStore
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import io.leisuremeta.chain.api.model.reward.DaoActivity
 
 object RewardService:
@@ -175,10 +175,10 @@ object RewardService:
     *   number of dao (if larger than 100, return 100)
     */
   def countDao[F[_]: Concurrent: StateRepository.RewardState](
-      daoState: MerkleTrieState[GroupId, DaoInfo],
+      daoState: GenericMerkleTrieState[GroupId, DaoInfo],
   ): EitherT[F, String, Int] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, GroupId, DaoInfo](BitVector.empty)
         .runA(daoState)
       size <- stream.take(100).compile.count
@@ -201,7 +201,7 @@ object RewardService:
   def getWeeklyUserActivities[F[_]: Concurrent: StateRepository.RewardState](
       timestamp: Instant,
       user: Account,
-      root: MerkleTrieState[(Instant, Account), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, Account), DaoActivity],
   ): EitherT[F, String, Seq[Option[DaoActivity]]] =
     val refInstants = getWeeklyRefTime(
       getLatestRewardInstantBefore(timestamp),
@@ -209,7 +209,7 @@ object RewardService:
 
     refInstants
       .traverse { (refInstant) =>
-        MerkleTrie.get[F, (Instant, Account), DaoActivity](
+        GenericMerkleTrie.get[F, (Instant, Account), DaoActivity](
           (refInstant, user).toBytes.bits,
         )
       }
@@ -244,13 +244,13 @@ object RewardService:
   def getWeeklyTotalActivityPoint[F[_]
     : Concurrent: StateRepository.RewardState](
       timestamp: Instant,
-      root: MerkleTrieState[(Instant, Account), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, Account), DaoActivity],
   ): EitherT[F, String, BigNat] =
     val to: Instant   = getLatestRewardInstantBefore(timestamp)
     val from: Instant = getLatestRewardInstantBefore(to)
     val timestampBits = from.toBytes.bits
 
-    MerkleTrie
+    GenericMerkleTrie
       .from[F, (Instant, Account), DaoActivity](timestampBits)
       .runA(root)
       .flatMap { stream =>
@@ -332,13 +332,13 @@ object RewardService:
 
   def getNftOwned[F[_]: Concurrent: StateRepository.TokenState](
       user: Account,
-      state: MerkleTrieState[
+      state: GenericMerkleTrieState[
         (Account, TokenId, Hash.Value[TransactionWithResult]),
         Unit,
       ],
   ): EitherT[F, String, List[TokenId]] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
           user.toBytes.bits,
         )
@@ -369,7 +369,7 @@ object RewardService:
   def getWeeklyTokenReceived[F[_]: Monad: StateRepository.RewardState](
       tokenList: List[TokenId],
       canonicalTimestamp: Instant,
-      root: MerkleTrieState[(Instant, TokenId), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
   ): EitherT[F, String, DaoActivity] =
     val refInstants = getWeeklyRefTime(
       getLatestRewardInstantBefore(canonicalTimestamp),
@@ -382,7 +382,7 @@ object RewardService:
 
     keyList
       .traverse { (refInstant, tokenId) =>
-        MerkleTrie
+        GenericMerkleTrie
           .get[F, (Instant, TokenId), DaoActivity](
             (refInstant, tokenId).toBytes.bits,
           )
@@ -393,13 +393,13 @@ object RewardService:
   def getWeeklyTotalReceivedPoint[F[_]
     : Concurrent: StateRepository.RewardState](
       timestamp: Instant,
-      root: MerkleTrieState[(Instant, TokenId), DaoActivity],
+      root: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
   ): EitherT[F, String, BigNat] =
     val to: Instant   = getLatestRewardInstantBefore(timestamp)
     val from: Instant = getLatestRewardInstantBefore(to)
     val timestampBits = from.toBytes.bits
 
-    MerkleTrie
+    GenericMerkleTrie
       .from[F, (Instant, TokenId), DaoActivity](timestampBits)
       .runA(root)
       .flatMap { stream =>
@@ -478,7 +478,7 @@ object RewardService:
       state: GossipDomain.MerkleState.TokenMerkleState,
   ): EitherT[F, String, List[(Rarity, BigNat)]] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
           user.toBytes.bits,
         )
@@ -503,7 +503,7 @@ object RewardService:
               (),
               s"Non-empty remainder: $remainder in nft-balance: ${keyBits.bytes}",
             )
-            nftStateOption <- MerkleTrie
+            nftStateOption <- GenericMerkleTrie
               .get[F, TokenId, NftState](tokenId.toBytes.bits)
               .runA(state.nftState)
             nftState <- EitherT.fromOption(
@@ -530,7 +530,7 @@ object RewardService:
       state: GossipDomain.MerkleState.TokenMerkleState,
   ): EitherT[F, String, BigNat] =
     for
-      keyBitsStream <- MerkleTrie
+      keyBitsStream <- GenericMerkleTrie
         .from[F, (TokenDefinitionId, Rarity, TokenId), Unit](BitVector.empty)
         .runA(state.rarityState)
       stream = keyBitsStream
@@ -560,7 +560,7 @@ object RewardService:
             }
           case ((_, acc), (defId, rarity, _)) =>
             for
-              tokenDefOption <- MerkleTrie
+              tokenDefOption <- GenericMerkleTrie
                 .get[F, TokenDefinitionId, TokenDefinition](defId.toBytes.bits)
                 .runA(state.tokenDefinitionState)
               tokenDef <- EitherT.fromOption(
@@ -612,10 +612,10 @@ object RewardService:
 
   def isModerator[F[_]: Concurrent: StateRepository.RewardState](
       user: Account,
-      root: MerkleTrieState[GroupId, DaoInfo],
+      root: GenericMerkleTrieState[GroupId, DaoInfo],
   ): EitherT[F, String, Boolean] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, GroupId, DaoInfo](BitVector.empty)
         .runA(root)
       ansList <- stream

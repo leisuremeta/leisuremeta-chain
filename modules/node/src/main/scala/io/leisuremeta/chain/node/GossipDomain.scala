@@ -27,9 +27,9 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
-import lib.merkle.MerkleTrie.NodeStore
-import lib.merkle.MerkleTrieNode.MerkleRoot
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrie.NodeStore
+import lib.merkle.GenericMerkleTrieNode.MerkleRoot
 
 object GossipDomain:
 
@@ -55,12 +55,12 @@ object GossipDomain:
     )
 
     case class AccountMerkleState(
-        namesState: MerkleTrieState[Account, AccountData],
-        keyState: MerkleTrieState[
+        namesState: GenericMerkleTrieState[Account, AccountData],
+        keyState: GenericMerkleTrieState[
           (Account, PublicKeySummary),
           PublicKeySummary.Info,
         ],
-        ethState: MerkleTrieState[EthAddress, Account],
+        ethState: GenericMerkleTrieState[EthAddress, Account],
     ):
       def toStateRoot: StateRoot.AccountStateRoot = StateRoot.AccountStateRoot(
         namesRoot = namesState.root,
@@ -76,8 +76,8 @@ object GossipDomain:
         )
 
     case class GroupMerkleState(
-        groupState: MerkleTrieState[GroupId, GroupData],
-        groupAccountState: MerkleTrieState[(GroupId, Account), Unit],
+        groupState: GenericMerkleTrieState[GroupId, GroupData],
+        groupAccountState: GenericMerkleTrieState[(GroupId, Account), Unit],
     ):
       def toStateRoot: StateRoot.GroupStateRoot = StateRoot.GroupStateRoot(
         groupRoot = groupState.root,
@@ -92,28 +92,28 @@ object GossipDomain:
         )
 
     case class TokenMerkleState(
-        tokenDefinitionState: MerkleTrieState[
+        tokenDefinitionState: GenericMerkleTrieState[
           TokenDefinitionId,
           TokenDefinition,
         ],
-        fungibleBalanceState: MerkleTrieState[
+        fungibleBalanceState: GenericMerkleTrieState[
           (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
-        nftBalanceState: MerkleTrieState[
+        nftBalanceState: GenericMerkleTrieState[
           (Account, TokenId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
-        nftState: MerkleTrieState[TokenId, NftState],
-        rarityState: MerkleTrieState[
+        nftState: GenericMerkleTrieState[TokenId, NftState],
+        rarityState: GenericMerkleTrieState[
           (TokenDefinitionId, Rarity, TokenId),
           Unit,
         ],
-        entrustFungibleBalanceState: MerkleTrieState[
+        entrustFungibleBalanceState: GenericMerkleTrieState[
           (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
-        entrustNftBalanceState: MerkleTrieState[
+        entrustNftBalanceState: GenericMerkleTrieState[
           (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
           Unit,
         ],
@@ -141,9 +141,9 @@ object GossipDomain:
         )
 
     case class RewardMerkleState(
-        daoState: MerkleTrieState[GroupId, DaoInfo],
-        userActivityState: MerkleTrieState[(Instant, Account), DaoActivity],
-        tokenReceivedState: MerkleTrieState[(Instant, TokenId), DaoActivity],
+        daoState: GenericMerkleTrieState[GroupId, DaoInfo],
+        userActivityState: GenericMerkleTrieState[(Instant, Account), DaoActivity],
+        tokenReceivedState: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
     ):
       def toStateRoot: StateRoot.RewardStateRoot = StateRoot.RewardStateRoot(
         dao = daoState.root,
@@ -162,8 +162,8 @@ object GossipDomain:
 
   def buildMerkleTrieState[K, V](
       root: Option[MerkleRoot[K, V]],
-  ): MerkleTrieState[K, V] =
-    root.fold(MerkleTrieState.empty[K, V])(MerkleTrieState.fromRoot)
+  ): GenericMerkleTrieState[K, V] =
+    root.fold(GenericMerkleTrieState.empty[K, V])(GenericMerkleTrieState.fromRoot)
 
   case class LocalGossip(
       newTxs: Map[Signed.TxHash, Signed.Tx],
@@ -305,9 +305,9 @@ object GossipDomain:
         }
         (state, txSet) = stateAndTxSet
         txState = txSet.toList.foldLeft(
-          MerkleTrieState.empty[Signed.TxHash, Unit],
+          GenericMerkleTrieState.empty[Signed.TxHash, Unit],
         ) { (state, txHash) =>
-          MerkleTrie
+          GenericMerkleTrie
             .put[cats.Id, Signed.TxHash, Unit](
               txHash.toUInt256Bytes.toBytes.bits,
               (),

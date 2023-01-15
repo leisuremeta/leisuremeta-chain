@@ -27,18 +27,18 @@ import api.model.token.{
 }
 import lib.crypto.Hash
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
-import lib.merkle.MerkleTrie.NodeStore
-import lib.merkle.MerkleTrieNode.{MerkleHash, MerkleRoot}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
+import lib.merkle.GenericMerkleTrie.NodeStore
+import lib.merkle.GenericMerkleTrieNode.{MerkleHash, MerkleRoot}
 import lib.failure.DecodingFailure
 import store.KeyValueStore
 
 trait StateRepository[F[_], K, V]:
   def get(
       merkleRoot: MerkleRoot[K, V],
-  ): EitherT[F, DecodingFailure, Option[MerkleTrieNode[K, V]]]
+  ): EitherT[F, DecodingFailure, Option[GenericMerkleTrieNode[K, V]]]
 
-  def put(state: MerkleTrieState[K, V]): F[Unit]
+  def put(state: GenericMerkleTrieState[K, V]): F[Unit]
 
 object StateRepository:
 
@@ -298,7 +298,7 @@ object StateRepository:
   ): NodeStore[F, K, V] = Kleisli(sr.get(_).leftMap(_.msg))
 
   type MerkleHashStore[F[_], K, V] =
-    KeyValueStore[F, MerkleHash[K, V], MerkleTrieNode[K, V]]
+    KeyValueStore[F, MerkleHash[K, V], GenericMerkleTrieNode[K, V]]
 
   def fromStores[F[_]: Monad, K, V](using
       stateKvStore: MerkleHashStore[F, K, V],
@@ -306,10 +306,10 @@ object StateRepository:
 
     def get(
         merkleRoot: MerkleRoot[K, V],
-    ): EitherT[F, DecodingFailure, Option[MerkleTrieNode[K, V]]] =
+    ): EitherT[F, DecodingFailure, Option[GenericMerkleTrieNode[K, V]]] =
       stateKvStore.get(merkleRoot)
 
-    def put(state: MerkleTrieState[K, V]): F[Unit] = for
+    def put(state: GenericMerkleTrieState[K, V]): F[Unit] = for
       _ <- Monad[F].pure(scribe.debug(s"Putting state: $state"))
       _ <- state.diff.toList.traverse { case (hash, (node, count)) =>
         stateKvStore.get(hash).value.flatMap {

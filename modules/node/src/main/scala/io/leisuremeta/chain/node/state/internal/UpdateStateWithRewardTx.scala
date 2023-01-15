@@ -31,7 +31,7 @@ import api.model.{
 import api.model.reward.*
 import api.model.token.{NftState, TokenDefinitionId, TokenId}
 import api.model.TransactionWithResult.ops.*
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -50,14 +50,14 @@ trait UpdateStateWithRewardTx:
       tx match
         case rd: Transaction.RewardTx.RegisterDao =>
           for
-            groupDataOption <- MerkleTrie
+            groupDataOption <- GenericMerkleTrie
               .get[F, GroupId, GroupData](rd.groupId.toBytes.bits)
               .runA(ms.group.groupState)
             groupData <- EitherT.fromOption[F](
               groupDataOption,
               s"Group does not exist: ${rd.groupId}",
             )
-            daoInfoOption <- MerkleTrie
+            daoInfoOption <- GenericMerkleTrie
               .get[F, GroupId, DaoInfo](rd.groupId.toBytes.bits)
               .runA(ms.reward.daoState)
             _ <- {
@@ -70,7 +70,7 @@ trait UpdateStateWithRewardTx:
             daoInfo = DaoInfo(
               moderators = rd.moderators,
             )
-            daoState <- MerkleTrie
+            daoState <- GenericMerkleTrie
               .put[F, GroupId, DaoInfo](rd.groupId.toBytes.bits, daoInfo)
               .runS(ms.reward.daoState)
           yield (
@@ -92,15 +92,15 @@ trait UpdateStateWithRewardTx:
                   .toInstant()
                 val keyBits = (canonicalInstant, account).toBytes.bits
                 for
-                  activityOption <- MerkleTrie
+                  activityOption <- GenericMerkleTrie
                     .get[F, (Instant, Account), DaoActivity](keyBits)
-                  _ <- MerkleTrie.remove[F, (Instant, Account), DaoActivity](
+                  _ <- GenericMerkleTrie.remove[F, (Instant, Account), DaoActivity](
                     keyBits,
                   )
                   activity1 = activityOption.fold(activity)(
                     Monoid[DaoActivity].combine(_, activity),
                   )
-                  _ <- MerkleTrie.put[F, (Instant, Account), DaoActivity](
+                  _ <- GenericMerkleTrie.put[F, (Instant, Account), DaoActivity](
                     keyBits,
                     activity1,
                   )
@@ -109,7 +109,7 @@ trait UpdateStateWithRewardTx:
               .runS(ms.reward.userActivityState)
             tokenReceivedState <- ra.tokenReceived.toList
               .traverse { case (tokenId, activity) =>
-                MerkleTrie.put[F, (Instant, TokenId), DaoActivity](
+                GenericMerkleTrie.put[F, (Instant, TokenId), DaoActivity](
                   (ra.timestamp, tokenId).toBytes.bits,
                   activity,
                 )
@@ -180,7 +180,7 @@ trait UpdateStateWithRewardTx:
   ): EitherT[F, String, (BigNat, List[Hash.Value[TransactionWithResult]])] =
     val prefixBits = account.toBytes.bits ++ tokenDef.toBytes.bits
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[
           F,
           (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
@@ -276,7 +276,7 @@ trait UpdateStateWithRewardTx:
       state: GossipDomain.MerkleState.TokenMerkleState,
   ): EitherT[F, String, Map[Account, BigNat]] =
     for
-      stream <- MerkleTrie
+      stream <- GenericMerkleTrie
         .from[F, (Account, TokenId, Hash.Value[TransactionWithResult]), Unit](
           BitVector.empty,
         )
@@ -297,7 +297,7 @@ trait UpdateStateWithRewardTx:
               (),
               s"Non-empty remainder: $remainder in nft-balance: ${keyBits.bytes}",
             )
-            nftStateOption <- MerkleTrie
+            nftStateOption <- GenericMerkleTrie
               .get[F, TokenId, NftState](tokenId.toBytes.bits)
               .runA(state.nftState)
             nftState <- EitherT.fromOption(
@@ -349,16 +349,16 @@ trait UpdateStateWithRewardTx:
       utxos: List[Hash.Value[TransactionWithResult]],
       txHash: Hash.Value[TransactionWithResult],
       outputs: Map[Account, BigNat],
-      balanceState: MerkleTrieState[BalanceKey, Unit],
-  ): EitherT[F, String, MerkleTrieState[BalanceKey, Unit]] =
+      balanceState: GenericMerkleTrieState[BalanceKey, Unit],
+  ): EitherT[F, String, GenericMerkleTrieState[BalanceKey, Unit]] =
     val program = for
       _ <- utxos.traverse { utxo =>
-        MerkleTrie.remove[F, BalanceKey, Unit](
+        GenericMerkleTrie.remove[F, BalanceKey, Unit](
           (sourceAccount, tokenDef, utxo).toBytes.bits,
         )
       }
       _ <- outputs.toList.traverse { case (account, amount) =>
-        MerkleTrie.put[F, BalanceKey, Unit](
+        GenericMerkleTrie.put[F, BalanceKey, Unit](
           (account, tokenDef, txHash).toBytes.bits,
           (),
         )

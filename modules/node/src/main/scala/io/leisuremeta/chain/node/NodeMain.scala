@@ -16,8 +16,8 @@ import api.model.token.*
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
 import lib.datatype.{BigNat, UInt256Bytes}
-import lib.merkle.MerkleTrieNode
-import lib.merkle.MerkleTrieNode.{MerkleHash, MerkleRoot}
+import lib.merkle.GenericMerkleTrieNode
+import lib.merkle.GenericMerkleTrieNode.{MerkleHash, MerkleRoot}
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 import service.LocalGossipService
@@ -51,12 +51,12 @@ object NodeMain extends IOApp:
     yield BlockRepository.fromStores[IO]
 
     type StateRepoStore[F[_], K, V] =
-      StoreIndex[IO, MerkleHash[K, V], MerkleTrieNode[K, V]]
+      StoreIndex[IO, MerkleHash[K, V], GenericMerkleTrieNode[K, V]]
 
     def getStateRepo[K: ByteCodec, V: ByteCodec](
         dir: Path,
     ): IO[StateRepoStore[IO, K, V]] =
-      sway[MerkleHash[K, V], MerkleTrieNode[K, V]](dir)
+      sway[MerkleHash[K, V], GenericMerkleTrieNode[K, V]](dir)
 
     def getTransactionRepo: IO[TransactionRepository[IO]] =
       for given StoreIndex[IO, Hash.Value[
@@ -86,7 +86,9 @@ object NodeMain extends IOApp:
               Paths.get("sway", "state", "account", "pubkey"),
             )
           given StateRepoStore[IO, EthAddress, Account] <-
-            getStateRepo[EthAddress, Account](Paths.get("sway", "state", "account", "eth"))
+            getStateRepo[EthAddress, Account](
+              Paths.get("sway", "state", "account", "eth"),
+            )
           given StateRepoStore[IO, GroupId, GroupData] <-
             getStateRepo[GroupId, GroupData](
               Paths.get("sway", "state", "group"),
@@ -135,11 +137,21 @@ object NodeMain extends IOApp:
             )
           given StateRepoStore[
             IO,
-            (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+            (
+                Account,
+                Account,
+                TokenDefinitionId,
+                Hash.Value[TransactionWithResult],
+            ),
             Unit,
           ] <-
             getStateRepo[
-              (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+              (
+                  Account,
+                  Account,
+                  TokenDefinitionId,
+                  Hash.Value[TransactionWithResult],
+              ),
               Unit,
             ](
               Paths.get("sway", "state", "token", "entrust-fungible-balance"),
