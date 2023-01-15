@@ -5,7 +5,7 @@ import MerkleTrieNode.MerkleRoot
 final case class MerkleTrieState[K, V](
     root: Option[MerkleRoot[K, V]],
     base: Option[MerkleRoot[K, V]],
-    diff: MerkleTrieStateDiff[K, V],
+    diff: GenericMerkleTrieStateDiff[K, V],
 ):
   @SuppressWarnings(
     Array("org.wartremover.warts.Equals", "org.wartremover.warts.Nothing"),
@@ -26,7 +26,7 @@ final case class MerkleTrieState[K, V](
       Right(
         this.copy(
           base = that.root,
-          diff = MerkleTrieStateDiff(map1),
+          diff = GenericMerkleTrieStateDiff(map1),
         ),
       )
 
@@ -34,11 +34,11 @@ object MerkleTrieState:
   def empty[K, V]: MerkleTrieState[K, V] = MerkleTrieState(
     None,
     None,
-    MerkleTrieStateDiff.empty[K, V],
+    GenericMerkleTrieStateDiff.empty[K, V],
   )
   def fromRoot[K, V](root: MerkleRoot[K, V]): MerkleTrieState[K, V] =
     MerkleTrieState[K, V](
       root = Some(root),
       base = Some(root),
-      diff = MerkleTrieStateDiff.empty[K, V],
+      diff = GenericMerkleTrieStateDiff.empty[K, V],
     )

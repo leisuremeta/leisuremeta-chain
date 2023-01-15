@@ -2,18 +2,18 @@ package io.leisuremeta.chain.lib.merkle
 
 import MerkleTrieNode.MerkleHash
 
-opaque type MerkleTrieStateDiff[K, V] =
+opaque type GenericMerkleTrieStateDiff[K, V] =
   Map[MerkleHash[K, V], (MerkleTrieNode[K, V], Int)]
 
-object MerkleTrieStateDiff:
+object GenericMerkleTrieStateDiff:
 
   def apply[K, V](
       map: Map[MerkleHash[K, V], (MerkleTrieNode[K, V], Int)],
-  ): MerkleTrieStateDiff[K, V] = map
+  ): GenericMerkleTrieStateDiff[K, V] = map
 
-  def empty[K, V]: MerkleTrieStateDiff[K, V] = Map.empty
+  def empty[K, V]: GenericMerkleTrieStateDiff[K, V] = Map.empty
 
-  extension [K, V](diff: MerkleTrieStateDiff[K, V])
+  extension [K, V](diff: GenericMerkleTrieStateDiff[K, V])
     def get(hash: MerkleHash[K, V]): Option[MerkleTrieNode[K, V]] =
       diff.get(hash).flatMap {
         case (node, count) if count > 0 => Some(node)
@@ -28,7 +28,7 @@ object MerkleTrieStateDiff:
     def add(
         hash: MerkleHash[K, V],
         node: MerkleTrieNode[K, V],
-    ): MerkleTrieStateDiff[K, V] =
+    ): GenericMerkleTrieStateDiff[K, V] =
       diff.get(hash).fold(diff + (hash -> (node, 1))) {
         case (node, -1)    => diff - hash
         case (node, count) => diff + (hash -> (node, count + 1))
@@ -37,7 +37,7 @@ object MerkleTrieStateDiff:
     def remove(
         hash: MerkleHash[K, V],
         node: MerkleTrieNode[K, V],
-    ): MerkleTrieStateDiff[K, V] =
+    ): GenericMerkleTrieStateDiff[K, V] =
       diff.get(hash).fold(diff + (hash -> (node, -1))) {
         case (node, 1)     => diff - hash
         case (node, count) => diff + (hash -> (node, count - 1))
