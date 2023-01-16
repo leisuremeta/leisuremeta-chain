@@ -4,10 +4,12 @@ import tyrian.*
 
 object Row2:
   val title = div(`class` := "row table-title ")(
-    div(`class` := "cell type-1")(span()("최신 트랜잭션")),
+    // div(`class` := "cell type-1")(span()("최신 트랜잭션")),
+    div(`class` := "cell type-1")(span()("Latest Transactions")),
     div(`class` := "cell")(span()("")),
     div(`class` := "cell")(span()("")),
-    div(`class` := "cell type-2")(span(onClick(NavMsg.Transactions))("더 보기")),
+    // div(`class` := "cell type-2")(span(onClick(NavMsg.Transactions))("더 보기")),
+    div(`class` := "cell type-2")(span(onClick(NavMsg.Transactions))("More")),
   )
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
