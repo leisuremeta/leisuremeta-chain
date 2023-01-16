@@ -26,6 +26,18 @@ object Row:
     div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
     div(`class` := "cell")(span()("123")),
   )
+  val search = div(`class` := "table-search")(
+    div(`class` := "")(
+      span()("<<"),
+      span()("<"),
+      span()("Page"),
+      span()("1"),
+      span()("of"),
+      span()("6288700"),
+      span()(">"),
+      span()(">>"),
+    ),
+  )
 
 object TableBlockView:
   def view(model: Model): Html[Msg] =
@@ -38,4 +50,5 @@ object TableBlockView:
       Row.body,
       Row.body,
       Row.body,
+      Row.search,
     )
