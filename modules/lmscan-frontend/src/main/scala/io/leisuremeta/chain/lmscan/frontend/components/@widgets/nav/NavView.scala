@@ -11,15 +11,15 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${model.tab.toString() == NavMsg.DashBoard.toString()}",
+          `class` := s"${model.curPage.toString() == NavMsg.DashBoard.toString()}",
           onClick(NavMsg.DashBoard),
         )(NavMsg.DashBoard.toString()),
         button(
-          `class` := s"${model.tab.toString() == NavMsg.Blocks.toString()}",
+          `class` := s"${model.curPage.toString() == NavMsg.Blocks.toString()}",
           onClick(NavMsg.Blocks),
         )(NavMsg.Blocks.toString()),
         button(
-          `class` := s"${model.tab.toString() == NavMsg.Transactions.toString()}",
+          `class` := s"${model.curPage.toString() == NavMsg.Transactions.toString()}",
           onClick(NavMsg.Transactions),
         )(NavMsg.Transactions.toString()),
       ),

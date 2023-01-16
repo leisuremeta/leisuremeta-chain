@@ -4,7 +4,7 @@ import tyrian.*
 
 object Pages:
   def render(model: Model): Html[Msg] =
-    model.tab match
+    model.curPage match
       case NavMsg.DashBoard =>
         DashboardView.view(model)
       case NavMsg.Blocks =>

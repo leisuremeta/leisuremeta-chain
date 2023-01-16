@@ -8,10 +8,30 @@ import Log.log
 object NavUpdate:
   def update(model: Model): NavMsg => (Model, Cmd[IO, Msg]) =
     case NavMsg.DashBoard =>
-      (model.copy(tab = NavMsg.DashBoard), Cmd.None)
+      log(
+        (
+          model.copy(curPage = NavMsg.DashBoard, prevPage = model.curPage),
+          Cmd.None,
+        ),
+      )
     case NavMsg.Blocks =>
-      (model.copy(tab = NavMsg.Blocks), Cmd.None)
+      log(
+        (
+          model.copy(curPage = NavMsg.Blocks, prevPage = model.curPage),
+          Cmd.None,
+        ),
+      )
     case NavMsg.Transactions =>
-      (model.copy(tab = NavMsg.Transactions), Cmd.None)
+      log(
+        (
+          model.copy(curPage = NavMsg.Transactions, prevPage = model.curPage),
+          Cmd.None,
+        ),
+      )
     case NavMsg.NoPage =>
-      (model.copy(tab = NavMsg.NoPage), Cmd.None)
+      log(
+        (
+          model.copy(curPage = NavMsg.NoPage, prevPage = model.prevPage),
+          Cmd.None,
+        ),
+      )
