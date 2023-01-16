@@ -49,6 +49,17 @@ val Dependencies = new {
     ),
   )
 
+  lazy val jvmClient = Seq(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "com.softwaremill.sttp.tapir"   %% "tapir-sttp-client"    % V.tapir,
+    ),
+    excludeDependencies ++= Seq(
+      "org.scala-lang.modules" % "scala-collection-compat_2.13",
+      "org.scala-lang.modules" % "scala-java8-compat_2.13",
+    ),
+  )
+
   lazy val ethGateway = Seq(
     libraryDependencies ++= Seq(
       "com.outr"    %% "scribe-slf4j" % V.scribe,
@@ -245,6 +256,13 @@ lazy val archive = (project in file("modules/archive"))
     },
   )
   .dependsOn(api.jvm)
+
+lazy val jvmClient = (project in file("modules/jvm-client"))
+  .settings(Dependencies.jvmClient)
+  .dependsOn(node)
+  .settings(
+    name := "leisuremeta-chain-jvm-client",
+  )
 
 lazy val api = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
