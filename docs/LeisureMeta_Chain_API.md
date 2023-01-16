@@ -901,8 +901,67 @@
   * Example
 
     ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "4b3b7da80ee24ccc4c88db62d4a3bf2817b937ec4e29583a3bc0271dbca1ec4a",
+            "s" : "2145a55b0bb829a141d6ee8d916136bc763e40046657f4baef4aa6945a01c4e8"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "RecordActivity" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-10T18:01:00Z",
+              "timestamp" : "2023-01-09T09:00:00Z",
+              "userActivity" : {
+                "bob" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 3
+                  }
+                },
+                "carol" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 3
+                  }
+                }
+              },
+              "tokenReceived" : {
+                "text-20230109-0000" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 2
+                  }
+                },
+                "text-20230109-0001" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 2
+                  }
+                },
+                "text-20230109-0002" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
     ```
-
+    
+    ```json
+    ["57672415a0fa29ac60875c2f6d1dafba3d0522d92ac174cf42dc03cf96ef42f8"]
+    ```
+    
     
 
 * BuildSnapshot: 보상을 위한 스냅샷 생성. 사용자가 한 활동, 토큰이 받은 활동, 토큰 소유보상의 세 가지 스냅샷을 동시에 만든다
