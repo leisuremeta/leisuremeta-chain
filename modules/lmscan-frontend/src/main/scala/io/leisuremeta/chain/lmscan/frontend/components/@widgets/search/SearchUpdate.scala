@@ -20,7 +20,7 @@ object InputUpdate:
             case "1" => NavMsg.DashBoard
             case "2" => NavMsg.Blocks
             case "3" => NavMsg.Transactions
-            case _   => log("none"); NavMsg.DashBoard,
+            case _   => log("none"); NavMsg.NoPage,
         )
 
       (updated, Cmd.None)

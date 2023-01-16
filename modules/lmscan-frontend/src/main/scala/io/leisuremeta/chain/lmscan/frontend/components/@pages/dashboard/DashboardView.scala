@@ -5,7 +5,6 @@ import tyrian.*
 object DashboardView:
   def view(model: Model): Html[Msg] =
     div(`class` := "")(
-      SearchView.view(model),
       BoardView.view(model),
       TableView.view(model),
     )

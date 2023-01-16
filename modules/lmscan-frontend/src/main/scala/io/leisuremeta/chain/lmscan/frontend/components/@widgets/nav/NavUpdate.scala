@@ -13,3 +13,5 @@ object NavUpdate:
       (model.copy(tab = NavMsg.Blocks), Cmd.None)
     case NavMsg.Transactions =>
       (model.copy(tab = NavMsg.Transactions), Cmd.None)
+    case NavMsg.NoPage =>
+      (model.copy(tab = NavMsg.NoPage), Cmd.None)

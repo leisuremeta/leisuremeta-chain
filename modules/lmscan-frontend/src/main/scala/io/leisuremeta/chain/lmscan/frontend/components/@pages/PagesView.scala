@@ -11,7 +11,14 @@ object Pages:
         BlocksView.view(model)
       case NavMsg.Transactions =>
         TransactionsView.view(model)
+      case NavMsg.NoPage =>
+        NoPageView.view(model)
 
 object PagesView:
   def view(model: Model): Html[Msg] =
-    div(id := "page", `class` := "")(Pages.render(model))
+    div(id := "page", `class` := "")(
+      div()(
+        SearchView.view(model),
+        Pages.render(model),
+      ),
+    )
