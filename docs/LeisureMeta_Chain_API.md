@@ -882,16 +882,16 @@
 
   * Fields
 
-    * Timestamp: 기준시점
+    * timestamp: 기준시점
 
-    * UserActivity: Map[AccountName, Map[ActivityName, DaoActivity]] 사용자활동 요약 정보
+    * userActivity: Map[AccountName, Map[ActivityName, DaoActivity]] 사용자활동 요약 정보
 
       * ActivityName (string) 활동 이름
       * DaoActivity 활동정보
         * weight 가중치. int. 음수가능
         * count 활동횟수
 
-    * PostingReceived: Map[TokenId, Map[ActivityName, DaoActivity]] 토큰이 받은 사용자활동 요약정보
+    * tokenReceived: Map[TokenId, Map[ActivityName, DaoActivity]] 토큰이 받은 사용자활동 요약정보
       * ActivityName (string) 활동 이름
 
       * DaoActivity 활동정보
@@ -919,21 +919,69 @@
     
     ```
 
-* ExecuteReward: 스냅샷의 자료를 기반으로 보상 실행.
+* ExecuteAccountReward: 스냅샷의 자료를 기반으로 계정 활동 보상 실행.
 
   * 보상 실행 주체. 일반적으로 Playnomm
 
   * Fields
 
-    * 
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * targets: Set[Account] 보상할 계정
+    * amountPerPoint: 포인트 당 보상량
+
+  * Results
+
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
 
   * Example
 
     ```json
+    
     ```
 
-    
+* ExecuteTokenReward: 스냅샷의 자료를 기반으로 토큰이 받은 활동 보상 실행.
 
+  * 보상 실행 주체. 일반적으로 Playnomm
+
+  * Fields
+
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+  
+    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
+    * amountPerPoint: 포인트 당 보상량
+  
+  * Results
+  
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
+  
+  * Example
+  
+    ```json
+    ```
+  
+* ExecuteOwnershipReward: 스냅샷의 자료를 기반으로 토큰 소유 보상 실행.
+
+  * 보상 실행 주체. 일반적으로 Playnomm
+
+  * Fields
+
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+  
+    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
+    * amountPerPoint: 포인트 당 보상량
+  
+  * Results
+  
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
+  
+  * Example
+  
+    ```json
+    ```
+  
 
 
 
@@ -1046,5 +1094,4 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
   * OwnershipRewardLog
     * OwnershipShapshot
     * ExecuteReward TxHash
-
 

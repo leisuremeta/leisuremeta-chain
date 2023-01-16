@@ -82,7 +82,7 @@ trait UpdateStateWithRewardTx:
             TransactionWithResult(Signed(sig, rd), None),
           )
         case ud: Transaction.RewardTx.UpdateDao => ???
-//        case ra: Transaction.RewardTx.RecordActivity => ???
+        case ra: Transaction.RewardTx.RecordActivity => ???
 //          for
 //            userActivityState <- ra.userActivity.toList
 //              .traverse { case (account, activity) =>
@@ -124,9 +124,10 @@ trait UpdateStateWithRewardTx:
 //            ),
 //            TransactionWithResult(Signed(sig, ra), None),
 //          )
-        case rgs: Transaction.RewardTx.RegisterStaking => ???
-        case rms: Transaction.RewardTx.RemoveStaking   => ???
-        case xr: Transaction.RewardTx.ExecuteReward => ???
+        case rgs: Transaction.RewardTx.BuildSnapshot         => ???
+        case rms: Transaction.RewardTx.ExecuteAccountReward  => ???
+        case xr: Transaction.RewardTx.ExecuteTokenReward     => ???
+        case xr: Transaction.RewardTx.ExecuteOwnershipReward => ???
 //          val sourceAccount =
 //            xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
 //          val LM     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
