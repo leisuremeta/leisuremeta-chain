@@ -4,7 +4,7 @@ package io.leisuremeta.chain.lmscan.frontend
 sealed trait Msg
 
 enum NavMsg extends Msg:
-  case DashBoard, Blocks, Transactions
+  case DashBoard, Blocks, Transactions, NoPage
 
 enum InputMsg extends Msg:
   case Get(value: String) extends InputMsg
