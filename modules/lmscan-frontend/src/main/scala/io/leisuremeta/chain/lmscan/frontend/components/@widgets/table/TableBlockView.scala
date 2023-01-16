@@ -3,14 +3,17 @@ import tyrian.Html.*
 import tyrian.*
 
 object Row:
-  val title = div(`class` := "row table-title ")(
-    div(`class` := "cell type-1")(span()("Latest Blocks")),
-    // div(`class` := "cell type-1")(span()("최신 블록")),
-    div(`class` := "cell")(span()("")),
-    div(`class` := "cell")(span()("")),
-    // div(`class` := "cell type-2")(span(onClick(NavMsg.Blocks))("더 보기")),
-    div(`class` := "cell type-2")(span(onClick(NavMsg.Blocks))("More")),
-  )
+  def title = (model: Model) =>
+    div(`class` := "row table-title ")(
+      div(`class` := "cell type-1")(span()("Latest Blocks")),
+      // div(`class` := "cell type-1")(span()("최신 블록")),
+      div(`class` := "cell")(span()("")),
+      div(`class` := "cell")(span()("")),
+      // div(`class` := "cell type-2")(span(onClick(NavMsg.Blocks))("더 보기")),
+      div(
+        `class` := s"state cell type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
+      )(span(onClick(NavMsg.Blocks))("More")),
+    )
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
     div(`class` := "cell")(span()("Timestamp")),
@@ -27,7 +30,7 @@ object Row:
 object TableBlockView:
   def view(model: Model): Html[Msg] =
     div(`class` := "table table-container")(
-      Row.title,
+      Row.title(model),
       Row.head,
       Row.body,
       Row.body,
