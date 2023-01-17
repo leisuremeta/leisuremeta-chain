@@ -22,18 +22,20 @@ object Row:
     div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
     div(`class` := "cell")(span()("123")),
   )
-  val search = div(`class` := "table-search xy-center")(
-    div(`class` := "xy-center")(
-      div(`class` := "type-arrow")("<<"),
-      div(`class` := "type-arrow")("<"),
-      div(`class` := "type-plain-text")("Page"),
-      div(`class` := "type-search")("1"),
-      div(`class` := "type-plain-text")("of"),
-      div(`class` := "type-plain-text")("6288700"),
-      div(`class` := "type-arrow")(">"),
-      div(`class` := "type-arrow")(">>"),
-    ),
-  )
+  val search = (model: Model) =>
+    div(`class` := s"state table-search xy-center ${model.curPage
+        .toString() == NavMsg.DashBoard.toString()}")(
+      div(`class` := "xy-center")(
+        div(`class` := "type-arrow")("<<"),
+        div(`class` := "type-arrow")("<"),
+        div(`class` := "type-plain-text")("Page"),
+        div(`class` := "type-search")("1"),
+        div(`class` := "type-plain-text")("of"),
+        div(`class` := "type-plain-text")("6288700"),
+        div(`class` := "type-arrow")(">"),
+        div(`class` := "type-arrow")(">>"),
+      ),
+    )
 
 object TableBlockView:
   def view(model: Model): Html[Msg] =
@@ -48,5 +50,5 @@ object TableBlockView:
         Row.body,
         Row.body,
       ),
-      Row.search,
+      Row.search(model),
     )

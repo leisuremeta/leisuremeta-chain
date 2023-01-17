@@ -36,5 +36,5 @@ object TableTransactionsView:
         Row2.body,
         Row2.body,
       ),
-      Row.search,
+      Row.search(model),
     )

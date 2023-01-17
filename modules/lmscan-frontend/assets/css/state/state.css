@@ -1,3 +1,6 @@
-.state.cell.type-2.false{
+.state.type-2.false{
+    display: none;
+}
+.state.table-search.true{
     display: none;
 }
