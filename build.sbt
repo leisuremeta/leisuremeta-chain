@@ -31,6 +31,9 @@ val V = new {
   val jsSha3        = "0.8.0"
   val elliptic      = "6.5.4"
   val typesElliptic = "6.4.12"
+  val pgEmbedded    = "1.0.1"
+  val quill         = "4.5.0"
+  val postgres      = "42.5.1"
 }
 
 val Dependencies = new {
@@ -165,10 +168,20 @@ val Dependencies = new {
   lazy val lmscanBackend = Seq(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
-      "com.softwaremill.sttp.tapir" %% "tapir-json-circe"          % V.tapir,
-      "com.outr"                    %% "scribe-slf4j"              % V.scribe,
-      "com.outr"                    %% "scribe-cats"               % V.scribe,
-      "com.typesafe" % "config" % V.typesafeConfig,
+      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
+      "com.softwaremill.sttp.tapir"  %%% "tapir-core"           % V.tapir,
+      "io.circe"                     %%% "circe-generic"        % V.circe,
+      "io.circe"                     %%% "circe-parser"         % V.circe,
+      "io.circe"                     %%% "circe-refined"        % V.circe,
+      "com.outr"                      %% "scribe-slf4j"         % V.scribe,
+      "com.outr"                      %% "scribe-cats"          % V.scribe,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "com.typesafe"             % "config"                % V.typesafeConfig,
+      "com.outr"                %% "scribe-slf4j"          % V.scribe,
+      "io.getquill"             %% "quill-jasync-postgres" % V.quill,
+      "org.postgresql"           % "postgresql"            % V.postgres,
+      "com.opentable.components" % "otj-pg-embedded"       % V.pgEmbedded,
     ),
   )
 }
@@ -339,7 +352,9 @@ lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
       scala.sys.process.Process("yarn", baseDirectory.value).!
       baseDirectory.value
     },
-    scalacOptions ++= Seq("-scalajs"), // sbt-tpolecat bug: https://github.com/typelevel/sbt-tpolecat/issues/102
+    scalacOptions ++= Seq(
+      "-scalajs",
+    ), // sbt-tpolecat bug: https://github.com/typelevel/sbt-tpolecat/issues/102
 //    scalaJSUseMainModuleInitializer := true,
   )
   .dependsOn(lmscanCommon.js)
