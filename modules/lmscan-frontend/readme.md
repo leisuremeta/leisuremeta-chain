@@ -1,12 +1,19 @@
 #### To start
 
 ```md
+# sbt 실행
+
 cmd) sbt
 sbt) project lmscanFrontend
 sbt:leisuremeta-chain-lmscan-fronte) ~fastLinkJS
+
+# yarn 실행
+
+cmd) cd modules/lmscan-frontend
+cmd) yarn start
 ```
 
-#### 폴더구조
+## 폴더구조
 
 #### components
 
