@@ -51,13 +51,7 @@ object ExploreApi:
   )
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTxEndPoint = baseEndpoint.get
-    .in("hello" / "world")
-    .in(query[String]("name"))
-    .out(jsonBody[String])
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTxListEndPoint = baseEndpoint.get
+  val getTxPageEndPoint = baseEndpoint.get
     .in("tx" / "list")
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
@@ -65,12 +59,21 @@ object ExploreApi:
     .out(jsonBody[Seq[Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTxDetail = baseEndpoint.get
+  val getTxDetailEndPoint = baseEndpoint.get
     .in("tx")
     .in(path[String]) // tx_hash
     .in("detail")
     .out(jsonBody[Option[Tx]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBlockPageEndPoint = baseEndPoint.get
+    .in("block" / "list")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[Seq[Tx]])
+
+    
 // object Test extends App:
 //   import io.circe.syntax.*
 //   val intsJson = List(1, 2, 3).asJson

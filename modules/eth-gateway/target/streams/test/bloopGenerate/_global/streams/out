@@ -1,0 +1,4 @@
+[debug] [ethGateway-test] Classpath dependencies List(apiJVM)
+[debug] [ethGateway-test] Dependencies from configurations List(ethGateway)
+[debug] Bloop wrote the configuration of project 'ethGateway-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/ethGateway-test.json'
+[success] Generated .bloop/ethGateway-test.json

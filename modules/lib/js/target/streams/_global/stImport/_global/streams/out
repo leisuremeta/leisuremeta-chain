@@ -1,0 +1,51 @@
+[debug] ScalablyTypedConverterPlugin.scala:44 input.asJson.spaces2 {
+[debug]   "converterVersion" : "1.0.0-beta40",
+[debug]   "conversion" : {
+[debug]     "useScalaJsDomTypes" : true,
+[debug]     "flavour" : "normal",
+[debug]     "outputPackage" : "typings",
+[debug]     "enableScalaJsDefined" : {
+[debug]       "AllExcept" : {
+[debug]         "values" : [
+[debug]         ]
+[debug]       }
+[debug]     },
+[debug]     "stdLibs" : [
+[debug]       "dom",
+[debug]       "es6"
+[debug]     ],
+[debug]     "expandTypeMappings" : {
+[debug]       "AllExcept" : {
+[debug]         "values" : [
+[debug]           "prop-types",
+[debug]           "react",
+[debug]           "std"
+[debug]         ]
+[debug]       }
+[debug]     },
+[debug]     "ignored" : [
+[debug]       "typescript"
+[debug]     ],
+[debug]     "versions" : {
+[debug]       "scala" : "3.2.1",
+[debug]       "scalaJs" : "1.12.0"
+[debug]     },
+[debug]     "organization" : "org.scalablytyped",
+[debug]     "enableReactTreeShaking" : {
+[debug]       "NoneExcept" : {
+[debug]         "values" : [
+[debug]         ]
+[debug]       }
+[debug]     },
+[debug]     "enableLongApplyMethod" : false,
+[debug]     "privateWithin" : null,
+[debug]     "useDeprecatedModuleNames" : false
+[debug]   },
+[debug]   "wantedLibs" : {
+[debug]     "elliptic" : "6.4.12",
+[debug]     "js-sha3" : "0.8.0"
+[debug]   }
+[debug] } [project => lib, ms => 220]
+[debug] ScalablyTypedConverterPlugin.scala:45 input.packageJsonHash 96b88ecdc67bcfb6ec94c3c06d47ad90 [project => lib, ms => 418]
+[debug] ScalablyTypedConverterPlugin.scala:46 runCacheKey 5055a0622cc80d65c13f18ea451f9a73 [project => lib, ms => 479]
+[debug] RunCache.scala:224  Using cached result : [project => lib, localRunFile.toString => /Users/user/Library/Caches/ScalablyTyped/runs/5055a0622cc80d65c13f18ea451f9a73.json, ms => 715]

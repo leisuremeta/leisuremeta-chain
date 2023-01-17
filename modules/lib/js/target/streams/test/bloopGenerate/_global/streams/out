@@ -1,0 +1,4 @@
+[debug] [libJS-test] Classpath dependencies List()
+[debug] [libJS-test] Dependencies from configurations List(libJS)
+[debug] Bloop wrote the configuration of project 'libJS-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/libJS-test.json'
+[success] Generated .bloop/libJS-test.json

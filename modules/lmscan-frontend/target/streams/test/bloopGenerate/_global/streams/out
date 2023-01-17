@@ -1,0 +1,4 @@
+[debug] [lmscanFrontend-test] Classpath dependencies List(lmscanCommonJS)
+[debug] [lmscanFrontend-test] Dependencies from configurations List(lmscanFrontend)
+[debug] Bloop wrote the configuration of project 'lmscanFrontend-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/lmscanFrontend-test.json'
+[success] Generated .bloop/lmscanFrontend-test.json

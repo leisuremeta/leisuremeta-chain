@@ -1,0 +1,15 @@
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E018] Syntax Error: /Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-backend/src/main/scala/io/leisuremeta/chain/lmscan/backend/service/TransactionService.scala:21:27 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m21 |[0m      TransactionRepository.getPage(pageNavInfo)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m   |[0m                           ^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m   |[0m                           expression expected but [31m'.'[0m found[0m
+[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m   |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E129] Potential Issue Error: /Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-backend/src/main/scala/io/leisuremeta/chain/lmscan/backend/service/TransactionService.scala:26:2 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m23 |[0m      TransactionRepository.getList()[0m
+[0m[[0m[31merror[0m] [0m[0m[31m24 |[0m    [0m
+[0m[[0m[31merror[0m] [0m[0m[31m25 |[0m  [33mdef[0m [36mget[0m[[35mF[0m[_]: [35mAsync[0m]([0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m   |[0m                                     ^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m   |[0mA pure expression does nothing in statement position; you may be omitting necessary parentheses[0m
+[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m   |[0m longer explanation available when compiling with `-explain`[0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m

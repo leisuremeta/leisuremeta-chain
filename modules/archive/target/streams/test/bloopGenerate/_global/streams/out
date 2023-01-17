@@ -1,0 +1,4 @@
+[debug] [archive-test] Classpath dependencies List(apiJVM)
+[debug] [archive-test] Dependencies from configurations List(archive)
+[debug] Bloop wrote the configuration of project 'archive-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/archive-test.json'
+[success] Generated .bloop/archive-test.json

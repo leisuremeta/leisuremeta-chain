@@ -1,0 +1,4 @@
+[debug] [node] Classpath dependencies List(apiJVM)
+[debug] [node] Dependencies from configurations List()
+[debug] Bloop wrote the configuration of project 'node' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/node.json'
+[success] Generated .bloop/node.json
