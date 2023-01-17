@@ -37,6 +37,12 @@
     font-weight: bold;
 }
 
+.type-3{
+    color: green;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 .cell.type-button {
     padding: 5px 15px;
     text-align: center;

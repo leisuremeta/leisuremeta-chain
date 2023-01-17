@@ -9,6 +9,8 @@ object Pages:
         DashboardView.view(model)
       case NavMsg.Blocks =>
         BlocksView.view(model)
+      case NavMsg.BlockDetail =>
+        BlockDetailView.view(model)
       case NavMsg.Transactions =>
         TransactionsView.view(model)
       case NavMsg.NoPage =>
