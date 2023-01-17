@@ -59,6 +59,17 @@
 .table-area .row {
     height: 35px;
 }
+.table-area .row:hover {
+    background-color: rgba(201, 239, 205, 0.2);
+}
+.table-area .row:nth-child(even) {
+    background-color: rgb(200 200 200 / 20%);
+}
+.table-area .row:nth-child(even):hover {
+    background-color: rgba(201, 239, 205, 0.2);
+}
+
+
 
 .table-area .cell {
     height: 35px;
