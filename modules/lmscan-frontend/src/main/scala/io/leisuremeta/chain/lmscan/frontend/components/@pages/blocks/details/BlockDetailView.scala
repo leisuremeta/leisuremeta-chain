@@ -13,6 +13,7 @@ object BlockDetailView:
       div(`class` := "table-area ")(
         div(id := "oop-table-blocks", `class` := "table-list x")(
           TableBlockView.view(model),
+          BlockDetailTable.view(model),
         ),
       ),
     )
