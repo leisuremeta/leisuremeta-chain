@@ -64,6 +64,23 @@
     padding: 64px; 
 }
 
+/* padding-bottom */
+.pb-12px {
+    padding-bottom: 12px;
+}
+
+.pb-16px {
+    padding-bottom: 16px;
+}
+
+.pb-32px {
+    padding-bottom: 32px; 
+}
+
+.pb-64px {
+    padding-bottom: 64px; 
+}
+
 /* padding-top */
 .pt-12px {
     padding-top: 12px;
@@ -80,6 +97,7 @@
 .pt-64px {
     padding-top: 64px; 
 }
+
 
 
 /* width */
