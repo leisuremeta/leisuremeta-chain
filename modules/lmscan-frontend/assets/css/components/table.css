@@ -1,8 +1,6 @@
 /* oop :: table > row > cell */
 .table-area {
     padding: 0px;
-   
-    /* text-align: center */
 }
 
 .table-title{
@@ -25,6 +23,8 @@
     font-family: JSDongkang,Roboto,sans-serif;
 
 }
+/* font-family: "Noto Sans KR", 돋움, Dotum, sans-serif; */
+
 
 .table-search .xy-center div{
     display: flex;
@@ -73,6 +73,7 @@
 
 .table-area .cell {
     height: 35px;
+    padding-left: 5px;
     border-top: 1px rgba(40, 50, 42, 0.1) solid;
 }
 
@@ -84,22 +85,23 @@
 
 .type-TableDetail .row {
     width: 100%;
-    height: 55px;    
+    height: 55px;
+    padding-left: 5px;
 }
+
+.type-TableDetail .row:hover {
+    background-color: rgba(201, 239, 205, 0.2);
+}
+
+.type-TableDetail .row:nth-child(even):hover {
+    background-color: rgba(201, 239, 205, 0.2);
+}
+
+
 .type-TableDetail .cell {
     height: 35px;
+    padding-left: 5px;
     border-bottom: 1px rgba(40, 50, 42, 0.1) solid;
 }
 
 
-/* .table-search {
-    display: block;
-    height: 40px;
-    width: 100%; */
-    /* background-color: red; */
-/* } */
-
-/* #oop-table-blocks > table > row > cell */
-/* .table-area .table-title {
-   height: 100px;
-} */
