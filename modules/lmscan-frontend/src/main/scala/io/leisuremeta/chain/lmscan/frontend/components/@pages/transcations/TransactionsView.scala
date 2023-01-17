@@ -9,6 +9,6 @@ object TransactionsView:
         "Transactions",
       ),
       div(id := "oop-table-blocks", `class` := "table-list x")(
-        TableTransactionsView.view(model),
+        CommonTransactionTable.view(model),
       ),
     )

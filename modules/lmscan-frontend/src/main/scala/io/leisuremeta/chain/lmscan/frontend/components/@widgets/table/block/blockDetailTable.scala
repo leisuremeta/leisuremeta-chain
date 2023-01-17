@@ -3,4 +3,4 @@ import tyrian.Html.*
 import tyrian.*
 
 object BlockDetailTable:
-  def view = (model: Model) => TableBlockView.view(model)
+  def view = (model: Model) => CommonBlockTable.view(model)

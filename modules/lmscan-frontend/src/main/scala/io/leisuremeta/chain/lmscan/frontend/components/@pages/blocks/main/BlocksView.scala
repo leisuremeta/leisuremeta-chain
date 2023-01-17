@@ -9,7 +9,6 @@ object BlocksView:
         "Blocks",
       ),
       div(id := "oop-table-blocks", `class` := "table-list x")(
-        TableBlockView.view(model),
-        TableBlockView.view(model),
+        BlockMainTable.view(model),
       ),
     )

@@ -3,7 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 
-object TableDetail:
+object CommonDetailTable:
   def view(model: Model): Html[Msg] =
     div(`class` := "type-TableDetail table-container pt-16px")(
       div(`class` := "table w-[100%]")(

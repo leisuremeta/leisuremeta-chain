@@ -27,7 +27,7 @@ object Row2:
     div(`class` := "cell")(span()("123")),
   )
 
-object TableTransactionsView:
+object CommonTransactionTable:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-container")(
       Row2.title(model),
