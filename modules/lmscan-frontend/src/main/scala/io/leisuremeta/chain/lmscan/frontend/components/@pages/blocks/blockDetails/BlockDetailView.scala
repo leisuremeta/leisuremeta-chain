@@ -6,7 +6,7 @@ import tyrian.*
 object BlockDetailView:
   def view(model: Model): Html[Msg] =
     div()(
-      div(`class` := "font-40px pt-16px font-block-detail")("block details"),
+      div(`class` := "font-40px pt-16px font-block-detail")("Block Details"),
       div(`class` := "x")(TableDetail.view(model)),
       div(`class` := "table-area")(
         div(id := "oop-table-blocks", `class` := "table-list x")(

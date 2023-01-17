@@ -8,10 +8,10 @@ object Row2:
       `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
     )(
       div(
-        `class` := s"type-1 ",
+        `class` := s"type-1",
       )(span()("Latest transactions")),
       div(
-        `class` := s" type-2 ",
+        `class` := s"type-2",
       )(span(onClick(NavMsg.Blocks))("More")),
     )
   val head = div(`class` := "row table-head")(
