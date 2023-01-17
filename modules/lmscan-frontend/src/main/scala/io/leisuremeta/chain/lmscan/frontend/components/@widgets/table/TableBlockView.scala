@@ -28,7 +28,7 @@ object Row:
   )
   val search = (model: Model) =>
     div(
-      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_search")} xy-center ",
+      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_search")} table-search xy-center ",
     )(
       div(`class` := "xy-center")(
         div(`class` := "type-arrow")("<<"),

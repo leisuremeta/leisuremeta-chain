@@ -3,12 +3,16 @@ import tyrian.Html.*
 import tyrian.*
 
 object Row2:
-  val title = (model: Model) =>
-    div(`class` := "table-title")(
-      div(`class` := "type-1")(span()("Latest Transactions")),
+  def title = (model: Model) =>
+    div(
+      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
+    )(
       div(
-        `class` := s"state type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
-      )(span(onClick(NavMsg.Transactions))("More")),
+        `class` := s"type-1 ",
+      )(span()("Latest transactions")),
+      div(
+        `class` := s" type-2 ",
+      )(span(onClick(NavMsg.Blocks))("More")),
     )
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
