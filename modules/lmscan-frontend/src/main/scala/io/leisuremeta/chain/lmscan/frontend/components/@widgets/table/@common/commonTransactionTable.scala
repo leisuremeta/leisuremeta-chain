@@ -15,16 +15,22 @@ object Row2:
       )(span(onClick(NavMsg.Transactions))("More")),
     )
   val head = div(`class` := "row table-head")(
+    div(`class` := "cell")(span()("TX Hash")),
     div(`class` := "cell")(span()("Block")),
-    div(`class` := "cell")(span()("Timestamp")),
-    div(`class` := "cell")(span()("Block Hash")),
-    div(`class` := "cell")(span()("TX Count")),
+    div(`class` := "cell")(span()("Age")),
+    div(`class` := "cell")(span()("Signer")),
+    div(`class` := "cell")(span()("Type")),
+    div(`class` := "cell")(span()("Token Type")),
+    div(`class` := "cell")(span()("Value")),
   )
   val body = div(`class` := "row table-body")(
-    div(`class` := "cell type-3")(span()("123458")),
-    div(`class` := "cell")(span()("YYYY-MM-DD HH:MM:SS")),
-    div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
-    div(`class` := "cell")(span()("123")),
+    div(`class` := "cell type-3")(span()("bcf186a5ed...")),
+    div(`class` := "cell")(span()("123,456,789")),
+    div(`class` := "cell")(span()("5s ago")),
+    div(`class` := "cell")(span()("73c7e699d9")),
+    div(`class` := "cell")(span()("Account")),
+    div(`class` := "cell")(span()("LM")),
+    div(`class` := "cell")(span()("123,12412123 LM")),
   )
 
 object CommonTransactionTable:

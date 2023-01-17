@@ -12,7 +12,7 @@ object BlockDetailView:
       div(`class` := "x")(CommonDetailTable.view(model)),
       div(`class` := "table-area ")(
         div(id := "oop-table-blocks", `class` := "table-list x")(
-          BlockDetailTable.view(model),
+          CommonTransactionTable.view(model),
         ),
       ),
     )
