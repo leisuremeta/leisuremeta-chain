@@ -12,7 +12,7 @@ object Row2:
       )(span()("Latest transactions")),
       div(
         `class` := s"type-2",
-      )(span(onClick(NavMsg.Blocks))("More")),
+      )(span(onClick(NavMsg.Transactions))("More")),
     )
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
