@@ -1,0 +1,4 @@
+[debug] [apiJVM-test] Classpath dependencies List(libJVM)
+[debug] [apiJVM-test] Dependencies from configurations List(apiJVM)
+[debug] Bloop wrote the configuration of project 'apiJVM-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/apiJVM-test.json'
+[success] Generated .bloop/apiJVM-test.json

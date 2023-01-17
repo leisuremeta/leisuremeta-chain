@@ -1,0 +1,4 @@
+[debug] [libJVM] Classpath dependencies List()
+[debug] [libJVM] Dependencies from configurations List()
+[debug] Bloop wrote the configuration of project 'libJVM' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/libJVM.json'
+[success] Generated .bloop/libJVM.json

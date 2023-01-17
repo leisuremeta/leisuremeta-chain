@@ -34,7 +34,7 @@ object BackendMain extends IOApp:
   def txPaging[F[_]: Async](using
       ExecutionContext,
   ): ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTxListEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+    ExploreApi.getTxPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       println(s"pageInfo: $pageInfo")
       val result = TransactionService
         .getPage[F](pageInfo)
@@ -50,7 +50,7 @@ object BackendMain extends IOApp:
   def txDetail[F[_]: Async](using
       ExecutionContext,
   ): ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTxDetail.serverLogic { (hash: String) =>
+    ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
       println(s"tx_hash: $hash")
       val result = TransactionService
         .get(hash)
@@ -60,12 +60,22 @@ object BackendMain extends IOApp:
       result.value
     }
 
+  def blockPaging[F[_]: Async](using
+      ExecutionContext,
+  ): ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+      val result = BlockService
+        .getPage[F](pageInfo)
+
+    }
+
   def explorerEndpoints[F[_]: Async](using
       ExecutionContext,
   ): List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       txPaging[F],
       txDetail[F],
+      blockPaging[F],
     )
 
   def getServerResource[F[_]: Async](using

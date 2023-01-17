@@ -1,0 +1,50 @@
+[debug] ScalablyTypedConverterExternalNpmPlugin.scala:51 input.asJson.spaces2 {
+[debug]   "converterVersion" : "1.0.0-beta40",
+[debug]   "conversion" : {
+[debug]     "useScalaJsDomTypes" : true,
+[debug]     "flavour" : "normal",
+[debug]     "outputPackage" : "typings",
+[debug]     "enableScalaJsDefined" : {
+[debug]       "AllExcept" : {
+[debug]         "values" : [
+[debug]         ]
+[debug]       }
+[debug]     },
+[debug]     "stdLibs" : [
+[debug]       "dom",
+[debug]       "es6"
+[debug]     ],
+[debug]     "expandTypeMappings" : {
+[debug]       "AllExcept" : {
+[debug]         "values" : [
+[debug]           "prop-types",
+[debug]           "react",
+[debug]           "std"
+[debug]         ]
+[debug]       }
+[debug]     },
+[debug]     "ignored" : [
+[debug]       "typescript"
+[debug]     ],
+[debug]     "versions" : {
+[debug]       "scala" : "3.2.1",
+[debug]       "scalaJs" : "1.12.0"
+[debug]     },
+[debug]     "organization" : "org.scalablytyped",
+[debug]     "enableReactTreeShaking" : {
+[debug]       "NoneExcept" : {
+[debug]         "values" : [
+[debug]         ]
+[debug]       }
+[debug]     },
+[debug]     "enableLongApplyMethod" : false,
+[debug]     "privateWithin" : null,
+[debug]     "useDeprecatedModuleNames" : false
+[debug]   },
+[debug]   "wantedLibs" : {
+[debug]     
+[debug]   }
+[debug] } [project => leisuremeta-chain-lmscan-frontend, ms => 417]
+[debug] ScalablyTypedConverterExternalNpmPlugin.scala:52 input.packageJsonHash d41d8cd98f00b204e9800998ecf8427e [project => leisuremeta-chain-lmscan-frontend, ms => 449]
+[debug] ScalablyTypedConverterExternalNpmPlugin.scala:53 runCacheKey a9b2ff47de8e80fdd64733e37b3c6ecc [project => leisuremeta-chain-lmscan-frontend, ms => 498]
+[debug] RunCache.scala:224  Using cached result : [project => leisuremeta-chain-lmscan-frontend, localRunFile.toString => /Users/user/Library/Caches/ScalablyTyped/runs/a9b2ff47de8e80fdd64733e37b3c6ecc.json, ms => 578]

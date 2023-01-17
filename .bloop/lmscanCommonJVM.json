@@ -1,0 +1,948 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "lmscanCommonJVM",
+        "directory": "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm",
+        "workspaceDir": "/Users/user/playnomm/source_code/leisuremeta-chain",
+        "sources": [
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/src/main/scala",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/src/main/scala-3",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/src/main/java",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/src/main/scala-3",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/src/main/scala",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/target/scala-3.2.1/src_managed/main"
+        ],
+        "dependencies": [
+            
+        ],
+        "classpath": [
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.1/scala3-library_3-3.2.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.4.3/cats-effect_3-3.4.3.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.15.0-M1/circe-generic_3-0.15.0-M1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.15.0-M1/circe-parser_3-0.15.0-M1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-refined_3/0.15.0-M1/circe-refined_3-0.15.0-M1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/eu/timepit/refined_3/0.10.1/refined_3-0.10.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-core_3/1.2.4/tapir-core_3-1.2.4.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-json-circe_3/1.2.4/tapir-json-circe_3-1.2.4.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.34/scodec-bits_3-1.1.34.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.4.0/fs2-core_3-3.4.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/ghik/zerowaste_3.2.1/0.2.1/zerowaste_3.2.1-0.2.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe-slf4j_3/3.10.5/scribe-slf4j_3-3.10.5.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.4.3/cats-effect-kernel_3-3.4.3.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.4.3/cats-effect-std_3-3.4.3.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.15.0-M1/circe-core_3-0.15.0-M1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.15.0-M1/circe-jawn_3-0.15.0-M1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.5.3/core_3-1.5.3.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.3.12/core_3-1.3.12.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.3.12/ws_3-1.3.12.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.2.0/magnolia_3-1.2.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.9.0/cats-core_3-2.9.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.2.1/scala3-compiler_3-3.2.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe_3/3.10.5/scribe_3-3.10.5.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.15.0-M1/circe-numbers_3-0.15.0-M1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.2.0/jawn-parser_3-1.2.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.9.0/cats-kernel_3-2.9.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.2.1/scala3-interfaces-3.2.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.2.1/tasty-core_3-3.2.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.3.0-scala-1/scala-asm-9.3.0-scala-1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/perfolation_3/1.2.9/perfolation_3-1.2.9.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.3.0/sourcecode_3-0.3.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.8.1/scala-collection-compat_3-2.8.1.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/moduload_3/1.1.6/moduload_3-1.1.6.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar",
+            "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+        ],
+        "out": "/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/lmscanCommonJVM",
+        "classesDir": "/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/lmscanCommonJVM/scala-3/classes",
+        "resources": [
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/src/main/resources",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/src/main/resources",
+            "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/target/scala-3.2.1/resource_managed/main"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "3.2.1",
+            "options": [
+                "-encoding",
+                "utf8",
+                "-deprecation",
+                "-feature",
+                "-unchecked",
+                "-language:experimental.macros",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-Ykind-projector",
+                "-Xfatal-warnings",
+                "-Xplugin:target/compiler_plugins/wartremover_3.2.1-3.0.7.jar",
+                "-Xsemanticdb",
+                "-semanticdb-target",
+                "/Users/user/playnomm/source_code/leisuremeta-chain/modules/lmscan-common/.jvm/target/scala-3.2.1/meta"
+            ],
+            "jars": [
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.1/scala3-library_3-3.2.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.2.1/scala3-compiler_3-3.2.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.2.1/scala3-interfaces-3.2.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.2.1/tasty-core_3-3.2.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.3.0-scala-1/scala-asm-9.3.0-scala-1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scaladoc_3/3.2.1/scaladoc_3-3.2.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-tasty-inspector_3/3.2.1/scala3-tasty-inspector_3-3.2.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark/0.42.12/flexmark-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-html-parser/0.42.12/flexmark-html-parser-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-anchorlink/0.42.12/flexmark-ext-anchorlink-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-autolink/0.42.12/flexmark-ext-autolink-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-emoji/0.42.12/flexmark-ext-emoji-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-strikethrough/0.42.12/flexmark-ext-gfm-strikethrough-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-tables/0.42.12/flexmark-ext-gfm-tables-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-tasklist/0.42.12/flexmark-ext-gfm-tasklist-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-wikilink/0.42.12/flexmark-ext-wikilink-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-yaml-front-matter/0.42.12/flexmark-ext-yaml-front-matter-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/nl/big-o/liqp/0.8.2/liqp-0.8.2.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.14.3/jsoup-1.14.3.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.13.3/jackson-dataformat-yaml-2.13.3.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util/0.42.12/flexmark-util-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-formatter/0.42.12/flexmark-formatter-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/nibor/autolink/autolink/0.6.0/autolink-0.6.0.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-jira-converter/0.42.12/flexmark-jira-converter-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.7.2/antlr4-runtime-4.7.2.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.12.1/jackson-datatype-jsr310-2.12.1.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ua/co/k/strftime4j/1.0.5/strftime4j-1.0.5.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.30/snakeyaml-1.30.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-tables/0.42.12/flexmark-ext-tables-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-ins/0.42.12/flexmark-ext-ins-0.42.12.jar",
+                "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-superscript/0.42.12/flexmark-ext-superscript-0.42.12.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                },
+                {
+                    "names": [
+                        "zio.test.sbt.ZTestFramework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "/Users/user/.jabba/jdk/openjdk@1.17.0/Contents/Home",
+                "options": [
+                    "-Duser.dir=/Users/user/playnomm/source_code/leisuremeta-chain"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala3-library_3",
+                    "version": "3.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala3-library_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.1/scala3-library_3-3.2.1.jar"
+                        },
+                        {
+                            "name": "scala3-library_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.1/scala3-library_3-3.2.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-effect_3",
+                    "version": "3.4.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-effect_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.4.3/cats-effect_3-3.4.3.jar"
+                        },
+                        {
+                            "name": "cats-effect_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.4.3/cats-effect_3-3.4.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-generic_3",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-generic_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.15.0-M1/circe-generic_3-0.15.0-M1.jar"
+                        },
+                        {
+                            "name": "circe-generic_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.15.0-M1/circe-generic_3-0.15.0-M1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-parser_3",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-parser_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.15.0-M1/circe-parser_3-0.15.0-M1.jar"
+                        },
+                        {
+                            "name": "circe-parser_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.15.0-M1/circe-parser_3-0.15.0-M1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-refined_3",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-refined_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-refined_3/0.15.0-M1/circe-refined_3-0.15.0-M1.jar"
+                        },
+                        {
+                            "name": "circe-refined_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-refined_3/0.15.0-M1/circe-refined_3-0.15.0-M1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "eu.timepit",
+                    "name": "refined_3",
+                    "version": "0.10.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "refined_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/eu/timepit/refined_3/0.10.1/refined_3-0.10.1.jar"
+                        },
+                        {
+                            "name": "refined_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/eu/timepit/refined_3/0.10.1/refined_3-0.10.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.tapir",
+                    "name": "tapir-core_3",
+                    "version": "1.2.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "tapir-core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-core_3/1.2.4/tapir-core_3-1.2.4.jar"
+                        },
+                        {
+                            "name": "tapir-core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-core_3/1.2.4/tapir-core_3-1.2.4-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.tapir",
+                    "name": "tapir-json-circe_3",
+                    "version": "1.2.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "tapir-json-circe_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-json-circe_3/1.2.4/tapir-json-circe_3-1.2.4.jar"
+                        },
+                        {
+                            "name": "tapir-json-circe_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/tapir/tapir-json-circe_3/1.2.4/tapir-json-circe_3-1.2.4-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scodec",
+                    "name": "scodec-bits_3",
+                    "version": "1.1.34",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scodec-bits_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.34/scodec-bits_3-1.1.34.jar"
+                        },
+                        {
+                            "name": "scodec-bits_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.34/scodec-bits_3-1.1.34-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "co.fs2",
+                    "name": "fs2-core_3",
+                    "version": "3.4.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fs2-core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.4.0/fs2-core_3-3.4.0.jar"
+                        },
+                        {
+                            "name": "fs2-core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.4.0/fs2-core_3-3.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.github.ghik",
+                    "name": "zerowaste_3.2.1",
+                    "version": "0.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "zerowaste_3.2.1",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/ghik/zerowaste_3.2.1/0.2.1/zerowaste_3.2.1-0.2.1.jar"
+                        },
+                        {
+                            "name": "zerowaste_3.2.1",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/ghik/zerowaste_3.2.1/0.2.1/zerowaste_3.2.1-0.2.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.outr",
+                    "name": "scribe-slf4j_3",
+                    "version": "3.10.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scribe-slf4j_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe-slf4j_3/3.10.5/scribe-slf4j_3-3.10.5.jar"
+                        },
+                        {
+                            "name": "scribe-slf4j_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe-slf4j_3/3.10.5/scribe-slf4j_3-3.10.5-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-effect-kernel_3",
+                    "version": "3.4.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-effect-kernel_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.4.3/cats-effect-kernel_3-3.4.3.jar"
+                        },
+                        {
+                            "name": "cats-effect-kernel_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.4.3/cats-effect-kernel_3-3.4.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-effect-std_3",
+                    "version": "3.4.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-effect-std_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.4.3/cats-effect-std_3-3.4.3.jar"
+                        },
+                        {
+                            "name": "cats-effect-std_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.4.3/cats-effect-std_3-3.4.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-core_3",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.15.0-M1/circe-core_3-0.15.0-M1.jar"
+                        },
+                        {
+                            "name": "circe-core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.15.0-M1/circe-core_3-0.15.0-M1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-jawn_3",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-jawn_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.15.0-M1/circe-jawn_3-0.15.0-M1.jar"
+                        },
+                        {
+                            "name": "circe-jawn_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.15.0-M1/circe-jawn_3-0.15.0-M1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.chuusai",
+                    "name": "shapeless_2.13",
+                    "version": "2.3.9",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "shapeless_2.13",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9.jar"
+                        },
+                        {
+                            "name": "shapeless_2.13",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.model",
+                    "name": "core_3",
+                    "version": "1.5.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.5.3/core_3-1.5.3.jar"
+                        },
+                        {
+                            "name": "core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.5.3/core_3-1.5.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "core_3",
+                    "version": "1.3.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.3.12/core_3-1.3.12.jar"
+                        },
+                        {
+                            "name": "core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.3.12/core_3-1.3.12-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "ws_3",
+                    "version": "1.3.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ws_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.3.12/ws_3-1.3.12.jar"
+                        },
+                        {
+                            "name": "ws_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.3.12/ws_3-1.3.12-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.magnolia1_3",
+                    "name": "magnolia_3",
+                    "version": "1.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "magnolia_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.2.0/magnolia_3-1.2.0.jar"
+                        },
+                        {
+                            "name": "magnolia_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.2.0/magnolia_3-1.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-core_3",
+                    "version": "2.9.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.9.0/cats-core_3-2.9.0.jar"
+                        },
+                        {
+                            "name": "cats-core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.9.0/cats-core_3-2.9.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala3-compiler_3",
+                    "version": "3.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala3-compiler_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.2.1/scala3-compiler_3-3.2.1.jar"
+                        },
+                        {
+                            "name": "scala3-compiler_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.2.1/scala3-compiler_3-3.2.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.outr",
+                    "name": "scribe_3",
+                    "version": "3.10.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scribe_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe_3/3.10.5/scribe_3-3.10.5.jar"
+                        },
+                        {
+                            "name": "scribe_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/scribe_3/3.10.5/scribe_3-3.10.5-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.slf4j",
+                    "name": "slf4j-api",
+                    "version": "1.7.36",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "slf4j-api",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+                        },
+                        {
+                            "name": "slf4j-api",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-numbers_3",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-numbers_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.15.0-M1/circe-numbers_3-0.15.0-M1.jar"
+                        },
+                        {
+                            "name": "circe-numbers_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.15.0-M1/circe-numbers_3-0.15.0-M1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "jawn-parser_3",
+                    "version": "1.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jawn-parser_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.2.0/jawn-parser_3-1.2.0.jar"
+                        },
+                        {
+                            "name": "jawn-parser_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.2.0/jawn-parser_3-1.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-kernel_3",
+                    "version": "2.9.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-kernel_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.9.0/cats-kernel_3-2.9.0.jar"
+                        },
+                        {
+                            "name": "cats-kernel_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.9.0/cats-kernel_3-2.9.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala3-interfaces",
+                    "version": "3.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala3-interfaces",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.2.1/scala3-interfaces-3.2.1.jar"
+                        },
+                        {
+                            "name": "scala3-interfaces",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.2.1/scala3-interfaces-3.2.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "tasty-core_3",
+                    "version": "3.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "tasty-core_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.2.1/tasty-core_3-3.2.1.jar"
+                        },
+                        {
+                            "name": "tasty-core_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.2.1/tasty-core_3-3.2.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-asm",
+                    "version": "9.3.0-scala-1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-asm",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.3.0-scala-1/scala-asm-9.3.0-scala-1.jar"
+                        },
+                        {
+                            "name": "scala-asm",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.3.0-scala-1/scala-asm-9.3.0-scala-1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "compiler-interface",
+                    "version": "1.3.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "compiler-interface",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar"
+                        },
+                        {
+                            "name": "compiler-interface",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jline",
+                    "name": "jline-reader",
+                    "version": "3.19.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jline-reader",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar"
+                        },
+                        {
+                            "name": "jline-reader",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jline",
+                    "name": "jline-terminal",
+                    "version": "3.19.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jline-terminal",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar"
+                        },
+                        {
+                            "name": "jline-terminal",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jline",
+                    "name": "jline-terminal-jna",
+                    "version": "3.19.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jline-terminal-jna",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar"
+                        },
+                        {
+                            "name": "jline-terminal-jna",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.outr",
+                    "name": "perfolation_3",
+                    "version": "1.2.9",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "perfolation_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/perfolation_3/1.2.9/perfolation_3-1.2.9.jar"
+                        },
+                        {
+                            "name": "perfolation_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/perfolation_3/1.2.9/perfolation_3-1.2.9-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "sourcecode_3",
+                    "version": "0.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "sourcecode_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.3.0/sourcecode_3-0.3.0.jar"
+                        },
+                        {
+                            "name": "sourcecode_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.3.0/sourcecode_3-0.3.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-collection-compat_3",
+                    "version": "2.8.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-collection-compat_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.8.1/scala-collection-compat_3-2.8.1.jar"
+                        },
+                        {
+                            "name": "scala-collection-compat_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.8.1/scala-collection-compat_3-2.8.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.outr",
+                    "name": "moduload_3",
+                    "version": "1.1.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "moduload_3",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/moduload_3/1.1.6/moduload_3-1.1.6.jar"
+                        },
+                        {
+                            "name": "moduload_3",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/outr/moduload_3/1.1.6/moduload_3-1.1.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.protobuf",
+                    "name": "protobuf-java",
+                    "version": "3.7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protobuf-java",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar"
+                        },
+                        {
+                            "name": "protobuf-java",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "util-interface",
+                    "version": "1.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-interface",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar"
+                        },
+                        {
+                            "name": "util-interface",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna",
+                    "version": "5.3.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+                        },
+                        {
+                            "name": "jna",
+                            "classifier": "sources",
+                            "path": "/Users/user/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}

@@ -1,0 +1,4 @@
+[debug] [root-test] Classpath dependencies List()
+[debug] [root-test] Dependencies from configurations List(root)
+[debug] Bloop wrote the configuration of project 'root-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/root-test.json'
+[success] Generated .bloop/root-test.json
