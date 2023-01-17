@@ -4,14 +4,10 @@ import tyrian.*
 
 object Row:
   def title = (model: Model) =>
-    div(`class` := "row table-title ")(
-      div(`class` := "cell type-1")(span()("Latest Blocks")),
-      // div(`class` := "cell type-1")(span()("최신 블록")),
-      div(`class` := "cell")(span()("")),
-      div(`class` := "cell")(span()("")),
-      // div(`class` := "cell type-2")(span(onClick(NavMsg.Blocks))("더 보기")),
+    div(`class` := "table-title")(
+      div(`class` := "type-1")(span()("Latest Blocks")),
       div(
-        `class` := s"state cell type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
+        `class` := s"state type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
       )(span(onClick(NavMsg.Blocks))("More")),
     )
   val head = div(`class` := "row table-head")(
@@ -26,29 +22,31 @@ object Row:
     div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
     div(`class` := "cell")(span()("123")),
   )
-  val search = div(`class` := "table-search")(
-    div(`class` := "")(
-      span()("<<"),
-      span()("<"),
-      span()("Page"),
-      span()("1"),
-      span()("of"),
-      span()("6288700"),
-      span()(">"),
-      span()(">>"),
+  val search = div(`class` := "table-search xy-center")(
+    div(`class` := "xy-center")(
+      div(`class` := "type-arrow")("<<"),
+      div(`class` := "type-arrow")("<"),
+      div(`class` := "type-plain-text")("Page"),
+      div(`class` := "type-search")("1"),
+      div(`class` := "type-plain-text")("of"),
+      div(`class` := "type-plain-text")("6288700"),
+      div(`class` := "type-arrow")(">"),
+      div(`class` := "type-arrow")(">>"),
     ),
   )
 
 object TableBlockView:
   def view(model: Model): Html[Msg] =
-    div(`class` := "table table-container")(
+    div(`class` := "table-container ")(
       Row.title(model),
-      Row.head,
-      Row.body,
-      Row.body,
-      Row.body,
-      Row.body,
-      Row.body,
-      Row.body,
+      div(`class` := "table w-[100%]")(
+        Row.head,
+        Row.body,
+        Row.body,
+        Row.body,
+        Row.body,
+        Row.body,
+        Row.body,
+      ),
       Row.search,
     )

@@ -4,17 +4,11 @@ import tyrian.*
 
 object Row2:
   val title = (model: Model) =>
-    div(`class` := "row table-title ")(
-      // div(`class` := "cell type-1")(span()("최신 트랜잭션")),
-      div(`class` := "cell type-1")(span()("Latest Transactions")),
-      div(`class` := "cell")(span()("")),
-      div(`class` := "cell")(span()("")),
-      // div(`class` := "cell type-2")(span(onClick(NavMsg.Transactions))("더 보기")),
+    div(`class` := "table-title")(
+      div(`class` := "type-1")(span()("Latest Transactions")),
       div(
-        `class` := s"state cell type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
-      )(
-        span(onClick(NavMsg.Transactions))("More"),
-      ),
+        `class` := s"state type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
+      )(span(onClick(NavMsg.Transactions))("More")),
     )
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
@@ -31,13 +25,16 @@ object Row2:
 
 object TableTransactionsView:
   def view(model: Model): Html[Msg] =
-    div(`class` := "table table-container")(
+    div(`class` := "table-container")(
       Row2.title(model),
-      Row2.head,
-      Row2.body,
-      Row2.body,
-      Row2.body,
-      Row2.body,
-      Row2.body,
-      Row2.body,
+      div(`class` := "table w-[100%]")(
+        Row2.head,
+        Row2.body,
+        Row2.body,
+        Row2.body,
+        Row2.body,
+        Row2.body,
+        Row2.body,
+      ),
+      Row.search,
     )
