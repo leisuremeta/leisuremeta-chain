@@ -69,7 +69,6 @@
     padding-top: 12px;
 }
 
-
 .pt-16px {
     padding-top: 16px;
 }
@@ -91,4 +90,8 @@
 /* font */
 .font-20px{
     font-size: 20px !important;
+}
+
+.font-40px{
+    font-size: 40px !important;
 }

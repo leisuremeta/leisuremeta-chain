@@ -4,10 +4,14 @@ import tyrian.*
 
 object Row:
   def title = (model: Model) =>
-    div(`class` := "table-title")(
-      div(`class` := "type-1")(span()("Latest Blocks")),
+    div(
+      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
+    )(
       div(
-        `class` := s"state type-2 ${model.curPage.toString() == NavMsg.DashBoard.toString()}",
+        `class` := s"type-1 ",
+      )(span()("Latest Blocks")),
+      div(
+        `class` := s" type-2 ",
       )(span(onClick(NavMsg.Blocks))("More")),
     )
   val head = div(`class` := "row table-head")(
@@ -23,8 +27,9 @@ object Row:
     div(`class` := "cell")(span()("123")),
   )
   val search = (model: Model) =>
-    div(`class` := s"state table-search xy-center ${model.curPage
-        .toString() == NavMsg.DashBoard.toString()}")(
+    div(
+      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_search")} xy-center ",
+    )(
       div(`class` := "xy-center")(
         div(`class` := "type-arrow")("<<"),
         div(`class` := "type-arrow")("<"),

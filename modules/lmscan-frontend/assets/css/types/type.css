@@ -73,7 +73,7 @@
     font-weight: 600;
 }
 
-.table-search .type-arrow {
+._search .type-arrow {
     /* color: #14e0e000; */
     color: rgba(3, 2, 2, 0.525);
     border-radius: 5px;
@@ -81,18 +81,22 @@
     background-position: 50% 50%;
     width: 35px;
 }
-.table-search .type-arrow:hover {
+._search .type-arrow:hover {
     color: rgb(65, 137, 65);
 }
-.table-search .type-plain-text {
+._search .type-plain-text {
     cursor: default !important;   
 }
-.table-search .type-search {
+._search .type-search {
     border-radius: 5px;
     border: 1px solid #f0f3f5;
     background-position: 50% 50%;
     width: 100px;
  }
- .table-search .type-search:hover {
+ ._search .type-search:hover {
     color: rgb(65, 137, 65);
+ }
+
+ .type-detail-head {
+    width: 250px;
  }
