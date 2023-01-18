@@ -683,7 +683,6 @@ object StateReadService:
           case ((account, instant), logs) =>
             Stream.emits(logs.map{ log =>
               ActivityInfo(
-                account = account,
                 timestamp = instant,
                 point = log.point,
                 description = log.description,
@@ -717,7 +716,6 @@ object StateReadService:
           case ((tokenId, instant), logs) =>
             Stream.emits(logs.map{ log =>
               ActivityInfo(
-                account = log.account,
                 timestamp = instant,
                 point = log.point,
                 description = log.description,

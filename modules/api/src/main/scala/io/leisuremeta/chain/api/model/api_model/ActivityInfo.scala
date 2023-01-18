@@ -8,7 +8,6 @@ import lib.crypto.Hash
 import lib.datatype.{BigNat, Utf8}
 
 final case class ActivityInfo(
-    account: Account,
     timestamp: Instant,
     point: BigInt,
     description: Utf8,
