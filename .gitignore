@@ -29,3 +29,6 @@ node_modules
 .parcel-cache
 dist
 .env
+
+# settings
+Settings.scala

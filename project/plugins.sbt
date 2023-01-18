@@ -13,3 +13,5 @@ addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.4.1")
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta40")
 
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.0")
+
+addSbtPlugin("io.github.davidmweber" % "flyway-sbt" % "7.4.0")
