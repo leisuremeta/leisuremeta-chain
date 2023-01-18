@@ -23,7 +23,13 @@ import api.model.{
 }
 import api.model.TransactionWithResult.ops.*
 import api.model.account.EthAddress
-import api.model.api_model.{AccountInfo, BalanceInfo, GroupInfo, NftBalanceInfo}
+import api.model.api_model.{
+  AccountInfo,
+  ActivityLog,
+  BalanceInfo,
+  GroupInfo,
+  NftBalanceInfo,
+}
 import api.model.token.{
   Rarity,
   NftState,
@@ -87,14 +93,17 @@ object StateReadService:
     keyList <- keyListEither match
       case Left(err)      => Concurrent[F].raiseError(new Exception(err))
       case Right(keyList) => Concurrent[F].pure(keyList)
-  yield accountStateOption.map(accountData => AccountInfo(
-    accountData.ethAddress,
-    accountData.guardian,
-    keyList.toMap
-  ))
+  yield accountStateOption.map(accountData =>
+    AccountInfo(
+      accountData.ethAddress,
+      accountData.guardian,
+      keyList.toMap,
+    ),
+  )
 
-  def getEthAccount[F[_]: Concurrent: BlockRepository: StateRepository.AccountState](
-    ethAddress: EthAddress
+  def getEthAccount[F[_]
+    : Concurrent: BlockRepository: StateRepository.AccountState](
+      ethAddress: EthAddress,
   ): F[Option[Account]] = for
     bestHeaderEither <- BlockRepository[F].bestHeader.value
     bestHeader <- bestHeaderEither match
@@ -108,7 +117,7 @@ object StateReadService:
       .runA(merkleState.account.ethState)
       .value
     ethStateOption <- ethStateEither match
-      case Left(err) => Concurrent[F].raiseError(new Exception(err))
+      case Left(err)             => Concurrent[F].raiseError(new Exception(err))
       case Right(ethStateOption) => Concurrent[F].pure(ethStateOption)
   yield ethStateOption
 
@@ -187,7 +196,7 @@ object StateReadService:
       account: Account,
       movable: Api.Movable,
   ): F[Map[TokenDefinitionId, BalanceInfo]] = movable match
-    case Api.Movable.Free => getFreeBalance[F](account)
+    case Api.Movable.Free   => getFreeBalance[F](account)
     case Api.Movable.Locked => getEntrustBalance[F](account)
 
   def getFreeBalance[F[_]
@@ -267,24 +276,39 @@ object StateReadService:
             case bf: Transaction.TokenTx.BurnFungibleToken =>
               val amount = txWithResult.result match
                 case Some(BurnFungibleTokenResult(outputAmount)) => outputAmount
-                case _ => BigNat.Zero
-              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
+                case _                                           => BigNat.Zero
+              BalanceInfo(
+                totalAmount = amount,
+                unused = Map(txHash -> txWithResult),
+              )
             case ef: Transaction.TokenTx.EntrustFungibleToken =>
-              val amount = txWithResult.result.fold(BigNat.Zero){
-                case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) => remainder
+              val amount = txWithResult.result.fold(BigNat.Zero) {
+                case Transaction.TokenTx.EntrustFungibleTokenResult(
+                      remainder,
+                    ) =>
+                  remainder
                 case _ => BigNat.Zero
               }
-              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
+              BalanceInfo(
+                totalAmount = amount,
+                unused = Map(txHash -> txWithResult),
+              )
             case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
               val amount = de.outputs.get(account).getOrElse(BigNat.Zero)
-              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
+              BalanceInfo(
+                totalAmount = amount,
+                unused = Map(txHash -> txWithResult),
+              )
             case xr: Transaction.RewardTx.ExecuteReward =>
-              val amount = txWithResult.result.fold(BigNat.Zero){
+              val amount = txWithResult.result.fold(BigNat.Zero) {
                 case Transaction.RewardTx.ExecuteRewardResult(_, outputs) =>
                   outputs.get(account).getOrElse(BigNat.Zero)
                 case _ => BigNat.Zero
               }
-              BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
+              BalanceInfo(
+                totalAmount = amount,
+                unused = Map(txHash -> txWithResult),
+              )
 
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
@@ -309,7 +333,12 @@ object StateReadService:
       balanceListEither <- GenericMerkleTrie
         .from[
           F,
-          (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          (
+              Account,
+              Account,
+              TokenDefinitionId,
+              Hash.Value[TransactionWithResult],
+          ),
           Unit,
         ](
           account.toBytes.bits,
@@ -358,7 +387,10 @@ object StateReadService:
     yield balanceTxList.groupMapReduce(_._1) { (defId, txHash, txWithResult) =>
       txWithResult.signedTx.value match
         case ef: Transaction.TokenTx.EntrustFungibleToken =>
-          BalanceInfo(totalAmount = ef.amount, unused = Map(txHash -> txWithResult))
+          BalanceInfo(
+            totalAmount = ef.amount,
+            unused = Map(txHash -> txWithResult),
+          )
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
       BalanceInfo(
@@ -372,15 +404,15 @@ object StateReadService:
       account: Account,
       movableOption: Option[Api.Movable],
   ): F[Map[TokenId, NftBalanceInfo]] = movableOption match
-    case None => getAllNftBalance[F](account)
-    case Some(Api.Movable.Free) => getFreeNftBalance[F](account)
+    case None                     => getAllNftBalance[F](account)
+    case Some(Api.Movable.Free)   => getFreeNftBalance[F](account)
     case Some(Api.Movable.Locked) => getEntrustedNftBalance[F](account)
 
   def getAllNftBalance[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
   ): F[Map[TokenId, NftBalanceInfo]] = for
-    free <- getFreeNftBalance[F](account)
+    free      <- getFreeNftBalance[F](account)
     entrusted <- getEntrustedNftBalance[F](account)
   yield free ++ entrusted
 
@@ -395,7 +427,10 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    nftBalanceMap <- getNftBalanceFromNftBalanceState[F](account, merkleState.token.nftBalanceState)
+    nftBalanceMap <- getNftBalanceFromNftBalanceState[F](
+      account,
+      merkleState.token.nftBalanceState,
+    )
   yield nftBalanceMap
 
   def getEntrustedNftBalance[F[_]
@@ -409,14 +444,20 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    nftBalanceMap <- getEntrustedNftBalanceFromEntrustedNftBalanceState[F](account, merkleState.token.entrustNftBalanceState)
+    nftBalanceMap <- getEntrustedNftBalanceFromEntrustedNftBalanceState[F](
+      account,
+      merkleState.token.entrustNftBalanceState,
+    )
   yield nftBalanceMap
 
   def getNftBalanceFromNftBalanceState[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
-      nftBalanceState: GenericMerkleTrieState[(Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
-    ): F[Map[TokenId, NftBalanceInfo]] = for
+      nftBalanceState: GenericMerkleTrieState[
+        (Account, TokenId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ],
+  ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- GenericMerkleTrie
       .from[
         F,
@@ -476,7 +517,7 @@ object StateReadService:
                       tn.definitionId,
                       txHash,
                       txWithResult,
-                    )
+                    ),
                   )
                 case de: Transaction.TokenTx.DisposeEntrustedNFT =>
                   Map(
@@ -499,8 +540,11 @@ object StateReadService:
   def getEntrustedNftBalanceFromEntrustedNftBalanceState[F[_]
     : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
       account: Account,
-      entrustedNftBalanceState: GenericMerkleTrieState[(Account, Account, TokenId, Hash.Value[TransactionWithResult]),Unit],
-    ): F[Map[TokenId, NftBalanceInfo]] = for
+      entrustedNftBalanceState: GenericMerkleTrieState[
+        (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
+        Unit,
+      ],
+  ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- GenericMerkleTrie
       .from[
         F,
@@ -614,3 +658,7 @@ object StateReadService:
         )
     }
   yield ownerOptionList.flatten.toMap
+
+  def getAccountActivity[F[_]](
+      account: Account,
+  ): EitherT[F, Either[String, String], Seq[ActivityLog]] = ???
