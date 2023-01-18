@@ -1,0 +1,55 @@
+button {
+    all: unset;
+    cursor: pointer;
+    display: block;
+    width: 40px;
+    color: black;
+}
+
+
+nav {
+    position: absolute;
+    height: 100vh;
+    width: 230px;
+    cursor: pointer;
+
+    background-color: #1F2937;
+    background-color: rgba(0, 0, 0, 0.936);
+    background-color: #222222;
+}
+
+nav #playnomm {
+    width: 100%;
+    height: 150px;
+    cursor: pointer;
+    background-color: #222222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: rgb(227, 240, 231);
+}
+
+#buttons button {
+    all: unset;
+    cursor: pointer;
+    color: white;
+    color: rgb(95, 94, 128);
+    width: 100%;
+    height: 55px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: larger;
+
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+#buttons .true {
+    color: white;
+}
+
+#buttons {
+    padding-top: 10px;
+}

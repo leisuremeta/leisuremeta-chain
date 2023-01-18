@@ -1,0 +1,33 @@
+.search-area {
+    padding-top: 20px;
+    margin-bottom: 5px;
+}
+
+.search-container {
+    width: 500px;
+    height: 50px;
+    padding-left: 0px;
+    background-color: white;
+    border: 1px solid #d3dede3e;
+    border-radius: 30px;
+}
+
+.search-text {
+    display: flex;
+    padding: 0 5px ;
+    width: 400px;
+    cursor: pointer;
+}
+.search-text::placeholder {
+    padding: 0 5px ;
+    color: rgba(0, 0, 0, 0.4);
+    width: 400px;
+    cursor: pointer;
+}
+
+.search-icon {
+    padding: 0;
+    padding-left: 10px;
+    color: black;
+    font-weight: bold;
+}
