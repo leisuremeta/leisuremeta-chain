@@ -31,6 +31,26 @@
     *  TxHash
     *  Tx
 
+`GET` **/activity/account/{account}** 계정 활동내역 조회
+
+* Response: Seq[ActivityInfo]
+  * ActivityInfo
+    * timestamp
+    * point
+    * description
+    * txHash
+
+
+`GET` **/activity/token/{tokenId}** 토큰이 받은 활동내역 조회
+
+* Response: Seq[ActivityInfo]
+  * ActivityInfo
+    * timestamp
+    * point
+    * description
+    * txHash
+
+
 `GET` **/reward/{accountName}** 보상 조회
 
 > `param` *(optional)* timestamp: 기준 시점. 없으면 가장 최근 보상. (월요일 0시 ~ 일요일 23시59분 주기)
@@ -883,7 +903,7 @@
   * Fields
 
     * timestamp: 기준시점
-    * userActivity: Map[Account, Seq[DaoActivity]] 사용자활동 요약 정보
+    * userActivity: Map[AccountName, Seq[DaoActivity]] 사용자활동 요약 정보
 
       * DaoActivity 활동정보
         * point 총 점수
@@ -950,7 +970,7 @@
           }
         }
       }
-    ]
+    ]    
     ```
     
     ```json
@@ -1071,8 +1091,6 @@
 | `GET`  | **/status**                       | 블록체인 상태 조회               |
 | `GET`  | **/token-def/{definitionID}**     | 토큰 정의 정보 조회              |
 | `GET`  | **/token/{tokenID}**              | 토큰 정보 조회                   |
-| `GET`  | **/activity/account/{account}**   | 계정 활동정보 조회               |
-| `GET`  | **/activity/token/{tokenID}**     | 토큰이 받은 활동정보 조회        |
 | `GET`  | **/snapshot/account/{account}**   | 보상받을 활동 조회               |
 | `GET`  | **/snapshot/token/{tokenID}**     | 보상받을 토큰 점수 조회          |
 | `GET`  | **/snapshot/ownership/{tokenID}** | 받을 토큰 소유보상 점수 조회     |
@@ -1139,10 +1157,11 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
     * Moderators: Set[AccountName]
 * AccountActivityState: (Account, Instant) => Seq[ActivityLog]
   * ActivityLog
+    * account 포인트를 획득한 계정
     * point 총 점수
     * description 묘사
     * txHash 근거가 되는 RecordActivity 트랜잭션 해시값
-  
+
 * TokenReceivedState: (TokenId, Instant) => Seq[ActivityLog]
 * AccountSnapshotState: (Account) => ActivitySnapshot
   * ActivitySnapshot
