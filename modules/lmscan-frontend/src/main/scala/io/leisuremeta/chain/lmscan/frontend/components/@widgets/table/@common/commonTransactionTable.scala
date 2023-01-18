@@ -33,8 +33,8 @@ object Row2:
       span(onClick(NavMsg.Account))("73c7e699d9..."),
     ),
     div(`class` := "cell")(span()("Account")),
-    div(`class` := "cell")(span()("LM")),
-    div(`class` := "cell")(span()("123,12412123 LM")),
+    div(`class` := "cell")(span()("NFT")),
+    div(`class` := "cell type-3")(span(onClick(NavMsg.Nft))("123,12412123 LM")),
   )
 
 object CommonTransactionTable:
