@@ -31,6 +31,8 @@ import api.model.{
 import api.model.reward.*
 import api.model.token.{NftState, TokenDefinitionId, TokenId}
 import api.model.TransactionWithResult.ops.*
+import dapp.PlayNommState
+import dapp.submodule.PlayNommDAppReward
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
@@ -44,7 +46,7 @@ import service.{RewardService, StateReadService}
 trait UpdateStateWithRewardTx:
 
   given updateStateWithRewardTx[F[_]
-    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState]
+    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: PlayNommState]
       : UpdateState[F, Transaction.RewardTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.RewardTx) =>
       tx match
@@ -82,7 +84,8 @@ trait UpdateStateWithRewardTx:
             TransactionWithResult(Signed(sig, rd), None),
           )
         case ud: Transaction.RewardTx.UpdateDao => ???
-        case ra: Transaction.RewardTx.RecordActivity => ???
+        case ra: Transaction.RewardTx.RecordActivity =>
+          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
 //          for
 //            userActivityState <- ra.userActivity.toList
 //              .traverse { case (account, activity) =>

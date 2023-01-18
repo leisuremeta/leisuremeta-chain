@@ -11,6 +11,7 @@ import cats.effect.std.Semaphore
 import cats.implicits.*
 
 import api.model.{Block, Signed}
+import dapp.PlayNommState
 import lib.crypto.Hash.ops.*
 import lib.crypto.Signature
 import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
@@ -19,7 +20,7 @@ import service.{BlockService, StateService}
 //import LocalGossipServiceInterpreter._
 
 class LocalGossipServiceInterpreter[F[_]
-  : Async: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: BlockRepository](
+  : Async: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: BlockRepository: PlayNommState](
     localGossipRef: Ref[F, GossipDomain.LocalGossip],
     lock: Semaphore[F],
     params: GossipDomain.GossipParams,
@@ -193,7 +194,7 @@ class LocalGossipServiceInterpreter[F[_]
 
 object LocalGossipServiceInterpreter:
   def build[F[_]
-    : Async: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: BlockRepository](
+    : Async: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: BlockRepository: PlayNommState](
       bestConfirmedBlock: Block,
       params: GossipDomain.GossipParams,
   ): F[LocalGossipService[F]] = for
