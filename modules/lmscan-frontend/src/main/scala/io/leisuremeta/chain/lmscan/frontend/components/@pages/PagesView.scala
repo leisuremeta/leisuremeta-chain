@@ -17,6 +17,10 @@ object Pages:
         TransactionDetailView.view(model)
       case NavMsg.NoPage =>
         NoPageView.view(model)
+      case NavMsg.Account =>
+        AccountView.view(model)
+      case NavMsg.Nft =>
+        NftView.view(model)
 
 object PagesView:
   def view(model: Model): Html[Msg] =

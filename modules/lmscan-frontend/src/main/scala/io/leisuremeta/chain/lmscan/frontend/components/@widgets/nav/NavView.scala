@@ -20,7 +20,8 @@ object NavView:
           onClick(NavMsg.Blocks),
         )(NavMsg.Blocks.toString()),
         button(
-          `class` := s"${model.curPage.toString() == NavMsg.Transactions.toString()}",
+          `class` := s"${List(NavMsg.Transactions.toString(), NavMsg.TransactionDetail.toString())
+              .contains(model.curPage.toString())}",
           onClick(NavMsg.Transactions),
         )(NavMsg.Transactions.toString()),
       ),

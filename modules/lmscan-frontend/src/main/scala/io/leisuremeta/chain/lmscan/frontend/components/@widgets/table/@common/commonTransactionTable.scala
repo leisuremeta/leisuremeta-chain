@@ -29,7 +29,9 @@ object Row2:
     ),
     div(`class` := "cell")(span()("123,456,789")),
     div(`class` := "cell")(span()("5s ago")),
-    div(`class` := "cell type-3")(span()("73c7e699d9...")),
+    div(`class` := "cell type-3")(
+      span(onClick(NavMsg.Account))("73c7e699d9..."),
+    ),
     div(`class` := "cell")(span()("Account")),
     div(`class` := "cell")(span()("LM")),
     div(`class` := "cell")(span()("123,12412123 LM")),

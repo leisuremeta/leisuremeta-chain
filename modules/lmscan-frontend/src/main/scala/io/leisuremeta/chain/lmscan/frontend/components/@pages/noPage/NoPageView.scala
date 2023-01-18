@@ -15,7 +15,6 @@ object NoPageView:
             `class` := "font-20px",
             onClick({
               model.prevPage
-              // NavMsg.DashBoard
             }),
           )(
             "Back to Previous Page",
