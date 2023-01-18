@@ -896,11 +896,65 @@
   * Example
 
     ```json
-    
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "95aff6586d03fa7c66165d9bb49f2a2fd54650f2776c728401c664622d5e2d4c",
+            "s" : "2cff82c55822d3266add84ea5853dbc86cf47f24e5787080b76e58681477ba09"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "RecordActivity" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-10T18:01:00Z",
+              "timestamp" : "2023-01-09T09:00:00Z",
+              "userActivity" : {
+                "bob" : [
+                  {
+                    "point" : 3,
+                    "description" : "like"
+                  }
+                ],
+                "carol" : [
+                  {
+                    "point" : 3,
+                    "description" : "like"
+                  }
+                ]
+              },
+              "tokenReceived" : {
+                "text-20230109-0000" : [
+                  {
+                    "point" : 2,
+                    "description" : "like"
+                  }
+                ],
+                "text-20230109-0001" : [
+                  {
+                    "point" : 2,
+                    "description" : "like"
+                  }
+                ],
+                "text-20230109-0002" : [
+                  {
+                    "point" : 2,
+                    "description" : "like"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
     ```
     
     ```json
-    
+    ["f08043c06fa17ffaf5c86121db683f5aa879bbf0194de3cac703b0572feaa4cd"]
     ```
     
     
