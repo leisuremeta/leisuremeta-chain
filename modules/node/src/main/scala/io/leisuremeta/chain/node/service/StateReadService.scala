@@ -755,3 +755,7 @@ object StateReadService:
       merkleState = MerkleState.from(bestHeader)
       snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
     yield snapshotOption
+
+  def getTokenSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
+      tokenId: TokenId,
+  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] = ???

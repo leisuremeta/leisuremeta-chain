@@ -229,9 +229,25 @@ final case class NodeApp[F[_]
           case Left(msg)  => Left(Api.ServerError(msg))
         }
         .subflatMap {
-          case Some(account) => Right(account)
+          case Some(snapshot) => Right(snapshot)
           case None =>
             Left(Right(Api.NotFound(s"No snapshot of account $account")))
+        }
+        .value
+    }
+
+  def getTokenSnapshotServerEndpoint =
+    Api.getTokenSnapshotEndpoint.serverLogic { (tokenId: TokenId) =>
+      StateReadService
+        .getTokenSnapshot(tokenId)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .subflatMap {
+          case Some(snapshot) => Right(snapshot)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot of token $tokenId")))
         }
         .value
     }
