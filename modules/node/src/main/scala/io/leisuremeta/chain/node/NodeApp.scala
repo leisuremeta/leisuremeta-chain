@@ -242,7 +242,7 @@ final case class NodeApp[F[_]
       scribe.info(s"received postTxHash request: $txs")
       Right(txs.map(_.toHash))
     }
-
+/*
   def getRewardServerEndpoint = Api.getRewardEndpoint.serverLogic {
     (
         account: Account,
@@ -258,7 +258,7 @@ final case class NodeApp[F[_]
           case Right(rewardInfo) => Right(rewardInfo)
         }
   }
-
+*/
   def leisuremetaEndpoints(using
       LocalGossipService[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
@@ -275,7 +275,7 @@ final case class NodeApp[F[_]
     getTokenServerEndpoint,
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
-    getRewardServerEndpoint,
+//    getRewardServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )

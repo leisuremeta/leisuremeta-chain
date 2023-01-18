@@ -82,95 +82,96 @@ trait UpdateStateWithRewardTx:
             TransactionWithResult(Signed(sig, rd), None),
           )
         case ud: Transaction.RewardTx.UpdateDao => ???
-        case ra: Transaction.RewardTx.RecordActivity =>
-          for
-            userActivityState <- ra.userActivity.toList
-              .traverse { case (account, activity) =>
-                val canonicalInstant = ra.timestamp
-                  .atZone(ZoneId.of("Asia/Seoul"))
-                  .truncatedTo(ChronoUnit.DAYS)
-                  .toInstant()
-                val keyBits = (canonicalInstant, account).toBytes.bits
-                for
-                  activityOption <- GenericMerkleTrie
-                    .get[F, (Instant, Account), DaoActivity](keyBits)
-                  _ <- GenericMerkleTrie.remove[F, (Instant, Account), DaoActivity](
-                    keyBits,
-                  )
-                  activity1 = activityOption.fold(activity)(
-                    Monoid[DaoActivity].combine(_, activity),
-                  )
-                  _ <- GenericMerkleTrie.put[F, (Instant, Account), DaoActivity](
-                    keyBits,
-                    activity1,
-                  )
-                yield ()
-              }
-              .runS(ms.reward.userActivityState)
-            tokenReceivedState <- ra.tokenReceived.toList
-              .traverse { case (tokenId, activity) =>
-                GenericMerkleTrie.put[F, (Instant, TokenId), DaoActivity](
-                  (ra.timestamp, tokenId).toBytes.bits,
-                  activity,
-                )
-              }
-              .runS(ms.reward.tokenReceivedState)
-          yield (
-            ms.copy(reward =
-              ms.reward.copy(
-                userActivityState = userActivityState,
-                tokenReceivedState = tokenReceivedState,
-              ),
-            ),
-            TransactionWithResult(Signed(sig, ra), None),
-          )
-        case rgs: Transaction.RewardTx.RegisterStaking => ???
-        case rms: Transaction.RewardTx.RemoveStaking   => ???
-        case xr: Transaction.RewardTx.ExecuteReward =>
-          val sourceAccount =
-            xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
-          val LM     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-          val txHash = Hash[Transaction].apply(xr).toResultHashValue
-          for
-            balance <- getBalance[F](sourceAccount, LM, ms)
-            (totalAmount, utxos) = balance
-//            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
-            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(
-              xr.createdAt,
-            )
-            rewardCriterionState <- RewardService.findStateRootAt(
-              rewardCriterionInstant,
-            )
-            totalNumberOfDao <- RewardService.countDao[F](
-              rewardCriterionState.reward.daoState,
-            )
-            rarityItemMap <- getRarityItem[F](rewardCriterionState.token)
-//            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
-            outputs = calculateRarityReward(
-              sourceAccount,
-              totalAmount,
-              totalNumberOfDao,
-              rarityItemMap,
-            )
-            fungibleBalanceState <- updateBalanceWithReward(
-              sourceAccount,
-              LM,
-              utxos,
-              txHash,
-              outputs,
-              ms.token.fungibleBalanceState,
-            )
-          yield (
-            ms.copy(
-              token = ms.token.copy(
-                fungibleBalanceState = fungibleBalanceState,
-              ),
-            ),
-            TransactionWithResult(
-              Signed(sig, xr),
-              Some(Transaction.RewardTx.ExecuteRewardResult(outputs)),
-            ),
-          )
+        case ra: Transaction.RewardTx.RecordActivity => ???
+//          for
+//            userActivityState <- ra.userActivity.toList
+//              .traverse { case (account, activity) =>
+//                val canonicalInstant = ra.timestamp
+//                  .atZone(ZoneId.of("Asia/Seoul"))
+//                  .truncatedTo(ChronoUnit.DAYS)
+//                  .toInstant()
+//                val keyBits = (canonicalInstant, account).toBytes.bits
+//                for
+//                  activityOption <- GenericMerkleTrie
+//                    .get[F, (Instant, Account), DaoActivity](keyBits)
+//                  _ <- GenericMerkleTrie.remove[F, (Instant, Account), DaoActivity](
+//                    keyBits,
+//                  )
+//                  activity1 = activityOption.fold(activity)(
+//                    Monoid[DaoActivity].combine(_, activity),
+//                  )
+//                  _ <- GenericMerkleTrie.put[F, (Instant, Account), DaoActivity](
+//                    keyBits,
+//                    activity1,
+//                  )
+//                yield ()
+//              }
+//              .runS(ms.reward.userActivityState)
+//            tokenReceivedState <- ra.tokenReceived.toList
+//              .traverse { case (tokenId, activity) =>
+//                GenericMerkleTrie.put[F, (Instant, TokenId), DaoActivity](
+//                  (ra.timestamp, tokenId).toBytes.bits,
+//                  activity,
+//                )
+//              }
+//              .runS(ms.reward.tokenReceivedState)
+//          yield (
+//            ms.copy(reward =
+//              ms.reward.copy(
+//                userActivityState = userActivityState,
+//                tokenReceivedState = tokenReceivedState,
+//              ),
+//            ),
+//            TransactionWithResult(Signed(sig, ra), None),
+//          )
+        case rgs: Transaction.RewardTx.BuildSnapshot         => ???
+        case rms: Transaction.RewardTx.ExecuteAccountReward  => ???
+        case xr: Transaction.RewardTx.ExecuteTokenReward     => ???
+        case xr: Transaction.RewardTx.ExecuteOwnershipReward => ???
+//          val sourceAccount =
+//            xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
+//          val LM     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+//          val txHash = Hash[Transaction].apply(xr).toResultHashValue
+//          for
+//            balance <- getBalance[F](sourceAccount, LM, ms)
+//            (totalAmount, utxos) = balance
+////            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
+//            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(
+//              xr.createdAt,
+//            )
+//            rewardCriterionState <- RewardService.findStateRootAt(
+//              rewardCriterionInstant,
+//            )
+//            totalNumberOfDao <- RewardService.countDao[F](
+//              rewardCriterionState.reward.daoState,
+//            )
+//            rarityItemMap <- getRarityItem[F](rewardCriterionState.token)
+////            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
+//            outputs = calculateRarityReward(
+//              sourceAccount,
+//              totalAmount,
+//              totalNumberOfDao,
+//              rarityItemMap,
+//            )
+//            fungibleBalanceState <- updateBalanceWithReward(
+//              sourceAccount,
+//              LM,
+//              utxos,
+//              txHash,
+//              outputs,
+//              ms.token.fungibleBalanceState,
+//            )
+//          yield (
+//            ms.copy(
+//              token = ms.token.copy(
+//                fungibleBalanceState = fungibleBalanceState,
+//              ),
+//            ),
+//            TransactionWithResult(
+//              Signed(sig, xr),
+//              Some(Transaction.RewardTx.ExecuteRewardResult(outputs)),
+//            ),
+//          )
 
   def getBalance[F[_]
     : Concurrent: TransactionRepository: StateRepository.TokenState](
@@ -250,7 +251,7 @@ trait UpdateStateWithRewardTx:
                             txWithResult.result match
                               case Some(
                                     Transaction.RewardTx.ExecuteRewardResult(
-                                      outputs,
+                                      _ , outputs,
                                     ),
                                   ) =>
                                 outputs.get(account).getOrElse(BigNat.Zero)

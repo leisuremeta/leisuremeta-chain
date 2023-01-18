@@ -882,23 +882,86 @@
 
   * Fields
 
-    * Timestamp: 기준시점
-    * UserActivity: Map[AccountName, Set[DaoActivity]] 사용자활동 요약 정보
+    * timestamp: 기준시점
+
+    * userActivity: Map[AccountName, Map[ActivityName, DaoActivity]] 사용자활동 요약 정보
+
+      * ActivityName (string) 활동 이름
       * DaoActivity 활동정보
-        * name 활동이름
         * weight 가중치. int. 음수가능
-        * number 활동횟수
-    * PostingReceived: Map[TokenId, Set[DaoActivity]] 토큰이 받은 사용자활동 요약정보
+        * count 활동횟수
+
+    * tokenReceived: Map[TokenId, Map[ActivityName, DaoActivity]] 토큰이 받은 사용자활동 요약정보
+      * ActivityName (string) 활동 이름
+
       * DaoActivity 활동정보
-        * name 활동이름
         * weight 가중치. int. 음수가능
-        * number 활동횟수
+        * count 활동횟수
 
   * Example
 
     ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "4b3b7da80ee24ccc4c88db62d4a3bf2817b937ec4e29583a3bc0271dbca1ec4a",
+            "s" : "2145a55b0bb829a141d6ee8d916136bc763e40046657f4baef4aa6945a01c4e8"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "RecordActivity" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-10T18:01:00Z",
+              "timestamp" : "2023-01-09T09:00:00Z",
+              "userActivity" : {
+                "bob" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 3
+                  }
+                },
+                "carol" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 3
+                  }
+                }
+              },
+              "tokenReceived" : {
+                "text-20230109-0000" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 2
+                  }
+                },
+                "text-20230109-0001" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 2
+                  }
+                },
+                "text-20230109-0002" : {
+                  "like" : {
+                    "weight" : 1,
+                    "count" : 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
     ```
-
+    
+    ```json
+    ["57672415a0fa29ac60875c2f6d1dafba3d0522d92ac174cf42dc03cf96ef42f8"]
+    ```
+    
     
 
 * BuildSnapshot: 보상을 위한 스냅샷 생성. 사용자가 한 활동, 토큰이 받은 활동, 토큰 소유보상의 세 가지 스냅샷을 동시에 만든다
@@ -908,28 +971,91 @@
   * Fields
 
     * Timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
+    * accountAmount: 계정활동 총 보상량
+    * tokenAmount: 토큰이 받을 총 보상량
+    * ownershipAmount: 토큰 보유에 따르는 총 보상량
 
   * Example
 
     ```json
     
     ```
-
-* ExecuteReward: 스냅샷의 자료를 기반으로 보상 실행.
+    
+    ```json
+    
+    ```
+    
+    
+  
+* ExecuteAccountReward: 스냅샷의 자료를 기반으로 계정 활동 보상 실행.
 
   * 보상 실행 주체. 일반적으로 Playnomm
 
   * Fields
 
-    * 
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+    * inputAccount: 보상을 담은 계정
+    * targets: Set[Account] 보상할 계정
+    * amountPerPoint: 포인트 당 보상량
+
+  * Results
+
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
 
   * Example
 
     ```json
-    ```
-
     
+    ```
+    
+    ```json
+    
+    ```
+    
+    
+  
+* ExecuteTokenReward: 스냅샷의 자료를 기반으로 토큰이 받은 활동 보상 실행.
 
+  * 보상 실행 주체. 일반적으로 Playnomm
+
+  * Fields
+
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+  
+    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
+    * amountPerPoint: 포인트 당 보상량
+  
+  * Results
+  
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
+  
+  * Example
+  
+    ```json
+    ```
+  
+* ExecuteOwnershipReward: 스냅샷의 자료를 기반으로 토큰 소유 보상 실행.
+
+  * 보상 실행 주체. 일반적으로 Playnomm
+
+  * Fields
+
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+  
+    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
+    * amountPerPoint: 포인트 당 보상량
+  
+  * Results
+  
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
+  
+  * Example
+  
+    ```json
+    ```
+  
 
 
 
@@ -950,9 +1076,9 @@
 | `GET`  | **/snapshot/account/{account}**   | 보상받을 활동 조회               |
 | `GET`  | **/snapshot/token/{tokenID}**     | 보상받을 토큰 점수 조회          |
 | `GET`  | **/snapshot/ownership/{tokenID}** | 받을 토큰 소유보상 점수 조회     |
-| `GET`  | **/reward/account/{account}**     | 최근에 받은 활동보상 조회        |
-| `GET`  | **/reward/token/{tokenID}**       | 최근에 받은 토큰보상 조회        |
-| `GET`  | **/reward/ownership/{tokenID}**   | 최근에 받은 토큰 소유보상 조회   |
+| `GET`  | **/rewarded/account/{account}**   | 최근에 받은 활동보상 조회        |
+| `GET`  | **/rewarded/token/{tokenID}**     | 최근에 받은 토큰보상 조회        |
+| `GET`  | **/rewarded/ownership/{tokenID}** | 최근에 받은 토큰 소유보상 조회   |
 
 
 
@@ -1011,30 +1137,32 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 * DaoState: GroupID => DaoInfo
   * DaoInfo
     * Moderators: Set[AccountName]
-* AccountActivityState: (Instant, Account) => Map[ActivityName, DaoActivity]
-  * DaoActivity
-    * Weight (음수 가능)
-    * Count
-* TokenReceivedState: (Instant, TokenId) => Map[ActivityName, DaoActivity]
-* AccountActivitySnapshotToRewardState: (Account) => Map[ActivityName, ActivitySnapshot]
+* AccountActivityState: (Instant, Account) => Map[(ActivityName, Weight), Count]
+* TokenReceivedState: (Instant, TokenId) => Map[(ActivityName, Weight), Count]
+* AccountSnapshotState: (Account) => Map[(ActivityName, Weight), ActivitySnapshot]
   * ActivitySnapshot
     * account
     * from: Instant
     * to: Instant
-    * name 활동명
-    * weight (음수 가능)
-    * count
-
-* TokenReceivedSnapshotToRewardState: (TokenId) => Map[ActivityName, ActivitySnapshot]
-* TokenOwnershipSnapshotToRewardState: (TokenId) => OwnershipSnapshot
+    * point 포인트. weight와 count의 곱을 합산한 값
+    * definitionId 보상받을 토큰 종류. 일반적으론 LM
+    * amount 보상량
+    * backlog: Set[TxHash] 해당 카운트의 근거 RecordActivity의 집합
+* TokenSnapshotState: (TokenId) => Map[(ActivityName, Weight), ActivitySnapshot]
+* OwnershipSnapshotState: (TokenId) => OwnershipSnapshot
   * OwnershipSnapshot
     * account
-    * score
-
-* UserActivityRewardedState: (Account) => Map[ActivityName, RewardedLog]
-  * RewardedLog
+    * timestamp 기준 시점
+    * point 포인트. 일반적으론 해당 NFT의 Rarity 점수
+    * definitionId 보상받을 토큰 종류. 일반적으론 LM
+    * amount 보상량
+* AccountRewardedState: (Account) => Map[(ActivityName, Weight), ActivityRewardLog]
+  * ActivityRewardLog
     * ActivitySnapshot
-    * RewardedAt: Instant
-
-* TokenReceivedRewardedState: (Account, TokenId) => Map[ActivityName, RewardedLog]
+    * ExecuteReward  TxHash
+* TokenRewardedState: (TokenId) => Map[(ActivityName, Weight), ActivityRewardLog]
+* OwnershipRewardedState: (TokenId) => OwnershipRewardLog
+  * OwnershipRewardLog
+    * OwnershipShapshot
+    * ExecuteReward TxHash
 

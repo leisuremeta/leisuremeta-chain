@@ -85,6 +85,12 @@ object ByteEncoder:
           (sizeBytes.size + 0xf8 - 1).toByte,
         ) ++ sizeBytes ++ bytes
 
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  given bigintByteEncoder: ByteEncoder[BigInt] = ByteEncoder[BigNat].contramap{
+    case n if n >= 0 => (n * 2).asInstanceOf[BigNat]
+    case n => (n * (-2) + 1).asInstanceOf[BigNat]
+  }
+
   given listByteEncoder[A: ByteEncoder]: ByteEncoder[List[A]] =
     (list: List[A]) =>
       list.foldLeft(bignatByteEncoder.encode(unsafeFromBigInt(list.size))) {

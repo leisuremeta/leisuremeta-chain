@@ -175,6 +175,11 @@ object ByteDecoder:
               )
     }
 
+  given bigintByteDecoder: ByteDecoder[BigInt] = ByteDecoder[BigNat].map{
+    case x if x % 2 === 0 => x / 2
+    case x => (x - 1) / (-2)
+  }
+
   def sizedListDecoder[A: ByteDecoder](size: BigNat): ByteDecoder[List[A]] =
     bytes =>
       @annotation.tailrec
