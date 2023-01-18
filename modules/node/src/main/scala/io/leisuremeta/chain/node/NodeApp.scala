@@ -212,6 +212,15 @@ final case class NodeApp[F[_]
       .value
   }
 
+  def getAccountSnapshotServerEndpoint = Api.getAccountSnapshotEndpoint.serverLogic{
+    (account: Account) =>
+      StateReadService.getAccountSnapshot(account).leftMap {
+        case Right(msg) => Right(Api.BadRequest(msg))
+        case Left(msg) => Left(Api.ServerError(msg))
+      }
+      .value
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
