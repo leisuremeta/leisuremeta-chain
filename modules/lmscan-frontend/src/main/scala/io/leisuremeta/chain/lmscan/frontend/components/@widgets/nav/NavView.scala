@@ -15,7 +15,6 @@ object NavView:
           onClick(NavMsg.DashBoard),
         )(NavMsg.DashBoard.toString()),
         button(
-          // `class` := s"${model.curPage.toString() == NavMsg.Blocks.toString()}",
           `class` := s"${List(NavMsg.Blocks.toString(), NavMsg.BlockDetail.toString())
               .contains(model.curPage.toString())}",
           onClick(NavMsg.Blocks),

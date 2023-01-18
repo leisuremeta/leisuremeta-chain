@@ -13,6 +13,8 @@ object Pages:
         BlockDetailView.view(model)
       case NavMsg.Transactions =>
         TransactionsView.view(model)
+      case NavMsg.TransactionDetail =>
+        TransactionDetailView.view(model)
       case NavMsg.NoPage =>
         NoPageView.view(model)
 

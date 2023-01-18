@@ -35,6 +35,16 @@ object NavUpdate:
           Cmd.None,
         ),
       )
+    case NavMsg.TransactionDetail =>
+      log(
+        (
+          model.copy(
+            curPage = NavMsg.TransactionDetail,
+            prevPage = model.prevPage,
+          ),
+          Cmd.None,
+        ),
+      )
     case NavMsg.NoPage =>
       log(
         (
