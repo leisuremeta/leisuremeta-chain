@@ -37,8 +37,8 @@ import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.merkle.GenericMerkleTrie.NodeStore
-import repository.{BlockRepository, StateRepository, TransactionRepository}
-import repository.StateRepository.given
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
+import repository.GenericStateRepository.given
 
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import io.leisuremeta.chain.api.model.reward.DaoActivity
@@ -47,7 +47,7 @@ object RewardService:
 
 //
 //  def getRewardInfoFromBestHeader[F[_]
-//    : Concurrent: BlockRepository: TransactionRepository: StateRepository.RewardState: StateRepository.TokenState](
+//    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.RewardState: GenericStateRepository.TokenState](
 //      account: Account,
 //      timestampOption: Option[Instant],
 //      daoAccount: Option[Account],
@@ -72,7 +72,7 @@ object RewardService:
 //  
 //
 //  def getRewardInfo[F[_]
-//    : Concurrent: BlockRepository: TransactionRepository: StateRepository.RewardState: StateRepository.TokenState](
+//    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.RewardState: GenericStateRepository.TokenState](
 //      account: Account,
 //      timestampOption: Option[Instant],
 //      daoAccount: Option[Account],
@@ -176,7 +176,7 @@ object RewardService:
 //    * @return
 //    *   number of dao (if larger than 100, return 100)
 //    */
-//  def countDao[F[_]: Concurrent: StateRepository.RewardState](
+//  def countDao[F[_]: Concurrent: GenericStateRepository.RewardState](
 //      daoState: GenericMerkleTrieState[GroupId, DaoInfo],
 //  ): EitherT[F, String, Int] =
 //    for
@@ -200,7 +200,7 @@ object RewardService:
 //        ) * userActivityMilliPoint / totalActivityMilliPoint
 //    milliPoint * BigNat.unsafeFromBigInt(BigInt(10).pow(15))
 //
-//  def getWeeklyUserActivities[F[_]: Concurrent: StateRepository.RewardState](
+//  def getWeeklyUserActivities[F[_]: Concurrent: GenericStateRepository.RewardState](
 //      timestamp: Instant,
 //      user: Account,
 //      root: GenericMerkleTrieState[(Instant, Account), DaoActivity],
@@ -244,7 +244,7 @@ object RewardService:
 //      .sum
 //
 //  def getWeeklyTotalActivityPoint[F[_]
-//    : Concurrent: StateRepository.RewardState](
+//    : Concurrent: GenericStateRepository.RewardState](
 //      timestamp: Instant,
 //      root: GenericMerkleTrieState[(Instant, Account), DaoActivity],
 //  ): EitherT[F, String, BigNat] =
@@ -332,7 +332,7 @@ object RewardService:
 //      .map(_.get.toHash.toBlockHash)
 //      .flatMap(loop)
 //
-//  def getNftOwned[F[_]: Concurrent: StateRepository.TokenState](
+//  def getNftOwned[F[_]: Concurrent: GenericStateRepository.TokenState](
 //      user: Account,
 //      state: GenericMerkleTrieState[
 //        (Account, TokenId, Hash.Value[TransactionWithResult]),
@@ -368,7 +368,7 @@ object RewardService:
 //        .toList
 //    yield tokenIds
 //
-//  def getWeeklyTokenReceived[F[_]: Monad: StateRepository.RewardState](
+//  def getWeeklyTokenReceived[F[_]: Monad: GenericStateRepository.RewardState](
 //      tokenList: List[TokenId],
 //      canonicalTimestamp: Instant,
 //      root: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
@@ -393,7 +393,7 @@ object RewardService:
 //      .map(_.flatten.combineAll)
 //
 //  def getWeeklyTotalReceivedPoint[F[_]
-//    : Concurrent: StateRepository.RewardState](
+//    : Concurrent: GenericStateRepository.RewardState](
 //      timestamp: Instant,
 //      root: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
 //  ): EitherT[F, String, BigNat] =
@@ -451,7 +451,7 @@ object RewardService:
 //      milliPoint * BigNat.unsafeFromBigInt(BigInt(10).pow(15))
 //
 //  def getTotalRarityRewardAmount[F[_]
-//    : Concurrent: BlockRepository: TransactionRepository: StateRepository.TokenState](
+//    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.TokenState](
 //      rewardAmount: Option[BigNat],
 //      daoAccount: Option[Account],
 //  ): EitherT[F, String, BigNat] = rewardAmount match
@@ -468,14 +468,14 @@ object RewardService:
 //      }
 //
 //  def getUserRarityReward[F[_]
-//    : Concurrent: StateRepository.TokenState: StateRepository.RewardState](
+//    : Concurrent: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
 //      user: Account,
 //      state: GossipDomain.MerkleState.TokenMerkleState,
 //  ): EitherT[F, String, Map[Rarity, BigNat]] =
 //    getUserRarityItem[F](user, state).map(rarityItemsToRewardDetailMap)
 //
 //  def getUserRarityItem[F[_]
-//    : Concurrent: StateRepository.TokenState: StateRepository.RewardState](
+//    : Concurrent: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
 //      user: Account,
 //      state: GossipDomain.MerkleState.TokenMerkleState,
 //  ): EitherT[F, String, List[(Rarity, BigNat)]] =
@@ -527,7 +527,7 @@ object RewardService:
 //  ): Map[Rarity, BigNat] =
 //    items.groupMapReduce(_._1)(_._2)(_ + _)
 //
-//  def getTotalRarityRewardValue[F[_]: Concurrent: StateRepository.TokenState](
+//  def getTotalRarityRewardValue[F[_]: Concurrent: GenericStateRepository.TokenState](
 //      user: Account,
 //      state: GossipDomain.MerkleState.TokenMerkleState,
 //  ): EitherT[F, String, BigNat] =
@@ -612,7 +612,7 @@ object RewardService:
 //
 //    ans
 //
-//  def isModerator[F[_]: Concurrent: StateRepository.RewardState](
+//  def isModerator[F[_]: Concurrent: GenericStateRepository.RewardState](
 //      user: Account,
 //      root: GenericMerkleTrieState[GroupId, DaoInfo],
 //  ): EitherT[F, String, Boolean] =

@@ -21,6 +21,7 @@ import sttp.model.{MediaType, StatusCode}
 import api.model.*
 import api_model.AccountInfo
 import api.model.token.*
+import dapp.PlayNommState
 import lib.crypto.{CryptoOps, Hash}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
@@ -28,7 +29,8 @@ import lib.datatype.{BigNat, UInt256, Utf8}
 import lib.failure.DecodingFailure
 import lib.merkle.{GenericMerkleTrieNode, GenericMerkleTrieState}
 import lib.merkle.GenericMerkleTrieNode.MerkleRoot
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{BlockRepository, GenericStateRepository, StateRepository, TransactionRepository}
+import repository.StateRepository.given
 import service.LocalGossipService
 import service.interpreter.LocalGossipServiceInterpreter
 
@@ -146,8 +148,12 @@ genesis {
       map += transaction.toHash -> transaction
     }
 
-  given testStateRepo[K, V]: StateRepository[IO, K, V] =
-    StateRepository.fromStores[IO, K, V]
+  given testGenericStateRepo[K, V]: GenericStateRepository[IO, K, V] =
+    GenericStateRepository.fromStores[IO, K, V]
+
+  given testStateRepo: StateRepository[IO] = StateRepository.fromStores[IO]
+
+  given PlayNommState[IO] = PlayNommState.build[IO]
 
   given LocalGossipService[IO] = LocalGossipServiceInterpreter
     .build[IO](

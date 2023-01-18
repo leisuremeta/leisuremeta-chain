@@ -1,7 +1,6 @@
 package io.leisuremeta.chain
 package node
 package dapp
-package appstate
 
 import cats.Monad
 
@@ -23,8 +22,8 @@ object PlayNommState:
 
   case class Reward[F[_]](
       dao: DAppState[F, GroupId, DaoInfo],
-      accountActivity: DAppState[F, (Instant, Account), Seq[ActivityLog]],
-      tokenReceived: DAppState[F, (Instant, TokenId), Seq[ActivityLog]],
+      accountActivity: DAppState[F, (Account, Instant), Seq[ActivityLog]],
+      tokenReceived: DAppState[F, (TokenId, Instant), Seq[ActivityLog]],
       accountSnapshot: DAppState[F, Account, ActivitySnapshot],
       tokenSnapshot: DAppState[F, TokenId, ActivitySnapshot],
       ownershipSnapshot: DAppState[F, TokenId, OwnershipSnapshot],

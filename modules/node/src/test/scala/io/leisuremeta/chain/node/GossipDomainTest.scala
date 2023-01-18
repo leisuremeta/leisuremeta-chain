@@ -24,12 +24,19 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
+import dapp.PlayNommState
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
 import lib.failure.DecodingFailure
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{
+  BlockRepository,
+  GenericStateRepository,
+  StateRepository,
+  TransactionRepository,
+}
+import repository.StateRepository.given
 import service.StateService
 import store.{KeyValueStore, SingleValueStore, StoreIndex}
 
@@ -95,7 +102,7 @@ class GossipDomainTest extends HedgehogSuite:
           EitherT.rightT[IO, DecodingFailure](store.get(key))
         override def put(key: K, value: V): IO[Unit] =
           IO.pure(store += (key -> value))
-        override def remove(key: K): IO[Unit] = IO.pure{
+        override def remove(key: K): IO[Unit] = IO.pure {
           this.store = store.removed(key)
         }
         override def from(
@@ -116,12 +123,14 @@ class GossipDomainTest extends HedgehogSuite:
 
     given sStore[A]: SingleValueStore[IO, A] =
       SingleValueStore.fromKeyValueStore[IO, A]
-    given stateRepo[K, V]: StateRepository[IO, K, V] =
-      StateRepository.fromStores[IO, K, V]
+    given genericStateRepo[K, V]: GenericStateRepository[IO, K, V] =
+      GenericStateRepository.fromStores[IO, K, V]
+    given stateRepo: StateRepository[IO] = StateRepository.fromStores[IO]
     given blockRepo: BlockRepository[IO] =
       BlockRepository.fromStores[IO]
     given txRepo: TransactionRepository[IO] =
       TransactionRepository.fromStores[IO]
+    given PlayNommState[IO] = PlayNommState.build[IO]
     override def apply(
         state: MerkleState,
         tx: Signed.Tx,
@@ -131,7 +140,8 @@ class GossipDomainTest extends HedgehogSuite:
   test("onNewTx") {
     withMunitAssertions { assertions =>
 
-      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync(): @unchecked
+      val Right(gossip1) =
+        onNewTx[IO](initial, tx).value.unsafeRunSync(): @unchecked
 
       assertions.assert(gossip1.newTxs.contains(tx.toHash))
     }
@@ -139,7 +149,8 @@ class GossipDomainTest extends HedgehogSuite:
 
   test("generateNewBlockSuggestion") {
     withMunitAssertions { assertions =>
-      val Right(gossip1) = onNewTx[IO](initial, tx).value.unsafeRunSync(): @unchecked
+      val Right(gossip1) =
+        onNewTx[IO](initial, tx).value.unsafeRunSync(): @unchecked
       val now = Instant.parse("2021-11-11T15:48:40Z") // 1636645720000
 
       val Right((_, blockSuggestion)) =

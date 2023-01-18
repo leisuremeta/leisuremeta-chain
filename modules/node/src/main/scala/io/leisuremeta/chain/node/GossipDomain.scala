@@ -27,19 +27,26 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
-import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieNode, GenericMerkleTrieState}
+import lib.merkle.{
+  GenericMerkleTrie,
+  GenericMerkleTrieNode,
+  GenericMerkleTrieState,
+  MerkleTrieState,
+}
 import lib.merkle.GenericMerkleTrie.NodeStore
 import lib.merkle.GenericMerkleTrieNode.MerkleRoot
 
 object GossipDomain:
 
   case class MerkleState(
+      main: MerkleTrieState,
       account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
       token: MerkleState.TokenMerkleState,
       reward: MerkleState.RewardMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
+      main = main.root,
       account = account.toStateRoot,
       group = group.toStateRoot,
       token = token.toStateRoot,
@@ -48,6 +55,8 @@ object GossipDomain:
 
   object MerkleState:
     def from(header: Block.Header): MerkleState = MerkleState(
+      main = header.stateRoot.main
+        .fold(MerkleTrieState.empty)(MerkleTrieState.fromRoot),
       account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
       token = TokenMerkleState.from(header.stateRoot.token),
@@ -110,7 +119,12 @@ object GossipDomain:
           Unit,
         ],
         entrustFungibleBalanceState: GenericMerkleTrieState[
-          (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
+          (
+              Account,
+              Account,
+              TokenDefinitionId,
+              Hash.Value[TransactionWithResult],
+          ),
           Unit,
         ],
         entrustNftBalanceState: GenericMerkleTrieState[
@@ -136,14 +150,22 @@ object GossipDomain:
           nftBalanceState = buildMerkleTrieState(root.nftBalanceRoot),
           nftState = buildMerkleTrieState(root.nftRoot),
           rarityState = buildMerkleTrieState(root.rarityRoot),
-          entrustFungibleBalanceState = buildMerkleTrieState(root.entrustFungibleBalanceRoot),
-          entrustNftBalanceState = buildMerkleTrieState(root.entrustNftBalanceRoot),
+          entrustFungibleBalanceState =
+            buildMerkleTrieState(root.entrustFungibleBalanceRoot),
+          entrustNftBalanceState =
+            buildMerkleTrieState(root.entrustNftBalanceRoot),
         )
 
     case class RewardMerkleState(
         daoState: GenericMerkleTrieState[GroupId, DaoInfo],
-        userActivityState: GenericMerkleTrieState[(Instant, Account), DaoActivity],
-        tokenReceivedState: GenericMerkleTrieState[(Instant, TokenId), DaoActivity],
+        userActivityState: GenericMerkleTrieState[
+          (Instant, Account),
+          DaoActivity,
+        ],
+        tokenReceivedState: GenericMerkleTrieState[
+          (Instant, TokenId),
+          DaoActivity,
+        ],
     ):
       def toStateRoot: StateRoot.RewardStateRoot = StateRoot.RewardStateRoot(
         dao = daoState.root,
@@ -159,11 +181,12 @@ object GossipDomain:
           tokenReceivedState = buildMerkleTrieState(root.tokenReceived),
         )
 
-
   def buildMerkleTrieState[K, V](
       root: Option[MerkleRoot[K, V]],
   ): GenericMerkleTrieState[K, V] =
-    root.fold(GenericMerkleTrieState.empty[K, V])(GenericMerkleTrieState.fromRoot)
+    root.fold(GenericMerkleTrieState.empty[K, V])(
+      GenericMerkleTrieState.fromRoot,
+    )
 
   case class LocalGossip(
       newTxs: Map[Signed.TxHash, Signed.Tx],
@@ -722,6 +745,7 @@ object GossipDomain:
       newBase: MerkleState,
   ): Either[String, MerkleState] =
     for
+      mainState <- state.main.rebase(newBase.main)
       namesState <- state.account.namesState.rebase(newBase.account.namesState)
       keyState   <- state.account.keyState.rebase(newBase.account.keyState)
       ethState   <- state.account.ethState.rebase(newBase.account.ethState)
@@ -740,16 +764,22 @@ object GossipDomain:
       )
       nftState    <- state.token.nftState.rebase(newBase.token.nftState)
       rarityState <- state.token.rarityState.rebase(newBase.token.rarityState)
-      entrustFungibleBalanceState <- state.token.entrustFungibleBalanceState.rebase(
-        newBase.token.entrustFungibleBalanceState,
-      )
+      entrustFungibleBalanceState <- state.token.entrustFungibleBalanceState
+        .rebase(
+          newBase.token.entrustFungibleBalanceState,
+        )
       entrustNftBalanceState <- state.token.entrustNftBalanceState.rebase(
         newBase.token.entrustNftBalanceState,
       )
       daoState <- state.reward.daoState.rebase(newBase.reward.daoState)
-      userActivityState <- state.reward.userActivityState.rebase(newBase.reward.userActivityState)
-      tokenReceivedState <- state.reward.tokenReceivedState.rebase(newBase.reward.tokenReceivedState)
+      userActivityState <- state.reward.userActivityState.rebase(
+        newBase.reward.userActivityState,
+      )
+      tokenReceivedState <- state.reward.tokenReceivedState.rebase(
+        newBase.reward.tokenReceivedState,
+      )
     yield MerkleState(
+      mainState,
       MerkleState.AccountMerkleState(namesState, keyState, ethState),
       MerkleState.GroupMerkleState(groupState, groupAccountState),
       MerkleState.TokenMerkleState(
@@ -765,5 +795,5 @@ object GossipDomain:
         daoState,
         userActivityState,
         tokenReceivedState,
-      )
+      ),
     )

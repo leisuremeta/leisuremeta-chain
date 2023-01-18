@@ -12,13 +12,14 @@ import cats.syntax.traverse.*
 
 import api.model.{Block, Signed, TransactionWithResult}
 import api.model.api_model.BlockInfo
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import dapp.PlayNommState
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
 import lib.crypto.Hash.ops.*
 import io.leisuremeta.chain.api.model.Block.ops.toBlockHash
 
 object BlockService:
 
-  def saveBlockWithState[F[_]: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState](
+  def saveBlockWithState[F[_]: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: PlayNommState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
   )(using
@@ -60,21 +61,21 @@ object BlockService:
     _ <- EitherT.right[String](
       List(
         resultList.traverse(txRepo.put).map(_ => ()),
-        StateRepository.AccountState[F].name.put(state.account.namesState),
-        StateRepository.AccountState[F].key.put(state.account.keyState),
-        StateRepository.AccountState[F].eth.put(state.account.ethState),
-        StateRepository.GroupState[F].group.put(state.group.groupState),
-        StateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
-        StateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),
-        StateRepository.TokenState[F].fungibleBalance.put(state.token.fungibleBalanceState),
-        StateRepository.TokenState[F].nftBalance.put(state.token.nftBalanceState),
-        StateRepository.TokenState[F].nft.put(state.token.nftState),
-        StateRepository.TokenState[F].rarity.put(state.token.rarityState),
-        StateRepository.TokenState[F].entrustFungibleBalance.put(state.token.entrustFungibleBalanceState),
-        StateRepository.TokenState[F].entrustNftBalance.put(state.token.entrustNftBalanceState),
-        StateRepository.RewardState[F].daoState.put(state.reward.daoState),
-        StateRepository.RewardState[F].userActivityState.put(state.reward.userActivityState),
-        StateRepository.RewardState[F].tokenReceivedState.put(state.reward.tokenReceivedState),
+        GenericStateRepository.AccountState[F].name.put(state.account.namesState),
+        GenericStateRepository.AccountState[F].key.put(state.account.keyState),
+        GenericStateRepository.AccountState[F].eth.put(state.account.ethState),
+        GenericStateRepository.GroupState[F].group.put(state.group.groupState),
+        GenericStateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
+        GenericStateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),
+        GenericStateRepository.TokenState[F].fungibleBalance.put(state.token.fungibleBalanceState),
+        GenericStateRepository.TokenState[F].nftBalance.put(state.token.nftBalanceState),
+        GenericStateRepository.TokenState[F].nft.put(state.token.nftState),
+        GenericStateRepository.TokenState[F].rarity.put(state.token.rarityState),
+        GenericStateRepository.TokenState[F].entrustFungibleBalance.put(state.token.entrustFungibleBalanceState),
+        GenericStateRepository.TokenState[F].entrustNftBalance.put(state.token.entrustNftBalanceState),
+        GenericStateRepository.RewardState[F].daoState.put(state.reward.daoState),
+        GenericStateRepository.RewardState[F].userActivityState.put(state.reward.userActivityState),
+        GenericStateRepository.RewardState[F].tokenReceivedState.put(state.reward.tokenReceivedState),
       ).sequence
     )
     _ <- saveBlock[F](block, (txs.keys zip resultList).toMap)

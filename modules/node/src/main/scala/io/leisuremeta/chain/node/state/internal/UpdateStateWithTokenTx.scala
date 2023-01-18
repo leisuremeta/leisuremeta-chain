@@ -35,14 +35,14 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import repository.{StateRepository, TransactionRepository}
-import repository.StateRepository.given
+import repository.{GenericStateRepository, TransactionRepository}
+import repository.GenericStateRepository.given
 import io.leisuremeta.chain.node.service.StateReadService
 
 trait UpdateStateWithTokenTx:
 
   given updateStateWithTokenTx[F[_]
-    : Concurrent: StateRepository.TokenState: StateRepository.GroupState: StateRepository.AccountState: TransactionRepository]
+    : Concurrent: GenericStateRepository.TokenState: GenericStateRepository.GroupState: GenericStateRepository.AccountState: TransactionRepository]
       : UpdateState[F, Transaction.TokenTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.TokenTx) =>
       tx match

@@ -17,9 +17,10 @@ import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
 import api.model.account.EthAddress
 import api.model.token.{TokenDefinitionId, TokenId}
+import dapp.PlayNommState
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
 import service.{
   LocalGossipService,
   LocalStatusService,
@@ -33,7 +34,7 @@ import service.interpreter.LocalGossipServiceInterpreter
 import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState: TransactionRepository](
+  : Async: BlockRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
     config: NodeConfig,
 ):
 
@@ -193,6 +194,24 @@ final case class NodeApp[F[_]
         .value
   }
 
+  def getAccountActivityServerEndpoint = Api.getAccountActivityEndpoint.serverLogic{
+    (account: Account) =>
+      StateReadService.getAccountActivity(account).leftMap {
+        case Right(msg) => Right(Api.BadRequest(msg))
+        case Left(msg) => Left(Api.ServerError(msg))
+      }
+      .value
+  }
+
+  def getTokenActivityServerEndpoint = Api.getTokenActivityEndpoint.serverLogic{
+    (tokenId: TokenId) =>
+      StateReadService.getTokenActivity(tokenId).leftMap {
+        case Right(msg) => Right(Api.BadRequest(msg))
+        case Left(msg) => Left(Api.ServerError(msg))
+      }
+      .value
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -275,6 +294,8 @@ final case class NodeApp[F[_]
     getTokenServerEndpoint,
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
+    getAccountActivityServerEndpoint,
+    getTokenActivityServerEndpoint,
 //    getRewardServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,

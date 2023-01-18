@@ -30,6 +30,7 @@ import api.model.{
 import api.model.account.EthAddress
 import api.model.api_model.{
   AccountInfo,
+  ActivityInfo,
   BalanceInfo,
   BlockInfo,
   GroupInfo,
@@ -192,6 +193,18 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("owners" / path[TokenDefinitionId])
       .out(jsonBody[Map[TokenId, Account]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountActivityEndpoint =
+    baseEndpoint.get
+      .in("activity" / "account" / path[Account])
+      .out(jsonBody[Seq[ActivityInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenActivityEndpoint =
+    baseEndpoint.get
+      .in("activity" / "token" / path[TokenId])
+      .out(jsonBody[Seq[ActivityInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getRewardEndpoint =
