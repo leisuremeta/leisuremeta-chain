@@ -13,4 +13,5 @@ final case class ActivitySnapshot(
     name: Utf8,
     weight: BigInt,
     count: BigNat,
+    backlogs: Set[Signed.TxHash],
 )

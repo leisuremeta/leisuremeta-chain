@@ -280,7 +280,7 @@ object StateReadService:
               BalanceInfo(totalAmount = amount, unused = Map(txHash -> txWithResult))
             case xr: Transaction.RewardTx.ExecuteReward =>
               val amount = txWithResult.result.fold(BigNat.Zero){
-                case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
+                case Transaction.RewardTx.ExecuteRewardResult(_, outputs) =>
                   outputs.get(account).getOrElse(BigNat.Zero)
                 case _ => BigNat.Zero
               }

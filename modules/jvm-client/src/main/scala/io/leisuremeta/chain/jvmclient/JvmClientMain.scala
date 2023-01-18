@@ -13,12 +13,13 @@ import sttp.tapir.client.sttp.SttpClientInterpreter
 import api.LeisureMetaChainApi
 import api.model.*
 import api.model.reward.*
-import api.model.token.TokenId
+import api.model.token.*
 import lib.datatype.*
 import lib.crypto.*
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import node.NodeConfig
+import scodec.bits.ByteVector
 
 
 object JvmClientMain extends IOApp:
@@ -75,11 +76,31 @@ object JvmClientMain extends IOApp:
     ),
   )
 
+//  val tx: Transaction = Transaction.RewardTx.BuildSnapshot(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+//    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
+//  )
+
+//  val lm = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+//
+//  def txHash(bytes: ByteVector): Signed.TxHash =
+//    Hash.Value[Signed.Tx](UInt256.from(bytes).toOption.get)
+//
+//  val tx: Transaction = Transaction.RewardTx.ExecuteAccountReward(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+//    inputDefinitionId = lm,
+//    inputs = Set(
+//      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"),
+//    ),
+//    targets = Set(alice, bob, carol),
+//    amountPerPoint = BigNat.unsafeFromLong(10),
+//  )
+    
   val signedTx = signAlice(tx)
 
-
   val json = Seq(signedTx).asJson.spaces2
-
 
   override def run(args: List[String]): IO[ExitCode] =
     ArmeriaCatsBackend.resource[IO]().use { backend =>

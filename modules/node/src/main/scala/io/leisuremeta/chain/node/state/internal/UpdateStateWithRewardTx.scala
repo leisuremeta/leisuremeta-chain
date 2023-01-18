@@ -251,7 +251,7 @@ trait UpdateStateWithRewardTx:
                             txWithResult.result match
                               case Some(
                                     Transaction.RewardTx.ExecuteRewardResult(
-                                      outputs,
+                                      _ , outputs,
                                     ),
                                   ) =>
                                 outputs.get(account).getOrElse(BigNat.Zero)

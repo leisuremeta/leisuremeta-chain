@@ -11,6 +11,7 @@ import account.EthAddress
 import reward.DaoActivity
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
+import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
 import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
 
@@ -19,34 +20,25 @@ object TransactionResult:
   given txResultByteEncoder: ByteEncoder[TransactionResult] =
     (txr: TransactionResult) =>
       txr match
-        case Transaction.AccountTx.AddPublicKeySummariesResult(removed) =>
-          ByteVector.fromByte(0) ++ ByteEncoder[Map[PublicKeySummary, Utf8]]
-            .encode(removed)
-        case Transaction.TokenTx.BurnFungibleTokenResult(outputAmount) =>
-          ByteVector.fromByte(1) ++ ByteEncoder[BigNat].encode(outputAmount)
-        case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) =>
-          ByteVector.fromByte(2) ++ ByteEncoder[BigNat].encode(remainder)
-        case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
-          ByteVector.fromByte(3) ++ ByteEncoder[Map[Account, BigNat]].encode(
-            outputs,
-          )
+        case r: Transaction.AccountTx.AddPublicKeySummariesResult =>
+          ByteVector.fromByte(0) ++ r.toBytes
+        case r: Transaction.TokenTx.BurnFungibleTokenResult =>
+          ByteVector.fromByte(1) ++ r.toBytes
+        case r: Transaction.TokenTx.EntrustFungibleTokenResult =>
+          ByteVector.fromByte(2) ++ r.toBytes
+        case r: Transaction.RewardTx.ExecuteRewardResult =>
+          ByteVector.fromByte(3) ++ r.toBytes
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap {
       case 0 =>
-        ByteDecoder[Map[PublicKeySummary, Utf8]].map(
-          Transaction.AccountTx.AddPublicKeySummariesResult(_),
-        )
+        ByteDecoder[Transaction.AccountTx.AddPublicKeySummariesResult].widen
       case 1 =>
-        ByteDecoder[BigNat].map(Transaction.TokenTx.BurnFungibleTokenResult(_))
+        ByteDecoder[Transaction.TokenTx.BurnFungibleTokenResult].widen
       case 2 =>
-        ByteDecoder[BigNat].map(
-          Transaction.TokenTx.EntrustFungibleTokenResult(_),
-        )
+        ByteDecoder[Transaction.TokenTx.EntrustFungibleTokenResult].widen
       case 3 =>
-        ByteDecoder[Map[Account, BigNat]].map(
-          Transaction.RewardTx.ExecuteRewardResult(_),
-        )
+        ByteDecoder[Transaction.RewardTx.ExecuteRewardResult].widen
     }
 
   given txResultCirceEncoder: Encoder[TransactionResult] =
@@ -349,6 +341,9 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         timestamp: Instant,
+        accountAmount: BigNat,
+        tokenAmount: BigNat,
+        ownershipAmount: BigNat,
     ) extends RewardTx
 
     sealed trait ExecuteReward extends FungibleBalance
@@ -357,13 +352,14 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         inputDefinitionId: TokenDefinitionId,
-        inputs: Set[Signed.TxHash],
+        inputAccount: Account,
         targets: Set[Account],
         amountPerPoint: BigNat,
     ) extends RewardTx
         with ExecuteReward
 
     final case class ExecuteRewardResult(
+        inputs: Set[Hash.Value[TransactionWithResult]],
         outputs: Map[Account, BigNat],
     ) extends TransactionResult
 
@@ -371,7 +367,7 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         inputDefinitionId: TokenDefinitionId,
-        inputs: Set[Signed.TxHash],
+        inputAccount: Account,
         targets: Set[TokenId],
         amountPerPoint: BigNat,
     ) extends RewardTx
@@ -381,7 +377,7 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         inputDefinitionId: TokenDefinitionId,
-        inputs: Set[Signed.TxHash],
+        inputAccount: Account,
         targets: Set[Account],
         amountPerPoint: BigNat,
     ) extends RewardTx

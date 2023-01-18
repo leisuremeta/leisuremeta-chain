@@ -971,13 +971,22 @@
   * Fields
 
     * Timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
+    * accountAmount: 계정활동 총 보상량
+    * tokenAmount: 토큰이 받을 총 보상량
+    * ownershipAmount: 토큰 보유에 따르는 총 보상량
 
   * Example
 
     ```json
     
     ```
-
+    
+    ```json
+    
+    ```
+    
+    
+  
 * ExecuteAccountReward: 스냅샷의 자료를 기반으로 계정 활동 보상 실행.
 
   * 보상 실행 주체. 일반적으로 Playnomm
@@ -985,7 +994,7 @@
   * Fields
 
     * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
-    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * inputAccount: 보상을 담은 계정
     * targets: Set[Account] 보상할 계정
     * amountPerPoint: 포인트 당 보상량
 
@@ -998,7 +1007,13 @@
     ```json
     
     ```
-
+    
+    ```json
+    
+    ```
+    
+    
+  
 * ExecuteTokenReward: 스냅샷의 자료를 기반으로 토큰이 받은 활동 보상 실행.
 
   * 보상 실행 주체. 일반적으로 Playnomm
@@ -1122,33 +1137,30 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 * DaoState: GroupID => DaoInfo
   * DaoInfo
     * Moderators: Set[AccountName]
-* AccountActivityState: (Instant, Account) => Map[ActivityName, DaoActivity]
-  * DaoActivity
-    * Weight (음수 가능)
-    * Count
-* TokenReceivedState: (Instant, TokenId) => Map[ActivityName, DaoActivity]
-* AccountSnapshotState: (Account) => Map[ActivityName, ActivitySnapshot]
+* AccountActivityState: (Instant, Account) => Map[(ActivityName, Weight), Count]
+* TokenReceivedState: (Instant, TokenId) => Map[(ActivityName, Weight), Count]
+* AccountSnapshotState: (Account) => Map[(ActivityName, Weight), ActivitySnapshot]
   * ActivitySnapshot
     * account
     * from: Instant
     * to: Instant
-    * name 활동명
-    * weight (음수 가능)
-    * count
-
-* TokenSnapshotState: (TokenId) => Map[ActivityName, ActivitySnapshot]
+    * point 포인트. weight와 count의 곱을 합산한 값
+    * definitionId 보상받을 토큰 종류. 일반적으론 LM
+    * amount 보상량
+    * backlog: Set[TxHash] 해당 카운트의 근거 RecordActivity의 집합
+* TokenSnapshotState: (TokenId) => Map[(ActivityName, Weight), ActivitySnapshot]
 * OwnershipSnapshotState: (TokenId) => OwnershipSnapshot
   * OwnershipSnapshot
     * account
-    * score
-
-* AccountRewardedState: (Account) => Map[ActivityName, ActivityRewardLog]
+    * timestamp 기준 시점
+    * point 포인트. 일반적으론 해당 NFT의 Rarity 점수
+    * definitionId 보상받을 토큰 종류. 일반적으론 LM
+    * amount 보상량
+* AccountRewardedState: (Account) => Map[(ActivityName, Weight), ActivityRewardLog]
   * ActivityRewardLog
     * ActivitySnapshot
     * ExecuteReward  TxHash
-
-* TokenRewardedState: (TokenId) => Map[ActivityName, ActivityRewardLog]
-
+* TokenRewardedState: (TokenId) => Map[(ActivityName, Weight), ActivityRewardLog]
 * OwnershipRewardedState: (TokenId) => OwnershipRewardLog
   * OwnershipRewardLog
     * OwnershipShapshot
