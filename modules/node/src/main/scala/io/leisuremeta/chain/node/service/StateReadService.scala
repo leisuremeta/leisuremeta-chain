@@ -6,9 +6,12 @@ import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.syntax.bifunctor.*
 import cats.syntax.eq.given
+import cats.syntax.either.*
 import cats.syntax.functor.*
 import cats.syntax.flatMap.*
 import cats.syntax.traverse.*
+
+import fs2.Stream
 
 import GossipDomain.MerkleState
 import api.{LeisureMetaChainApi as Api}
@@ -25,7 +28,7 @@ import api.model.TransactionWithResult.ops.*
 import api.model.account.EthAddress
 import api.model.api_model.{
   AccountInfo,
-  ActivityLog,
+  ActivityInfo,
   BalanceInfo,
   GroupInfo,
   NftBalanceInfo,
@@ -44,11 +47,16 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
-import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
+import repository.{
+  BlockRepository,
+  GenericStateRepository,
+  TransactionRepository,
+}
 import GenericStateRepository.given
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.BurnFungibleTokenResult
 
 import io.leisuremeta.chain.node.dapp.PlayNommState
+import scodec.bits.ByteVector
 object StateReadService:
   def getAccountInfo[F[_]
     : Concurrent: BlockRepository: GenericStateRepository.AccountState](
@@ -609,7 +617,8 @@ object StateReadService:
       case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
   yield balanceTxList.foldLeft(Map.empty)(_ ++ _)
 
-  def getToken[F[_]: Concurrent: BlockRepository: GenericStateRepository.TokenState](
+  def getToken[F[_]
+    : Concurrent: BlockRepository: GenericStateRepository.TokenState](
       tokenId: TokenId,
   ): EitherT[F, String, Option[NftState]] = for
     bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
@@ -620,7 +629,8 @@ object StateReadService:
       .runA(merkleState.token.nftState)
   yield nftStateOption
 
-  def getOwners[F[_]: Concurrent: BlockRepository: GenericStateRepository.TokenState](
+  def getOwners[F[_]
+    : Concurrent: BlockRepository: GenericStateRepository.TokenState](
       tokenDefinitionId: TokenDefinitionId,
   ): EitherT[F, String, Map[TokenId, Account]] = for
     bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
@@ -663,4 +673,34 @@ object StateReadService:
 
   def getAccountActivity[F[_]: Concurrent: BlockRepository: PlayNommState](
       account: Account,
-  ): EitherT[F, Either[String, String], Seq[ActivityLog]] = ???
+  ): EitherT[F, Either[String, String], Seq[ActivityInfo]] =
+
+    val program = PlayNommState[F].reward.accountActivity
+      .from(account.toBytes)
+      .map{ stream => stream
+        .takeWhile(_._1._1 === account)
+        .flatMap{
+          case ((account, instant), logs) =>
+            Stream.emits(logs.map{ log =>
+              ActivityInfo(
+                account = account,
+                timestamp = instant,
+                point = log.point,
+                description = log.description,
+                txHash = log.txHash,
+              )
+            })
+        }
+        .compile.toList
+      }
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      infos <- infosEitherT.leftMap(_.asLeft[String])
+    yield infos.toSeq

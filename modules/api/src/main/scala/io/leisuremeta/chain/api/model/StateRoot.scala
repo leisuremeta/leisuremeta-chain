@@ -6,12 +6,14 @@ import java.time.Instant
 import cats.Eq
 
 import lib.crypto.Hash
-import lib.merkle.GenericMerkleTrieNode.MerkleRoot
+import lib.merkle.GenericMerkleTrieNode.{MerkleRoot => GenericMerkleRoot}
+import lib.merkle.MerkleTrieNode.MerkleRoot
 import account.EthAddress
 import reward.*
 import token.*
 
 final case class StateRoot(
+    main: Option[MerkleRoot],
     account: StateRoot.AccountStateRoot,
     group: StateRoot.GroupStateRoot,
     token: StateRoot.TokenStateRoot,
@@ -21,56 +23,57 @@ final case class StateRoot(
 object StateRoot:
 
   def empty: StateRoot = StateRoot(
+    main = None,
     account = StateRoot.AccountStateRoot.empty,
     group = StateRoot.GroupStateRoot.empty,
     token = StateRoot.TokenStateRoot.empty,
     reward = StateRoot.RewardStateRoot.empty,
   )
   case class AccountStateRoot(
-      namesRoot: Option[MerkleRoot[Account, AccountData]],
+      namesRoot: Option[GenericMerkleRoot[Account, AccountData]],
       keyRoot: Option[
-        MerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
+        GenericMerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
       ],
-      ethRoot: Option[MerkleRoot[EthAddress, Account]]
+      ethRoot: Option[GenericMerkleRoot[EthAddress, Account]]
   )
   object AccountStateRoot:
     def empty: AccountStateRoot = AccountStateRoot(None, None, None)
 
   case class GroupStateRoot(
-      groupRoot: Option[MerkleRoot[GroupId, GroupData]],
-      groupAccountRoot: Option[MerkleRoot[(GroupId, Account), Unit]],
+      groupRoot: Option[GenericMerkleRoot[GroupId, GroupData]],
+      groupAccountRoot: Option[GenericMerkleRoot[(GroupId, Account), Unit]],
   )
   object GroupStateRoot:
     def empty: GroupStateRoot = GroupStateRoot(None, None)
 
   case class TokenStateRoot(
       tokenDefinitionRoot: Option[
-        MerkleRoot[TokenDefinitionId, TokenDefinition],
+        GenericMerkleRoot[TokenDefinitionId, TokenDefinition],
       ],
-      fungibleBalanceRoot: Option[MerkleRoot[
+      fungibleBalanceRoot: Option[GenericMerkleRoot[
         (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
         Unit,
       ]],
       nftBalanceRoot: Option[
-        MerkleRoot[(Account, TokenId, Hash.Value[TransactionWithResult]), Unit],
+        GenericMerkleRoot[(Account, TokenId, Hash.Value[TransactionWithResult]), Unit],
       ],
-      nftRoot: Option[MerkleRoot[TokenId, NftState]],
-      rarityRoot: Option[MerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
-      entrustFungibleBalanceRoot: Option[MerkleRoot[
+      nftRoot: Option[GenericMerkleRoot[TokenId, NftState]],
+      rarityRoot: Option[GenericMerkleRoot[(TokenDefinitionId, Rarity, TokenId), Unit]],
+      entrustFungibleBalanceRoot: Option[GenericMerkleRoot[
         (Account, Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
         Unit,
       ]],
       entrustNftBalanceRoot: Option[
-        MerkleRoot[(Account, Account, TokenId, Hash.Value[TransactionWithResult]), Unit],
+        GenericMerkleRoot[(Account, Account, TokenId, Hash.Value[TransactionWithResult]), Unit],
       ],
   )
   object TokenStateRoot:
     def empty: TokenStateRoot = TokenStateRoot(None, None, None, None, None, None, None)
 
   case class RewardStateRoot(
-      dao: Option[MerkleRoot[GroupId, DaoInfo]],
-      userActivity: Option[MerkleRoot[(Instant, Account), DaoActivity]],
-      tokenReceived: Option[MerkleRoot[(Instant, TokenId), DaoActivity]],
+      dao: Option[GenericMerkleRoot[GroupId, DaoInfo]],
+      userActivity: Option[GenericMerkleRoot[(Instant, Account), DaoActivity]],
+      tokenReceived: Option[GenericMerkleRoot[(Instant, TokenId), DaoActivity]],
   )
   object RewardStateRoot:
     def empty: RewardStateRoot = RewardStateRoot(None, None, None)

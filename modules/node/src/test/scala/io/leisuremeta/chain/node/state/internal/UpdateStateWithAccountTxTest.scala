@@ -25,7 +25,7 @@ import lib.crypto.CryptoOps
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
-import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
+import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState, MerkleTrieState}
 import lib.failure.DecodingFailure
 import repository.GenericStateRepository
 import repository.GenericStateRepository.{*, given}
@@ -81,6 +81,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       val signedTx = Signed(sig = accountSig, value = tx)
 
       val baseState = GossipDomain.MerkleState(
+        main = MerkleTrieState.empty,
         account = GossipDomain.MerkleState.AccountMerkleState
           .from(StateRoot.AccountStateRoot.empty),
         group = GossipDomain.MerkleState.GroupMerkleState
@@ -171,6 +172,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       )
 
       val baseState = GossipDomain.MerkleState(
+        main = MerkleTrieState.empty,
         account = GossipDomain.MerkleState.AccountMerkleState
           .from(StateRoot.AccountStateRoot.empty),
         group = GossipDomain.MerkleState.GroupMerkleState

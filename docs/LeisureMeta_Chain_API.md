@@ -1083,14 +1083,14 @@ Merkle Trie로 관리되는 블록체인 내부 상태들. 키가 사전식으�
 * DaoState: GroupID => DaoInfo
   * DaoInfo
     * Moderators: Set[AccountName]
-* AccountActivityState: (Instant, Account) => Seq[ActivityLog]
+* AccountActivityState: (Account, Instant) => Seq[ActivityLog]
   * ActivityLog
     * account 포인트를 획득한 계정
     * point 총 점수
     * description 묘사
     * txHash 근거가 되는 RecordActivity 트랜잭션 해시값
 
-* TokenReceivedState: (Instant, TokenId) => Seq[ActivityLog]
+* TokenReceivedState: (TokenId, Instant) => Seq[ActivityLog]
 * AccountSnapshotState: (Account) => ActivitySnapshot
   * ActivitySnapshot
     * account
