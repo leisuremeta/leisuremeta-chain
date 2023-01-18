@@ -27,8 +27,8 @@ import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.failure.DecodingFailure
-import repository.StateRepository
-import repository.StateRepository.{*, given}
+import repository.GenericStateRepository
+import repository.GenericStateRepository.{*, given}
 
 import hedgehog.munit.HedgehogSuite
 import hedgehog.*
@@ -48,8 +48,8 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
         scribe.info(s"===> test kv store: remove($key): current: $_map")
         IO(_map.remove(key))
 
-  given testStateRepo[K, V]: StateRepository[IO, K, V] =
-    StateRepository.fromStores[IO, K, V]
+  given testStateRepo[K, V]: GenericStateRepository[IO, K, V] =
+    GenericStateRepository.fromStores[IO, K, V]
 
   test("create account") {
     withMunitAssertions { assertions =>

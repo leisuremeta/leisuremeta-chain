@@ -13,13 +13,13 @@ import cats.implicits.*
 import api.model.{Block, Signed}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Signature
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
 import service.{BlockService, StateService}
 
 //import LocalGossipServiceInterpreter._
 
 class LocalGossipServiceInterpreter[F[_]
-  : Async: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState: TransactionRepository: BlockRepository](
+  : Async: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: BlockRepository](
     localGossipRef: Ref[F, GossipDomain.LocalGossip],
     lock: Semaphore[F],
     params: GossipDomain.GossipParams,
@@ -193,7 +193,7 @@ class LocalGossipServiceInterpreter[F[_]
 
 object LocalGossipServiceInterpreter:
   def build[F[_]
-    : Async: Concurrent: StateRepository.AccountState: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState: TransactionRepository: BlockRepository](
+    : Async: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: BlockRepository](
       bestConfirmedBlock: Block,
       params: GossipDomain.GossipParams,
   ): F[LocalGossipService[F]] = for

@@ -12,11 +12,11 @@ import cats.syntax.traverse.*
 import api.model.{Block, Signed, Transaction, TransactionWithResult}
 import api.model.TransactionWithResult.ops.*
 import api.model.api_model.TxInfo
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
 
 object TransactionService:
   def submit[F[_]
-    : Monad: Clock: BlockRepository: LocalGossipService: StateRepository.AccountState](
+    : Monad: Clock: BlockRepository: LocalGossipService: GenericStateRepository.AccountState](
       txs: Seq[Signed.Tx],
   ): EitherT[F, String, Seq[Signed.TxHash]] =
     scribe.info(

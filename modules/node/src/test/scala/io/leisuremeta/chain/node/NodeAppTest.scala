@@ -27,7 +27,7 @@ import lib.datatype.{BigNat, UInt256, Utf8}
 import lib.failure.DecodingFailure
 import lib.merkle.{GenericMerkleTrieNode, GenericMerkleTrieState}
 import lib.merkle.GenericMerkleTrieNode.MerkleRoot
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
 import service.LocalGossipService
 import service.interpreter.LocalGossipServiceInterpreter
 
@@ -145,8 +145,8 @@ genesis {
       map += transaction.toHash -> transaction
     }
 
-  given testStateRepo[K, V]: StateRepository[IO, K, V] =
-    StateRepository.fromStores[IO, K, V]
+  given testStateRepo[K, V]: GenericStateRepository[IO, K, V] =
+    GenericStateRepository.fromStores[IO, K, V]
 
   given LocalGossipService[IO] = LocalGossipServiceInterpreter
     .build[IO](

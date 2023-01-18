@@ -25,12 +25,12 @@ import lib.merkle.GenericMerkleTrie
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.Utf8
-import repository.StateRepository
-import repository.StateRepository.given
+import repository.GenericStateRepository
+import repository.GenericStateRepository.given
 
 trait UpdateStateWithGroupTx:
 
-  given updateStateWithGroupTx[F[_]: Concurrent: StateRepository.GroupState]
+  given updateStateWithGroupTx[F[_]: Concurrent: GenericStateRepository.GroupState]
       : UpdateState[F, Transaction.GroupTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.GroupTx) =>
       tx match

@@ -1,7 +1,6 @@
 package io.leisuremeta.chain
 package node
 package dapp
-package appstate
 
 import cats.Monad
 

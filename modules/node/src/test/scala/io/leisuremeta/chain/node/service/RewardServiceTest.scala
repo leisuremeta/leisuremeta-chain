@@ -12,7 +12,7 @@ import cats.effect.*
 import cats.effect.unsafe.implicits.global
 
 import lib.failure.DecodingFailure
-import repository.StateRepository
+import repository.GenericStateRepository
 
 import hedgehog.*
 import hedgehog.munit.HedgehogSuite
@@ -32,8 +32,8 @@ class RewardServiceTest extends HedgehogSuite:
 //        scribe.info(s"===> test kv store: remove($key): current: $_map")
 //        IO(_map.remove(key))
 //
-//  given testStateRepo[K, V]: StateRepository[IO, K, V] =
-//    StateRepository.fromStores[IO, K, V]
+//  given testStateRepo[K, V]: GenericStateRepository[IO, K, V] =
+//    GenericStateRepository.fromStores[IO, K, V]
 //
 //  test("getLatestRewardInstantBefore") {
 //    withMunitAssertions { assertions =>

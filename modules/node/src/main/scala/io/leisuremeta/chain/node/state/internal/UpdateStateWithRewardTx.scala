@@ -37,14 +37,14 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import repository.{BlockRepository, StateRepository, TransactionRepository}
-import repository.StateRepository.given
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
+import repository.GenericStateRepository.given
 import service.{RewardService, StateReadService}
 
 trait UpdateStateWithRewardTx:
 
   given updateStateWithRewardTx[F[_]
-    : Concurrent: BlockRepository: TransactionRepository: StateRepository.GroupState: StateRepository.TokenState: StateRepository.RewardState]
+    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState]
       : UpdateState[F, Transaction.RewardTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.RewardTx) =>
       tx match
@@ -174,7 +174,7 @@ trait UpdateStateWithRewardTx:
 //          )
 
   def getBalance[F[_]
-    : Concurrent: TransactionRepository: StateRepository.TokenState](
+    : Concurrent: TransactionRepository: GenericStateRepository.TokenState](
       account: Account,
       tokenDef: TokenDefinitionId,
       ms: MerkleState,
@@ -273,7 +273,7 @@ trait UpdateStateWithRewardTx:
       (amountList.foldLeft(BigNat.Zero)(_ + _), txHashList)
 
   def getRarityItem[F[_]
-    : Concurrent: StateRepository.TokenState: StateRepository.RewardState](
+    : Concurrent: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
       state: GossipDomain.MerkleState.TokenMerkleState,
   ): EitherT[F, String, Map[Account, BigNat]] =
     for
@@ -344,7 +344,7 @@ trait UpdateStateWithRewardTx:
   type BalanceKey =
     (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
 
-  def updateBalanceWithReward[F[_]: cats.Monad: StateRepository.TokenState](
+  def updateBalanceWithReward[F[_]: cats.Monad: GenericStateRepository.TokenState](
       sourceAccount: Account,
       tokenDef: TokenDefinitionId,
       utxos: List[Hash.Value[TransactionWithResult]],

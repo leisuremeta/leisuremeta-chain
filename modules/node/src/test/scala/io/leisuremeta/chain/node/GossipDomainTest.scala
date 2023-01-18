@@ -29,7 +29,7 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.{BigNat, Utf8}
 import lib.failure.DecodingFailure
-import repository.{BlockRepository, StateRepository, TransactionRepository}
+import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
 import service.StateService
 import store.{KeyValueStore, SingleValueStore, StoreIndex}
 
@@ -116,8 +116,8 @@ class GossipDomainTest extends HedgehogSuite:
 
     given sStore[A]: SingleValueStore[IO, A] =
       SingleValueStore.fromKeyValueStore[IO, A]
-    given stateRepo[K, V]: StateRepository[IO, K, V] =
-      StateRepository.fromStores[IO, K, V]
+    given stateRepo[K, V]: GenericStateRepository[IO, K, V] =
+      GenericStateRepository.fromStores[IO, K, V]
     given blockRepo: BlockRepository[IO] =
       BlockRepository.fromStores[IO]
     given txRepo: TransactionRepository[IO] =
