@@ -29,3 +29,24 @@ node_modules
 .parcel-cache
 dist
 .env
+
+########## lm-frontend -- start
+# target
+**/target
+
+# .files 
+.vscode
+**/.bloop
+**/.bloop
+**/.bsp
+**/.metals
+**/.js
+**/.jvm
+
+# metals
+**/metals.sbt
+
+# ignore underbar files and folders
+**/_*
+
+########## lm-frontend -- end
