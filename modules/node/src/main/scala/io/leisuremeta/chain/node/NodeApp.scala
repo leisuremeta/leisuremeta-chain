@@ -203,6 +203,15 @@ final case class NodeApp[F[_]
       .value
   }
 
+  def getTokenActivityServerEndpoint = Api.getTokenActivityEndpoint.serverLogic{
+    (tokenId: TokenId) =>
+      StateReadService.getTokenActivity(tokenId).leftMap {
+        case Right(msg) => Right(Api.BadRequest(msg))
+        case Left(msg) => Left(Api.ServerError(msg))
+      }
+      .value
+  }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -286,6 +295,7 @@ final case class NodeApp[F[_]
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,
+    getTokenActivityServerEndpoint,
 //    getRewardServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,

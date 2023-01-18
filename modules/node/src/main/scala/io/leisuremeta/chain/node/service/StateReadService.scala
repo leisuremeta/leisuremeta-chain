@@ -704,3 +704,7 @@ object StateReadService:
       infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
       infos <- infosEitherT.leftMap(_.asLeft[String])
     yield infos.toSeq
+
+  def getTokenActivity[F[_]: Concurrent: BlockRepository: PlayNommState](
+      tokenId: TokenId,
+  ): EitherT[F, Either[String, String], Seq[ActivityInfo]] = ???
