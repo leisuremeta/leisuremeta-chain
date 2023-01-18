@@ -208,4 +208,8 @@ object ByteDecoder:
 
   given setByteDecoder[A: ByteDecoder]: ByteDecoder[Set[A]] =
     bignatByteDecoder flatMap sizedListDecoder[A] map (_.toSet)
-  
+
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
+  given seqByteDecoder[A: ByteDecoder]: ByteDecoder[Seq[A]] =
+    bignatByteDecoder flatMap sizedListDecoder[A] map (_.asInstanceOf[Seq[A]])
+    

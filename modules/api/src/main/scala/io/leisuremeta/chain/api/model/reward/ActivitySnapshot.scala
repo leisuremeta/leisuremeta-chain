@@ -5,13 +5,14 @@ package reward
 import java.time.Instant
 
 import lib.datatype.{BigNat, Utf8}
+import token.TokenDefinitionId
 
 final case class ActivitySnapshot(
     account: Account,
     from: Instant,
     to: Instant,
-    name: Utf8,
-    weight: BigInt,
-    count: BigNat,
+    point: BigInt,
+    definitionId: TokenDefinitionId,
+    amount: BigNat,
     backlogs: Set[Signed.TxHash],
 )

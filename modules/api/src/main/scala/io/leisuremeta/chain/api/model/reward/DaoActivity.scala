@@ -6,11 +6,11 @@ import cats.Monoid
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 
-import lib.datatype.{BigNat, Utf8}
+import lib.datatype.Utf8
 
 final case class DaoActivity(
-    weight: BigInt,
-    count: BigNat,
+    point: BigInt,
+    description: Utf8,
 )
 
 object DaoActivity:

@@ -5,6 +5,6 @@ package reward
 import lib.crypto.Hash
 
 final case class OwnershipRewardLog(
-    activitySnapshot: OwnershipSnapshot,
+    ownershipSnapshot: OwnershipSnapshot,
     txHash: Hash.Value[TransactionWithResult],
 )

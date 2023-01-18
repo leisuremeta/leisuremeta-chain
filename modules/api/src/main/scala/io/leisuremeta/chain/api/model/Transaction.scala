@@ -333,8 +333,8 @@ object Transaction:
         networkId: NetworkId,
         createdAt: Instant,
         timestamp: Instant,
-        userActivity: Map[Account, Map[Utf8, DaoActivity]],
-        tokenReceived: Map[TokenId, Map[Utf8, DaoActivity]],
+        userActivity: Map[Account, Seq[DaoActivity]],
+        tokenReceived: Map[TokenId, Seq[DaoActivity]],
     ) extends RewardTx
 
     final case class BuildSnapshot(

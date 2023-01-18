@@ -23,14 +23,14 @@ object PlayNommState:
 
   case class Reward[F[_]](
       dao: DAppState[F, GroupId, DaoInfo],
-      accountActivity: DAppState[F, (Instant, Account), Map[Utf8, DaoActivity]],
-      tokenReceived: DAppState[F, (Instant, TokenId), Map[Utf8, DaoActivity]],
-      accountSnapshot: DAppState[F, Account, Map[Utf8, ActivitySnapshot]],
-      tokenSnapshot: DAppState[F, TokenId, Map[Utf8, ActivitySnapshot]],
+      accountActivity: DAppState[F, (Instant, Account), Seq[ActivityLog]],
+      tokenReceived: DAppState[F, (Instant, TokenId), Seq[ActivityLog]],
+      accountSnapshot: DAppState[F, Account, ActivitySnapshot],
+      tokenSnapshot: DAppState[F, TokenId, ActivitySnapshot],
       ownershipSnapshot: DAppState[F, TokenId, OwnershipSnapshot],
-      accountRewarded: DAppState[F, Account, Map[Utf8, ActivityRewardLog]],
-      tokenRewarded: DAppState[F, TokenId, Map[Utf8, ActivityRewardLog]],
-      ownershipRewarded: DAppState[F, TokenId, Map[Utf8, OwnershipRewardLog]],
+      accountRewarded: DAppState[F, Account, ActivityRewardLog],
+      tokenRewarded: DAppState[F, TokenId, ActivityRewardLog],
+      ownershipRewarded: DAppState[F, TokenId, OwnershipRewardLog],
   )
 
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =

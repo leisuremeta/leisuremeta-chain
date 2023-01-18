@@ -56,22 +56,22 @@ object JvmClientMain extends IOApp:
     createdAt = java.time.Instant.parse("2023-01-10T18:01:00.00Z"),
     timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
     userActivity = Map(
-      bob -> Map(
-        like -> DaoActivity(BigInt(1), BigNat.unsafeFromLong(3)),
+      bob -> Seq(
+        DaoActivity(BigInt(3), like),
       ),
-      carol -> Map(
-        like -> DaoActivity(BigInt(1), BigNat.unsafeFromLong(3)),
+      carol -> Seq(
+        DaoActivity(BigInt(3), like),
       ),
     ),
     tokenReceived = Map(
-      TokenId(Utf8.unsafeFrom("text-20230109-0000")) -> Map(
-        like -> DaoActivity(BigInt(1), BigNat.unsafeFromLong(2)),
+      TokenId(Utf8.unsafeFrom("text-20230109-0000")) -> Seq(
+        DaoActivity(BigInt(2), like),
       ),
-      TokenId(Utf8.unsafeFrom("text-20230109-0001")) -> Map(
-        like -> DaoActivity(BigInt(1), BigNat.unsafeFromLong(2)),
+      TokenId(Utf8.unsafeFrom("text-20230109-0001")) -> Seq(
+        DaoActivity(BigInt(2), like),
       ),
-      TokenId(Utf8.unsafeFrom("text-20230109-0002")) -> Map(
-        like -> DaoActivity(BigInt(1), BigNat.unsafeFromLong(2)),
+      TokenId(Utf8.unsafeFrom("text-20230109-0002")) -> Seq(
+        DaoActivity(BigInt(2), like),
       ),
     ),
   )

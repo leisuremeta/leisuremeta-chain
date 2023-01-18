@@ -50,9 +50,10 @@ object ByteEncoder:
       beb: ByteEncoder[m.MirroredElemTypes],
   ): ByteEncoder[P] = beb contramap Tuple.fromProductTyped
 
-  private inline def summonAll[T <: Tuple]: List[ByteEncoder[_]] = inline erasedValue[T] match
-    case _: EmptyTuple => Nil
-    case _: (t *: ts)  => summonInline[ByteEncoder[t]] :: summonAll[ts]
+  private inline def summonAll[T <: Tuple]: List[ByteEncoder[?]] =
+    inline erasedValue[T] match
+      case _: EmptyTuple => Nil
+      case _: (t *: ts)  => summonInline[ByteEncoder[t]] :: summonAll[ts]
 
   inline given sumEncoder[S](using s: Mirror.SumOf[S]): ByteEncoder[S] =
     lazy val elemInstances = summonAll[s.MirroredElemTypes]
@@ -62,7 +63,6 @@ object ByteEncoder:
       bignatByteEncoder.encode(unsafeFromBigInt(ordinal)) ++ elemInstances(
         ordinal,
       ).asInstanceOf[ByteEncoder[S]].encode(sv)
-
 
   given unitByteEncoder: ByteEncoder[Unit] = _ => ByteVector.empty
 
@@ -86,9 +86,9 @@ object ByteEncoder:
         ) ++ sizeBytes ++ bytes
 
   @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf"))
-  given bigintByteEncoder: ByteEncoder[BigInt] = ByteEncoder[BigNat].contramap{
+  given bigintByteEncoder: ByteEncoder[BigInt] = ByteEncoder[BigNat].contramap {
     case n if n >= 0 => (n * 2).asInstanceOf[BigNat]
-    case n => (n * (-2) + 1).asInstanceOf[BigNat]
+    case n           => (n * (-2) + 1).asInstanceOf[BigNat]
   }
 
   given listByteEncoder[A: ByteEncoder]: ByteEncoder[List[A]] =
@@ -111,3 +111,9 @@ object ByteEncoder:
       .foldLeft {
         bignatByteEncoder.encode(unsafeFromBigInt(set.size))
       }(_ ++ _)
+
+  given seqByteEncoder[A: ByteEncoder]: ByteEncoder[Seq[A]] =
+    (seq: Seq[A]) =>
+      seq.foldLeft(bignatByteEncoder.encode(unsafeFromBigInt(seq.size))) {
+        case (acc, a) => acc ++ ByteEncoder[A].encode(a)
+      }
