@@ -758,4 +758,16 @@ object StateReadService:
 
   def getTokenSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
       tokenId: TokenId,
-  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] = ???
+  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] = 
+
+    val program = PlayNommState[F].reward.tokenSnapshot.get(tokenId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+    yield snapshotOption
