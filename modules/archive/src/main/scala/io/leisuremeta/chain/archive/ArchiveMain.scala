@@ -45,7 +45,7 @@ object ArchiveMain extends IOApp:
 
 //  val baseUri = "http://test.chain.leisuremeta.io:8080"
 //  val baseUri = "http://localhost:7080"
-  val baseUri = "http://localhost:8081"
+  val baseUri = "http://localhost:8080"
 
   val archiveFileName = "txs1.archive"
 
@@ -93,6 +93,9 @@ object ArchiveMain extends IOApp:
   def getTransaciton[F[_]: Monad](backend: SttpBackend[F, Any])(txHash: Signed.TxHash): EitherT[F, String, TransactionWithResult] =
     get[F, TransactionWithResult](backend){
       uri"$baseUri/tx/${txHash.toUInt256Bytes.toBytes.toHex}"
+    }.leftMap{ msg =>
+      scribe.error(s"error msg: $msg")
+      msg
     }
 
   def getBlock[F[_]: Monad](backend: SttpBackend[F, Any])(blockHash: Block.BlockHash): EitherT[F, String, PBlock] =
@@ -108,6 +111,7 @@ object ArchiveMain extends IOApp:
   def loop[F[_]: Monad](backend: SttpBackend[F, Any])(next: Block.BlockHash, genesis: Block.BlockHash, count: Long)(run: Set[Signed.TxHash] => EitherT[F, String, Unit]): EitherT[F, String, Long] =
     for
       block <- getBlock[F](backend)(next)
+      _ <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
       _ <- run(block.transactionHashes)
       count1 <- loop[F](backend)(block.header.parentHash, genesis, count + 1)(run)
     yield count1
@@ -116,30 +120,30 @@ object ArchiveMain extends IOApp:
     for _ <- ArmeriaCatsBackend.resource[IO](
       SttpBackendOptions.Default.connectionTimeout(10.minutes)
     ).use { backend => {
-//        for
-//          status <- getStatus[IO](backend)
-//          block <- getBlock[IO](backend)(status.bestHash)
-//          count <- loop[IO](backend)(status.bestHash, status.genesisHash, 0){ txSet =>
-//            for
-//              txs <- txSet.toList.traverse{ getTransaciton[IO](backend) }
-//              _ <- EitherT.right(logTxs(txs.map(_.signedTx).asJson.noSpaces + "\n"))
-//            yield ()
-//          }
-//        yield
-//          println(s"total number of block: count")
+        for
+          status <- getStatus[IO](backend)
+          block <- getBlock[IO](backend)(status.bestHash)
+          count <- loop[IO](backend)(status.bestHash, status.genesisHash, 0){ txSet =>
+            for
+              txs <- txSet.toList.traverse{ getTransaciton[IO](backend) }
+              _ <- EitherT.right(logTxs(txs.map(_.signedTx).asJson.noSpaces + "\n"))
+            yield ()
+          }
+        yield
+          println(s"total number of block: $count")
 
-        val from = 0
-        val to = 1000000
-        Source.fromFile(archiveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
-          (line, i) =>
-//            println(s"$i: $line")
-            put[IO](backend)(uri"$baseUri/tx")(line).recover{
-              case msg: String =>
-                println(s"Error: $msg")
-                println(s"Error Request: $line")
-                Nil
-            }
-        }
+//        val from = 0
+//        val to = 1000000
+//        Source.fromFile(archiveFileName).getLines.to(LazyList).zipWithIndex.take(to).drop(from).traverse{
+//          (line, i) =>
+////            println(s"$i: $line")
+//            put[IO](backend)(uri"$baseUri/tx")(line).recover{
+//              case msg: String =>
+//                println(s"Error: $msg")
+//                println(s"Error Request: $line")
+//                Nil
+//            }
+//        }
       }.value
     }
     yield ExitCode.Success
