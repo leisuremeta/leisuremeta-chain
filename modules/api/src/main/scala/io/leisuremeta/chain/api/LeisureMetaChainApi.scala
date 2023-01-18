@@ -201,6 +201,12 @@ object LeisureMetaChainApi:
       .out(jsonBody[Seq[ActivityInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenActivityEndpoint =
+    baseEndpoint.get
+      .in("activity" / "token" / path[TokenId])
+      .out(jsonBody[Seq[ActivityInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getRewardEndpoint =
     baseEndpoint.get
       .in("reward" / 
