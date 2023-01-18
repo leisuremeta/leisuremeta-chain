@@ -707,4 +707,34 @@ object StateReadService:
 
   def getTokenActivity[F[_]: Concurrent: BlockRepository: PlayNommState](
       tokenId: TokenId,
-  ): EitherT[F, Either[String, String], Seq[ActivityInfo]] = ???
+  ): EitherT[F, Either[String, String], Seq[ActivityInfo]] =
+
+    val program = PlayNommState[F].reward.tokenReceived
+      .from(tokenId.toBytes)
+      .map{ stream => stream
+        .takeWhile(_._1._1 === tokenId)
+        .flatMap{
+          case ((tokenId, instant), logs) =>
+            Stream.emits(logs.map{ log =>
+              ActivityInfo(
+                account = log.account,
+                timestamp = instant,
+                point = log.point,
+                description = log.description,
+                txHash = log.txHash,
+              )
+            })
+        }
+        .compile.toList
+      }
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      infos <- infosEitherT.leftMap(_.asLeft[String])
+    yield infos.toSeq
