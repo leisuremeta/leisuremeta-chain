@@ -774,4 +774,16 @@ object StateReadService:
 
   def getOwnershipSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
       tokenId: TokenId,
-  ): EitherT[F, Either[String, String], Option[OwnershipSnapshot]] = ???
+  ): EitherT[F, Either[String, String], Option[OwnershipSnapshot]] =
+
+    val program = PlayNommState[F].reward.ownershipSnapshot.get(tokenId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+    yield snapshotOption
