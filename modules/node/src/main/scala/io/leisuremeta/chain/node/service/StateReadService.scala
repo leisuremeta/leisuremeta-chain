@@ -33,7 +33,7 @@ import api.model.api_model.{
   GroupInfo,
   NftBalanceInfo,
 }
-import api.model.reward.ActivitySnapshot
+import api.model.reward.{ActivitySnapshot, OwnershipSnapshot}
 import api.model.token.{
   Rarity,
   NftState,
@@ -771,3 +771,7 @@ object StateReadService:
       merkleState = MerkleState.from(bestHeader)
       snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
     yield snapshotOption
+
+  def getOwnershipSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
+      tokenId: TokenId,
+  ): EitherT[F, Either[String, String], Option[OwnershipSnapshot]] = ???

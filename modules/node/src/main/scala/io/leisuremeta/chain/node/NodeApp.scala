@@ -252,6 +252,22 @@ final case class NodeApp[F[_]
         .value
     }
 
+  def getOwnershipSnapshotServerEndpoint =
+    Api.getOwnershipSnapshotEndpoint.serverLogic { (tokenId: TokenId) =>
+      StateReadService
+        .getOwnershipSnapshot(tokenId)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .subflatMap {
+          case Some(snapshot) => Right(snapshot)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot of token $tokenId")))
+        }
+        .value
+    }
+
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -336,6 +352,9 @@ final case class NodeApp[F[_]
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,
     getTokenActivityServerEndpoint,
+    getAccountSnapshotServerEndpoint,
+    getTokenSnapshotServerEndpoint,
+    getOwnershipSnapshotServerEndpoint,
 //    getRewardServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
