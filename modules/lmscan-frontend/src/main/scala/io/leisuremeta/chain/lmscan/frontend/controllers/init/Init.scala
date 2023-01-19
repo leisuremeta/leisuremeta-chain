@@ -3,6 +3,7 @@ import tyrian.*
 import cats.effect.IO
 
 object Init:
-  val page = NavMsg.TransactionDetail
+  val page   = NavMsg.TransactionDetail
+  val toggle = false
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
-    (Model(page, page, ""), Cmd.None)
+    (Model(page, page, "", toggle), Cmd.None)

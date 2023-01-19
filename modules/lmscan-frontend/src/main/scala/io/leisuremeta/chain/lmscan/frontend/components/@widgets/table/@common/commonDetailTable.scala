@@ -132,7 +132,7 @@ object DetailTables:
           ),
           div(
             `class` := s" type-2 pt-16px",
-          )(span(`class` := "")("More")),
+          )(span(`class` := "", onClick(ToggleMsg.Click))("More")),
           div(`class` := "pt-12px x-center")(
             textarea(
               `id` := s"transaction-text-area",

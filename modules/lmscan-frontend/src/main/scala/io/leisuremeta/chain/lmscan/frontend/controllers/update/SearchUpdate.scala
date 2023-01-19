@@ -6,7 +6,7 @@ import tyrian.*
 
 import Log.log
 
-object InputUpdate:
+object SearchUpdate:
   def update(model: Model): InputMsg => (Model, Cmd[IO, Msg]) =
     case InputMsg.Get(s) =>
       (model.copy(searchValue = s), Cmd.None)
