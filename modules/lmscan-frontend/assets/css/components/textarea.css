@@ -1,5 +1,9 @@
 #transaction-text-area{
-    background-color: white;
-    width: 100%;
+    width: 80%;
+    background-color: rgba(55, 55, 55, 0.15);
+    border: 2px solid rgba(0, 128, 0, 0.198);
+    border-radius: 3px;
     height: 200px;
+    font-weight: 700;
+    padding: 30px;
 }
