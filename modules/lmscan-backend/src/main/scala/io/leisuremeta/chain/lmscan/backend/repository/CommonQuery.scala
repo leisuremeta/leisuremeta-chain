@@ -53,7 +53,6 @@ trait CommonQuery:
         yield
           scribe.info(s"Result: $result")
           result
-
       } {
         case e: SQLException =>
           Left(s"sql exception occured: " + e.getMessage())

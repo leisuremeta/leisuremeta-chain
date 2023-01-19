@@ -7,6 +7,8 @@ import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 import io.circe.generic.auto.*
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
+import io.leisuremeta.chain.lmscan.backend.entity.Block
+import io.leisuremeta.chain.lmscan.backend.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.model.AccountDetail
 import io.circe.*
@@ -57,7 +59,7 @@ object ExploreApi:
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
-    .out(jsonBody[Seq[Tx]])
+    .out(jsonBody[PageResponse[Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxDetailEndPoint = baseEndpoint.get
@@ -67,16 +69,13 @@ object ExploreApi:
     .out(jsonBody[Option[Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getBlockPageEndPoint = baseEndPoint.get
+  val getBlockPageEndPoint = baseEndpoint.get
     .in("block" / "list")
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
-    .out(jsonBody[Seq[Tx]])
+    .out(jsonBody[PageResponse[Block]])
 
-<<<<<<< HEAD
-    
-=======
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockDetailEndPoint = baseEndpoint.get
     .in("block")
@@ -90,7 +89,6 @@ object ExploreApi:
     .in(path[String]("accountAddr")) // account address
     .in("detail")
     .out(jsonBody[Option[AccountDetail]])
->>>>>>> 4ef5fe9 (add account detail API interface)
 // object Test extends App:
 //   import io.circe.syntax.*
 //   val intsJson = List(1, 2, 3).asJson
