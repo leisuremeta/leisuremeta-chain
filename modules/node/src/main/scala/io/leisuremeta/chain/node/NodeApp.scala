@@ -20,7 +20,11 @@ import api.model.token.{TokenDefinitionId, TokenId}
 import dapp.PlayNommState
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
-import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
+import repository.{
+  BlockRepository,
+  GenericStateRepository,
+  TransactionRepository,
+}
 import service.{
   LocalGossipService,
   LocalStatusService,
@@ -194,23 +198,75 @@ final case class NodeApp[F[_]
         .value
   }
 
-  def getAccountActivityServerEndpoint = Api.getAccountActivityEndpoint.serverLogic{
-    (account: Account) =>
-      StateReadService.getAccountActivity(account).leftMap {
-        case Right(msg) => Right(Api.BadRequest(msg))
-        case Left(msg) => Left(Api.ServerError(msg))
-      }
-      .value
-  }
+  def getAccountActivityServerEndpoint =
+    Api.getAccountActivityEndpoint.serverLogic { (account: Account) =>
+      StateReadService
+        .getAccountActivity(account)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .value
+    }
 
-  def getTokenActivityServerEndpoint = Api.getTokenActivityEndpoint.serverLogic{
-    (tokenId: TokenId) =>
-      StateReadService.getTokenActivity(tokenId).leftMap {
-        case Right(msg) => Right(Api.BadRequest(msg))
-        case Left(msg) => Left(Api.ServerError(msg))
-      }
-      .value
-  }
+  def getTokenActivityServerEndpoint =
+    Api.getTokenActivityEndpoint.serverLogic { (tokenId: TokenId) =>
+      StateReadService
+        .getTokenActivity(tokenId)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .value
+    }
+
+  def getAccountSnapshotServerEndpoint =
+    Api.getAccountSnapshotEndpoint.serverLogic { (account: Account) =>
+      StateReadService
+        .getAccountSnapshot(account)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .subflatMap {
+          case Some(snapshot) => Right(snapshot)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot of account $account")))
+        }
+        .value
+    }
+
+  def getTokenSnapshotServerEndpoint =
+    Api.getTokenSnapshotEndpoint.serverLogic { (tokenId: TokenId) =>
+      StateReadService
+        .getTokenSnapshot(tokenId)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .subflatMap {
+          case Some(snapshot) => Right(snapshot)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot of token $tokenId")))
+        }
+        .value
+    }
+
+  def getOwnershipSnapshotServerEndpoint =
+    Api.getOwnershipSnapshotEndpoint.serverLogic { (tokenId: TokenId) =>
+      StateReadService
+        .getOwnershipSnapshot(tokenId)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .subflatMap {
+          case Some(snapshot) => Right(snapshot)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot of token $tokenId")))
+        }
+        .value
+    }
 
   def postTxServerEndpoint(using LocalGossipService[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
@@ -261,7 +317,7 @@ final case class NodeApp[F[_]
       scribe.info(s"received postTxHash request: $txs")
       Right(txs.map(_.toHash))
     }
-/*
+  /*
   def getRewardServerEndpoint = Api.getRewardEndpoint.serverLogic {
     (
         account: Account,
@@ -277,7 +333,7 @@ final case class NodeApp[F[_]
           case Right(rewardInfo) => Right(rewardInfo)
         }
   }
-*/
+   */
   def leisuremetaEndpoints(using
       LocalGossipService[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
@@ -296,6 +352,9 @@ final case class NodeApp[F[_]
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,
     getTokenActivityServerEndpoint,
+    getAccountSnapshotServerEndpoint,
+    getTokenSnapshotServerEndpoint,
+    getOwnershipSnapshotServerEndpoint,
 //    getRewardServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,

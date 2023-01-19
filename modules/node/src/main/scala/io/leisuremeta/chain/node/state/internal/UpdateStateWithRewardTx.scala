@@ -127,7 +127,8 @@ trait UpdateStateWithRewardTx:
 //            ),
 //            TransactionWithResult(Signed(sig, ra), None),
 //          )
-        case rgs: Transaction.RewardTx.BuildSnapshot         => ???
+        case rgs: Transaction.RewardTx.BuildSnapshot         =>
+          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
         case rms: Transaction.RewardTx.ExecuteAccountReward  => ???
         case xr: Transaction.RewardTx.ExecuteTokenReward     => ???
         case xr: Transaction.RewardTx.ExecuteOwnershipReward => ???

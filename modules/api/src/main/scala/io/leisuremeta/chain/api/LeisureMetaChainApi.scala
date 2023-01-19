@@ -39,6 +39,7 @@ import api.model.api_model.{
   TxInfo,
 }
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.reward.{ActivitySnapshot, OwnershipSnapshot}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -205,6 +206,24 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("activity" / "token" / path[TokenId])
       .out(jsonBody[Seq[ActivityInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountSnapshotEndpoint =
+    baseEndpoint.get
+      .in("snapshot" / "account" / path[Account])
+      .out(jsonBody[ActivitySnapshot])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenSnapshotEndpoint =
+    baseEndpoint.get
+      .in("snapshot" / "token" / path[TokenId])
+      .out(jsonBody[ActivitySnapshot])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOwnershipSnapshotEndpoint =
+    baseEndpoint.get
+      .in("snapshot" / "ownership" / path[TokenId])
+      .out(jsonBody[OwnershipSnapshot])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getRewardEndpoint =

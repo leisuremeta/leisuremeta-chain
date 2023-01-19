@@ -33,6 +33,7 @@ import api.model.api_model.{
   GroupInfo,
   NftBalanceInfo,
 }
+import api.model.reward.{ActivitySnapshot, OwnershipSnapshot}
 import api.model.token.{
   Rarity,
   NftState,
@@ -677,11 +678,11 @@ object StateReadService:
 
     val program = PlayNommState[F].reward.accountActivity
       .from(account.toBytes)
-      .map{ stream => stream
-        .takeWhile(_._1._1 === account)
-        .flatMap{
-          case ((account, instant), logs) =>
-            Stream.emits(logs.map{ log =>
+      .map { stream =>
+        stream
+          .takeWhile(_._1._1 === account)
+          .flatMap { case ((account, instant), logs) =>
+            Stream.emits(logs.map { log =>
               ActivityInfo(
                 timestamp = instant,
                 point = log.point,
@@ -689,8 +690,9 @@ object StateReadService:
                 txHash = log.txHash,
               )
             })
-        }
-        .compile.toList
+          }
+          .compile
+          .toList
       }
 
     for
@@ -701,7 +703,7 @@ object StateReadService:
         .fromOption[F](bestHeaderOption, Left("No best header"))
       merkleState = MerkleState.from(bestHeader)
       infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
-      infos <- infosEitherT.leftMap(_.asLeft[String])
+      infos        <- infosEitherT.leftMap(_.asLeft[String])
     yield infos.toSeq
 
   def getTokenActivity[F[_]: Concurrent: BlockRepository: PlayNommState](
@@ -710,11 +712,11 @@ object StateReadService:
 
     val program = PlayNommState[F].reward.tokenReceived
       .from(tokenId.toBytes)
-      .map{ stream => stream
-        .takeWhile(_._1._1 === tokenId)
-        .flatMap{
-          case ((tokenId, instant), logs) =>
-            Stream.emits(logs.map{ log =>
+      .map { stream =>
+        stream
+          .takeWhile(_._1._1 === tokenId)
+          .flatMap { case ((tokenId, instant), logs) =>
+            Stream.emits(logs.map { log =>
               ActivityInfo(
                 timestamp = instant,
                 point = log.point,
@@ -722,8 +724,9 @@ object StateReadService:
                 txHash = log.txHash,
               )
             })
-        }
-        .compile.toList
+          }
+          .compile
+          .toList
       }
 
     for
@@ -734,5 +737,53 @@ object StateReadService:
         .fromOption[F](bestHeaderOption, Left("No best header"))
       merkleState = MerkleState.from(bestHeader)
       infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
-      infos <- infosEitherT.leftMap(_.asLeft[String])
+      infos        <- infosEitherT.leftMap(_.asLeft[String])
     yield infos.toSeq
+
+  def getAccountSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
+      account: Account,
+  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] =
+
+    val program = PlayNommState[F].reward.accountSnapshot.get(account)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+    yield snapshotOption
+
+  def getTokenSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
+      tokenId: TokenId,
+  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] = 
+
+    val program = PlayNommState[F].reward.tokenSnapshot.get(tokenId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+    yield snapshotOption
+
+  def getOwnershipSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
+      tokenId: TokenId,
+  ): EitherT[F, Either[String, String], Option[OwnershipSnapshot]] =
+
+    val program = PlayNommState[F].reward.ownershipSnapshot.get(tokenId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+    yield snapshotOption
