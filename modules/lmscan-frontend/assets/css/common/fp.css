@@ -37,6 +37,9 @@
 .gap-10px {
     gap: 10px;
 }
+.gap-20px {
+    gap: 20px;
+}
 
 /* height */
 .h-12px {
@@ -56,6 +59,11 @@
 }
 
 /* padding */
+
+.p-10px {
+    padding: 10px;
+}
+
 .p-12px {
     padding: 12px;
 }
