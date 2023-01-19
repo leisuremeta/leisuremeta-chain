@@ -32,8 +32,8 @@
     align-items: center;
     height: 35px ;
     cursor: pointer;
-    -webkit-transition: all .25s;
-    transition: all .25s;
+    /* -webkit-transition: all .25s; */
+    /* transition: all .25s; */
     
 }
 
