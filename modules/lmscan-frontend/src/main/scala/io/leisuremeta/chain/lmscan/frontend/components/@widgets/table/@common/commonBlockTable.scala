@@ -5,7 +5,7 @@ import tyrian.*
 object Row:
   def title = (model: Model) =>
     div(
-      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
+      `class` := s"${State.curPage(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
     )(
       div(
         `class` := s"type-1 ",
@@ -27,7 +27,7 @@ object Row:
   )
   val search = (model: Model) =>
     div(
-      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_search")} table-search xy-center ",
+      `class` := s"${State.curPage(model, NavMsg.DashBoard: Msg, "_search")} table-search xy-center ",
     )(
       div(`class` := "xy-center")(
         div(`class` := "type-arrow")("<<"),

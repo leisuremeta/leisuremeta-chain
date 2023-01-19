@@ -5,7 +5,7 @@ import tyrian.*
 object Row2:
   def title = (model: Model) =>
     div(
-      `class` := s"${State.css(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
+      `class` := s"${State.curPage(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
     )(
       div(
         `class` := s"type-1",

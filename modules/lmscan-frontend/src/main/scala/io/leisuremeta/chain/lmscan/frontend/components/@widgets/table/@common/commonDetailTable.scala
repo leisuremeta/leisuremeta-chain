@@ -2,6 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
+import _root_.io.circe.Decoder.state
 
 object Text:
   val jsonExample =
@@ -131,11 +132,17 @@ object DetailTables:
             ),
           ),
           div(
-            `class` := s" type-2 pt-16px",
-          )(span(`class` := "", onClick(ToggleMsg.Click))("More")),
+            `class` := s"type-2 pt-16px",
+          )(
+            span(
+              `class` := s"${State.toggle(model, ToggleMsg.Click, "_button")} ",
+              onClick(ToggleMsg.Click),
+            )("More"),
+          ),
           div(`class` := "pt-12px x-center")(
             textarea(
-              `id` := s"transaction-text-area",
+              `id`    := s"transaction-text-area",
+              `class` := s"${State.toggle(model, ToggleMsg.Click, "_textarea")}",
             )(s"${Text.jsonExample}"),
           ),
         )
