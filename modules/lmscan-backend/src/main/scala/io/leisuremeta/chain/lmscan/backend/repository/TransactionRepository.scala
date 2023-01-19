@@ -35,6 +35,7 @@ object TransactionRepository extends CommonQuery:
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
   ): EitherT[F, String, PageResponse[Tx]] =
+    // OFFSET 시작번호, limit 페이지보여줄갯수
     val cntQuery = quote {
       query[Tx]
     }
@@ -103,23 +104,6 @@ object TransactionRepository extends CommonQuery:
       val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
       new PageResponse(totalCnt, totalPages, r)
     }
-
-  // EitherT {
-  //   Async[F].recover {
-  //     for tx <- Async[F]
-  //         .fromFuture(Async[F].delay {
-  //           ctx.run(detailQuery(lift(hash)))
-  //         })
-  //     yield Right(tx.headOption)
-  //   } {
-  //     case e: SQLException =>
-  //       Left(s"sql exception occured: " + e.getMessage())
-  //     case e: Exception => Left(e.getMessage())
-  //   }
-  // }
-
-// inline def run[T](inline quoted: Quoted[Query[T]]): Future[Seq[T]]
-//   = InternalApi.runQueryDefault(quoted)
 
 /*
     처음 10개의 게시글(ROW)를 가져온다.
