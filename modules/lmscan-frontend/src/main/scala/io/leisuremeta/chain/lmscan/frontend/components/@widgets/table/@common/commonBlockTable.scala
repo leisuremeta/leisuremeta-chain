@@ -10,7 +10,11 @@ object Row:
       div(
         `class` := s"type-1 ",
       )(span()("Latest Blocks")),
+      div(
+        `class` := s"type-2",
+      )(span(onClick(NavMsg.Blocks))("More")),
     )
+
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Block")),
     div(`class` := "cell")(span()("Timestamp")),
