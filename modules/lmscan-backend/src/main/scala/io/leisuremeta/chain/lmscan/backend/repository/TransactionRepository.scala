@@ -46,6 +46,7 @@ object TransactionRepository:
         query[Tx].drop(offset).take(limit)
       }
 
+<<<<<<< HEAD
     EitherT {
       Async[F].recover {
         for
@@ -94,6 +95,17 @@ object TransactionRepository:
           Left(s"sql exception occured: " + e.getMessage())
         case e: Exception => Left(e.getMessage())
       }
+=======
+    val res = for
+      a <- countQuery(cntQuery)
+      b <- pageQuery(pagedQuery(lift(pageNavInfo)))
+    yield (a, b)
+
+    res.map { (totalCnt, r) =>
+      val totalPages =
+        Math.ceil(totalCnt.toDouble / pageNavInfo.sizePerRequest).toInt;
+      new PageResponse(totalCnt, totalPages, r)
+>>>>>>> 279f5c4 (add pagingQuery)
     }
 
   def get[F[_]: Async](
