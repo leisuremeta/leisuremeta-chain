@@ -147,6 +147,12 @@ object DetailTables:
           ),
         )
 
+      case NavMsg.Account =>
+        div(`class` := "row")(
+          div(`class` := "cell type-detail-head")("account detail"),
+          div(`class` := "cell type-detail-body")("1234"),
+        )
+
       case _ =>
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Transcation count"),
