@@ -5,9 +5,10 @@ import tyrian.*
 
 object NftView:
   def view(model: Model): Html[Msg] =
-    div(`class` := "pb-32px")(
-      div(`class` := "font-40px pt-16px font-block-detail pb-16px")(
-        "NftView Details",
+    div(`class` := "pb-32px p-16px")(
+      div(`class` := "x gap-32px")(
+        div(`class` := "nft-image")("그림1"),
+        // img(src := "./nft_image.png"),
+        CommonDetailTable.view(model),
       ),
-      div(`class` := "x")(CommonDetailTable.view(model)),
     )

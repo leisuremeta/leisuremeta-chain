@@ -173,6 +173,33 @@ object DetailTables:
           ),
         )
 
+      case NavMsg.Nft =>
+        div(`class` := "y-start gap-10px w-[100%] ")(
+          div()("Light in the Shadows #1"),
+          div(`class` := "x")(
+            div(`class` := "type-TableDetail  table-container")(
+              div(`class` := "table w-[100%] ")(
+                div(`class` := "row")(
+                  div(`class` := "cell type-detail-head ")("Token ID"),
+                  div(`class` := "cell type-detail-body ")(
+                    "2022122110000930000002558",
+                  ),
+                ),
+                div(`class` := "row")(
+                  div(`class` := "cell type-detail-head")("Rarity"),
+                  div(`class` := "cell type-detail-body")("UNIQ"),
+                ),
+                div(`class` := "row")(
+                  div(`class` := "cell type-detail-head")("Owner"),
+                  div(`class` := "cell type-3 type-detail-body")(
+                    "b775871c85faae7eb5f6bcebfd28b1e1b412235c",
+                  ),
+                ),
+              ),
+            ),
+          ),
+        )
+
       case _ =>
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Transcation count"),
