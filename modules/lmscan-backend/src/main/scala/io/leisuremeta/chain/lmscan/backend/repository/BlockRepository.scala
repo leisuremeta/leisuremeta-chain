@@ -5,8 +5,6 @@ import io.leisuremeta.chain.lmscan.backend.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
 import io.leisuremeta.chain.lmscan.backend.entity.Block
 import cats.data.EitherT
-import io.getquill.PostgresJAsyncContext
-import io.getquill.SnakeCase
 import cats.effect.{Async, IO}
 import cats.implicits.*
 import io.getquill.*
