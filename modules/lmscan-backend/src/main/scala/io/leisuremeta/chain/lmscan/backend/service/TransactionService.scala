@@ -2,6 +2,7 @@ package io.leisuremeta.chain.lmscan.backend.service
 
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
+import io.leisuremeta.chain.lmscan.backend.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
 import cats.Functor
 import cats.data.EitherT
@@ -16,8 +17,14 @@ object TransactionService:
   // that makes it easy to compose Eithers and Fs together.
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, Seq[Tx]] =
+  ): EitherT[F, String, PageResponse[Tx]] =
     TransactionRepository.getPage(pageNavInfo)
+
+  def getPageByAccount[F[_]: Async](
+      pageNavInfo: PageNavigation,
+      address: String,
+  )(using ExecutionContext): EitherT[F, String, PageResponse[Tx]] =
+    TransactionRepository.getPageByAccount(pageNavInfo, address)
 
   def get[F[_]: Async](
       hash: String,

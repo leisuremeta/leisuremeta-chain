@@ -1,4 +1,0 @@
-[debug] [lmscanBackend-test] Classpath dependencies List(lmscanCommonJVM)
-[debug] [lmscanBackend-test] Dependencies from configurations List(lmscanBackend)
-[debug] Bloop wrote the configuration of project 'lmscanBackend-test' to '/Users/user/playnomm/source_code/leisuremeta-chain/.bloop/lmscanBackend-test.json'
-[success] Generated .bloop/lmscanBackend-test.json

@@ -22,7 +22,7 @@ import common.LmscanApi
 
 import scala.collection.StringOps
 import io.leisuremeta.ExploreApi
-import io.leisuremeta.chain.lmscan.backend.service.TransactionService
+import io.leisuremeta.chain.lmscan.backend.service.*
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
@@ -35,12 +35,12 @@ object BackendMain extends IOApp:
       ExecutionContext,
   ): ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
-      println(s"pageInfo: $pageInfo")
+      scribe.info(s"txPaging request pageInfo: $pageInfo")
       val result = TransactionService
         .getPage[F](pageInfo)
-        .leftMap { (errorMsg: String) =>
-          println(s"errorMsg: $errorMsg")
-          (ExploreApi.ServerError(errorMsg)).asLeft[ExploreApi.UserError]
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
       // scribe.info(s"received getTxList request: $txHash")
       println(s"result.value: ${result.value}")
@@ -51,10 +51,12 @@ object BackendMain extends IOApp:
       ExecutionContext,
   ): ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
-      println(s"tx_hash: $hash")
+      scribe.info(s"txDetail request hash: $hash")
       val result = TransactionService
         .get(hash)
         .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
       result.value
@@ -64,9 +66,28 @@ object BackendMain extends IOApp:
       ExecutionContext,
   ): ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+      scribe.info(s"blockPaging request pageInfo: $pageInfo")
       val result = BlockService
         .getPage[F](pageInfo)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
 
+  def blockDetail[F[_]: Async](using
+      ExecutionContext,
+  ): ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
+      scribe.info(s"blockDetail request hash: $hash")
+      val result = BlockService
+        .get(hash)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
     }
 
   def accountDetail[F[_]: Async](using
@@ -90,11 +111,8 @@ object BackendMain extends IOApp:
       txPaging[F],
       txDetail[F],
       blockPaging[F],
-<<<<<<< HEAD
-=======
       blockDetail[F],
       accountDetail[F],
->>>>>>> 4ef5fe9 (add account detail API interface)
     )
 
   def getServerResource[F[_]: Async](using
