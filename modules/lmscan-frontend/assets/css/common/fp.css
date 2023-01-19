@@ -1,4 +1,5 @@
-/* display */
+
+/* flex , display */
 .x {
     display: flex;
 }
@@ -22,12 +23,19 @@
 
 .y-start {
     display: flex;
-    align-items: flex-start
+    flex-direction: column 
+
 }
 
 .y-center {
     display: flex;
+    flex-direction: column ;
     align-items: center;
+}
+
+/* flex , gap */
+.gap-10px {
+    gap: 10px;
 }
 
 /* height */
