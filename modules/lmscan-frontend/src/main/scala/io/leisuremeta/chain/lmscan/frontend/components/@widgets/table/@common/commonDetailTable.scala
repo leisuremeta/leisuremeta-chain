@@ -71,16 +71,18 @@ object DetailTables:
             div(`class` := "table w-[100%]")(
               div(`class` := "row")(
                 div(`class` := "cell type-detail-head")("Input"),
-                div(`class` := "cell type-detail-body")("Transaction Hash"),
+                div(`class` := "cell type-detail-body font-bold")(
+                  "Transaction Hash",
+                ),
               ),
               div(`class` := "row")(
-                div(`class` := "cell type-detail-head")("1"),
+                div(`class` := "cell type-detail-body")("1"),
                 div(`class` := "cell type-detail-body")(
                   "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
                 ),
               ),
               div(`class` := "row")(
-                div(`class` := "cell type-detail-head")("2"),
+                div(`class` := "cell type-detail-body")("2"),
                 div(`class` := "cell type-detail-body")(
                   "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
                 ),
@@ -91,7 +93,9 @@ object DetailTables:
             div(`class` := "table w-[100%]")(
               div(`class` := "row")(
                 div(`class` := "cell type-detail-head")("Output"),
-                div(`class` := "cell type-detail-body")("Transaction Hash"),
+                div(`class` := "cell type-detail-body font-bold")(
+                  "Transaction Hash",
+                ),
               ),
               div(`class` := "row")(
                 div(`class` := "cell type-detail-head")("1"),

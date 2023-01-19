@@ -121,3 +121,7 @@
 .font-40px{
     font-size: 40px !important;
 }
+
+.font-bold{
+    font-weight: 700;
+}
