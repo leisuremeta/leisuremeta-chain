@@ -69,6 +69,20 @@ object BackendMain extends IOApp:
 
     }
 
+  def accountDetail[F[_]: Async](using
+      ExecutionContext,
+  ): ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getAccountDetail.serverLogic { (address: String) =>
+      scribe.info(s"accountDetail request address: $address")
+      val result = AccountService
+        .get(address)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
+
   def explorerEndpoints[F[_]: Async](using
       ExecutionContext,
   ): List[ServerEndpoint[Fs2Streams[F], F]] =
@@ -76,6 +90,11 @@ object BackendMain extends IOApp:
       txPaging[F],
       txDetail[F],
       blockPaging[F],
+<<<<<<< HEAD
+=======
+      blockDetail[F],
+      accountDetail[F],
+>>>>>>> 4ef5fe9 (add account detail API interface)
     )
 
   def getServerResource[F[_]: Async](using

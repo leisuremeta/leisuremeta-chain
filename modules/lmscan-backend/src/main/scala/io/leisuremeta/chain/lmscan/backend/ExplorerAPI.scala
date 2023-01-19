@@ -8,6 +8,7 @@ import sttp.tapir.generic.auto.{*, given}
 import io.circe.generic.auto.*
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
+import io.leisuremeta.chain.lmscan.backend.model.AccountDetail
 import io.circe.*
 
 object ExploreApi:
@@ -73,7 +74,23 @@ object ExploreApi:
     )
     .out(jsonBody[Seq[Tx]])
 
+<<<<<<< HEAD
     
+=======
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBlockDetailEndPoint = baseEndpoint.get
+    .in("block")
+    .in(path[String]) // block_hash
+    .in("detail")
+    .out(jsonBody[Option[Block]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountDetail = baseEndpoint.get
+    .in("account")
+    .in(path[String]("accountAddr")) // account address
+    .in("detail")
+    .out(jsonBody[Option[AccountDetail]])
+>>>>>>> 4ef5fe9 (add account detail API interface)
 // object Test extends App:
 //   import io.circe.syntax.*
 //   val intsJson = List(1, 2, 3).asJson
