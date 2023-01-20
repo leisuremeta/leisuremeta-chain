@@ -45,7 +45,7 @@ object Row:
       ),
     )
 
-object CommonBlockTable:
+object BlockTable:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-container ")(
       Row.title(model),

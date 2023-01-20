@@ -13,9 +13,5 @@ object AccountView:
       div(`class` := "font-40px pt-32px font-block-detail pb-16px")(
         "Transaction History",
       ),
-      div(`class` := "table-area")(
-        div(id := "oop-table-blocks", `class` := "table-list x")(
-          CommonTransactionTable.view(model),
-        ),
-      ),
+      CommonTableView.view(model),
     )

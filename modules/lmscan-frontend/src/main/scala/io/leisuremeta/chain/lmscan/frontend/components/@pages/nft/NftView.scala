@@ -11,4 +11,5 @@ object NftView:
         // img(src := "./nft_image.png"),
         CommonDetailTable.view(model),
       ),
+      CommonTableView.view(model),
     )

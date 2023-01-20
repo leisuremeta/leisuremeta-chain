@@ -6,7 +6,7 @@ object InputOutput:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-area")(
       div(id := "oop-table-blocks", `class` := "table-list x")(
-        CommonBlockTable.view(model),
-        CommonTransactionTable.view(model),
+        BlockTable.view(model),
+        TransactionTable.view(model),
       ),
     )

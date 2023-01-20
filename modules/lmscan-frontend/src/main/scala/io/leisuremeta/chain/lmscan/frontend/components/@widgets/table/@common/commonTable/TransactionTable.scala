@@ -37,7 +37,7 @@ object Row2:
     div(`class` := "cell type-3")(span(onClick(NavMsg.Nft))("123,12412123 LM")),
   )
 
-object CommonTransactionTable:
+object TransactionTable:
   def view(model: Model): Html[Msg] =
     div(`class` := "table-container")(
       Row2.title(model),

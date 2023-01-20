@@ -6,5 +6,5 @@ object DashboardView:
   def view(model: Model): Html[Msg] =
     div(`class` := "")(
       BoardView.view(model),
-      TableView.view(model),
+      CommonTableView.view(model),
     )
