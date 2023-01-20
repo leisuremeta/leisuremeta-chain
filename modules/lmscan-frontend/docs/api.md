@@ -5,3 +5,10 @@
 - https://http4s.github.io/http4s-dom/fetch.html
 - https://www.baeldung.com/scala/rest-with-requests-scala
 ```
+
+#### tyrian api example
+
+```md
+https://github.com/PurpleKingdomGames/tyrian/tree/main/examples/http
+https://github.com/PurpleKingdomGames/tyrian/tree/main/examples/http4s-dom
+```
