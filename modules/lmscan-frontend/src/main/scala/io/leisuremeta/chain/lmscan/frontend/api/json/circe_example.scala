@@ -1,6 +1,7 @@
 package io.leisuremeta.chain.lmscan.frontend
-
+import java.util.UUID
 import io.circe.Json
+import io.circe.*
 import io.circe.syntax.*
 
 object Circe:
@@ -26,3 +27,23 @@ object Circe:
     .withFocus(_.mapString(_.reverse))
     .top
     .map(_.noSpaces)
+
+case class Author(name: String, bio: Option[String])
+case class Article(id: UUID, title: String, content: String, author: Author)
+
+object Encoder:
+  val huet = Author("asfas", None)
+//   val author = Author("asfas", None)
+  val article = Article(
+    UUID.randomUUID(),
+    title = "the zipper",
+    content = "the main draw ...",
+    author = huet,
+  )
+  implicit val authorEncoder: Encoder[Author] = author =>
+    Json.obj(
+      "name" -> author.name.asJson,
+      "bio"  -> author.bio.asJson,
+    )
+
+  implicitly[Encoder[Option[Author]]]
