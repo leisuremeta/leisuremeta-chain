@@ -61,30 +61,3 @@
   ]
 }
 ```
-
-`GET` **/tx/{transactionHash}/detail** 특정 트랜잭션 상세정보 조회
-
-> `path param` transactionHash: 트랜잭션 해쉬 값
-
-- Response: Tx
-
-  - hash: 트랜잭션 해쉬 값
-  - txType: 트랜잭션 형태에 따른 구분 (account / group / token / reward)
-  - fromAddr: Tx 발신자 어카운트 주소
-  - toAddr: Tx 수신자 어카운트 주소 목록
-  - amount: Tx에 의해 전송되는 LM
-  - eventTime: 트랜잭션 생성 시간
-  - createdAt: Tx 가 Lmscan Db에 저장된 시간
-
-  ```json
-  {
-    "hash": "7913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2dc",
-    "txType": "account",
-    "fromAddr": "26A463A0ED56A4A97D673A47C254728409C7B002",
-    "toAddr": ["b775871c85faae7eb5f6bcebfd28b1e1b412235c"],
-    "amount": 1.2345678912345679e8,
-    "blockHash": "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
-    "eventTime": 1673939878,
-    "createdAt": 21312412
-  }
-  ```
