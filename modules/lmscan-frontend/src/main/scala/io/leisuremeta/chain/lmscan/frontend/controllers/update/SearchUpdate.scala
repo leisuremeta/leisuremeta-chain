@@ -15,7 +15,10 @@ object SearchUpdate:
         model.copy(
           searchValue = "",
           curPage = model.searchValue match
-            case "1" => NavMsg.DashBoard
+            case "1" =>
+              log(OnApiMsg.getRandomGif("random"))
+              // log(HttpHelper.getRandomGif("cats"))
+              NavMsg.DashBoard
             case "2" => NavMsg.Blocks
             case "3" => NavMsg.Transactions
             case _   => NavMsg.NoPage

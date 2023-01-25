@@ -8,3 +8,4 @@ object Update:
     case navMsg: NavMsg       => NavUpdate.update(model)(navMsg)
     case inputMsg: InputMsg   => SearchUpdate.update(model)(inputMsg)
     case toggleMsg: ToggleMsg => ToggleUpdate.update(model)(toggleMsg)
+    case apiMsg: ApiMsg       => ApiUpdate.update(model)(apiMsg)

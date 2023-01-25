@@ -6,4 +6,4 @@ object Init:
   val page   = NavMsg.Nft
   val toggle = true
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
-    (Model(page, page, "", toggle), Cmd.None)
+    (Model(page, page, "", toggle), OnApiMsg.getRandomGif("random"))
