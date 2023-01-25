@@ -16,7 +16,8 @@ object SearchUpdate:
           searchValue = "",
           curPage = model.searchValue match
             case "1" =>
-              log(OnApiMsg.getRandomGif("random"))
+              // log(OnTxMsg.getTxList("random"))
+              log(OnTxMsg.getTxList("cats"))
               // log(HttpHelper.getRandomGif("cats"))
               NavMsg.DashBoard
             case "2" => NavMsg.Blocks

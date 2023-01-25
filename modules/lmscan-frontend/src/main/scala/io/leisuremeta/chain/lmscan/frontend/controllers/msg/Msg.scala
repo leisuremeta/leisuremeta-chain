@@ -16,3 +16,8 @@ enum ApiMsg extends Msg:
   case Refresh                   extends ApiMsg
   case GetNewGif(result: String) extends ApiMsg
   case GetError(error: String)   extends ApiMsg
+
+enum TxMsg extends Msg:
+  case Refresh                  extends TxMsg
+  case GetNewTx(result: String) extends TxMsg
+  case GetError(error: String)  extends TxMsg
