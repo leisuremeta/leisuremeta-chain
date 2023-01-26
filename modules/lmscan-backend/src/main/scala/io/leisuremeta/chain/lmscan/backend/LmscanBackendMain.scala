@@ -154,7 +154,7 @@ object BackendMain extends IOApp:
           .customiseInterceptors(dispatcher)
           .corsInterceptor(Some {
             CORSInterceptor
-              .customOrThrow[F](CORSConfig.default.allowCredentials)
+              .customOrThrow[F](CORSConfig.default)
           })
           .options
 
