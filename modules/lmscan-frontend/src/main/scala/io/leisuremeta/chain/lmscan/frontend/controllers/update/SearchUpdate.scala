@@ -18,6 +18,20 @@ object SearchUpdate:
             case "1" =>
               // log(OnTxMsg.getTxList("random"))
               log(OnTxMsg.getTxList("cats"))
+              log("EncoderTest.article")
+              log(EncoderTest.article)
+              log("EncoderTest.authorEncoder(EncoderTest.huet)")
+              log(EncoderTest.authorEncoder(EncoderTest.huet))
+              log("DecoderTest")
+              log(DecoderTest.test1)
+              log("DecoderTest2")
+              log(DecoderTest.test2)
+              log("DecoderTest3")
+              log(DecoderTest.test3)
+              log("DecoderTest4")
+              log(DecoderTest.test4)
+              log("sample txlist")
+              log(SampleJson.parseResult)
               // log(HttpHelper.getRandomGif("cats"))
               NavMsg.DashBoard
             case "2" => NavMsg.Blocks
