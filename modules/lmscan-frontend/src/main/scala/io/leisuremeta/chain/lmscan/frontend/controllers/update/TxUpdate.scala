@@ -10,7 +10,7 @@ object TxUpdate:
   def update(model: Model): TxMsg => (Model, Cmd[IO, Msg]) =
     case TxMsg.Refresh =>
       log("ApiUpdate > update > refresh")
-      log((model, OnApiMsg.getRandomGif("random")))
+      log((model, OnTxMsg.getTxList("ran")))
     case TxMsg.GetNewTx(r) =>
       log("모델에서, 새로운 url로 업데이트 하면된다")
       log(r)

@@ -24,6 +24,7 @@ object UnderTxMsg:
           .toRight("wrong json format")
       }
 
+    Log.log("deserialised")
     Log.log(deserialised)
 
     deserialised match
@@ -43,8 +44,8 @@ object OnTxMsg:
     Log.log("getTxList")
     // Log.log(path)
     val url =
-      // s"http://localhost:8081/tx/list?useDataNav=true&pageNo=0&sizePerRequest=10"
-      s"https://dog.ceo/api/breeds/image/random"
-    Http.send(Request.get(url), UnderApiMsg.fromHttpResponse)
+      s"http://localhost:8081/tx/list?useDataNav=true&pageNo=0&sizePerRequest=10"
+      // s"https://dog.ceo/api/breeds/image/random"
+    Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)
 
   def sampleTxList() = ""

@@ -88,18 +88,18 @@ object Row2:
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =
-    Log.log("Row2.body_result()")
-    Log.log(Row2.body_result())
+    // Log.log("Row2.body_result()")
+    // Log.log(Row2.body_result())
     div(`class` := "table-container")(
       Row2.title(model),
       div(`class` := "table w-[100%]")(
         Row2.head,
-        Row2.body_new,
-        Row2.body_new,
-        Row2.body_new,
-        Row2.body_new,
-        Row2.body_new,
-        Row2.body_new,
+        Row2.body_old,
+        Row2.body_old,
+        Row2.body_old,
+        Row2.body_old,
+        Row2.body_old,
+        Row2.body_old,
       ),
       Row.search(model),
     )
