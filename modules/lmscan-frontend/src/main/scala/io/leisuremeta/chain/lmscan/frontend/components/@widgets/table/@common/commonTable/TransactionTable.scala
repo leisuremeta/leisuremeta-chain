@@ -1,7 +1,9 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
-import io.circe.*, io.circe.parser.*
+import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
+import io.circe.syntax.*
+
 object Row2:
 
   def sample_tx = """{
@@ -86,10 +88,23 @@ object Row2:
     )
   def body_result = () => bodyGen(parse(sample_tx).getOrElse(Json.Null))
 
+object TestRow:
+  val intJson = List(1, 2, 3).asJson
+
+case class Foo(a: Int, b: String, c: Boolean)
+
 object TransactionTable:
+
+  implicit val fooDecoder: Decoder[Foo] = deriveDecoder[Foo]
+  implicit val fooEncoder: Encoder[Foo] = deriveEncoder[Foo]
+
   def view(model: Model): Html[Msg] =
-    // Log.log("Row2.body_result()")
-    // Log.log(Row2.body_result())
+    Log.log(TestRow.intJson)
+    Log.log(TestRow.intJson.as[List[Int]])
+    Log.log("fooDecoder")
+    Log.log(fooDecoder)
+    Log.log("fooEncoder")
+    Log.log(fooEncoder)
     div(`class` := "table-container")(
       Row2.title(model),
       div(`class` := "table w-[100%]")(
