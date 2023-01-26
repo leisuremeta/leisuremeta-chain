@@ -28,6 +28,16 @@ import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
 import cats.effect.Async
 import scala.concurrent.ExecutionContext
+import com.linecorp.armeria.server.cors.CorsService
+
+import com.linecorp.armeria.common.HttpMethod;
+import com.linecorp.armeria.server.HttpService;
+import com.linecorp.armeria.server.ServerBuilder;
+import com.linecorp.armeria.server.cors.CorsService;
+import com.linecorp.armeria.server.annotation.Get
+import com.linecorp.armeria.common.HttpResponse
+import com.linecorp.armeria.common.HttpStatus
+import com.linecorp.armeria.server.annotation.decorator.CorsDecorator;
 
 object BackendMain extends IOApp:
 
@@ -118,12 +128,38 @@ object BackendMain extends IOApp:
   def getServerResource[F[_]: Async](using
       ExecutionContext,
   ): Resource[F, Server] =
+
+    val annotatedService = new Object():
+      @Get("/")
+      @CorsDecorator(
+        origins = Array("*"),
+        credentialsAllowed = true,
+        nullOriginAllowed = true,
+        exposedHeaders = Array("expose_header"),
+        allowedRequestMethods = Array(HttpMethod.GET),
+        allowedRequestHeaders = Array("allow_header"),
+        // preflightResponseHeaders = @AdditionalHeader(name = "preflight_header", value = "preflight_value")
+      )
+      def get(): HttpResponse =
+        return HttpResponse.of(HttpStatus.OK);
+
+      // @Post("/post")
+      // // In case you want to allow any origin (*):
+      // @CorsDecorator(origins = "*", exposedHeaders = "expose_header")
+      // // You can not add a policy after adding the decorator allowing any origin (*).
+      // public HttpResponse post() {
+      //     return HttpResponse.of(HttpStatus.OK)
+      // }
+    ;
+
+    // R decorate(Function<? super HttpService, R> decorator) {
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(Async[F].async_[Server] { cb =>
         val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
           .toService(explorerEndpoints[F])
         val server = Server.builder
+          .annotatedService(annotatedService)
           .http(8081)
           .maxRequestLength(128 * 1024 * 1024)
           .requestTimeout(java.time.Duration.ofSeconds(30))
