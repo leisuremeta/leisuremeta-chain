@@ -34,6 +34,7 @@ val V = new {
   val pgEmbedded    = "1.0.1"
   val quill         = "4.5.0"
   val postgres      = "42.5.1"
+  val aws           = "1.12.392"
 }
 
 val Dependencies = new {
@@ -182,6 +183,8 @@ val Dependencies = new {
       "io.getquill"             %% "quill-jasync-postgres" % V.quill,
       "org.postgresql"           % "postgresql"            % V.postgres,
       "com.opentable.components" % "otj-pg-embedded"       % V.pgEmbedded,
+      "com.amazonaws"            % "aws-java-sdk-s3"       % V.aws,
+      "com.amazonaws"            % "aws-java-sdk-bom"      % V.aws,
     ),
   )
 }

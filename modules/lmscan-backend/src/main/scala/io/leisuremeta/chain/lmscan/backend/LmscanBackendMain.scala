@@ -120,6 +120,20 @@ object BackendMain extends IOApp:
       result.value
     }
 
+  def nftDetail[F[_]: Async](using
+      ExecutionContext,
+  ): ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getNftDetail.serverLogic { (tokenId: String) =>
+      scribe.info(s"nftDetail request tokenId: $tokenId")
+      val result = NftService
+        .getNftDetail(tokenId)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
+
   def explorerEndpoints[F[_]: Async](using
       ExecutionContext,
   ): List[ServerEndpoint[Fs2Streams[F], F]] =

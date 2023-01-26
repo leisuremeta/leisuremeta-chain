@@ -6,7 +6,6 @@ import cats.effect.kernel.Async
 import scala.concurrent.ExecutionContext
 import cats.data.EitherT
 import io.getquill.*
-import io.getquill.Literal
 
 object AccountRepository extends CommonQuery:
   import ctx.{*, given}
