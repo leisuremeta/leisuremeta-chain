@@ -38,7 +38,13 @@ import com.linecorp.armeria.server.annotation.Get
 import com.linecorp.armeria.common.HttpResponse
 import com.linecorp.armeria.common.HttpStatus
 import com.linecorp.armeria.server.annotation.decorator.CorsDecorator;
+import com.linecorp.armeria.server.DecoratingHttpServiceFunction
+import sttp.tapir.server.armeria.TapirService
+import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
+import sttp.tapir.server.interceptor.cors.CORSInterceptor
+import sttp.tapir.server.interceptor.cors.CORSConfig
 
+@CorsDecorator(origins = Array("*"), credentialsAllowed = true)
 object BackendMain extends IOApp:
 
   def txPaging[F[_]: Async](using
@@ -129,37 +135,33 @@ object BackendMain extends IOApp:
       ExecutionContext,
   ): Resource[F, Server] =
 
-    val annotatedService = new Object():
-      @Get("/")
-      @CorsDecorator(
-        origins = Array("*"),
-        credentialsAllowed = true,
-        nullOriginAllowed = true,
-        exposedHeaders = Array("expose_header"),
-        allowedRequestMethods = Array(HttpMethod.GET),
-        allowedRequestHeaders = Array("allow_header"),
-        // preflightResponseHeaders = @AdditionalHeader(name = "preflight_header", value = "preflight_value")
-      )
-      def get(): HttpResponse =
-        return HttpResponse.of(HttpStatus.OK);
+    def corsService =
+      CorsService
+        .builder("*")
+        .allowCredentials()
+        .allowNullOrigin() // 'Origin: null' will be accepted.
+        .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
+        .allowRequestHeaders("allow_request_header")
+        .exposeHeaders("expose_header_1", "expose_header_2")
+        .preflightResponseHeader("x-preflight-cors", "Hello CORS")
+        .newDecorator();
 
-      // @Post("/post")
-      // // In case you want to allow any origin (*):
-      // @CorsDecorator(origins = "*", exposedHeaders = "expose_header")
-      // // You can not add a policy after adding the decorator allowing any origin (*).
-      // public HttpResponse post() {
-      //     return HttpResponse.of(HttpStatus.OK)
-      // }
-    ;
-
-    // R decorate(Function<? super HttpService, R> decorator) {
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(Async[F].async_[Server] { cb =>
-        val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
+
+        val options = ArmeriaCatsServerOptions
+          .customiseInterceptors(dispatcher)
+          .corsInterceptor(Some {
+            CORSInterceptor
+              .customOrThrow[F](CORSConfig.default.allowCredentials)
+          })
+          .options
+
+        val tapirService = ArmeriaCatsServerInterpreter[F](options)
           .toService(explorerEndpoints[F])
         val server = Server.builder
-          .annotatedService(annotatedService)
+          .annotatedService(tapirService)
           .http(8081)
           .maxRequestLength(128 * 1024 * 1024)
           .requestTimeout(java.time.Duration.ofSeconds(30))
