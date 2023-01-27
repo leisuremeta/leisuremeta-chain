@@ -21,7 +21,7 @@ object AccountService:
       account <- AccountRepository.get(address)
       txPage <- TransactionService.getPageByAccount(
         address,
-        new PageNavigation(true, 0, 20),
+        new PageNavigation(0, 20),
       )
     yield (account, txPage)
 

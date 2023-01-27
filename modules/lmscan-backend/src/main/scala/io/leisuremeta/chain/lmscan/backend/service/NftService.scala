@@ -22,7 +22,7 @@ object NftService:
     for
       page <- NftRepository.getPageByTokenId(
         tokenId,
-        new PageNavigation(true, 0, 10),
+        new PageNavigation(0, 10),
       )
       activities = page.payload.map(nft =>
         NftActivity(

@@ -7,10 +7,7 @@ import io.getquill.ast.PropertyOrdering
 import io.getquill.ast.Asc
 import io.getquill.ast.Desc
 
-// @endpointInput("tx/list")
 case class PageNavigation(
-    @query
-    useDataNav: Boolean,
     @query
     pageNo: Int,
     @query
