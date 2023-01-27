@@ -31,6 +31,10 @@ val V = new {
   val jsSha3        = "0.8.0"
   val elliptic      = "6.5.4"
   val typesElliptic = "6.4.12"
+
+  val pgEmbedded = "1.0.1"
+  val flywayCore = "9.11.0"
+  val postgresql = "42.2.14"
 }
 
 val Dependencies = new {
@@ -124,7 +128,9 @@ val Dependencies = new {
 
   lazy val tests = Def.settings(
     libraryDependencies ++= Seq(
-      "qa.hedgehog" %%% "hedgehog-munit" % V.hedgehog % Test,
+      "qa.hedgehog"               %%% "hedgehog-munit"  % V.hedgehog % Test,
+      "com.opentable.components"  % "otj-pg-embedded"   % V.pgEmbedded % Test,
+      "org.flywaydb"              % "flyway-core"       % V.flywayCore,
     ),
     Test / fork := true,
   )
@@ -164,11 +170,12 @@ val Dependencies = new {
 
   lazy val lmscanBackend = Seq(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
-      "com.softwaremill.sttp.tapir" %% "tapir-json-circe"          % V.tapir,
-      "com.outr"                    %% "scribe-slf4j"              % V.scribe,
-      "com.outr"                    %% "scribe-cats"               % V.scribe,
-      "com.typesafe" % "config" % V.typesafeConfig,
+      "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats"  % V.tapir,
+      "com.softwaremill.sttp.tapir" %% "tapir-json-circe"           % V.tapir,
+      "com.outr"                    %% "scribe-slf4j"               % V.scribe,
+      "com.outr"                    %% "scribe-cats"                % V.scribe,
+      "com.typesafe"                % "config"                      % V.typesafeConfig,
+      "org.postgresql"              % "postgresql"                  % V.postgresql,
     ),
   )
 }
@@ -191,6 +198,7 @@ lazy val root = (project in file("."))
     lmscanCommon.jvm,
     lmscanCommon.js,
     lmscanFrontend,
+    lmscanBackend
   )
 
 lazy val node = (project in file("modules/node"))
@@ -345,6 +353,7 @@ lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
   .dependsOn(lmscanCommon.js)
 
 lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
+  .enablePlugins(FlywayPlugin)
   .settings(Dependencies.lmscanBackend)
   .settings(Dependencies.tests)
   .settings(
@@ -358,4 +367,11 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
         oldStrategy(x)
     },
   )
+  .settings(
+    flywayUrl := Settings.flywaySettings.url,
+    flywayUser := Settings.flywaySettings.user,
+    flywayPassword := Settings.flywaySettings.pwd,
+    flywaySchemas := Settings.flywaySettings.schemas,
+    flywayLocations ++= Settings.flywaySettings.locations,
+  )  
   .dependsOn(lmscanCommon.jvm)
