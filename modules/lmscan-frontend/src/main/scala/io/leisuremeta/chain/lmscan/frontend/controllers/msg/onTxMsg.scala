@@ -10,34 +10,23 @@ import Log.*
 
 object UnderTxMsg:
   private val onResponse: Response => Msg = response =>
-    log("json")
-    val json = response.body
+    // 1. json:
+    // String => Json => Decode[TxList]
 
-    // log(json)
-    // log(json.asJson)
-    // log(json.asJson.hcursor)
-    // log(CustomDecoder.txDecoder(json.asJson.hcursor))
-
-    val parsed = parse(json) match
+    val json = log(response.body) // String
+    val parsed = log(parse(json) match // Json
       case Right(r) => Right(r)
-      case Left(l)  => Left(l.message)
-
-    log("parsed")
+      case Left(l)  => Left(l.message),
+    )
+    val parsed_TxList = log("parsed_TxList")
 
     val deserialised =
-      parsed.flatMap { json =>
-        // json.as[TxList]
+      log(parsed.flatMap { json =>
         json.hcursor
           .get[String]("msg")
-          // json.hcursor
-          //   .downField("data")
-          //   .get[String]("message")
           .toOption
           .toRight("wrong json format")
-      }
-
-    log("deserialised")
-    log(deserialised)
+      })
 
     deserialised match
       case Left(e)  => TxMsg.GetError(e)
