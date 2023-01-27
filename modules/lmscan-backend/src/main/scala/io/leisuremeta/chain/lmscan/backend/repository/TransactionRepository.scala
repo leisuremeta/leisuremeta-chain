@@ -72,8 +72,8 @@ object TransactionRepository extends CommonQuery:
     optionQuery(detailQuery(lift(hash)))
 
   def getPageByAccount[F[_]: Async](
-      pageNavInfo: PageNavigation,
       addr: String,
+      pageNavInfo: PageNavigation,
   )(using ExecutionContext): EitherT[F, String, PageResponse[Tx]] =
     val cntQuery = quote {
       query[Tx]

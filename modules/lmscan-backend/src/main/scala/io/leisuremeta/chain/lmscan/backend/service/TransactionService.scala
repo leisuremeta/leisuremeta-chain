@@ -21,10 +21,10 @@ object TransactionService:
     TransactionRepository.getPage(pageNavInfo)
 
   def getPageByAccount[F[_]: Async](
-      pageNavInfo: PageNavigation,
       address: String,
+      pageNavInfo: PageNavigation,
   )(using ExecutionContext): EitherT[F, String, PageResponse[Tx]] =
-    TransactionRepository.getPageByAccount(pageNavInfo, address)
+    TransactionRepository.getPageByAccount(address, pageNavInfo)
 
   def get[F[_]: Async](
       hash: String,

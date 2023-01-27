@@ -20,16 +20,15 @@ object AccountService:
     val res = for
       account <- AccountRepository.get(address)
       txPage <- TransactionService.getPageByAccount(
-        new PageNavigation(true, 0, 20),
         address,
+        new PageNavigation(true, 0, 20),
       )
     yield (account, txPage)
 
     res.map { (accountOpt, page) =>
       accountOpt match
         case Some(x) => {
-          val detail = new AccountDetail(x)
-          detail.txHistory = page.payload
+          val detail = new AccountDetail(x, page.payload)
           Some(detail)
         }
         case None => {

@@ -6,7 +6,7 @@ final case class AccountDetail(
     address: String,
     balance: Double,
     value: Double,
-    var txHistory: Seq[Tx],
+    txHistory: Seq[Tx],
 ):
-  def this(acc: Account) =
-    this(acc.address, acc.balance, acc.amount, null)
+  def this(acc: Account, txHist: Seq[Tx]) =
+    this(acc.address, acc.balance, acc.amount, txHist)

@@ -143,6 +143,7 @@ object BackendMain extends IOApp:
       blockPaging[F],
       blockDetail[F],
       accountDetail[F],
+      nftDetail[F],
     )
 
   def getServerResource[F[_]: Async](using
@@ -157,7 +158,7 @@ object BackendMain extends IOApp:
         .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
         .allowRequestHeaders("allow_request_header")
         .exposeHeaders("expose_header_1", "expose_header_2")
-        .preflightResponseHeader("x-preflight-cors", "Hello CORS")
+        .preflightResponseHeader("x-preflight-cors", "CORS")
         .newDecorator();
 
     for
