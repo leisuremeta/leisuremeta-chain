@@ -17,6 +17,9 @@ object SearchUpdate:
           curPage = model.searchValue match
             case "1" =>
               log(OnTxMsg.getTxList("random"))
+              log(SampleJson.TxList)
+              log(SampleJson.Tx)
+              // log(Parser.txDecoder(SampleJson.Tx))
               // log(OnTxMsg.getTxList("cats"))
               NavMsg.DashBoard
             case "2" => NavMsg.Blocks
