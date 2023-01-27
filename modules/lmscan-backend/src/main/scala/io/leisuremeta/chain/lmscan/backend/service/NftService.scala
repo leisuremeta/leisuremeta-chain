@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.lmscan.backend.service
 
 import cats.effect.kernel.Async
-import scala.concurrent.ExecutionContext
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.entity.Nft
 import io.leisuremeta.chain.lmscan.backend.model.NftActivity
@@ -18,7 +17,7 @@ object NftService:
 
   def getNftDetail[F[_]: Async](
       tokenId: String, // tokenId
-  )(using ExecutionContext): EitherT[F, String, Option[NftDetail]] =
+  ): EitherT[F, String, Option[NftDetail]] =
     for
       page <- NftRepository.getPageByTokenId(
         tokenId,

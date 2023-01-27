@@ -9,7 +9,6 @@ import cats.effect.{Async, IO}
 import cats.implicits.*
 import io.getquill.*
 import io.getquill.Literal
-import scala.concurrent.ExecutionContext
 import java.sql.SQLException
 
 object BlockRepository extends CommonQuery:
@@ -47,7 +46,7 @@ object BlockRepository extends CommonQuery:
 
   def get[F[_]: Async](
       hash: String,
-  )(using ExecutionContext): EitherT[F, String, Option[Block]] =
+  ): EitherT[F, String, Option[Block]] =
     inline def detailQuery =
       quote { (hash: String) =>
         query[Block].filter(b => b.hash == hash).take(1)

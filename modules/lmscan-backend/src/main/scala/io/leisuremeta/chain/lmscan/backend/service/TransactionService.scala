@@ -9,7 +9,6 @@ import cats.data.EitherT
 import cats.Monad
 import eu.timepit.refined.boolean.False
 import cats.effect.Async
-import scala.concurrent.ExecutionContext
 
 object TransactionService:
 
@@ -23,10 +22,10 @@ object TransactionService:
   def getPageByAccount[F[_]: Async](
       address: String,
       pageNavInfo: PageNavigation,
-  )(using ExecutionContext): EitherT[F, String, PageResponse[Tx]] =
+  ): EitherT[F, String, PageResponse[Tx]] =
     TransactionRepository.getPageByAccount(address, pageNavInfo)
 
   def get[F[_]: Async](
       hash: String,
-  )(using ExecutionContext): EitherT[F, String, Option[Tx]] =
+  ): EitherT[F, String, Option[Tx]] =
     TransactionRepository.get(hash)

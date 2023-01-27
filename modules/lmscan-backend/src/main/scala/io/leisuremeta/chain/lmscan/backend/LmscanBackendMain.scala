@@ -27,7 +27,6 @@ import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
 import cats.effect.Async
-import scala.concurrent.ExecutionContext
 import com.linecorp.armeria.server.cors.CorsService
 
 import com.linecorp.armeria.common.HttpMethod;
@@ -46,9 +45,7 @@ import sttp.tapir.server.interceptor.cors.CORSConfig
 
 object BackendMain extends IOApp:
 
-  def txPaging[F[_]: Async](using
-      ExecutionContext,
-  ): ServerEndpoint[Fs2Streams[F], F] =
+  def txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       scribe.info(s"txPaging request pageInfo: $pageInfo")
       val result = TransactionService
@@ -61,9 +58,7 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def txDetail[F[_]: Async](using
-      ExecutionContext,
-  ): ServerEndpoint[Fs2Streams[F], F] =
+  def txDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
       scribe.info(s"txDetail request hash: $hash")
       val result = TransactionService
@@ -76,9 +71,7 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def blockPaging[F[_]: Async](using
-      ExecutionContext,
-  ): ServerEndpoint[Fs2Streams[F], F] =
+  def blockPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       scribe.info(s"blockPaging request pageInfo: $pageInfo")
       val result = BlockService
@@ -90,9 +83,7 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def blockDetail[F[_]: Async](using
-      ExecutionContext,
-  ): ServerEndpoint[Fs2Streams[F], F] =
+  def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
       scribe.info(s"blockDetail request hash: $hash")
       val result = BlockService
@@ -104,9 +95,7 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def accountDetail[F[_]: Async](using
-      ExecutionContext,
-  ): ServerEndpoint[Fs2Streams[F], F] =
+  def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getAccountDetail.serverLogic { (address: String) =>
       scribe.info(s"accountDetail request address: $address")
       val result = AccountService
@@ -118,9 +107,7 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def nftDetail[F[_]: Async](using
-      ExecutionContext,
-  ): ServerEndpoint[Fs2Streams[F], F] =
+  def nftDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getNftDetail.serverLogic { (tokenId: String) =>
       scribe.info(s"nftDetail request tokenId: $tokenId")
       val result = NftService
@@ -132,9 +119,7 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def explorerEndpoints[F[_]: Async](using
-      ExecutionContext,
-  ): List[ServerEndpoint[Fs2Streams[F], F]] =
+  def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       txPaging[F],
       txDetail[F],
@@ -144,9 +129,7 @@ object BackendMain extends IOApp:
       nftDetail[F],
     )
 
-  def getServerResource[F[_]: Async](using
-      ExecutionContext,
-  ): Resource[F, Server] =
+  def getServerResource[F[_]: Async]: Resource[F, Server] =
 
     def corsService =
       CorsService
@@ -195,8 +178,6 @@ object BackendMain extends IOApp:
   override def run(
       args: List[String],
   ): IO[ExitCode] =
-    implicit val ec: scala.concurrent.ExecutionContext =
-      scala.concurrent.ExecutionContext.global
 
     val program: Resource[IO, Server] =
       for server <- getServerResource[IO]

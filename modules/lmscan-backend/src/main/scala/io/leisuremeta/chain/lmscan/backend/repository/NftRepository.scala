@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.backend.repository
 
 import cats.effect.kernel.Async
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
-import scala.concurrent.ExecutionContext
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.model.PageResponse
 import io.getquill.*
@@ -15,7 +14,7 @@ object NftRepository extends CommonQuery:
   def getPageByTokenId[F[_]: Async](
       tokenId: String,
       pageNavInfo: PageNavigation,
-  )(using ExecutionContext): EitherT[F, String, PageResponse[Nft]] =
+  ): EitherT[F, String, PageResponse[Nft]] =
     val cntQuery = quote {
       query[Nft]
     }

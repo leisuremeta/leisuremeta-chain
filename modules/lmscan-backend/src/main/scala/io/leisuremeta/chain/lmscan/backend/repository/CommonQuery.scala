@@ -65,7 +65,9 @@ trait CommonQuery:
   ): EitherT[F, String, Option[T]] =
     EitherT {
       Async[F].recover {
-        for detail <- Async[F]
+        for
+          given ExecutionContext <- Async[F].executionContext
+          detail <- Async[F]
             .fromFuture(Async[F].delay {
               ctx.run(query)
             })

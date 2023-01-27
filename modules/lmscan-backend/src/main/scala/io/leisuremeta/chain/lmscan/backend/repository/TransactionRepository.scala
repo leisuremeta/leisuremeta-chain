@@ -10,12 +10,8 @@ import io.getquill.PostgresJAsyncContext
 import io.getquill.SnakeCase
 import io.getquill.*
 import io.getquill.Literal
-
 import cats.effect.{Async, IO}
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.global
-import java.sql.SQLException
-import scala.concurrent.ExecutionContext
 
 trait TransactionRepository[F[_]]:
   def getPage(
@@ -63,7 +59,7 @@ object TransactionRepository extends CommonQuery:
 
   def get[F[_]: Async](
       hash: String,
-  )(using ExecutionContext): EitherT[F, String, Option[Tx]] =
+  ): EitherT[F, String, Option[Tx]] =
     inline def detailQuery =
       quote { (hash: String) =>
         query[Tx].filter(tx => tx.hash == hash).take(1)
@@ -74,7 +70,7 @@ object TransactionRepository extends CommonQuery:
   def getPageByAccount[F[_]: Async](
       addr: String,
       pageNavInfo: PageNavigation,
-  )(using ExecutionContext): EitherT[F, String, PageResponse[Tx]] =
+  ): EitherT[F, String, PageResponse[Tx]] =
     val cntQuery = quote {
       query[Tx]
     }
