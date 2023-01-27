@@ -18,7 +18,8 @@ object UnderTxMsg:
       case Right(r) => Right(r)
       case Left(l)  => Left(l.message),
     )
-    val parsed_TxList = log("parsed_TxList")
+    // val parsed_TxList = log("parsed_TxList")
+    // val parsed_TxList = decode[TxList](json)
 
     val deserialised =
       log(parsed.flatMap { json =>
