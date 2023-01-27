@@ -34,6 +34,8 @@ val V = new {
   val pgEmbedded    = "1.0.1"
   val quill         = "4.5.0"
   val postgres      = "42.5.1"
+
+  val flywayCore = "9.11.0"
 }
 
 val Dependencies = new {
