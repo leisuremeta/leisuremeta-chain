@@ -199,8 +199,11 @@ val Dependencies = new {
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
       "org.web3j"    % "core"         % V.web3J,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
-      "org.typelevel" %% "cats-effect" % V.catsEffect,
+      "org.typelevel" %% "cats-effect"           % V.catsEffect,
+      "io.getquill"   %% "quill-jasync-postgres" % V.quill,
+      "org.postgresql" % "postgresql"            % V.postgres,
     ),
   )
 }
