@@ -35,24 +35,3 @@ object NftService:
       )
       nftFile <- NftFileRepository.get(tokenId)
     yield Some(NftDetail(nftFile, activities))
-
-    // page.sss
-    // var z = new NftDetail()
-
-  // def getPageByTokenId[F[_]: Async](
-  //     tokenId: String, // tokenId
-  // )(using ExecutionContext): EitherT[F, String, Option[NftDetail]] =
-  //   val res =
-  //     for
-  //       nft <- NftRepository.getPageByTokenId(
-  //         tokenId,
-  //         new PageNavigation(true, 0, 10),
-  //       )
-  //       x <- nft.payload.traverse { (n: Nft) => toActivity(n) }
-  //               .right()
-  //     yield x
-
-  //   res
-
-  // def toActivity(nft: Nft): Either[String, NftActivity] =
-  //   Either.right(

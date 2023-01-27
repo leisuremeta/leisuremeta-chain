@@ -44,7 +44,6 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
 
-@CorsDecorator(origins = Array("*"), credentialsAllowed = true)
 object BackendMain extends IOApp:
 
   def txPaging[F[_]: Async](using
@@ -58,7 +57,6 @@ object BackendMain extends IOApp:
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
-      // scribe.info(s"received getTxList request: $txHash")
       println(s"result.value: ${result.value}")
       result.value
     }

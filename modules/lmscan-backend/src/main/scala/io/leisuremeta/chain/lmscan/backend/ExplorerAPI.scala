@@ -98,7 +98,3 @@ object ExploreApi:
     .in(path[String]("tokenId")) // token_id
     .in("detail")
     .out(jsonBody[Option[NftDetail]])
-// object Test extends App:
-//   import io.circe.syntax.*
-//   val intsJson = List(1, 2, 3).asJson
-//   println(intsJson)
