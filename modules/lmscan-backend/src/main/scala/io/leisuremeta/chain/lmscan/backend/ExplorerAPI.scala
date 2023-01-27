@@ -11,6 +11,8 @@ import io.leisuremeta.chain.lmscan.backend.entity.Block
 import io.leisuremeta.chain.lmscan.backend.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.model.AccountDetail
+import io.leisuremeta.chain.lmscan.backend.model.NftDetail
+
 import io.circe.*
 
 object ExploreApi:
@@ -86,9 +88,16 @@ object ExploreApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountDetail = baseEndpoint.get
     .in("account")
-    .in(path[String]("accountAddr")) // account address
+    .in(path[String]("accountAddr")) // account_address
     .in("detail")
     .out(jsonBody[Option[AccountDetail]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftDetail = baseEndpoint.get
+    .in("nft")
+    .in(path[String]("tokenId")) // token_id
+    .in("detail")
+    .out(jsonBody[Option[NftDetail]])
 // object Test extends App:
 //   import io.circe.syntax.*
 //   val intsJson = List(1, 2, 3).asJson
