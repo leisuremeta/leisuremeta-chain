@@ -12,6 +12,7 @@ import io.leisuremeta.chain.lmscan.backend.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.model.AccountDetail
 import io.leisuremeta.chain.lmscan.backend.model.NftDetail
+import io.leisuremeta.chain.lmscan.backend.model.{TxDetail, TxInfo}
 
 import io.circe.*
 
@@ -65,14 +66,14 @@ object ExploreApi:
       query[Option[String]]("accountAddr")
         .and(query[Option[String]]("blockHash")),
     )
-    .out(jsonBody[PageResponse[Tx]])
+    .out(jsonBody[PageResponse[TxInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxDetailEndPoint = baseEndpoint.get
     .in("tx")
     .in(path[String]) // tx_hash
     .in("detail")
-    .out(jsonBody[Option[Tx]])
+    .out(jsonBody[Option[TxDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockPageEndPoint = baseEndpoint.get
@@ -90,17 +91,6 @@ object ExploreApi:
     .out(jsonBody[Option[Block]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTxPageByBlockEndPoint = baseEndpoint.get
-    .in("block")
-    .in(path[String]) // block_hash
-    .in("detail")
-    .in("txs")
-    .in(
-      sttp.tapir.EndpointInput.derived[PageNavigation],
-    )
-    .out(jsonBody[PageResponse[Tx]])
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountDetail = baseEndpoint.get
     .in("account")
     .in(path[String]("accountAddr")) // account_address
@@ -113,3 +103,14 @@ object ExploreApi:
     .in(path[String]("tokenId")) // token_id
     .in("detail")
     .out(jsonBody[Option[NftDetail]])
+
+  // @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  // val getTxPageByBlockEndPoint = baseEndpoint.get
+  //   .in("block")
+  //   .in(path[String]) // block_hash
+  //   .in("detail")
+  //   .in("txs")
+  //   .in(
+  //     sttp.tapir.EndpointInput.derived[PageNavigation],
+  //   )
+  //   .out(jsonBody[PageResponse[Tx]])
