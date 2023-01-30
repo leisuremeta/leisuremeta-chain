@@ -79,7 +79,6 @@ object TransactionRepository extends CommonQuery:
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
-        // val orderBy        = pageNavInfo.orderBy()
 
         query[Tx]
           .filter(t =>
@@ -100,6 +99,35 @@ object TransactionRepository extends CommonQuery:
       new PageResponse(totalCnt, totalPages, r)
     }
 
+  def getTxPageByBlock[F[_]: Async](
+      blockHash: String,
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[Tx]] =
+    val cntQuery = quote {
+      query[Tx]
+    }
+
+    def pagedQuery =
+      quote { (pageNavInfo: PageNavigation) =>
+        val sizePerRequest = pageNavInfo.sizePerRequest
+        val offset         = sizePerRequest * pageNavInfo.pageNo
+
+        query[Tx]
+          .filter(t => t.blockHash == lift(blockHash))
+          .sortBy(t => t.eventTime)(Ord.desc)
+          .drop(offset)
+          .take(sizePerRequest)
+      }
+
+    val res = for
+      a <- countQuery(cntQuery)
+      b <- seqQuery(pagedQuery(lift(pageNavInfo)))
+    yield (a, b)
+
+    res.map { (totalCnt, r) =>
+      val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
+      new PageResponse(totalCnt, totalPages, r)
+    }
   // EitherT {
   //   Async[F].recover {
   //     for tx <- Async[F]

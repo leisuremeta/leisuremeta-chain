@@ -46,16 +46,22 @@ import sttp.tapir.server.interceptor.cors.CORSConfig
 object BackendMain extends IOApp:
 
   def txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTxPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
-      scribe.info(s"txPaging request pageInfo: $pageInfo")
-      val result = TransactionService
-        .getPage[F](pageInfo)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      println(s"result.value: ${result.value}")
-      result.value
+    ExploreApi.getTxPageEndPoint.serverLogic {
+      (
+          pageInfo,
+          accountAddr,
+          blockHash,
+      ) =>
+        scribe.info(s"txPaging request pageInfo: $pageInfo")
+        val result = TransactionService
+          .getPageByFilter[F](pageInfo, blockHash, accountAddr)
+          .leftMap { (errMsg: String) =>
+            scribe.error(s"errorMsg: $errMsg")
+            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+          }
+
+        println(s"result.value: ${result.value}")
+        result.value
     }
 
   def txDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
@@ -93,6 +99,20 @@ object BackendMain extends IOApp:
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
       result.value
+    }
+
+  def txPageByBlock[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getTxPageByBlockEndPoint.serverLogic {
+      (blockHash: String, pageInfo: PageNavigation) =>
+        scribe.info(s"txPageByBlock request pageInfo: $pageInfo")
+        val result = TransactionService
+          .getPageByBlock[F](blockHash, pageInfo)
+          .leftMap { (errMsg: String) =>
+            scribe.error(s"errorMsg: $errMsg")
+            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+          }
+        println(s"result.value: ${result.value}")
+        result.value
     }
 
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =

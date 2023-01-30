@@ -61,6 +61,10 @@ object ExploreApi:
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
+    .in(
+      query[Option[String]]("accountAddr")
+        .and(query[Option[String]]("blockHash")),
+    )
     .out(jsonBody[PageResponse[Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -84,6 +88,17 @@ object ExploreApi:
     .in(path[String]) // block_hash
     .in("detail")
     .out(jsonBody[Option[Block]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTxPageByBlockEndPoint = baseEndpoint.get
+    .in("block")
+    .in(path[String]) // block_hash
+    .in("detail")
+    .in("txs")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[PageResponse[Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountDetail = baseEndpoint.get
