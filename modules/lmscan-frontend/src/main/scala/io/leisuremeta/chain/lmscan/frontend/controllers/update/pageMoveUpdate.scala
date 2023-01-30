@@ -63,9 +63,10 @@ object PageMoveUpdate:
           val str = model.page_Search
 
           val res = // filter only number like string
-            if !str.forall(Character.isDigit) || str == ""
-            then 1
-            else str.toInt
+            !str.forall(Character.isDigit) || str == "" match
+              case true  => 1
+              case false => str.toInt
+
           log(s"PageMoveMsg.Patch ${str} ${res}")
           (
             model.copy(
@@ -78,9 +79,10 @@ object PageMoveUpdate:
           val str = model.page_Search
 
           val res = // filter only number like string
-            if !str.forall(Character.isDigit) || str == ""
-            then 1
-            else str.toInt
+            !str.forall(Character.isDigit) || str == "" match
+              case true  => 1
+              case false => str.toInt
+
           (
             model.copy(
               block_CurrentPage = res,
@@ -88,4 +90,5 @@ object PageMoveUpdate:
             ),
             Cmd.None,
           )
+
         case _ => (model, Cmd.None)
