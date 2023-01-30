@@ -9,9 +9,7 @@ import scala.concurrent.duration.*
 object LmscanBatchMain extends IOApp:
   def run(args: List[String]): IO[ExitCode] =
     for _ <- ArmeriaCatsBackend
-        .resource[IO](
-          SttpBackendOptions.Default.connectionTimeout(10.minutes),
-        )
+        .resource[IO](SttpBackendOptions.Default)
         .use { backend =>
           ???
           checkLoop()
