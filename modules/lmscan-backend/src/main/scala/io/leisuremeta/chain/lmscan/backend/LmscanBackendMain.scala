@@ -93,7 +93,7 @@ object BackendMain extends IOApp:
     ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
       scribe.info(s"blockDetail request hash: $hash")
       val result = BlockService
-        .get(hash)
+        .getDetail(hash)
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]

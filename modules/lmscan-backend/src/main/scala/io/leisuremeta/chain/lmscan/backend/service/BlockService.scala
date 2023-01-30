@@ -5,15 +5,25 @@ import cats.data.EitherT
 
 import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.model.PageResponse
-import io.leisuremeta.chain.lmscan.backend.model.BlockDetail
+import io.leisuremeta.chain.lmscan.backend.model.{BlockDetail, BlockInfo}
 import io.leisuremeta.chain.lmscan.backend.entity.Block
 import io.leisuremeta.chain.lmscan.backend.repository.BlockRepository
 
 object BlockService:
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[Block]] =
-    BlockRepository.getPage(pageNavInfo)
+  ): EitherT[F, String, PageResponse[BlockInfo]] =
+    for 
+      page <- BlockRepository.getPage(pageNavInfo)
+      blockInfos = page.payload.map { block =>
+        BlockInfo(
+          block.number,
+          block.hash,
+          block.txCount,
+          block.eventTime
+        )
+      }
+    yield PageResponse(page.totalCount, page.totalPages, blockInfos)
 
   def get[F[_]: Async](
       hash: String,
