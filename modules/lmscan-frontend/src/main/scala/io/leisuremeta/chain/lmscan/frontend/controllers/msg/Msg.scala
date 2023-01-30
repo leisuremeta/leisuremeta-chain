@@ -21,3 +21,7 @@ enum TxMsg extends Msg:
   case Refresh                  extends TxMsg
   case GetNewTx(result: String) extends TxMsg
   case GetError(error: String)  extends TxMsg
+
+enum PageMoveMsg extends Msg:
+  case Prev extends PageMoveMsg
+  case Next extends PageMoveMsg

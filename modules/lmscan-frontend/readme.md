@@ -84,3 +84,19 @@ case :: 12101
 -> 0 = (1,0)
 -> 1 = (_1,0)
 ```
+
+#### 화면 넘기기 구현
+
+```md
+# lists
+
+- tx_curr_page,tx_total_page => tx_list
+- block_curr_page,block_total_page => block_list
+
+# details
+
+- tx_hash => tx details
+- block_hash => block details
+- account_hash => account details (transaction history)
+- nft_hash => nft details
+```
