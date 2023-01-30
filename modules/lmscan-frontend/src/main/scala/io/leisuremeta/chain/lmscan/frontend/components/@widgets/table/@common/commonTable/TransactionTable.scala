@@ -70,7 +70,13 @@ object Row2:
       `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
     )(
       div(`class` := "xy-center")(
-        div(`class` := "type-arrow")("<<"),
+        div(
+          `class` := s"type-arrow ${
+              if (1 == model.tx_CurrentPage) then "hidden"
+              else ""
+            }",
+          onClick(PageMoveMsg.Get("1")),
+        )("<<"),
         div(`class` := "type-arrow", onClick(PageMoveMsg.Prev))("<"),
         div(`class` := "type-plain-text")("Page"),
         input(
@@ -81,7 +87,12 @@ object Row2:
         div(`class` := "type-plain-text")("of"),
         div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
         div(`class` := "type-arrow", onClick(PageMoveMsg.Next))(">"),
-        div(`class` := "type-arrow")(">>"),
+        div(
+          onClick(PageMoveMsg.Get(model.tx_TotalPage.toString())),
+          `class` := s"type-arrow ${Log.log(s"${model.tx_TotalPage},${model.tx_CurrentPage},${model.tx_TotalPage == model.tx_CurrentPage}")
+            if (model.tx_TotalPage == model.tx_CurrentPage) then "hidden"
+            else "" }",
+        )(">>"),
       ),
     )
 
