@@ -619,7 +619,7 @@ trait UpdateStateWithTokenTx:
                                 txWithResult.result match
                                   case Some(
                                         Transaction.RewardTx
-                                          .ExecuteRewardResult(_, outputs),
+                                          .ExecuteRewardResult(outputs),
                                       ) =>
                                     outputs
                                       .get(sig.account)
@@ -917,7 +917,7 @@ trait UpdateStateWithTokenTx:
           case er: Transaction.RewardTx.ExecuteReward =>
             tx.result match
               case Some(
-                    Transaction.RewardTx.ExecuteRewardResult(_, outputs),
+                    Transaction.RewardTx.ExecuteRewardResult(outputs),
                   ) =>
                 Either.fromOption(
                   outputs.get(account),

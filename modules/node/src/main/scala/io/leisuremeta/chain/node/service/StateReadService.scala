@@ -312,7 +312,7 @@ object StateReadService:
               )
             case xr: Transaction.RewardTx.ExecuteReward =>
               val amount = txWithResult.result.fold(BigNat.Zero) {
-                case Transaction.RewardTx.ExecuteRewardResult(_, outputs) =>
+                case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
                   outputs.get(account).getOrElse(BigNat.Zero)
                 case _ => BigNat.Zero
               }

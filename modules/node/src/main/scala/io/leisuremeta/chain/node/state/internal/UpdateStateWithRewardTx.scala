@@ -6,7 +6,7 @@ package internal
 import java.time.{DayOfWeek, Instant, ZoneId, ZonedDateTime}
 import java.time.temporal.{ChronoUnit, TemporalAdjusters}
 
-import cats.Monoid
+import cats.{Monoid, Monad}
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.either.given
@@ -39,7 +39,11 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
-import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
+import repository.{
+  BlockRepository,
+  GenericStateRepository,
+  TransactionRepository,
+}
 import repository.GenericStateRepository.given
 import service.{RewardService, StateReadService}
 
@@ -127,55 +131,51 @@ trait UpdateStateWithRewardTx:
 //            ),
 //            TransactionWithResult(Signed(sig, ra), None),
 //          )
-        case rgs: Transaction.RewardTx.BuildSnapshot         =>
-          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
-        case rms: Transaction.RewardTx.ExecuteAccountReward  => ???
-        case xr: Transaction.RewardTx.ExecuteTokenReward     => ???
-        case xr: Transaction.RewardTx.ExecuteOwnershipReward => ???
-//          val sourceAccount =
-//            xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
-//          val LM     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-//          val txHash = Hash[Transaction].apply(xr).toResultHashValue
-//          for
-//            balance <- getBalance[F](sourceAccount, LM, ms)
-//            (totalAmount, utxos) = balance
-////            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
-//            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(
-//              xr.createdAt,
-//            )
-//            rewardCriterionState <- RewardService.findStateRootAt(
-//              rewardCriterionInstant,
-//            )
-//            totalNumberOfDao <- RewardService.countDao[F](
-//              rewardCriterionState.reward.daoState,
-//            )
-//            rarityItemMap <- getRarityItem[F](rewardCriterionState.token)
-////            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
-//            outputs = calculateRarityReward(
-//              sourceAccount,
-//              totalAmount,
-//              totalNumberOfDao,
-//              rarityItemMap,
-//            )
-//            fungibleBalanceState <- updateBalanceWithReward(
-//              sourceAccount,
-//              LM,
-//              utxos,
-//              txHash,
-//              outputs,
-//              ms.token.fungibleBalanceState,
-//            )
-//          yield (
-//            ms.copy(
-//              token = ms.token.copy(
-//                fungibleBalanceState = fungibleBalanceState,
-//              ),
-//            ),
-//            TransactionWithResult(
-//              Signed(sig, xr),
-//              Some(Transaction.RewardTx.ExecuteRewardResult(outputs)),
-//            ),
-//          )
+        case xr: Transaction.RewardTx.ExecuteReward =>
+          val sourceAccount =
+            xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
+          val LM     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+          val txHash = Hash[Transaction].apply(xr).toResultHashValue
+          for
+            balance <- getBalance[F](sourceAccount, LM, ms)
+            (totalAmount, utxos) = balance
+//            _ <- EitherT.pure { scribe.info(s"total amount: $totalAmount") }
+            rewardCriterionInstant = RewardService.getLatestRewardInstantBefore(
+              xr.createdAt,
+            )
+            rewardCriterionState <- RewardService.findStateRootAt(
+              rewardCriterionInstant,
+            )
+            totalNumberOfDao <- RewardService.countDao[F](
+              rewardCriterionState.reward.daoState,
+            )
+            rarityItemMap <- getRarityItem[F](rewardCriterionState.token)
+//            _ <- EitherT.pure { scribe.info(s"rarityMap: $rarityItemMap") }
+            outputs = calculateRarityReward(
+              sourceAccount,
+              totalAmount,
+              totalNumberOfDao,
+              rarityItemMap,
+            )
+            fungibleBalanceState <- updateBalanceWithReward(
+              sourceAccount,
+              LM,
+              utxos,
+              txHash,
+              outputs,
+              ms.token.fungibleBalanceState,
+            )
+          yield (
+            ms.copy(
+              token = ms.token.copy(
+                fungibleBalanceState = fungibleBalanceState,
+              ),
+            ),
+            TransactionWithResult(
+              Signed(sig, xr),
+              Some(Transaction.RewardTx.ExecuteRewardResult(outputs)),
+            ),
+          )
 
   def getBalance[F[_]
     : Concurrent: TransactionRepository: GenericStateRepository.TokenState](
@@ -255,7 +255,7 @@ trait UpdateStateWithRewardTx:
                             txWithResult.result match
                               case Some(
                                     Transaction.RewardTx.ExecuteRewardResult(
-                                      _ , outputs,
+                                      outputs,
                                     ),
                                   ) =>
                                 outputs.get(account).getOrElse(BigNat.Zero)
@@ -348,7 +348,7 @@ trait UpdateStateWithRewardTx:
   type BalanceKey =
     (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
 
-  def updateBalanceWithReward[F[_]: cats.Monad: GenericStateRepository.TokenState](
+  def updateBalanceWithReward[F[_]: Monad: GenericStateRepository.TokenState](
       sourceAccount: Account,
       tokenDef: TokenDefinitionId,
       utxos: List[Hash.Value[TransactionWithResult]],
