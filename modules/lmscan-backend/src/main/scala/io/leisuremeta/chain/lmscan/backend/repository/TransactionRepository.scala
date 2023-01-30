@@ -79,6 +79,7 @@ object TransactionRepository extends CommonQuery:
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
+        // val orderBy        = pageNavInfo.orderBy()
 
         query[Tx]
           .filter(t =>
