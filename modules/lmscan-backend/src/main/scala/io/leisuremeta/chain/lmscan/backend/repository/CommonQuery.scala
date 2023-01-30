@@ -21,6 +21,7 @@ trait CommonQuery:
   ): EitherT[F, String, Seq[T]] =
     EitherT {
       Async[F].recover {
+        println("zzzzz")
         for
           given ExecutionContext <- Async[F].executionContext
           result <- Async[F]
@@ -29,7 +30,7 @@ trait CommonQuery:
             })
             .map(Either.right(_))
         yield
-          scribe.info(s"Result: $result")
+          scribe.info(s"seqQuery Result: $result")
           result
       } {
         case e: SQLException =>
@@ -51,7 +52,7 @@ trait CommonQuery:
             })
             .map(Either.right(_))
         yield
-          scribe.info(s"Result: $result")
+          scribe.info(s"countQuery Result: $result")
           result
       } {
         case e: SQLException =>

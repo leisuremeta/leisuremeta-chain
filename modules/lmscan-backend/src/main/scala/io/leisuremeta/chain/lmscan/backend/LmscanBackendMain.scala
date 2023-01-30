@@ -54,7 +54,7 @@ object BackendMain extends IOApp:
       ) =>
         scribe.info(s"txPaging request pageInfo: $pageInfo")
         val result = TransactionService
-          .getPageByFilter[F](pageInfo, blockHash, accountAddr)
+          .getPageByFilter[F](pageInfo, accountAddr, blockHash)
           .leftMap { (errMsg: String) =>
             scribe.error(s"errorMsg: $errMsg")
             (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]

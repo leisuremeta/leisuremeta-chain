@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.backend.entity
 
-import java.lang.reflect.Field
 import io.getquill.Quoted
 
 final case class Tx(
@@ -9,7 +8,6 @@ final case class Tx(
     tokenType: String,
     fromAddr: String,
     toAddr: Seq[String],
-    amount: Double, // value
     blockHash: String,
     blockNumber: Long,
     eventTime: Long,
@@ -17,4 +15,5 @@ final case class Tx(
     inputHashs: Seq[String],
     outputVals: Seq[String],
     json: String,
+    // amount: Double,
 )

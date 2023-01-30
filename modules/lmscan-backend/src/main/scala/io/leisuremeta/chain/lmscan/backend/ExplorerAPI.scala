@@ -105,12 +105,8 @@ object ExploreApi:
     .out(jsonBody[Option[NftDetail]])
 
   // @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  // val getTxPageByBlockEndPoint = baseEndpoint.get
-  //   .in("block")
-  //   .in(path[String]) // block_hash
+  // val getSearchDetail = baseEndpoint.get
+  //   .in("search")
+  //   .in(path[String]("target")) // targetValue
   //   .in("detail")
-  //   .in("txs")
-  //   .in(
-  //     sttp.tapir.EndpointInput.derived[PageNavigation],
-  //   )
-  //   .out(jsonBody[PageResponse[Tx]])
+  //   .out(jsonBody[Option[Object]])

@@ -16,6 +16,7 @@ import eu.timepit.refined.boolean.False
 import cats.effect.Async
 import io.leisuremeta.ExploreApi
 import cats.implicits.catsSyntaxEitherId
+import cats.effect.IO
 
 object TransactionService:
 
@@ -74,11 +75,13 @@ object TransactionService:
 
   def getPageByFilter[F[_]: Async](
       pageInfo: PageNavigation,
-      blockHash: Option[String],
       accountAddr: Option[String],
+      blockHash: Option[String],
   ): EitherT[F, String, PageResponse[TxInfo]] =
     (accountAddr, blockHash) match
-      case (None, None) => getPage[F](pageInfo)
+      case (None, None) =>
+        println("getPageByFilter")
+        getPage[F](pageInfo)
       case (None, Some(blockHash)) =>
         getPageByBlock[F](blockHash, pageInfo)
       case (Some(accountAddr), None) =>
@@ -87,10 +90,12 @@ object TransactionService:
         throw new RuntimeException("검색 파라미터를 하나만 입력해주세요.")
 
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
+    println(s"555")
     txs.map { tx =>
       val latestOutVal = tx.outputVals.headOption match
         case Some(str) => str.split("/")
         case None      => Array[String]("", "")
+      println(s"6666: $latestOutVal")
       TxInfo(
         tx.hash,
         tx.blockNumber,
