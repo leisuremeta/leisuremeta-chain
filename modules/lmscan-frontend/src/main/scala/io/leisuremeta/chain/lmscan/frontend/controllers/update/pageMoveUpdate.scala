@@ -53,12 +53,12 @@ object PageMoveUpdate:
       model.curPage.toString() match
         case "Transactions" =>
           (
-            model.copy(page_Search = value, tx_CurrentPage = value.toInt),
+            model.copy(page_Search = value),
             Cmd.None,
           )
         case "Blocks" =>
           (
-            model.copy(page_Search = value, block_CurrentPage = value.toInt),
+            model.copy(page_Search = value),
             Cmd.None,
           )
         case _ => (model, Cmd.None)
