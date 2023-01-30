@@ -25,7 +25,7 @@ object Subscriptions:
               case _ =>
                 None
           },
-          Option(Dom.select("DOM-page")) match
+          Option(Dom.select("DOM-page1")) match
             // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
             case None => Sub.None
 
@@ -46,23 +46,23 @@ object Subscriptions:
                 },
               ),
         )
-  Option(Dom.select("DOM-page")) match
-    // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
-    case None => Sub.None
+  // Option(Dom.select("DOM-page")) match
+  //   // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
+  //   case None => Sub.None
 
-    // Dom 이 select 된 경우
-    case Some(element) =>
-      Sub.Batch(
-        Sub.fromEvent[IO, KeyboardEvent, Msg](
-          "keydown",
-          element,
-        ) { e =>
-          e.keyCode match
-            case 13 =>
-              log("페이지 서치 엔터 클릭")
-              // Enter key
-              Some(PageMoveMsg.Patch)
-            case _ =>
-              None
-        },
-      )
+  //   // Dom 이 select 된 경우
+  //   case Some(element) =>
+  //     Sub.Batch(
+  //       Sub.fromEvent[IO, KeyboardEvent, Msg](
+  //         "keydown",
+  //         element,
+  //       ) { e =>
+  //         e.keyCode match
+  //           case 13 =>
+  //             log("페이지 서치 엔터 클릭")
+  //             // Enter key
+  //             Some(PageMoveMsg.Patch)
+  //           case _ =>
+  //             None
+  //       },
+  //     )

@@ -40,7 +40,7 @@ object Row:
         input(
           onInput(s => PageMoveMsg.Get(s)),
           value   := s"${model.page_Search}",
-          `class` := "type-search xy-center DOM-page ",
+          `class` := "type-search xy-center DOM-page1 ",
         ),
         div(`class` := "type-plain-text")("of"),
         div(`class` := "type-plain-text")(model.block_TotalPage.toString()),

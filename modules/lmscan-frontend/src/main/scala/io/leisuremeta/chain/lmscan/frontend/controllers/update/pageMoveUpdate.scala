@@ -12,10 +12,19 @@ object PageMoveUpdate:
     case PageMoveMsg.Next =>
       model.curPage.toString() match
         case "Transactions" =>
-          (model.copy(tx_CurrentPage = model.tx_CurrentPage + 1), Cmd.None)
+          (
+            model.copy(
+              tx_CurrentPage = model.tx_CurrentPage + 1,
+              page_Search = s"${model.tx_CurrentPage + 1}",
+            ),
+            Cmd.None,
+          )
         case "Blocks" =>
           (
-            model.copy(block_CurrentPage = model.block_CurrentPage + 1),
+            model.copy(
+              block_CurrentPage = model.block_CurrentPage + 1,
+              page_Search = s"${model.block_CurrentPage + 1}",
+            ),
             Cmd.None,
           )
         case _ => (model, Cmd.None)
@@ -23,10 +32,19 @@ object PageMoveUpdate:
     case PageMoveMsg.Prev =>
       model.curPage.toString() match
         case "Transactions" =>
-          (model.copy(tx_CurrentPage = model.tx_CurrentPage - 1), Cmd.None)
+          (
+            model.copy(
+              tx_CurrentPage = model.tx_CurrentPage - 1,
+              page_Search = s"${model.tx_CurrentPage - 1}",
+            ),
+            Cmd.None,
+          )
         case "Blocks" =>
           (
-            model.copy(block_CurrentPage = model.block_CurrentPage - 1),
+            model.copy(
+              block_CurrentPage = model.block_CurrentPage - 1,
+              page_Search = s"${model.block_CurrentPage - 1}",
+            ),
             Cmd.None,
           )
         case _ => (model, Cmd.None)
@@ -48,6 +66,7 @@ object PageMoveUpdate:
             if !str.forall(Character.isDigit) || str == ""
             then 1
             else str.toInt
+          log(s"PageMoveMsg.Patch ${str} ${res}")
           (
             model.copy(
               tx_CurrentPage = res,
