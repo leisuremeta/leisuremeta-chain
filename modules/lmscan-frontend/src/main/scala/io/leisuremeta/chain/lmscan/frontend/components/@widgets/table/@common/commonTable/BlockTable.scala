@@ -38,7 +38,7 @@ object Row:
       div(`class` := "xy-center")(
         div(
           `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
-          onClick(PageMoveMsg.Get("1")),
+          onClick(PageMoveMsg.Patch("1")),
         )("<<"),
         div(
           `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
@@ -58,7 +58,7 @@ object Row:
         )(">"),
         div(
           `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
-          onClick(PageMoveMsg.Get(model.block_TotalPage.toString())),
+          onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
         )(">>"),
       ),
     )

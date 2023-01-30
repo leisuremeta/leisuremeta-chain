@@ -41,7 +41,7 @@ object Subscriptions:
                     case 13 =>
                       log("페이지 서치 엔터 클릭")
                       // Enter key
-                      Some(PageMoveMsg.Patch)
+                      Some(PageMoveMsg.Patch(model.page_Search))
                     case _ =>
                       None
                 },

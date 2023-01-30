@@ -63,10 +63,10 @@ object PageMoveUpdate:
           )
         case _ => (model, Cmd.None)
 
-    case PageMoveMsg.Patch =>
+    case PageMoveMsg.Patch(value) =>
       model.curPage.toString() match
         case "Transactions" =>
-          val str = model.page_Search
+          val str = value
 
           val res = // filter only number like string
             !str.forall(Character.isDigit) || str == "" match
@@ -82,7 +82,7 @@ object PageMoveUpdate:
             Cmd.None,
           )
         case "Blocks" =>
-          val str = model.page_Search
+          val str = value
 
           val res = // filter only number like string
             !str.forall(Character.isDigit) || str == "" match

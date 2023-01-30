@@ -73,7 +73,7 @@ object Row2:
       div(`class` := "xy-center")(
         div(
           `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
-          onClick(PageMoveMsg.Get("1")),
+          onClick(PageMoveMsg.Patch("1")),
         )("<<"),
         div(
           `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
@@ -93,7 +93,7 @@ object Row2:
         )(">"),
         div(
           `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
-          onClick(PageMoveMsg.Get(model.tx_TotalPage.toString())),
+          onClick(PageMoveMsg.Patch(model.tx_TotalPage.toString())),
         )(">>"),
       ),
     )
