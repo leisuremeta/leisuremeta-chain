@@ -25,6 +25,7 @@ object Subscriptions:
               case _ =>
                 None
           },
+          // TODO :: remove redundant optional dom select
           Option(Dom.select("DOM-page1")) match
             // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
             case None => Sub.None
