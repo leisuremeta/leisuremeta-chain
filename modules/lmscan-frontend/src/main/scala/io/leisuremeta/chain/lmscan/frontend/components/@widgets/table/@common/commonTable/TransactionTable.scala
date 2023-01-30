@@ -73,7 +73,11 @@ object Row2:
         div(`class` := "type-arrow")("<<"),
         div(`class` := "type-arrow", onClick(PageMoveMsg.Prev))("<"),
         div(`class` := "type-plain-text")("Page"),
-        div(`class` := "type-search")(model.tx_CurrentPage.toString()),
+        input(
+          onInput(s => PageMoveMsg.Get(s)),
+          value   := s"${model.page_Search}",
+          `class` := "type-search xy-center DOM-page ",
+        ),
         div(`class` := "type-plain-text")("of"),
         div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
         div(`class` := "type-arrow", onClick(PageMoveMsg.Next))(">"),

@@ -16,4 +16,5 @@ final case class Model(
     tx_TotalPage: Int,
     block_CurrentPage: Int,
     block_TotalPage: Int,
+    page_Search: String,
 )

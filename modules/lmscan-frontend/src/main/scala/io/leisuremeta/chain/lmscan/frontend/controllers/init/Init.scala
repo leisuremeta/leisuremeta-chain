@@ -9,6 +9,7 @@ object Init:
   val tx_TotalPage      = 100
   val block_CurrentPage = 1
   val block_TotalPage   = 100
+  val page_Search       = "1"
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (
@@ -21,6 +22,7 @@ object Init:
         tx_TotalPage,
         block_CurrentPage,
         block_TotalPage,
+        page_Search,
       ),
       OnTxMsg.getTxList("random"),
     )

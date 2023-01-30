@@ -31,13 +31,42 @@ object PageMoveUpdate:
           )
         case _ => (model, Cmd.None)
 
-    case PageMoveMsg.Move(value) =>
+    case PageMoveMsg.Get(value) =>
       model.curPage.toString() match
         case "Transactions" =>
-          (model.copy(tx_CurrentPage = value), Cmd.None)
+          (model.copy(page_Search = value), Cmd.None)
         case "Blocks" =>
+          (model.copy(page_Search = value), Cmd.None)
+        case _ => (model, Cmd.None)
+
+    case PageMoveMsg.Patch =>
+      model.curPage.toString() match
+        case "Transactions" =>
+          val str = model.page_Search
+
+          val res = // filter only number like string
+            if !str.forall(Character.isDigit) || str == ""
+            then 1
+            else str.toInt
           (
-            model.copy(block_CurrentPage = value),
+            model.copy(
+              tx_CurrentPage = res,
+              page_Search = res.toString(),
+            ),
+            Cmd.None,
+          )
+        case "Blocks" =>
+          val str = model.page_Search
+
+          val res = // filter only number like string
+            if !str.forall(Character.isDigit) || str == ""
+            then 1
+            else str.toInt
+          (
+            model.copy(
+              block_CurrentPage = res,
+              page_Search = res.toString(),
+            ),
             Cmd.None,
           )
         case _ => (model, Cmd.None)
