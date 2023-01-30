@@ -65,4 +65,5 @@ object PlayNommDAppReward:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
+    case tx: Transaction.RewardTx.OfferReward => ???
     case tx: Transaction.RewardTx.ExecuteReward => ???

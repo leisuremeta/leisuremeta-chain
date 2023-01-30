@@ -337,6 +337,16 @@ object Transaction:
         tokenReceived: Map[TokenId, Seq[DaoActivity]],
     ) extends RewardTx
 
+    final case class OfferReward(
+        networkId: NetworkId,
+        createdAt: Instant,
+        tokenDefinitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+        outputs: Map[Account, BigNat],
+        memo: Option[Utf8],
+    ) extends RewardTx
+        with FungibleBalance
+
     final case class ExecuteReward(
         networkId: NetworkId,
         createdAt: Instant,
@@ -354,6 +364,7 @@ object Transaction:
           case 0 => ByteDecoder[RegisterDao].widen
           case 1 => ByteDecoder[UpdateDao].widen
           case 2 => ByteDecoder[RecordActivity].widen
+          case 3 => ByteDecoder[OfferReward].widen
           case 6 => ByteDecoder[ExecuteReward].widen
     }
 
@@ -362,6 +373,7 @@ object Transaction:
         case tx: RegisterDao    => build(0)(tx)
         case tx: UpdateDao      => build(1)(tx)
         case tx: RecordActivity => build(2)(tx)
+        case tx: OfferReward    => build(3)(tx)
         case tx: ExecuteReward  => build(6)(tx)
 
     given txCirceDecoder: Decoder[RewardTx] = deriveDecoder

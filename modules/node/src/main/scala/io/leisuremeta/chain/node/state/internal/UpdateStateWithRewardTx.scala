@@ -131,6 +131,7 @@ trait UpdateStateWithRewardTx:
 //            ),
 //            TransactionWithResult(Signed(sig, ra), None),
 //          )
+        case tx: Transaction.RewardTx.OfferReward => ???
         case xr: Transaction.RewardTx.ExecuteReward =>
           val sourceAccount =
             xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
@@ -249,6 +250,10 @@ trait UpdateStateWithRewardTx:
                         case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
                           EitherT.pure(
                             df.outputs.get(account).getOrElse(BigNat.Zero),
+                          )
+                        case or: Transaction.RewardTx.OfferReward =>
+                          EitherT.pure(
+                            or.outputs.get(account).getOrElse(BigNat.Zero),
                           )
                         case xr: Transaction.RewardTx.ExecuteReward =>
                           EitherT.pure {
