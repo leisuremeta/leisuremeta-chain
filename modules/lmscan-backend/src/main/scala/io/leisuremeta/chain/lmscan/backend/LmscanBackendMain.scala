@@ -101,19 +101,19 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def txPageByBlock[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTxPageByBlockEndPoint.serverLogic {
-      (blockHash: String, pageInfo: PageNavigation) =>
-        scribe.info(s"txPageByBlock request pageInfo: $pageInfo")
-        val result = TransactionService
-          .getPageByBlock[F](blockHash, pageInfo)
-          .leftMap { (errMsg: String) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-          }
-        println(s"result.value: ${result.value}")
-        result.value
-    }
+  // def txPageByBlock[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  //   ExploreApi.getTxPageByBlockEndPoint.serverLogic {
+  //     (blockHash: String, pageInfo: PageNavigation) =>
+  //       scribe.info(s"txPageByBlock request pageInfo: $pageInfo")
+  //       val result = TransactionService
+  //         .getPageByBlock[F](blockHash, pageInfo)
+  //         .leftMap { (errMsg: String) =>
+  //           scribe.error(s"errorMsg: $errMsg")
+  //           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+  //         }
+  //       println(s"result.value: ${result.value}")
+  //       result.value
+  //   }
 
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getAccountDetail.serverLogic { (address: String) =>
