@@ -3,6 +3,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
+import Dom.{_hidden}
 
 object Row2:
 
@@ -71,13 +72,13 @@ object Row2:
     )(
       div(`class` := "xy-center")(
         div(
-          `class` := s"type-arrow ${
-              if (1 == model.tx_CurrentPage) then "hidden"
-              else ""
-            }",
+          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
           onClick(PageMoveMsg.Get("1")),
         )("<<"),
-        div(`class` := "type-arrow", onClick(PageMoveMsg.Prev))("<"),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Prev),
+        )("<"),
         div(`class` := "type-plain-text")("Page"),
         input(
           onInput(s => PageMoveMsg.Get(s)),
@@ -86,12 +87,13 @@ object Row2:
         ),
         div(`class` := "type-plain-text")("of"),
         div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
-        div(`class` := "type-arrow", onClick(PageMoveMsg.Next))(">"),
         div(
+          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Next),
+        )(">"),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
           onClick(PageMoveMsg.Get(model.tx_TotalPage.toString())),
-          `class` := s"type-arrow ${Log.log(s"${model.tx_TotalPage},${model.tx_CurrentPage},${model.tx_TotalPage == model.tx_CurrentPage}")
-            if (model.tx_TotalPage == model.tx_CurrentPage) then "hidden"
-            else "" }",
         )(">>"),
       ),
     )

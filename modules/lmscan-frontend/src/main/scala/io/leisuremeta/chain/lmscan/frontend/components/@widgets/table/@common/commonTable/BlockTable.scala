@@ -1,6 +1,8 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
+import Dom.{_hidden}
+import sttp.tapir.Schema.annotations.hidden
 
 object Row:
   def title = (model: Model) =>
@@ -35,13 +37,13 @@ object Row:
     )(
       div(`class` := "xy-center")(
         div(
-          `class` := s"type-arrow ${
-              if (1 == model.block_CurrentPage) then "hidden"
-              else ""
-            }",
+          `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
           onClick(PageMoveMsg.Get("1")),
         )("<<"),
-        div(`class` := "type-arrow", onClick(PageMoveMsg.Prev))("<"),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
+          onClick(PageMoveMsg.Prev),
+        )("<"),
         div(`class` := "type-plain-text")("Page"),
         input(
           onInput(s => PageMoveMsg.Get(s)),
@@ -50,12 +52,12 @@ object Row:
         ),
         div(`class` := "type-plain-text")("of"),
         div(`class` := "type-plain-text")(model.block_TotalPage.toString()),
-        div(`class` := "type-arrow", onClick(PageMoveMsg.Next))(">"),
         div(
-          `class` := s"type-arrow ${
-              if (model.block_TotalPage == model.block_CurrentPage) then "hidden"
-              else ""
-            }",
+          `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
+          onClick(PageMoveMsg.Next),
+        )(">"),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
           onClick(PageMoveMsg.Get(model.block_TotalPage.toString())),
         )(">>"),
       ),
