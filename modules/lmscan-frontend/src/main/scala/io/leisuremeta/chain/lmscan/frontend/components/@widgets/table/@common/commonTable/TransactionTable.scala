@@ -65,6 +65,21 @@ object Row2:
     div(`class` := "cell")(span()("NFT")),
     div(`class` := "cell type-3")(span(onClick(NavMsg.Nft))("123,12412123 LM")),
   )
+  val search = (model: Model) =>
+    div(
+      `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
+    )(
+      div(`class` := "xy-center")(
+        div(`class` := "type-arrow")("<<"),
+        div(`class` := "type-arrow", onClick(PageMoveMsg.Prev))("<"),
+        div(`class` := "type-plain-text")("Page"),
+        div(`class` := "type-search")(model.tx_CurrentPage.toString()),
+        div(`class` := "type-plain-text")("of"),
+        div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
+        div(`class` := "type-arrow", onClick(PageMoveMsg.Next))(">"),
+        div(`class` := "type-arrow")(">>"),
+      ),
+    )
 
   val body_new = bodyGen(parse(sample_tx).getOrElse(Json.Null))
 
@@ -106,7 +121,7 @@ object TransactionTable:
     Log.log("fooEncoder")
     Log.log(fooEncoder)
     div(`class` := "table-container")(
-      Row2.title(model),
+      Row2.title(model), // dash board 에서만 보인다
       div(`class` := "table w-[100%]")(
         Row2.head,
         Row2.body_old,
@@ -116,5 +131,5 @@ object TransactionTable:
         Row2.body_old,
         Row2.body_old,
       ),
-      Row.search(model),
+      Row2.search(model),
     )

@@ -23,5 +23,6 @@ enum TxMsg extends Msg:
   case GetError(error: String)  extends TxMsg
 
 enum PageMoveMsg extends Msg:
-  case Prev extends PageMoveMsg
-  case Next extends PageMoveMsg
+  case Prev             extends PageMoveMsg
+  case Next             extends PageMoveMsg
+  case Move(value: Int) extends PageMoveMsg
