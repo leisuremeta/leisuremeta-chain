@@ -979,103 +979,41 @@
     
     
 
-* BuildSnapshot: 보상을 위한 스냅샷 생성. 사용자가 한 활동, 토큰이 받은 활동, 토큰 소유보상의 세 가지 스냅샷을 동시에 만든다
+* OfferReward 보상 제공. TransferFungibleToken과 같은 형태로 보상을 실행한다
+
+  * >  보상을 보낼 계정
+
+  * Fields
+
+    * TokenDefinitionID(string)
+    * Inputs: Set[SignedTxHash]: UTXO Hash, 모든 토큰 종류는 동일해야 함
+    * Outputs: Map[AccountName, Amount]
+    * *(optional)* Memo(string)
+
+  * Example
+
+    ```json
+    ```
+
+    
+
+* ExecuteReward 보상 실행.
 
   * > 보상 실행 주체. 일반적으로 Playnomm
 
   * Fields
 
-    * Timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
-    * accountAmount: 계정활동 총 보상량
-    * tokenAmount: 토큰이 받을 총 보상량
-    * ownershipAmount: 토큰 보유에 따르는 총 보상량
-
-  * Example
-
-    ```json
-    
-    ```
-    
-    ```json
-    
-    ```
-    
-    
-  
-* ExecuteAccountReward: 스냅샷의 자료를 기반으로 계정 활동 보상 실행.
-
-  * 보상 실행 주체. 일반적으로 Playnomm
-
-  * Fields
-
-    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
-    * inputAccount: 보상을 담은 계정
-    * targets: Set[Account] 보상할 계정
-    * amountPerPoint: 포인트 당 보상량
+    * timestamp: 보상 기준 시점
+    * *(optional)* daoAccount: 보상이 담긴 계정. 없으면 "DAO-M"
 
   * Results
 
-    * inputs: Set[TxHash] 보상에 사용한 UTXO 해시값들
-    * outputs: Map[Account, Amount] 각 계정별 보상결과
-  
+    * outputs: Map[Account, Amount] 보상 실행 결과
+
   * Example
-  
-    ```json
-    
-    ```
-  
-    ```json
-    
-    ```
-  
-    
-  
-* ExecuteTokenReward: 스냅샷의 자료를 기반으로 토큰이 받은 활동 보상 실행.
 
-  * 보상 실행 주체. 일반적으로 Playnomm
-
-  * Fields
-
-    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
-  
-    * inputs: Set[TxHash] 보상에 사용할 UTXO
-    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
-    * amountPerPoint: 포인트 당 보상량
-  
-  * Results
-  
-    * inputs: Set[TxHash] 보상에 사용한 UTXO 해시값들
-  
-    * outputs: Map[Account, Amount] 각 계정별 보상결과
-  
-  * Example
-  
     ```json
     ```
-  
-* ExecuteOwnershipReward: 스냅샷의 자료를 기반으로 토큰 소유 보상 실행.
-
-  * 보상 실행 주체. 일반적으로 Playnomm
-
-  * Fields
-
-    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
-  
-    * inputs: Set[TxHash] 보상에 사용할 UTXO
-    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
-    * amountPerPoint: 포인트 당 보상량
-  
-  * Results
-  
-    * inputs: Set[TxHash] 보상에 사용한 UTXO 해시값들
-  
-    * outputs: Map[Account, Amount] 각 계정별 보상결과
-  
-  * Example
-  
-    ```json
-    ```
-  
 
 
 
