@@ -10,10 +10,18 @@ object BlockRepository extends CommonQuery:
   import ctx.{*, given}
 
   def get[F[_]: Async](
-    hash: String
+      hash: String,
   ): EitherT[F, String, Option[Block]] =
     inline def detailQuery =
       quote { (hash: String) =>
         query[Block].filter(b => b.hash == hash).take(1)
       }
     optionQuery(detailQuery(lift(hash)))
+
+  /*
+val a = quote {
+  liftQuery(List(Person(0, "John", 31),Person(0, "name2", 32)))
+    .foreach(e => query[Person].insert(_.name -> p.name, _.age -> p.age))
+    .returning(_.id)
+}
+   */
