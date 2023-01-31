@@ -27,6 +27,6 @@ object PagesView:
     div(id := "page", `class` := "")(
       div()(
         SearchView.view(model),
-        Pages.render(model),
+        div(`class` := "pb-32px")(Pages.render(model)),
       ),
     )

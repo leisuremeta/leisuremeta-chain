@@ -34,7 +34,9 @@ object Row2:
     payload
       .map(each =>
         div(`class` := "row table-body")(
-          div(`class` := "cell")(span()(each.hash.take(10) + "...")),
+          div(`class` := "cell type-3")(
+            span(onClick(NavMsg.TransactionDetail))(each.hash.take(10) + "..."),
+          ),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
           div(`class` := "cell")(span()(each.createdAt.toString())),
           div(`class` := "cell")(span()(each.signer.take(10) + "...")),
@@ -43,7 +45,7 @@ object Row2:
           div(`class` := "cell")(span()(each.value.toString())),
         ),
       )
-      .toList
+    // .toList
 
   def genTable = (payload: List[Tx]) =>
     div(`class` := "table w-[100%]")(

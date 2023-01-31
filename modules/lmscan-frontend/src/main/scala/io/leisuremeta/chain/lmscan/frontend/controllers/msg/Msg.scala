@@ -30,6 +30,6 @@ enum PageMoveMsg extends Msg:
   case Next                 extends PageMoveMsg
   case Get(value: String)   extends PageMoveMsg
   case Patch(value: String) extends PageMoveMsg
-enum DashboardMsg extends Msg:
-  case GetNew(result: String)  extends DashboardMsg
-  case GetError(error: String) extends DashboardMsg
+// enum DashboardMsg extends Msg:
+//   case GetNew(result: String)  extends DashboardMsg
+//   case GetError(error: String) extends DashboardMsg
