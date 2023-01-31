@@ -31,7 +31,6 @@ object TransactionRepository extends CommonQuery:
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
   ): EitherT[F, String, PageResponse[Tx]] =
-    println("1111")
     val cntQuery = quote {
       query[Tx]
     }
@@ -48,15 +47,12 @@ object TransactionRepository extends CommonQuery:
           .take(sizePerRequest)
       }
 
-    println("222")
     val res = for
       a <- countQuery(cntQuery)
       b <- seqQuery(pagedQuery(lift(pageNavInfo)))
     yield (a, b)
 
-    println("333")
     res.map { (totalCnt, r) =>
-      println("444")
       val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
       new PageResponse(totalCnt, totalPages, r)
     }

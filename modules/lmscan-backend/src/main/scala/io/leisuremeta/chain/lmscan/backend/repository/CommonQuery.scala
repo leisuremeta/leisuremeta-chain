@@ -21,7 +21,6 @@ trait CommonQuery:
   ): EitherT[F, String, Seq[T]] =
     EitherT {
       Async[F].recover {
-        println("zzzzz")
         for
           given ExecutionContext <- Async[F].executionContext
           result <- Async[F]

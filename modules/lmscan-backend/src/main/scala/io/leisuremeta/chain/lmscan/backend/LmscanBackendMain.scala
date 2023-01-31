@@ -59,8 +59,6 @@ object BackendMain extends IOApp:
             scribe.error(s"errorMsg: $errMsg")
             (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
           }
-
-        println(s"result.value: ${result.value}")
         result.value
     }
 
@@ -68,7 +66,7 @@ object BackendMain extends IOApp:
     ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
       scribe.info(s"txDetail request hash: $hash")
       val result = TransactionService
-        .get(hash)
+        .getDetail(hash)
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
 

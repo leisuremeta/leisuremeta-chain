@@ -22,6 +22,11 @@ object TransactionService:
 
   def get[F[_]: Async](
       hash: String,
+  ): EitherT[F, String, Option[Tx]] =
+    TransactionRepository.get(hash)
+
+  def getDetail[F[_]: Async](
+      hash: String,
   ): EitherT[F, String, Option[TxDetail]] =
     for
       trx <- TransactionRepository.get(hash)
@@ -80,7 +85,6 @@ object TransactionService:
   ): EitherT[F, String, PageResponse[TxInfo]] =
     (accountAddr, blockHash) match
       case (None, None) =>
-        println("getPageByFilter")
         getPage[F](pageInfo)
       case (None, Some(blockHash)) =>
         getPageByBlock[F](blockHash, pageInfo)
@@ -95,7 +99,6 @@ object TransactionService:
       val latestOutVal = tx.outputVals.headOption match
         case Some(str) => str.split("/")
         case None      => Array[String]("", "")
-      println(s"6666: $latestOutVal")
       TxInfo(
         tx.hash,
         tx.blockNumber,
