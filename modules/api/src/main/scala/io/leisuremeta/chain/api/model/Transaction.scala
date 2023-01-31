@@ -337,51 +337,26 @@ object Transaction:
         tokenReceived: Map[TokenId, Seq[DaoActivity]],
     ) extends RewardTx
 
-    final case class BuildSnapshot(
+    final case class OfferReward(
         networkId: NetworkId,
         createdAt: Instant,
-        timestamp: Instant,
-        accountAmount: BigNat,
-        tokenAmount: BigNat,
-        ownershipAmount: BigNat,
+        tokenDefinitionId: TokenDefinitionId,
+        inputs: Set[Signed.TxHash],
+        outputs: Map[Account, BigNat],
+        memo: Option[Utf8],
     ) extends RewardTx
+        with FungibleBalance
 
-    sealed trait ExecuteReward extends FungibleBalance
-
-    final case class ExecuteAccountReward(
+    final case class ExecuteReward(
         networkId: NetworkId,
         createdAt: Instant,
-        inputDefinitionId: TokenDefinitionId,
-        inputAccount: Account,
-        targets: Set[Account],
-        amountPerPoint: BigNat,
+        daoAccount: Option[Account],
     ) extends RewardTx
-        with ExecuteReward
+        with FungibleBalance
 
     final case class ExecuteRewardResult(
-        inputs: Set[Hash.Value[TransactionWithResult]],
         outputs: Map[Account, BigNat],
     ) extends TransactionResult
-
-    final case class ExecuteTokenReward(
-        networkId: NetworkId,
-        createdAt: Instant,
-        inputDefinitionId: TokenDefinitionId,
-        inputAccount: Account,
-        targets: Set[TokenId],
-        amountPerPoint: BigNat,
-    ) extends RewardTx
-        with ExecuteReward
-
-    final case class ExecuteOwnershipReward(
-        networkId: NetworkId,
-        createdAt: Instant,
-        inputDefinitionId: TokenDefinitionId,
-        inputAccount: Account,
-        targets: Set[Account],
-        amountPerPoint: BigNat,
-    ) extends RewardTx
-        with ExecuteReward
 
     given txByteDecoder: ByteDecoder[RewardTx] = ByteDecoder[BigNat].flatMap {
       bignat =>
@@ -389,21 +364,17 @@ object Transaction:
           case 0 => ByteDecoder[RegisterDao].widen
           case 1 => ByteDecoder[UpdateDao].widen
           case 2 => ByteDecoder[RecordActivity].widen
-          case 3 => ByteDecoder[BuildSnapshot].widen
-          case 4 => ByteDecoder[ExecuteAccountReward].widen
-          case 5 => ByteDecoder[ExecuteTokenReward].widen
-          case 6 => ByteDecoder[ExecuteOwnershipReward].widen
+          case 3 => ByteDecoder[OfferReward].widen
+          case 6 => ByteDecoder[ExecuteReward].widen
     }
 
     given txByteEncoder: ByteEncoder[RewardTx] = (rtx: RewardTx) =>
       rtx match
-        case tx: RegisterDao            => build(0)(tx)
-        case tx: UpdateDao              => build(1)(tx)
-        case tx: RecordActivity         => build(2)(tx)
-        case tx: BuildSnapshot          => build(3)(tx)
-        case tx: ExecuteAccountReward   => build(4)(tx)
-        case tx: ExecuteTokenReward     => build(5)(tx)
-        case tx: ExecuteOwnershipReward => build(6)(tx)
+        case tx: RegisterDao    => build(0)(tx)
+        case tx: UpdateDao      => build(1)(tx)
+        case tx: RecordActivity => build(2)(tx)
+        case tx: OfferReward    => build(3)(tx)
+        case tx: ExecuteReward  => build(6)(tx)
 
     given txCirceDecoder: Decoder[RewardTx] = deriveDecoder
     given txCirceEncoder: Encoder[RewardTx] = deriveEncoder

@@ -145,13 +145,15 @@ trait UpdateStateWithTokenTx:
             )
             tokenDefinitionState1 <- {
               for
-                _ <- GenericMerkleTrie.remove[F, TokenDefinitionId, TokenDefinition](
-                  mf.definitionId.toBytes.bits,
-                )
-                _ <- GenericMerkleTrie.put[F, TokenDefinitionId, TokenDefinition](
-                  mf.definitionId.toBytes.bits,
-                  tokenDefinition1,
-                )
+                _ <- GenericMerkleTrie
+                  .remove[F, TokenDefinitionId, TokenDefinition](
+                    mf.definitionId.toBytes.bits,
+                  )
+                _ <- GenericMerkleTrie
+                  .put[F, TokenDefinitionId, TokenDefinition](
+                    mf.definitionId.toBytes.bits,
+                    tokenDefinition1,
+                  )
               yield ()
             }.runS(ms.token.tokenDefinitionState)
           yield (
@@ -316,11 +318,18 @@ trait UpdateStateWithTokenTx:
             GenericMerkleTrieState[TokenId, NftState],
             Unit,
           ] = for
-            nftStateOption <- GenericMerkleTrie.get[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
-            nftState <- StateT.liftF{
-              EitherT.fromOption(nftStateOption, s"No nft state in token ${tn.tokenId}")
+            nftStateOption <- GenericMerkleTrie.get[F, TokenId, NftState](
+              (tn.tokenId).toBytes.bits,
+            )
+            nftState <- StateT.liftF {
+              EitherT.fromOption(
+                nftStateOption,
+                s"No nft state in token ${tn.tokenId}",
+              )
             }
-            _ <- GenericMerkleTrie.remove[F, TokenId, NftState]((tn.tokenId).toBytes.bits)
+            _ <- GenericMerkleTrie.remove[F, TokenId, NftState](
+              (tn.tokenId).toBytes.bits,
+            )
             _ <- GenericMerkleTrie.put[F, TokenId, NftState](
               tn.tokenId.toBytes.bits,
               nftState.copy(currentOwner = tn.output),
@@ -614,12 +623,18 @@ trait UpdateStateWithTokenTx:
                                   .get(sig.account)
                                   .getOrElse(BigNat.Zero),
                               )
+                            case or: Transaction.RewardTx.OfferReward =>
+                              EitherT.pure(
+                                or.outputs
+                                  .get(sig.account)
+                                  .getOrElse(BigNat.Zero),
+                              )
                             case xr: Transaction.RewardTx.ExecuteReward =>
                               EitherT.pure {
                                 txWithResult.result match
                                   case Some(
                                         Transaction.RewardTx
-                                          .ExecuteRewardResult(_, outputs),
+                                          .ExecuteRewardResult(outputs),
                                       ) =>
                                     outputs
                                       .get(sig.account)
@@ -914,10 +929,15 @@ trait UpdateStateWithTokenTx:
               de.outputs.get(account),
               s"Account $account does not have output of tx $de",
             )
+          case or: Transaction.RewardTx.OfferReward =>
+            Either.fromOption(
+              or.outputs.get(account),
+              s"Account $account does not have output of tx $or",
+            )
           case er: Transaction.RewardTx.ExecuteReward =>
             tx.result match
               case Some(
-                    Transaction.RewardTx.ExecuteRewardResult(_, outputs),
+                    Transaction.RewardTx.ExecuteRewardResult(outputs),
                   ) =>
                 Either.fromOption(
                   outputs.get(account),
