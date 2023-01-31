@@ -4,8 +4,8 @@
 
 > `param` pageNo: 페이지 번호
 > `param` sizePerRequest: 페이지 당 출력할 레코드 갯수
-> `param` *(optional)* accountAddr: 사용자 지갑 주소
-> `param` *(optional)* blockHash: 블록 해쉬 값
+> `param` _(optional)_ accountAddr: 사용자 지갑 주소
+> `param` _(optional)_ blockHash: 블록 해쉬 값
 > (단, accountAddr / blockHash 모두 입력시 에러)
 
 - Response: PageResponse[TxInfo]
@@ -71,10 +71,10 @@
   - createdAt: Tx 가 Lmscan Db에 저장된 시간
   - eventTime: 트랜잭션 생성 시간
   - inputHashs: 인풋 트랜잭션 해쉬 목록
-  - transferHist: 
+  - transferHist:
   - json: 트랜잭션의 raw json
 
-  - Example (pageNo `0`, sizePerRequest: `3` 으로 요청한 예시)
+  - Example (transactionHash `1513b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da` 으로 요청한 예시)
     - http://localhost:8081/tx/1513b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da/detail
 
 ```json
@@ -85,7 +85,7 @@
   "txType": "account",
   "tokenType": "LM",
   "inputHashs": [
-      "4913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da"
+    "4913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da"
   ],
   "transferHist": [
     {
@@ -100,7 +100,6 @@
   "json": "test"
 }
 ```
-
 
 `GET` **/block/list** 블록 목록 페이지 조회
 
@@ -152,24 +151,49 @@
   - number: 블록 번호
   - txCount: 트랜잭션 갯수
   - createdAt: 블록 생성 시간
-  - txs: 해당 블록의 트랜잭션 목록
+  - txs: 해당 블록의 트랜잭션 목록 ()
 
-
-  - Example (pageNo `0`, sizePerRequest: `3` 으로 요청한 예시)
+  - Example (blockHash `6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da` 으로 요청한 예시)
     - http://localhost:8081/block/6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da/detail
 
 ```json
 {
-  "number": 123456789,
   "hash": "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
   "parentHash": "7913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2db",
+  "number": 123456789,
+  "timestamp": 1675068000,
   "txCount": 1234,
-  "txInfo": 
-  "createdAt": 1675068555
+  "txs": [
+    {
+      "hash": "7913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2dc",
+      "blockNumber": 14,
+      "createdAt": 1673939878,
+      "txType": "account",
+      "tokenType": "LM",
+      "signer": "26A463A0ED56A4A97D673A47C254728409C7B002",
+      "value": "123456789.12345678912345678"
+    },
+    {
+      "hash": "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2db",
+      "blockNumber": 12,
+      "createdAt": 1673853478,
+      "txType": "account",
+      "tokenType": "LM",
+      "signer": "26A463A0ED56A4A97D673A47C254728409C7B002",
+      "value": "123456789.12345678912345678"
+    },
+    {
+      "hash": "5913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
+      "blockNumber": 15,
+      "createdAt": 1673767078,
+      "txType": "account",
+      "tokenType": "LM",
+      "signer": "26A463A0ED56A4A97D673A47C254728409C7B002",
+      "value": "123456789.12345678912345678"
+    }
+  ]
 }
 ```
-
-
 
 `GET` **/account/{accountAddr}/detail** 특정 어카운트 상세정보 조회
 
@@ -181,7 +205,6 @@
   - balance: 보유 LM 토큰 수량
   - value: 해당 토큰 수량의 달러화 환산 가치
   - txHistory: 해당 어카운트의 트랜잭션 히스토리
-  
 
   - Example (pageNo `0`, sizePerRequest: `3` 으로 요청한 예시)
     - http://localhost:8081/account/26A463A0ED56A4A97D673A47C254728409C7B002/detail
@@ -223,14 +246,11 @@
 }
 ```
 
-
-
 `GET` **/nft/{tokenId}/detail** 특정 NFT 상세정보 조회
 
 > `param` tokenId: nft 토큰 아이디
 
 - Response: Option[NftDetail]
-
 
   - nftFile: Nft 파일 정보
   - activities: 보유 LM 토큰 수량
@@ -252,7 +272,7 @@
     "creator": "JinKei",
     "eventTime": 1675069161,
     "createdAt": 1675069161,
-    "owner": "b775871c85faae7eb5f6bcebfd28b1e1b412235c",
+    "owner": "b775871c85faae7eb5f6bcebfd28b1e1b412235c"
   },
   "activities": [
     {
@@ -265,5 +285,3 @@
   ]
 }
 ```
-
-
