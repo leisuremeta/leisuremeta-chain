@@ -6,13 +6,12 @@ import io.circe.parser.*
 case class TxList(totalCount: Int, totalPages: Int, payload: List[Tx])
 case class Tx(
     hash: String,
-    txType: String,
-    fromAddr: String,
-    toAddr: List[String],
-    amount: Double,
-    blockHash: String,
-    eventTime: Int,
+    blockNumber: Int,
     createdAt: Int,
+    txType: String,
+    tokenType: String,
+    signer: String,
+    value: Double,
 )
 
 object TxParser:

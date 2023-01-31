@@ -221,13 +221,12 @@ object Row2:
       .map(each =>
         div(`class` := "row table-body")(
           div(`class` := "cell")(span()(each.hash)),
-          div(`class` := "cell")(span()(each.txType)),
-          div(`class` := "cell")(span()(each.fromAddr)),
-          div(`class` := "cell")(span()(each.toAddr.toString())),
-          div(`class` := "cell")(span()(each.amount.toString())),
-          div(`class` := "cell")(span()(each.blockHash)),
-          div(`class` := "cell")(span()(each.eventTime.toString())),
+          div(`class` := "cell")(span()(each.blockNumber.toString())),
           div(`class` := "cell")(span()(each.createdAt.toString())),
+          div(`class` := "cell")(span()(each.txType)),
+          div(`class` := "cell")(span()(each.tokenType)),
+          div(`class` := "cell")(span()(each.signer)),
+          div(`class` := "cell")(span()(each.value.toString())),
         ),
       )
       .toList
