@@ -1,4 +1,7 @@
 package io.leisuremeta.chain.lmscan.frontend
+
+import io.circe.Json
+
 sealed trait Msg
 
 enum NavMsg extends Msg:
@@ -27,3 +30,6 @@ enum PageMoveMsg extends Msg:
   case Next                 extends PageMoveMsg
   case Get(value: String)   extends PageMoveMsg
   case Patch(value: String) extends PageMoveMsg
+enum DashboardMsg extends Msg:
+  case GetNew(result: String)  extends DashboardMsg
+  case GetError(error: String) extends DashboardMsg

@@ -1,50 +1,28 @@
 package io.leisuremeta.chain.lmscan.frontend
+
 import cats.effect.IO
-// import io.circe._
 import io.circe.parser.*
 import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
 import io.circe.syntax.*
-import Log.*
-// import io.circe.{Decoder, Encoder}
 
 object UnderTxMsg:
   private val onResponse: Response => Msg = response =>
-
     import io.circe.*, io.circe.generic.semiauto.*
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
       case Left(parsingError) =>
-        throw new IllegalArgumentException(
-          s"Invalid JSON object: ${parsingError.message}",
-        )
+        // throw new IllegalArgumentException(s"Invalid JSON object: ${parsingError.message}")
+        TxMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
       case Right(json) => {
-        val decoded = TxParser.decodeParser(response.body)
-        decoded match
-          case Right(r) => r.payload.foreach { println }
-          case Left(e)  => log(e)
+        TxMsg.GetNewTx(response.body)
+        // val decoded = TxParser.decodeParser(response.body)
+        // decoded match {
+        //   case Right(r) => TxMsg.GetNewTx(r)
+        //   case Left(e)  => TxMsg.GetError("Filed json decode")
+        // }
       }
-
-    val json = log(response.body) // String
-    val parsed = log(parse(json) match // Json
-      case Right(r) => Right(r)
-      case Left(l)  => Left(l.message),
-    )
-    // val parsed_TxList = log("parsed_TxList")
-    // val parsed_TxList = decode[TxList](json)
-
-    val deserialised =
-      log(parsed.flatMap { json =>
-        json.hcursor
-          .get[String]("msg")
-          .toOption
-          .toRight("wrong json format")
-      })
-
-    deserialised match
-      case Left(e)  => TxMsg.GetError(e)
-      case Right(r) => TxMsg.GetNewTx(r)
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
 

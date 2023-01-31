@@ -1,5 +1,8 @@
 package io.leisuremeta.chain.lmscan.frontend
 
+import io.circe.Json
+
+// import cats.effect.IO
 final case class Model(
     // nav move
     prevPage: NavMsg,
@@ -19,4 +22,5 @@ final case class Model(
     // page_Search: String,
     block_list_Search: String,
     tx_list_Search: String,
+    data: Option[String] = Some(""),
 )
