@@ -1,7 +1,5 @@
 package io.leisuremeta.chain.lmscan.agent.repository
 
-
-
 import cats.data.EitherT
 import cats.effect.kernel.Async
 import io.getquill.Query
@@ -12,13 +10,14 @@ import io.getquill.PostgresJAsyncContext
 import io.getquill.SnakeCase
 import io.getquill.*
 import io.getquill.Literal
-
+// import io.getquill.context.*
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.ExecutionContext
+// import io.getquill.context.Context.InternalApi
 
 trait CommonQuery:
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
- 
+
   inline def optionQuery[F[_]: Async, T](
       inline query: Query[T],
   ): EitherT[F, String, Option[T]] =
@@ -35,5 +34,27 @@ trait CommonQuery:
         case e: SQLException =>
           Left(s"sql exception occured: " + e.getMessage())
         case e: Exception => Left(e.getMessage())
+      }
+    }
+
+  inline def insert[F[_]: Async, T](
+      inline query: Query[T],
+  ): EitherT[F, String, Seq[T]] =
+    EitherT {
+      Async[F].recover {
+        for
+          given ExecutionContext <- Async[F].executionContext
+          ids <- Async[F]
+            .fromFuture(Async[F].delay {
+              ctx.run(query)
+              // InternalApi.runBatchActionReturning(query)
+            })
+            .map(Either.right(_))
+        yield ids
+      } {
+        case e: SQLException =>
+          Left(s"sql exception occured: " + e.getMessage())
+        case e: Exception =>
+          Left(e.getMessage())
       }
     }
