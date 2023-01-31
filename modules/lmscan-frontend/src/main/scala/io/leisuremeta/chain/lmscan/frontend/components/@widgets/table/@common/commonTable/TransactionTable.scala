@@ -23,7 +23,7 @@ object Row2:
 
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Tx Hash")), // hash
-    div(`class` := "cell")(span()("Block")), // blockHash
+    div(`class` := "cell")(span()("Block")), // blockNumber
     div(`class` := "cell")(span()("Age")), // createdAt
     div(`class` := "cell")(span()("Signer")), // signer
     div(`class` := "cell")(span()("Type")), // txType
@@ -34,10 +34,10 @@ object Row2:
     payload
       .map(each =>
         div(`class` := "row table-body")(
-          div(`class` := "cell")(span()(each.hash)),
+          div(`class` := "cell")(span()(each.hash.take(10) + "...")),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
           div(`class` := "cell")(span()(each.createdAt.toString())),
-          div(`class` := "cell")(span()(each.signer)),
+          div(`class` := "cell")(span()(each.signer.take(10) + "...")),
           div(`class` := "cell")(span()(each.txType)),
           div(`class` := "cell")(span()(each.tokenType)),
           div(`class` := "cell")(span()(each.value.toString())),
