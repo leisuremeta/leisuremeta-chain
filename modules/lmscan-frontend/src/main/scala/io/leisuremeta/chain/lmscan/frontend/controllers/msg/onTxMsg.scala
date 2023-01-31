@@ -30,7 +30,8 @@ object UnderTxMsg:
     Decoder[Msg](onResponse, onError)
 
 object OnTxMsg:
-  def getTxList(topic: String): Cmd[IO, Msg] =
+  def getTxList(page: String): Cmd[IO, Msg] =
+    // val page = 1
     val url =
-      s"http://localhost:8081/tx/list?useDataNav=true&pageNo=0&sizePerRequest=10"
+      s"http://localhost:8081/tx/list?useDataNav=true&pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
     Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)

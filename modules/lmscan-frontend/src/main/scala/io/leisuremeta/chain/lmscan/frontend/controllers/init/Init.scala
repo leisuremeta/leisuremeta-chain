@@ -26,5 +26,5 @@ object Init:
         block_list_Search,
         tx_list_Search,
       ),
-      OnTxMsg.getTxList("random"),
+      OnTxMsg.getTxList(tx_CurrentPage.toString()),
     )

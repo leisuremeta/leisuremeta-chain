@@ -12,12 +12,13 @@ object PageMoveUpdate:
     case PageMoveMsg.Next =>
       model.curPage.toString() match
         case "Transactions" =>
+          val updated = model.tx_CurrentPage + 1
           (
             model.copy(
-              tx_CurrentPage = model.tx_CurrentPage + 1,
-              tx_list_Search = s"${model.tx_CurrentPage + 1}",
+              tx_CurrentPage = updated,
+              tx_list_Search = updated.toString(),
             ),
-            Cmd.None,
+            OnTxMsg.getTxList(updated.toString()),
           )
         case "Blocks" =>
           (
@@ -32,12 +33,13 @@ object PageMoveUpdate:
     case PageMoveMsg.Prev =>
       model.curPage.toString() match
         case "Transactions" =>
+          val updated = model.tx_CurrentPage - 1
           (
             model.copy(
-              tx_CurrentPage = model.tx_CurrentPage - 1,
-              tx_list_Search = s"${model.tx_CurrentPage - 1}",
+              tx_CurrentPage = updated,
+              tx_list_Search = updated.toString(),
             ),
-            Cmd.None,
+            OnTxMsg.getTxList(updated.toString()),
           )
         case "Blocks" =>
           (
