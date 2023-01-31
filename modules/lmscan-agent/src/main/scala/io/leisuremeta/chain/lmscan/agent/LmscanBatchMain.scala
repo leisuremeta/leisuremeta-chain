@@ -13,6 +13,7 @@ import io.circe.generic.auto.*
 import io.circe.parser.decode
 import io.circe.refined.*
 import io.circe.syntax.*
+import cats.syntax.traverse.*
 
 import scala.concurrent.duration.*
 import cats.effect.kernel.Async
@@ -44,7 +45,7 @@ object LmscanBatchMain extends IOApp:
               status.genesisHash,
               0,
             ) { txList =>
-              for txs <- insertTx
+              for txs <- txList.traverse { }
               yield ()
             }
           yield ()
