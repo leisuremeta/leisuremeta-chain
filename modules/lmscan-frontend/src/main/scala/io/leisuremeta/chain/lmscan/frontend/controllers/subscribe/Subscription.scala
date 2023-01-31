@@ -6,13 +6,13 @@ import Log.*
 
 object Subscriptions:
   def subscriptions(model: Model): Sub[IO, Msg] =
-    Option(Dom.select("DOM-search")) match
-      // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
-      case None => Sub.None
+    Sub.Batch(
+      Option(Dom.select("DOM-search")) match
+        // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
+        case None => Sub.None
 
-      // Dom 이 select 된 경우
-      case Some(element) =>
-        Sub.Batch(
+        // Dom 이 select 된 경우
+        case Some(element) =>
           Sub.fromEvent[IO, KeyboardEvent, Msg](
             "keydown",
             element,
@@ -23,26 +23,25 @@ object Subscriptions:
                 Some(InputMsg.Patch)
               case _ =>
                 None
-          },
-        )
+          }
+      ,
+      Option(Dom.select("DOM-page1")) match
+        // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
+        case None => Sub.None
 
-    // TODO :: remove redundant optional dom select
-    Option(Dom.select("DOM-page1")) match
-      // 처음 화면이 로드될때, dom 이 잡히지 않은경우 or 돔이 검색되지 않는 경우
-      case None => Sub.None
-
-      // Dom 이 select 된 경우
-      case Some(element) =>
-        Sub.Batch(
-          Sub.fromEvent[IO, KeyboardEvent, Msg](
-            "keydown",
-            element,
-          ) { e =>
-            e.keyCode match
-              case 13 =>
-                // Enter key
-                Some(PageMoveMsg.Patch("Enter"))
-              case _ =>
-                None
-          },
-        )
+        // Dom 이 select 된 경우
+        case Some(element) =>
+          Sub.Batch(
+            Sub.fromEvent[IO, KeyboardEvent, Msg](
+              "keydown",
+              element,
+            ) { e =>
+              e.keyCode match
+                case 13 =>
+                  // Enter key
+                  Some(PageMoveMsg.Patch("Enter"))
+                case _ =>
+                  None
+            },
+          ),
+    )
