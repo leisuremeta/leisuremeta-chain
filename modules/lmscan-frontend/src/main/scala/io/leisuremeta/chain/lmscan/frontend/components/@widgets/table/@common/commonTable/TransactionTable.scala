@@ -82,7 +82,7 @@ object Row2:
         div(`class` := "type-plain-text")("Page"),
         input(
           onInput(s => PageMoveMsg.Get(s)),
-          value   := s"${model.page_Search}",
+          value   := s"${model.tx_list_Search}",
           `class` := "type-search xy-center DOM-page1 ",
         ),
         div(`class` := "type-plain-text")("of"),

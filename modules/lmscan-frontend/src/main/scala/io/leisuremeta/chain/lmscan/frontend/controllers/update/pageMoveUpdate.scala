@@ -15,7 +15,7 @@ object PageMoveUpdate:
           (
             model.copy(
               tx_CurrentPage = model.tx_CurrentPage + 1,
-              page_Search = s"${model.tx_CurrentPage + 1}",
+              tx_list_Search = s"${model.tx_CurrentPage + 1}",
             ),
             Cmd.None,
           )
@@ -23,7 +23,7 @@ object PageMoveUpdate:
           (
             model.copy(
               block_CurrentPage = model.block_CurrentPage + 1,
-              page_Search = s"${model.block_CurrentPage + 1}",
+              block_list_Search = s"${model.block_CurrentPage + 1}",
             ),
             Cmd.None,
           )
@@ -35,7 +35,7 @@ object PageMoveUpdate:
           (
             model.copy(
               tx_CurrentPage = model.tx_CurrentPage - 1,
-              page_Search = s"${model.tx_CurrentPage - 1}",
+              tx_list_Search = s"${model.tx_CurrentPage - 1}",
             ),
             Cmd.None,
           )
@@ -43,7 +43,7 @@ object PageMoveUpdate:
           (
             model.copy(
               block_CurrentPage = model.block_CurrentPage - 1,
-              page_Search = s"${model.block_CurrentPage - 1}",
+              block_list_Search = s"${model.block_CurrentPage - 1}",
             ),
             Cmd.None,
           )
@@ -53,12 +53,12 @@ object PageMoveUpdate:
       model.curPage.toString() match
         case "Transactions" =>
           (
-            model.copy(page_Search = value),
+            model.copy(tx_list_Search = value),
             Cmd.None,
           )
         case "Blocks" =>
           (
-            model.copy(page_Search = value),
+            model.copy(block_list_Search = value),
             Cmd.None,
           )
         case _ => (model, Cmd.None)
@@ -67,7 +67,7 @@ object PageMoveUpdate:
       model.curPage.toString() match
         case "Transactions" =>
           val str = value match
-            case "Enter" => model.page_Search
+            case "Enter" => model.tx_list_Search
             case _       => value
 
           val res = // filter only number like string
@@ -79,13 +79,13 @@ object PageMoveUpdate:
           (
             model.copy(
               tx_CurrentPage = res,
-              page_Search = res.toString(),
+              tx_list_Search = res.toString(),
             ),
             Cmd.None,
           )
         case "Blocks" =>
           val str = value match
-            case "Enter" => model.page_Search
+            case "Enter" => model.block_list_Search
             case _       => value
 
           val res = // filter only number like string
@@ -96,7 +96,7 @@ object PageMoveUpdate:
           (
             model.copy(
               block_CurrentPage = res,
-              page_Search = res.toString(),
+              block_list_Search = res.toString(),
             ),
             Cmd.None,
           )
