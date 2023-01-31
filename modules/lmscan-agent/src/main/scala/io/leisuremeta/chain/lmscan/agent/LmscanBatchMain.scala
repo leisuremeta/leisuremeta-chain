@@ -20,7 +20,7 @@ import cats.Monad
 import cats.syntax.bifunctor.*
 import cats.syntax.functor.*
 import io.leisuremeta.chain.lmscan.agent.entity.Block
-import io.leisuremeta.chain.lmscan.agent.model.{PBlock, BlockInfo}
+import io.leisuremeta.chain.lmscan.agent.model.{PBlock, BlockInfo, NodeStatus}
 import java.nio.file.Paths
 import scala.util.Try
 import java.nio.file.Files
@@ -35,13 +35,22 @@ object LmscanBatchMain extends IOApp:
     for _ <- ArmeriaCatsBackend
         .resource[IO](SttpBackendOptions.Default)
         .use { backend =>
-          val unsavedBlocks = readUnsavedBlocks()
-          val lastReadBlock = getLastBlockRead()
-          lastReadBlock.map {
+          for
+            status <- getStatus[IO](backend)
+            block  <- getBlock[IO](backend)(status.bestHash)
+            count <- loop[IO](backend)(
+              status.bestHash,
+              status.genesisHash,
+              0,
+            ) {}
+          yield ()
+          // val unsavedBlocks = readUnsavedBlocks()
+          // val lastReadBlock = getLastBlockRead()
+          // lastReadBlock.map {
 
-            block <- getBlockListFrom(backend, .)
+          //   block <- getBlockListFrom(backend, .)
 
-          }
+          // }
           // getTx()
           IO.unit
         }
@@ -70,6 +79,25 @@ object LmscanBatchMain extends IOApp:
 
           result
         }
+    }
+
+  def loop[F[_]: Async](
+      backend: SttpBackend[F, Any],
+  ): EitherT[F, String, Long] =
+    ???
+
+  def getStatus[F[_]: Async](
+      backend: SttpBackend[F, Any],
+  ): EitherT[F, String, NodeStatus] =
+    get[F, NodeStatus](backend) {
+      uri"$baseUri/status"
+    }
+
+  def getBlock[F[_]: Async](
+      backend: SttpBackend[F, Any],
+  )(blockHash: String): EitherT[F, String, PBlock] =
+    get[F, PBlock](backend) {
+      uri"$baseUri/block/${blockHash}"
     }
 
   def getBlockListFrom[F[_]: Async](
