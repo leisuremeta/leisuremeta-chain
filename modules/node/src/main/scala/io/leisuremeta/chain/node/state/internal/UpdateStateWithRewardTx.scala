@@ -50,7 +50,7 @@ import service.{RewardService, StateReadService}
 trait UpdateStateWithRewardTx:
 
   given updateStateWithRewardTx[F[_]
-    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: PlayNommState]
+    : Concurrent: BlockRepository: TransactionRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: PlayNommState]
       : UpdateState[F, Transaction.RewardTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.RewardTx) =>
       tx match
@@ -131,7 +131,56 @@ trait UpdateStateWithRewardTx:
 //            ),
 //            TransactionWithResult(Signed(sig, ra), None),
 //          )
-        case tx: Transaction.RewardTx.OfferReward => ???
+        case tf: Transaction.RewardTx.OfferReward =>
+          val txWithResult = TransactionWithResult(Signed(sig, tx), None)
+          type FungibleBalance =
+            (Account, TokenDefinitionId, Hash.Value[TransactionWithResult])
+
+          val transferFungibleTokenProgram: StateT[
+            EitherT[F, String, *],
+            GenericMerkleTrieState[FungibleBalance, Unit],
+            Unit,
+          ] = for
+            _ <- tf.inputs.toList.traverse { (txHash) =>
+              GenericMerkleTrie.remove[F, FungibleBalance, Unit](
+                (sig.account, tf.tokenDefinitionId, txHash).toBytes.bits,
+              )
+            }
+            _ <- tf.outputs.toList.traverse { (account, amount) =>
+              GenericMerkleTrie.put[F, FungibleBalance, Unit](
+                (
+                  account,
+                  tf.tokenDefinitionId,
+                  txWithResult.toHash,
+                ).toBytes.bits,
+                (),
+              )
+            }
+          yield ()
+
+          for
+            pubKeySummary <- EitherT.fromEither[F](
+              recoverSignature(tf, sig.sig),
+            )
+            accountPubKeyOption <- GenericMerkleTrie
+              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
+                (sig.account, pubKeySummary).toBytes.bits,
+              )
+              .runA(ms.account.keyState)
+            _ <- EitherT.fromOption[F](
+              accountPubKeyOption,
+              s"Account ${sig.account} does not have public key summary $pubKeySummary",
+            )
+            fungibleBalanceState <- transferFungibleTokenProgram.runS(
+              ms.token.fungibleBalanceState,
+            )
+          yield (
+            ms.copy(token =
+              ms.token.copy(fungibleBalanceState = fungibleBalanceState),
+            ),
+            txWithResult,
+          )
+
         case xr: Transaction.RewardTx.ExecuteReward =>
           val sourceAccount =
             xr.daoAccount.getOrElse(Account(Utf8.unsafeFrom("DAO-M")))
