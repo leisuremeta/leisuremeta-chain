@@ -25,6 +25,7 @@ import java.nio.file.Paths
 import scala.util.Try
 import java.nio.file.Files
 import scala.jdk.CollectionConverters.*
+import io.leisuremeta.chain.lmscan.agent.service.TxService
 
 object LmscanBatchMain extends IOApp:
   val baseUri = "http://localhost:8081"
@@ -42,7 +43,10 @@ object LmscanBatchMain extends IOApp:
               status.bestHash,
               status.genesisHash,
               0,
-            ) {}
+            ) { txList =>
+              for txs <- insertTx
+              yield ()
+            }
           yield ()
           // val unsavedBlocks = readUnsavedBlocks()
           // val lastReadBlock = getLastBlockRead()
@@ -83,8 +87,14 @@ object LmscanBatchMain extends IOApp:
 
   def loop[F[_]: Async](
       backend: SttpBackend[F, Any],
+  )(next: String, genesis: String, count: Long)(
+      run: Seq[String] => EitherT[F, String, Unit],
   ): EitherT[F, String, Long] =
-    ???
+    for
+      block <- getBlock[F](backend)(next)
+      _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
+      _     <- run(block.transactionHashes)
+    yield 2L
 
   def getStatus[F[_]: Async](
       backend: SttpBackend[F, Any],
