@@ -3,18 +3,17 @@ import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import io.circe.parser.*
 
-case class BlockDetail(totalCount: Int, totalPages: Int, payload: List[Tx])
-// case class Tx(
-//     hash: String,
-//     blockNumber: Int,
-//     createdAt: Int,
-//     txType: String,
-//     tokenType: String,
-//     signer: String,
-//     value: Double,
-// )
+case class BlockDetail(
+    hash: String,
+    parentHash: String,
+    number: Int,
+    timestamp: Int,
+    txCount: Int,
+    txs: List[Tx],
+)
 
-// object TxParser:
-//   implicit val blocklistDecoder: Decoder[TxList] = deriveDecoder[TxList]
-//   implicit val blockDecoder: Decoder[Tx]         = deriveDecoder[Tx]
-//   def decodeParser(body: String)                 = decode[TxList](body)
+object BlockDetailParser:
+  implicit val txDecoder: Decoder[Tx] = deriveDecoder[Tx]
+  implicit val blockDetailDecoder: Decoder[BlockDetail] =
+    deriveDecoder[BlockDetail]
+  def decodeParser(body: String) = decode[BlockDetail](body)
