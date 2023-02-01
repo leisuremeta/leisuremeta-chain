@@ -25,8 +25,6 @@ object UnderTxDetailMsg:
 
 object OnTxDetailMsg:
   def getTxDetail(hash: String): Cmd[IO, Msg] =
-    val hash =
-      "1513b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da"
     val url =
       s"http://localhost:8081/tx/$hash/detail"
     Http.send(Request.get(url), UnderTxDetailMsg.fromHttpResponse)

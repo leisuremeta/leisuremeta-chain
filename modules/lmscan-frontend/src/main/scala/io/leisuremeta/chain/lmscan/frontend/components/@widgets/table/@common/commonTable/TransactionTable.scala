@@ -36,7 +36,6 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              // onClick(TxDetailMsg.Patch(each.hash)),
               onClick(NavMsg.TransactionDetail(each.hash)),
             )(each.hash.take(10) + "..."),
           ),
