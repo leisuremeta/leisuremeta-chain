@@ -13,7 +13,6 @@ import io.circe.generic.auto.*
 import io.circe.parser.decode
 import io.circe.refined.*
 import io.circe.syntax.*
-import cats.syntax.traverse.*
 
 import scala.concurrent.duration.*
 import cats.effect.kernel.Async
@@ -26,7 +25,8 @@ import java.nio.file.Paths
 import scala.util.Try
 import java.nio.file.Files
 import scala.jdk.CollectionConverters.*
-import io.leisuremeta.chain.lmscan.agent.service.TxService
+// import io.leisuremeta.chain.lmscan.agent.service.TxService
+import cats.syntax.traverse.toTraverseOps
 
 object LmscanBatchMain extends IOApp:
   val baseUri = "http://localhost:8081"
@@ -44,11 +44,16 @@ object LmscanBatchMain extends IOApp:
               status.bestHash,
               status.genesisHash,
               0,
-            ) { txList =>
-              for txs <- txList.traverse { }
-              yield ()
-            }
-          yield ()
+            )
+          //  { (block, txList) =>
+          //   for txs <- txList.traverse { txHash =>
+          //       TxService.insert(
+          //         getTransaciton[IO](backend)(txHash),
+          //       )
+          //     }
+          //   yield ()
+          // }
+          yield (ExitCode.Success)
           // val unsavedBlocks = readUnsavedBlocks()
           // val lastReadBlock = getLastBlockRead()
           // lastReadBlock.map {
@@ -60,6 +65,25 @@ object LmscanBatchMain extends IOApp:
           IO.unit
         }
     yield ExitCode.Success
+
+  def loop[F[_]: Async](
+      backend: SttpBackend[F, Any],
+  )(next: String, genesis: String, count: Long): EitherT[F, String, Long] =
+    for
+      block <- getBlock[F](backend)(next)
+      _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
+    yield 2L
+
+  // def loop[F[_]: Async](
+  //     backend: SttpBackend[F, Any],
+  // )(next: String, genesis: String, count: Long)(
+  //     run: (PBlock, Seq[String]) => EitherT[F, String, Unit],
+  // ): EitherT[F, String, Long] =
+  //   for
+  //     block <- getBlock[F](backend)(next)
+  //     _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
+  //     _     <- run(block, block.transactionHashes)
+  //   yield 2L
 
   def checkLoop(): IO[Unit] = for
     _ <- IO.delay(scribe.info(s"data insertion started"))
@@ -86,22 +110,18 @@ object LmscanBatchMain extends IOApp:
         }
     }
 
-  def loop[F[_]: Async](
-      backend: SttpBackend[F, Any],
-  )(next: String, genesis: String, count: Long)(
-      run: Seq[String] => EitherT[F, String, Unit],
-  ): EitherT[F, String, Long] =
-    for
-      block <- getBlock[F](backend)(next)
-      _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
-      _     <- run(block.transactionHashes)
-    yield 2L
-
   def getStatus[F[_]: Async](
       backend: SttpBackend[F, Any],
   ): EitherT[F, String, NodeStatus] =
     get[F, NodeStatus](backend) {
       uri"$baseUri/status"
+    }
+
+  def getTransaciton[F[_]: Async](
+      backend: SttpBackend[F, Any],
+  )(txHash: String): EitherT[F, String, String] =
+    get[F, String](backend) {
+      uri"$baseUri/tx/${txHash}"
     }
 
   def getBlock[F[_]: Async](
