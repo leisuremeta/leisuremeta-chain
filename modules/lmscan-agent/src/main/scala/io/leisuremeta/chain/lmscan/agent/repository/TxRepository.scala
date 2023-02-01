@@ -15,10 +15,8 @@ object TxRepository extends CommonQuery:
   import ctx.{*, given}
 
   def insert[F[_]: Async](tx: Tx): EitherT[F, String, Long] =
-    inline def upsertQuery =
+    inline def insertQuery =
       quote { (tx: Tx) =>
-        query[Tx].insertValue(tx)
+        query[Tx].insertValue(lift(tx))
       }
-    super.insert(upsertQuery(lift(tx)))
-    
-
+    super.insert(insertQuery(tx))
