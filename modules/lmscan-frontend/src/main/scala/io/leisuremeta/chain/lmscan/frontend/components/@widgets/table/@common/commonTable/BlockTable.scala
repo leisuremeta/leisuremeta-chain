@@ -18,11 +18,11 @@ object Row:
       )(span()("Latest Blocks")),
       div(
         `class` := s"type-2",
-      )(span(onClick(NavMsg.Transactions))("More")),
+      )(span(onClick(NavMsg.Blocks))("More")),
     )
 
   val head = div(`class` := "row table-head")(
-    div(`class` := "cell")(span()("Tx Hash")), // hash
+    div(`class` := "cell")(span()("Block")), // hash
     div(`class` := "cell")(span()("Age")), // createdAt
     div(`class` := "cell")(span()("Block hash")), // number
     div(`class` := "cell")(span()("Tx count")), // txCount
