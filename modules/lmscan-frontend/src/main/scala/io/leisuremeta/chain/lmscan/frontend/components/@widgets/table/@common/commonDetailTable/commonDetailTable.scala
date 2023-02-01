@@ -38,6 +38,7 @@ object TxDetailTable:
         data.value.toString(),
       ),
     )
+  val txDetailJson = "asdadd"
 
   val genView = (model: Model, data: TxDetail) =>
     div(`class` := "y-start gap-10px w-[100%] ")(
@@ -114,7 +115,7 @@ object TxDetailTable:
         textarea(
           `id`    := s"transaction-text-area",
           `class` := s"${State.toggle(model, ToggleMsg.Click, "_textarea")}",
-        )(s"${Text.jsonExample}"),
+        )(s"${TxDetailParser.txDetailEncoder(data)}"),
       ),
     )
 

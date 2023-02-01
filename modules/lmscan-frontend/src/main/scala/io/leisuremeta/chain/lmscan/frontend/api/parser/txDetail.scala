@@ -23,3 +23,6 @@ object TxDetailParser:
   implicit val transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
   implicit val txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
   def decodeParser(body: String)                  = decode[TxDetail](body)
+
+  implicit val transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
+  implicit val txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]
