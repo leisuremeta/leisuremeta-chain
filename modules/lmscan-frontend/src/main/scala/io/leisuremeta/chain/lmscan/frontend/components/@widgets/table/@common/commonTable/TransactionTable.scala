@@ -35,7 +35,10 @@ object Row2:
       .map(each =>
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
-            span(onClick(NavMsg.TransactionDetail))(each.hash.take(10) + "..."),
+            span(
+              // onClick(TxDetailMsg.Patch(each.hash)),
+              onClick(NavMsg.TransactionDetail(each.hash)),
+            )(each.hash.take(10) + "..."),
           ),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
           div(`class` := "cell")(span()(each.createdAt.toString())),

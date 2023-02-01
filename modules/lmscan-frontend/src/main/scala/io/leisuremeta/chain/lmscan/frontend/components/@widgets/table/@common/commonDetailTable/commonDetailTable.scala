@@ -40,7 +40,7 @@ object DetailTables:
             ),
           ),
         )
-      case NavMsg.TransactionDetail =>
+      case NavMsg.TransactionDetail(_) =>
         div(`class` := "y-start gap-10px w-[100%] ")(
           div(`class` := "x")(
             div(`class` := "type-TableDetail  table-container")(
