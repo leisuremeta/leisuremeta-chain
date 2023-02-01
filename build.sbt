@@ -198,7 +198,6 @@ val Dependencies = new {
     libraryDependencies ++= Seq(
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
-      "org.web3j"    % "core"         % V.web3J,
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
       "io.circe"                      %% "circe-generic"        % V.circe,
       "io.circe"                      %% "circe-parser"         % V.circe,
