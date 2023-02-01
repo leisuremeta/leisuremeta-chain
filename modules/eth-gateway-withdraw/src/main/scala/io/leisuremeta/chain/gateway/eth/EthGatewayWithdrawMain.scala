@@ -36,7 +36,7 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.*
 import api.model.*
-import api.model.api_model.{AccountInfo, BalanceInfo}
+import api.model.api_model.{AccountInfo, BalanceInfo, NftBalanceInfo}
 import api.model.token.*
 import api.model.TransactionWithResult.ops.*
 import okhttp3.logging.HttpLoggingInterceptor
@@ -295,6 +295,29 @@ object EthGatewayWithdrawMain extends IOApp:
     else
       scribe.error(s"Error getting balance: ${response.body}")
       None
+  }
+
+  def getNftBalance(
+      lmAddress: String,
+  ): IO[Map[TokenId, NftBalanceInfo]] = IO {
+    val response = basicRequest
+      .response(asStringAlways)
+      .get(uri"http://$lmAddress/nft-balance/eth-gateway?movable=free")
+      .send(backend)
+
+    if response.code.isSuccess then
+      decode[Map[TokenId, NftBalanceInfo]](response.body) match
+        case Right(balanceInfoMap) => balanceInfoMap
+        case Left(error) =>
+          scribe.error(s"Error decoding nft-balance info: $error")
+          scribe.error(s"response: ${response.body}")
+          Map.empty
+    else if response.code.code === StatusCode.NotFound.code then
+      scribe.info(s"nft-balance of account eth-gateway not found: ${response.body}")
+      Map.empty
+    else
+      scribe.error(s"Error getting nft-balance: ${response.body}")
+      Map.empty
   }
 
   def getAccountInfo(
