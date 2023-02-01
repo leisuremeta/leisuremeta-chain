@@ -11,7 +11,7 @@ case class Tx(
     txType: String,
     tokenType: String,
     signer: String,
-    value: Double,
+    value: String,
 )
 
 object TxParser:

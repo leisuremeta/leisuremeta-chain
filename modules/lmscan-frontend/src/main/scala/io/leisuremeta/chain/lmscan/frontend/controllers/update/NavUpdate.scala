@@ -42,7 +42,7 @@ object NavUpdate:
             curPage = NavMsg.TransactionDetail(hash),
             prevPage = model.prevPage,
           ),
-          Cmd.None,
+          OnTxDetailMsg.getTxDetail(hash),
         ),
       )
     case NavMsg.NoPage =>

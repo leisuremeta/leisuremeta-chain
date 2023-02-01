@@ -27,5 +27,4 @@ object OnTxMsg:
   def getTxList(page: String): Cmd[IO, Msg] =
     val url =
       s"http://localhost:8081/tx/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
-      // s"http://localhost:8081/tx/list?pageNo=1&sizePerRequest=10"
     Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)

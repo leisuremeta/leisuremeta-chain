@@ -16,7 +16,7 @@ object NavView:
 
   val TransactionPageList = List(
     NavMsg.Transactions.toString(),
-    NavMsg.TransactionDetail.toString(),
+    Log.log(NavMsg.TransactionDetail.toString()),
     NavMsg.Account.toString(),
     NavMsg.Nft.toString(),
   )
@@ -28,7 +28,9 @@ object NavView:
     BlockPageList.contains(model.curPage.toString())
 
   def isCurPageisTransaction = (model: Model) =>
-    TransactionPageList.contains(model.curPage.toString())
+    TransactionPageList
+      .reduce((a, b) => a + b)
+      .contains(model.curPage.toString().take(10)) // TODO :: simplify
 
   def isPrevPageisDashBoard = (model: Model) =>
     model.curPage == NavMsg.NoPage && DashBoardPageList.contains(
@@ -41,10 +43,11 @@ object NavView:
     )
 
   def isPrevPageisTransaction = (model: Model) =>
-    model.curPage == NavMsg.NoPage && TransactionPageList.contains(
-      model.prevPage.toString(),
-    )
-
+    model.curPage == NavMsg.NoPage && TransactionPageList
+      .reduce((a, b) => a + b)
+      .contains(
+        model.prevPage.toString().take(10), // TODO :: simplify
+      )
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
       div(id := "playnomm")("playNomm"),

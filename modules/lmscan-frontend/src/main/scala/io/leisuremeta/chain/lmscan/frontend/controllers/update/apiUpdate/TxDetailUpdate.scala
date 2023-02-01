@@ -9,8 +9,6 @@ import Log.log
 object TxDetailUpdate:
   def update(model: Model): TxDetailMsg => (Model, Cmd[IO, Msg]) =
     case TxDetailMsg.Patch(hash) =>
-      log("hash")
-      log(hash)
       OnTxDetailMsg.getTxDetail(hash)
       (
         model,

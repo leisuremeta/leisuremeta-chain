@@ -45,7 +45,7 @@ object Row2:
           div(`class` := "cell")(span()(each.signer.take(10) + "...")),
           div(`class` := "cell")(span()(each.txType)),
           div(`class` := "cell")(span()(each.tokenType)),
-          div(`class` := "cell")(span()(each.value.toString())),
+          div(`class` := "cell")(span()(each.value.take(14) + "...")),
         ),
       )
 
