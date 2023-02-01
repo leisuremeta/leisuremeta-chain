@@ -3,10 +3,6 @@ import tyrian.*
 import cats.effect.IO
 
 object Init:
-  // TxParser
-  //   .decodeParser(model.txData.get)
-  //   .map(data => Row2.genTable(data.payload))
-  //   .getOrElse(div())
   val page              = NavMsg.DashBoard
   val toggle            = true
   val tx_CurrentPage    = 1
