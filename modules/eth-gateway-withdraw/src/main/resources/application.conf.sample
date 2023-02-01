@@ -1,0 +1,8 @@
+eth-address = "http://127.0.0.1:7545"
+eth-chain-id = 5777
+eth-contract = "0x02886136510172E313932EA66FE7bDC4d4C2fcc4"
+eth-nft-contract = "0xfa92261d96ee78f6b36db81783F445688f2D3419"
+eth-private = "0xSomePrivateKey"
+lm-private = "SomePrivateKey"
+lm-address = "http://127.0.0.1:8080"
+gateway-eth-address = "0x3E984778B16b5a0fE489Aac0b716078202400b6A"
