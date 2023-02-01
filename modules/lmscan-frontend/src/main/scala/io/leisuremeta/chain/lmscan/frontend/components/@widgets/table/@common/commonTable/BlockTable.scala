@@ -15,7 +15,7 @@ object Row:
     )(
       div(
         `class` := s"type-1",
-      )(span()("Latest transactions")),
+      )(span()("Latest Blocks")),
       div(
         `class` := s"type-2",
       )(span(onClick(NavMsg.Transactions))("More")),
@@ -23,38 +23,32 @@ object Row:
 
   val head = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Tx Hash")), // hash
-    div(`class` := "cell")(span()("Block")), // blockNumber
     div(`class` := "cell")(span()("Age")), // createdAt
-    div(`class` := "cell")(span()("Signer")), // signer
-    div(`class` := "cell")(span()("Type")), // txType
-    div(`class` := "cell")(span()("Token Type")),
-    div(`class` := "cell")(span()("value")),
+    div(`class` := "cell")(span()("Block hash")), // number
+    div(`class` := "cell")(span()("Tx count")), // txCount
   )
-  def genBody = (payload: List[Tx]) =>
+  def genBody = (payload: List[Block]) =>
     payload
       .map(each =>
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
-            span(onClick(NavMsg.TransactionDetail))(each.hash.take(10) + "..."),
+            span(onClick(NavMsg.BlockDetail))(each.hash.take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.blockNumber.toString())),
           div(`class` := "cell")(span()(each.createdAt.toString())),
-          div(`class` := "cell")(span()(each.signer.take(10) + "...")),
-          div(`class` := "cell")(span()(each.txType)),
-          div(`class` := "cell")(span()(each.tokenType)),
-          div(`class` := "cell")(span()(each.value.toString())),
+          div(`class` := "cell")(span()(each.number.toString())),
+          div(`class` := "cell")(span()(each.txCount.toString())),
         ),
       )
 
-  def genTable = (payload: List[Tx]) =>
+  def genTable = (payload: List[Block]) =>
     div(`class` := "table w-[100%]")(
-      Row2.head :: Row2.genBody(payload),
+      Row.head :: Row.genBody(payload),
     )
 
   val table = (model: Model) =>
-    TxParser
-      .decodeParser(model.txData.get)
-      .map(data => Row2.genTable(data.payload))
+    BlockParser
+      .decodeParser(model.blockData.get)
+      .map(data => Row.genTable(data.payload))
       .getOrElse(div())
 
   val search = (model: Model) =>
@@ -63,28 +57,28 @@ object Row:
     )(
       div(`class` := "xy-center")(
         div(
-          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
+          `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
           onClick(PageMoveMsg.Patch("1")),
         )("<<"),
         div(
-          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
+          `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
           onClick(PageMoveMsg.Prev),
         )("<"),
         div(`class` := "type-plain-text")("Page"),
         input(
           onInput(s => PageMoveMsg.Get(s)),
-          value   := s"${model.tx_list_Search}",
+          value   := s"${model.block_list_Search}",
           `class` := "type-search xy-center DOM-page1 ",
         ),
         div(`class` := "type-plain-text")("of"),
-        div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
+        div(`class` := "type-plain-text")(model.block_TotalPage.toString()),
         div(
-          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
+          `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
           onClick(PageMoveMsg.Next),
         )(">"),
         div(
-          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
-          onClick(PageMoveMsg.Patch(model.tx_TotalPage.toString())),
+          `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
+          onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
         )(">>"),
       ),
     )

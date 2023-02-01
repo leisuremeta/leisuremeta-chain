@@ -21,12 +21,13 @@ object PageMoveUpdate:
             OnTxMsg.getTxList(updated.toString()),
           )
         case "Blocks" =>
+          val updated = model.block_CurrentPage + 1
           (
             model.copy(
               block_CurrentPage = model.block_CurrentPage + 1,
               block_list_Search = s"${model.block_CurrentPage + 1}",
             ),
-            Cmd.None,
+            OnBlockMsg.getBlockList(updated.toString()),
           )
         case _ => (model, Cmd.None)
 
@@ -42,12 +43,13 @@ object PageMoveUpdate:
             OnTxMsg.getTxList(updated.toString()),
           )
         case "Blocks" =>
+          val updated = model.block_CurrentPage - 1
           (
             model.copy(
               block_CurrentPage = model.block_CurrentPage - 1,
               block_list_Search = s"${model.block_CurrentPage - 1}",
             ),
-            Cmd.None,
+            OnBlockMsg.getBlockList(updated.toString()),
           )
         case _ => (model, Cmd.None)
 

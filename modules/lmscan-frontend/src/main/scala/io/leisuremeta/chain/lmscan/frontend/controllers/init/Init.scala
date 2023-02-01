@@ -12,6 +12,12 @@ object Init:
   val block_list_Search = "1"
   val tx_list_Search    = "1"
 
+  // TODO :: could be list
+  val txCmd: Cmd.Batch[IO, Msg] =
+    Cmd.Batch(OnTxMsg.getTxList(tx_CurrentPage.toString()))
+  val blockCmd: Cmd.Batch[IO, Msg] =
+    Cmd.Batch(OnBlockMsg.getBlockList(block_CurrentPage.toString()))
+
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (
       Model(
@@ -26,6 +32,5 @@ object Init:
         block_list_Search,
         tx_list_Search,
       ),
-      OnTxMsg.getTxList(tx_CurrentPage.toString()),
-      // Cmd.None,
+      txCmd ++ blockCmd,
     )

@@ -26,4 +26,5 @@ final case class Model(
 
     // api data
     txData: Option[String] = Some(""),
+    blockData: Option[String] = Some(""),
 )

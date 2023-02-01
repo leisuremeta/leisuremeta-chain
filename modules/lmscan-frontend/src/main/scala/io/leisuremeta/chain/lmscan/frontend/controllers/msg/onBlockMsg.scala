@@ -15,7 +15,7 @@ object UnderBlockMsg:
       case Left(parsingError) =>
         BlockMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
       case Right(json) => {
-        BlockMsg.GetNewTx(response.body)
+        BlockMsg.GetNewBlock(response.body)
       }
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
@@ -24,7 +24,7 @@ object UnderBlockMsg:
     Decoder[Msg](onResponse, onError)
 
 object OnBlockMsg:
-  def getTxList(page: String): Cmd[IO, Msg] =
+  def getBlockList(page: String): Cmd[IO, Msg] =
     val url =
-      s"http://localhost:8081/tx/list?useDataNav=true&pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
+      s"http://localhost:8081/block/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
     Http.send(Request.get(url), UnderBlockMsg.fromHttpResponse)

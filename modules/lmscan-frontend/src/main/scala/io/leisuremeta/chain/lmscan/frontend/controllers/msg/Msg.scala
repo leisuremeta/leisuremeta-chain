@@ -26,9 +26,9 @@ enum TxMsg extends Msg:
   case GetError(error: String)  extends TxMsg
 
 enum BlockMsg extends Msg:
-  case Refresh                  extends BlockMsg
-  case GetNewTx(result: String) extends BlockMsg
-  case GetError(error: String)  extends BlockMsg
+  case Refresh                     extends BlockMsg
+  case GetNewBlock(result: String) extends BlockMsg
+  case GetError(error: String)     extends BlockMsg
 
 enum PageMoveMsg extends Msg:
   case Prev                 extends PageMoveMsg
