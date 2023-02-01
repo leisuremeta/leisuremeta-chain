@@ -53,7 +53,7 @@ object Row2:
 
   val table = (model: Model) =>
     TxParser
-      .decodeParser(model.txData.get)
+      .decodeParser(model.txListData.get)
       .map(data => Row2.genTable(data.payload))
       .getOrElse(div())
 

@@ -47,7 +47,7 @@ object Row:
 
   val table = (model: Model) =>
     BlockParser
-      .decodeParser(model.blockData.get)
+      .decodeParser(model.blockListData.get)
       .map(data => Row.genTable(data.payload))
       .getOrElse(div())
 

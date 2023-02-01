@@ -21,7 +21,7 @@ object TxUpdate:
         .map(data => updated_tx_TotalPage = data.totalPages)
 
       (
-        model.copy(txData = Some(r), tx_TotalPage = updated_tx_TotalPage),
+        model.copy(txListData = Some(r), tx_TotalPage = updated_tx_TotalPage),
         Cmd.None,
       )
     case TxMsg.GetError(_) =>

@@ -22,7 +22,7 @@ object BlockUpdate:
 
       (
         model.copy(
-          blockData = Some(r),
+          blockListData = Some(r),
           block_TotalPage = updated_block_TotalPage,
         ),
         Cmd.None,
