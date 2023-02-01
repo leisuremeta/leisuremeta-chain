@@ -1,3 +1,4 @@
+// Just sample code
 package io.leisuremeta.chain.lmscan.frontend
 
 import cats.effect.IO

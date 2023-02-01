@@ -25,11 +25,17 @@ enum TxMsg extends Msg:
   case GetNewTx(result: String) extends TxMsg
   case GetError(error: String)  extends TxMsg
 
+enum BlockMsg extends Msg:
+  case Refresh                  extends BlockMsg
+  case GetNewTx(result: String) extends BlockMsg
+  case GetError(error: String)  extends BlockMsg
+
 enum PageMoveMsg extends Msg:
   case Prev                 extends PageMoveMsg
   case Next                 extends PageMoveMsg
   case Get(value: String)   extends PageMoveMsg
   case Patch(value: String) extends PageMoveMsg
+
 // enum DashboardMsg extends Msg:
 //   case GetNew(result: String)  extends DashboardMsg
 //   case GetError(error: String) extends DashboardMsg

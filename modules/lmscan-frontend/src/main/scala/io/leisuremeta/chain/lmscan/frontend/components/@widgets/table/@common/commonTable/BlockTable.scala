@@ -1,8 +1,12 @@
 package io.leisuremeta.chain.lmscan.frontend
+
 import tyrian.Html.*
 import tyrian.*
+import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
+import io.circe.syntax.*
 import Dom.{_hidden}
-import sttp.tapir.Schema.annotations.hidden
+
+import Log.*
 
 object Row:
   def title = (model: Model) =>
@@ -10,71 +14,85 @@ object Row:
       `class` := s"${State.curPage(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
     )(
       div(
-        `class` := s"type-1 ",
-      )(span()("Latest Blocks")),
+        `class` := s"type-1",
+      )(span()("Latest transactions")),
       div(
         `class` := s"type-2",
-      )(span(onClick(NavMsg.Blocks))("More")),
+      )(span(onClick(NavMsg.Transactions))("More")),
     )
 
   val head = div(`class` := "row table-head")(
-    div(`class` := "cell")(span()("Block")),
-    div(`class` := "cell")(span()("Timestamp")),
-    div(`class` := "cell")(span()("age")),
-    div(`class` := "cell")(span()("Block Hash")),
-    div(`class` := "cell")(span()("TX Count")),
+    div(`class` := "cell")(span()("Tx Hash")), // hash
+    div(`class` := "cell")(span()("Block")), // blockNumber
+    div(`class` := "cell")(span()("Age")), // createdAt
+    div(`class` := "cell")(span()("Signer")), // signer
+    div(`class` := "cell")(span()("Type")), // txType
+    div(`class` := "cell")(span()("Token Type")),
+    div(`class` := "cell")(span()("value")),
   )
-  val body = div(`class` := "row table-body")(
-    div(`class` := "cell type-3")(span(onClick(NavMsg.BlockDetail))("123458")),
-    div(`class` := "cell")(span()("YYYY-MM-DD HH:MM:SS")),
-    div(`class` := "cell")(span()("1 year ago")),
-    div(`class` := "cell")(span()("0x40e4c52e0d4340e2f")),
-    div(`class` := "cell")(span()("123")),
-  )
+  def genBody = (payload: List[Tx]) =>
+    payload
+      .map(each =>
+        div(`class` := "row table-body")(
+          div(`class` := "cell type-3")(
+            span(onClick(NavMsg.TransactionDetail))(each.hash.take(10) + "..."),
+          ),
+          div(`class` := "cell")(span()(each.blockNumber.toString())),
+          div(`class` := "cell")(span()(each.createdAt.toString())),
+          div(`class` := "cell")(span()(each.signer.take(10) + "...")),
+          div(`class` := "cell")(span()(each.txType)),
+          div(`class` := "cell")(span()(each.tokenType)),
+          div(`class` := "cell")(span()(each.value.toString())),
+        ),
+      )
+
+  def genTable = (payload: List[Tx]) =>
+    div(`class` := "table w-[100%]")(
+      Row2.head :: Row2.genBody(payload),
+    )
+
+  val table = (model: Model) =>
+    TxParser
+      .decodeParser(model.txData.get)
+      .map(data => Row2.genTable(data.payload))
+      .getOrElse(div())
+
   val search = (model: Model) =>
     div(
-      `class` := s"${State.curPage(model, NavMsg.DashBoard: Msg, "_search")} table-search xy-center ",
+      `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
     )(
       div(`class` := "xy-center")(
         div(
-          `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
+          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
           onClick(PageMoveMsg.Patch("1")),
         )("<<"),
         div(
-          `class` := s"type-arrow ${_hidden[Int](1, model.block_CurrentPage)}",
+          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
           onClick(PageMoveMsg.Prev),
         )("<"),
         div(`class` := "type-plain-text")("Page"),
         input(
           onInput(s => PageMoveMsg.Get(s)),
-          value   := s"${model.block_list_Search}",
+          value   := s"${model.tx_list_Search}",
           `class` := "type-search xy-center DOM-page1 ",
         ),
         div(`class` := "type-plain-text")("of"),
-        div(`class` := "type-plain-text")(model.block_TotalPage.toString()),
+        div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
         div(
-          `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
+          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
           onClick(PageMoveMsg.Next),
         )(">"),
         div(
-          `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
-          onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
+          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Patch(model.tx_TotalPage.toString())),
         )(">>"),
       ),
     )
 
 object BlockTable:
   def view(model: Model): Html[Msg] =
-    div(`class` := "table-container ")(
+    div(`class` := "table-container")(
       Row.title(model),
-      div(`class` := "table w-[100%]")(
-        Row.head,
-        Row.body,
-        Row.body,
-        Row.body,
-        Row.body,
-        Row.body,
-        Row.body,
-      ),
+      Row.table(model),
       Row.search(model),
     )
