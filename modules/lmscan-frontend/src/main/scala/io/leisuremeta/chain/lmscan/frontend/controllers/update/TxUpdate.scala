@@ -10,13 +10,20 @@ object TxUpdate:
   def update(model: Model): TxMsg => (Model, Cmd[IO, Msg]) =
     case TxMsg.Refresh =>
       log("ApiUpdate > update > refresh")
-      // log((model, OnTxMsg.getTxList("ran")))
       (model, OnTxMsg.getTxList(model.tx_CurrentPage.toString()))
     case TxMsg.GetNewTx(r) =>
-      // log("모델에서, 새로운 url로 업데이트 하면된다")
-      // log(r)
-      // log((model, Cmd.None))
-      (model.copy(data = Some(r)), Cmd.None)
+      // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
+      var updated_tx_TotalPage = 1
+
+      // TODO :: more simple code
+      TxParser
+        .decodeParser(r)
+        .map(data => updated_tx_TotalPage = data.totalPages)
+
+      (
+        model.copy(txData = Some(r), tx_TotalPage = updated_tx_TotalPage),
+        Cmd.None,
+      )
     case TxMsg.GetError(_) =>
       log("리프레시 > 에러 나옴")
       log((model, Cmd.None))

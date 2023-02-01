@@ -31,17 +31,15 @@ object Subscriptions:
 
         // Dom 이 select 된 경우
         case Some(element) =>
-          Sub.Batch(
-            Sub.fromEvent[IO, KeyboardEvent, Msg](
-              "keydown",
-              element,
-            ) { e =>
-              e.keyCode match
-                case 13 =>
-                  // Enter key
-                  Some(PageMoveMsg.Patch("Enter"))
-                case _ =>
-                  None
-            },
-          ),
+          Sub.fromEvent[IO, KeyboardEvent, Msg](
+            "keydown",
+            element,
+          ) { e =>
+            e.keyCode match
+              case 13 =>
+                // Enter key
+                Some(PageMoveMsg.Patch("Enter"))
+              case _ =>
+                None
+          },
     )

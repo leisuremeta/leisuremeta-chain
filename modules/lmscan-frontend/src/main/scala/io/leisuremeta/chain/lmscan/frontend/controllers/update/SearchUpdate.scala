@@ -15,13 +15,7 @@ object SearchUpdate:
         model.copy(
           searchValue = "",
           curPage = model.searchValue match
-            case "1" =>
-              log(OnTxMsg.getTxList("random"))
-              // log(SampleJson.TxList)
-              // log(SampleJson.Tx)
-              // log(Parser.txDecoder(SampleJson.Tx))
-              // log(OnTxMsg.getTxList("cats"))
-              NavMsg.DashBoard
+            case "1" => NavMsg.DashBoard
             case "2" => NavMsg.Blocks
             case "3" => NavMsg.Transactions
             case _   => NavMsg.NoPage

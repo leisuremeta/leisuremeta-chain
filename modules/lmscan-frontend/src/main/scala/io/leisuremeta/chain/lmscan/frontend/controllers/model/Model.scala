@@ -24,6 +24,6 @@ final case class Model(
     block_list_Search: String,
     tx_list_Search: String,
 
-    // tx data
-    data: Option[String] = Some(""),
+    // api data
+    txData: Option[String] = Some(""),
 )

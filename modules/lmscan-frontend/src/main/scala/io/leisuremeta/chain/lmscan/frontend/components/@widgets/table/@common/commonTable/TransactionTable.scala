@@ -45,7 +45,6 @@ object Row2:
           div(`class` := "cell")(span()(each.value.toString())),
         ),
       )
-    // .toList
 
   def genTable = (payload: List[Tx]) =>
     div(`class` := "table w-[100%]")(
@@ -54,7 +53,7 @@ object Row2:
 
   val table = (model: Model) =>
     TxParser
-      .decodeParser(model.data.get)
+      .decodeParser(model.txData.get)
       .map(data => Row2.genTable(data.payload))
       .getOrElse(div())
 

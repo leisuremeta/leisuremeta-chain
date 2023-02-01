@@ -13,15 +13,9 @@ object UnderTxMsg:
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
       case Left(parsingError) =>
-        // throw new IllegalArgumentException(s"Invalid JSON object: ${parsingError.message}")
         TxMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
       case Right(json) => {
         TxMsg.GetNewTx(response.body)
-        // val decoded = TxParser.decodeParser(response.body)
-        // decoded match {
-        //   case Right(r) => TxMsg.GetNewTx(r)
-        //   case Left(e)  => TxMsg.GetError("Filed json decode")
-        // }
       }
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
@@ -31,7 +25,6 @@ object UnderTxMsg:
 
 object OnTxMsg:
   def getTxList(page: String): Cmd[IO, Msg] =
-    // val page = 1
     val url =
       s"http://localhost:8081/tx/list?useDataNav=true&pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
     Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)

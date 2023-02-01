@@ -3,12 +3,16 @@ import tyrian.*
 import cats.effect.IO
 
 object Init:
-  val page              = NavMsg.Transactions
+  // TxParser
+  //   .decodeParser(model.txData.get)
+  //   .map(data => Row2.genTable(data.payload))
+  //   .getOrElse(div())
+  val page              = NavMsg.DashBoard
   val toggle            = true
   val tx_CurrentPage    = 1
-  val tx_TotalPage      = 100
+  val tx_TotalPage      = 1
   val block_CurrentPage = 1
-  val block_TotalPage   = 100
+  val block_TotalPage   = 1
   val block_list_Search = "1"
   val tx_list_Search    = "1"
 
@@ -27,4 +31,5 @@ object Init:
         tx_list_Search,
       ),
       OnTxMsg.getTxList(tx_CurrentPage.toString()),
+      // Cmd.None,
     )

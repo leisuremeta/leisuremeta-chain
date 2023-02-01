@@ -83,7 +83,7 @@ object PageMoveUpdate:
               tx_CurrentPage = res,
               tx_list_Search = res.toString(),
             ),
-            Cmd.None,
+            OnTxMsg.getTxList(res.toString()),
           )
         case "Blocks" =>
           val str = value match
