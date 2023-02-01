@@ -96,31 +96,38 @@ object EthGatewayMain extends IOApp:
         mysqlHost = config.getString("mysql-host"),
         mysqlPort = config.getInt("mysql-port"),
         mysqlDatabase = config.getString("mysql-database"),
-        mysqlUsername = config.getString("mysql-username"), 
+        mysqlUsername = config.getString("mysql-username"),
         mysqlPassword = config.getString("mysql-password"),
       )
 
-  def mysqlResource(config: GatewayConf): Resource[IO, Connection] = Resource.make(IO{
-    MySQLConnectionBuilder.createConnectionPool(
-      s"jdbc:mysql://${config.mysqlHost}:${config.mysqlPort}/${config.mysqlDatabase}?user=${config.mysqlUsername}&password=${config.mysqlPassword}",
+  def mysqlResource(config: GatewayConf): Resource[IO, Connection] =
+    Resource.make(IO {
+      MySQLConnectionBuilder.createConnectionPool(
+        s"jdbc:mysql://${config.mysqlHost}:${config.mysqlPort}/${config.mysqlDatabase}?user=${config.mysqlUsername}&password=${config.mysqlPassword}",
+      )
+    })(connection =>
+      IO.fromCompletableFuture(IO(connection.disconnect())).map(_ => ()),
     )
-  })(connection => IO.fromCompletableFuture(IO(connection.disconnect())).map(_ => ()))
 
   def web3Resource(url: String): Resource[IO, Web3j] = Resource.make {
 
     val interceptor = HttpLoggingInterceptor()
     interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
 
-    val client = OkHttpClient.Builder()
- //     .addInterceptor(interceptor)
+    val client = OkHttpClient
+      .Builder()
+      //     .addInterceptor(interceptor)
       .build()
 
     IO(Web3j.build(new HttpService(url, client)))
   }(web3j => IO(web3j.shutdown()))
 
-  def allResource(config: GatewayConf, url: String): Resource[IO, (Connection, Web3j)] =
+  def allResource(
+      config: GatewayConf,
+      url: String,
+  ): Resource[IO, (Connection, Web3j)] =
     for
-      conn <- mysqlResource(config)
+      conn  <- mysqlResource(config)
       web3j <- web3Resource(url)
     yield (conn, web3j)
 
@@ -164,17 +171,24 @@ object EthGatewayMain extends IOApp:
         value = BigInt(amount),
       )
 
-  def writeUnsentDeposits(deposits: Seq[TransferTokenEvent]): IO[Unit] = IO.blocking {
-    val path = Paths.get("unsent-deposits.json")
-    val json = deposits.asJson.spaces2
-    Files.write(path, json.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
-  }
+  def writeUnsentDeposits(deposits: Seq[TransferTokenEvent]): IO[Unit] =
+    IO.blocking {
+      val path = Paths.get("unsent-deposits.json")
+      val json = deposits.asJson.spaces2
+      Files.write(
+        path,
+        json.getBytes,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.WRITE,
+        StandardOpenOption.TRUNCATE_EXISTING,
+      )
+    }
 
   def readUnsentDeposits(): IO[Seq[TransferTokenEvent]] = IO.blocking {
     val path = Paths.get("unsent-deposits.json")
     val seqEither = for
       json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
-      seq <- decode[Seq[TransferTokenEvent]](json)
+      seq  <- decode[Seq[TransferTokenEvent]](json)
     yield seq
     seqEither match
       case Right(seq) => seq
@@ -185,16 +199,31 @@ object EthGatewayMain extends IOApp:
   }
 
   def logSentDeposits(deposits: Seq[(Account, TransferTokenEvent)]): IO[Unit] =
-    if deposits.isEmpty then IO.unit else IO.blocking {
-      val path = Paths.get("sent-deposits.logs")
-      val jsons = deposits.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
-      Files.write(path, jsons.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
-    }
+    if deposits.isEmpty then IO.unit
+    else
+      IO.blocking {
+        val path = Paths.get("sent-deposits.logs")
+        val jsons =
+          deposits.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
+        Files.write(
+          path,
+          jsons.getBytes,
+          StandardOpenOption.CREATE,
+          StandardOpenOption.WRITE,
+          StandardOpenOption.APPEND,
+        )
+      }
 
   def writeLastBlockRead(blockNumber: BigInt): IO[Unit] = IO.blocking {
     val path = Paths.get("last-block-read.json")
     val json = blockNumber.asJson.spaces2
-    Files.write(path, json.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+    Files.write(
+      path,
+      json.getBytes,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.WRITE,
+      StandardOpenOption.TRUNCATE_EXISTING,
+    )
   }
 
   def readLastBlockRead(): IO[BigInt] = IO.blocking {
@@ -209,7 +238,6 @@ object EthGatewayMain extends IOApp:
         scribe.error(s"Error reading last block read: ${e.getMessage}")
         BigInt(0)
   }
-
 
   def getEthBlockNumber(web3j: Web3j): IO[BigInt] =
     IO.fromCompletableFuture(IO(web3j.ethBlockNumber.sendAsync))
@@ -239,12 +267,15 @@ object EthGatewayMain extends IOApp:
     }
 
   def getEthBlockTime(web3j: Web3j)(blockNumber: BigInt): IO[Instant] =
-    for
-      ethBlock <- IO.fromCompletableFuture(IO.delay {
-        web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNumber.bigInteger), false).sendAsync()
+    for ethBlock <- IO.fromCompletableFuture(IO.delay {
+        web3j
+          .ethGetBlockByNumber(
+            DefaultBlockParameter.valueOf(blockNumber.bigInteger),
+            false,
+          )
+          .sendAsync()
       })
     yield Instant.ofEpochSecond(ethBlock.getBlock().getTimestamp().longValue())
-
 
   def transferToken(
       web3j: Web3j,
@@ -256,7 +287,9 @@ object EthGatewayMain extends IOApp:
       gasPrice: BigInt,
   ): IO[Either[String, TransactionReceipt]] = IO {
 
-    scribe.info(s"transferToken: $contractAddress, $toAddress, $amount, $gasPrice")
+    scribe.info(
+      s"transferToken: $contractAddress, $toAddress, $amount, $gasPrice",
+    )
 
     val credential = Credentials.create(privateKey)
 
@@ -264,7 +297,7 @@ object EthGatewayMain extends IOApp:
     params.add(new Address(toAddress))
     params.add(new Uint256(amount.bigInteger))
 
-    //val returnTypes = Collections.singletonList[TypeReference[?]](new TypeReference[Type[?]](){})
+    // val returnTypes = Collections.singletonList[TypeReference[?]](new TypeReference[Type[?]](){})
     val returnTypes = Collections.emptyList[TypeReference[?]]()
 
     val function = new Function(
@@ -425,7 +458,7 @@ object EthGatewayMain extends IOApp:
       )
       _ <- IO.delay(scribe.info(s"current deposit events: $depositEvents"))
       oldEvents <- readUnsentDeposits()
-      _ <- IO.delay(scribe.info(s"old deposit events: $oldEvents"))
+      _         <- IO.delay(scribe.info(s"old deposit events: $oldEvents"))
       allEvents = depositEvents ++ oldEvents
       _ <- IO.delay(scribe.info(s"all deposit events: $allEvents"))
       eventAndAccountOptions <- allEvents.toList.traverse { event =>
@@ -437,11 +470,12 @@ object EthGatewayMain extends IOApp:
         }
       }
       (known, unknown) = eventAndAccountOptions.partition(_._2.nonEmpty)
-      toMints = known.map{
+      toMints = known.map {
         case (event, Some(account)) => (account, event)
-        case (event, None) => throw new Exception(
-          s"Internal error: Account ${event.from} not found",
-        )
+        case (event, None) =>
+          throw new Exception(
+            s"Internal error: Account ${event.from} not found",
+          )
       }
       _ <- IO.delay(scribe.info(s"toMints: $toMints"))
       _ <- toMints.traverse { case (account, event) =>
@@ -456,7 +490,7 @@ object EthGatewayMain extends IOApp:
           userEthAccount = "0xFcd1853d09F7Df77f17003B69dDc78b3f8bD5D0f",
           userLmcAccount = "acf8526119abe74fb9cb371ce480fba8009cbaea",
           amount = BigInt("1") * BigInt(10).pow(16),
-        ).map{ queryResult =>
+        ).map { queryResult =>
           println(s"Result: $queryResult")
         }
       }
@@ -608,69 +642,73 @@ object EthGatewayMain extends IOApp:
 
       if withdrawCandidates.isEmpty then
         IO.delay(scribe.info("No withdraw candidates"))
-      else for
-        toWithdrawOptionSeq <- withdrawCandidates.traverse {
-          case (txHash, (account, amount)) =>
-            getAccountInfo(lmAddress, account).map { accountInfoOption =>
-              accountInfoOption.flatMap { accountInfo =>
-                accountInfo.ethAddress.map { ethAddress =>
-                  (txHash, account, ethAddress, amount)
+      else
+        for
+          toWithdrawOptionSeq <- withdrawCandidates.traverse {
+            case (txHash, (account, amount)) =>
+              getAccountInfo(lmAddress, account).map { accountInfoOption =>
+                accountInfoOption.flatMap { accountInfo =>
+                  accountInfo.ethAddress.map { ethAddress =>
+                    (txHash, account, ethAddress, amount)
+                  }
                 }
               }
-            }
-        }
-        toWithdraw = toWithdrawOptionSeq.flatten
-        _ <- IO.delay(scribe.info(s"toWithdraw: $toWithdraw"))
-        gasPrice <- getGasPrice(web3j)
-        successfulWithdraws <- toWithdraw.traverse { case (txHash, account, ethAddress, amount) =>
-          transferToken(
-            web3j = web3j,
-            ethChainId = ethChainId,
-            privateKey = keyPair.privateKey.toString(16),
-            contractAddress = ethContract,
-            toAddress = ethAddress.utf8.value,
-            amount = amount.toBigInt,
-            gasPrice = gasPrice,
-          ).map{
-            case Right(receipt) =>
-              scribe.info(s"withdrawal txHash: $txHash")
-              scribe.info(s"withdrawal account: $account")
-              scribe.info(s"withdrawal ethAddress: $ethAddress")
-              scribe.info(s"withdrawal receipt: $receipt")
-              Some((txHash, amount))
-            case Left(error) =>
-              scribe.info(s"Error transferring token to account: $account")
-              None
           }
-        }
-        _ <- IO.delay(scribe.info(s"withdrawal txs are sent"))
-        tx = Transaction.TokenTx.TransferFungibleToken(
-          networkId = networkId,
-          createdAt = Instant.now,
-          tokenDefinitionId = lmDef,
-          inputs = successfulWithdraws.flatten.map(_._1.toSignedTxHash).toSet,
-          outputs = Map(
-            gatewayAccount -> successfulWithdraws.flatten
-              .map(_._2)
-              .foldLeft(BigNat.Zero)(BigNat.add),
-          ),
-          memo = None,
-        )
-        _        <- IO.delay(submitTx(lmAddress, gatewayAccount, keyPair, tx))
-        _        <- IO.delay(scribe.info(s"withdrawal utxos are removed"))
-      yield ()
+          toWithdraw = toWithdrawOptionSeq.flatten
+          _        <- IO.delay(scribe.info(s"toWithdraw: $toWithdraw"))
+          gasPrice <- getGasPrice(web3j)
+          successfulWithdraws <- toWithdraw.traverse {
+            case (txHash, account, ethAddress, amount) =>
+              transferToken(
+                web3j = web3j,
+                ethChainId = ethChainId,
+                privateKey = keyPair.privateKey.toString(16),
+                contractAddress = ethContract,
+                toAddress = ethAddress.utf8.value,
+                amount = amount.toBigInt,
+                gasPrice = gasPrice,
+              ).map {
+                case Right(receipt) =>
+                  scribe.info(s"withdrawal txHash: $txHash")
+                  scribe.info(s"withdrawal account: $account")
+                  scribe.info(s"withdrawal ethAddress: $ethAddress")
+                  scribe.info(s"withdrawal receipt: $receipt")
+                  Some((txHash, amount))
+                case Left(error) =>
+                  scribe.info(s"Error transferring token to account: $account")
+                  None
+              }
+          }
+          _ <- IO.delay(scribe.info(s"withdrawal txs are sent"))
+          tx = Transaction.TokenTx.TransferFungibleToken(
+            networkId = networkId,
+            createdAt = Instant.now,
+            tokenDefinitionId = lmDef,
+            inputs = successfulWithdraws.flatten.map(_._1.toSignedTxHash).toSet,
+            outputs = Map(
+              gatewayAccount -> successfulWithdraws.flatten
+                .map(_._2)
+                .foldLeft(BigNat.Zero)(BigNat.add),
+            ),
+            memo = None,
+          )
+          _ <- IO.delay(submitTx(lmAddress, gatewayAccount, keyPair, tx))
+          _ <- IO.delay(scribe.info(s"withdrawal utxos are removed"))
+        yield ()
   }
 
   def logToMysql(connection: Connection)(
-    mysqlDatabase: String,
-    ethTxHash: String,
-    timestamp: Instant,
-    userEthAccount: String,
-    userLmcAccount: String,
-    amount: BigInt,
-  ): IO[QueryResult] = IO.fromCompletableFuture(IO{
+      mysqlDatabase: String,
+      ethTxHash: String,
+      timestamp: Instant,
+      userEthAccount: String,
+      userLmcAccount: String,
+      amount: BigInt,
+  ): IO[QueryResult] = IO
+    .fromCompletableFuture(IO {
 
-    val query =  s"""CALL $mysqlDatabase.SP_INS_CX_TRADE_INFO_MAINNET_DEPOSIT_T(
+      val query =
+        s"""CALL $mysqlDatabase.SP_INS_CX_TRADE_INFO_MAINNET_DEPOSIT_T(
 '$ethTxHash'	-- 체결주소
 , '${timestamp.truncatedTo(ChronoUnit.SECONDS).toString}' 		-- 체결일시
 , '521ffc8f1e07eef80c634245c6f0551e30c3d5d0'	-- BLC계정 (playnomm) 주소
@@ -682,14 +720,15 @@ object EthGatewayMain extends IOApp:
 , 'TM01'	-- TM01 [자산][입금][FT이동 - 메인넷에서 입금]
 , 'EN'	-- Default('EN')
 );"""
-    
-    scribe.info(s"Query: $query")
 
-    connection.sendQuery(query)
-  }).map{ queryResult =>
-    scribe.info(s"Result: $queryResult")
-    queryResult
-  }
+      scribe.info(s"Query: $query")
+
+      connection.sendQuery(query)
+    })
+    .map { queryResult =>
+      scribe.info(s"Result: $queryResult")
+      queryResult
+    }
 
   def run(args: List[String]): IO[ExitCode] =
     for
@@ -698,24 +737,25 @@ object EthGatewayMain extends IOApp:
       keyPair = CryptoOps.fromPrivate(
         BigInt(gatewayConf.ethPrivate.drop(2), 16),
       )
-      _ <- allResource(gatewayConf, gatewayConf.ethAddress).use{ (connection, web3) =>
+      _ <- allResource(gatewayConf, gatewayConf.ethAddress).use {
+        (connection, web3) =>
 
 //        initializeLmChain(gatewayConf.lmAddress, keyPair)
 
-        getEthBlockTime(web3)(BigInt(15574432)).map{ timestamp =>
-          println(s"Timestamp: $timestamp")
-        }
+          getEthBlockTime(web3)(BigInt(15574432)).map { timestamp =>
+            println(s"Timestamp: $timestamp")
+          }
 
-        checkLoop(
-          web3j = web3,
-          ethChainId = gatewayConf.ethChainId,
-          lmAddress = gatewayConf.lmAddress,
-          ethContract = gatewayConf.ethContract,
-          gatewayEthAddress = gatewayConf.gatewayEthAddress,
-          keyPair = keyPair,
-          mysqlConnection = connection,
-          mysqlDatabase = gatewayConf.mysqlDatabase,
-        )
+          checkLoop(
+            web3j = web3,
+            ethChainId = gatewayConf.ethChainId,
+            lmAddress = gatewayConf.lmAddress,
+            ethContract = gatewayConf.ethContract,
+            gatewayEthAddress = gatewayConf.gatewayEthAddress,
+            keyPair = keyPair,
+            mysqlConnection = connection,
+            mysqlDatabase = gatewayConf.mysqlDatabase,
+          )
       }
 
 //      _ <- mysqlResource(gatewayConf).use{ connection =>
@@ -729,7 +769,6 @@ object EthGatewayMain extends IOApp:
 //          println(s"Result: $queryResult")
 //        }
 //      }
-
 
 //      keyPair = CryptoOps.fromPrivate(
 //        BigInt(gatewayConf.ethPrivate.drop(2), 16),
