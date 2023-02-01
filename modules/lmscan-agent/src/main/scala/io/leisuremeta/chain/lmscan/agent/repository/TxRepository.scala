@@ -8,15 +8,70 @@ import cats.effect.IO
 import io.getquill.Query
 import io.getquill.context.*
 import io.leisuremeta.chain.lmscan.agent.repository.CommonQuery
+import cats.effect.IOApp
+import sttp.client3.armeria.cats.ArmeriaCatsBackend
+import sttp.client3.SttpBackendOptions
+import cats.effect.ExitCode
+import cats.effect.unsafe.implicits.global
+import scala.concurrent.ExecutionContext
+import java.time.Duration
+import java.time.Instant
 
 case class Person(name: String, age: Int)
 
-object TxRepository extends CommonQuery:
+object TxRepository extends CommonQuery with IOApp:
   import ctx.{*, given}
 
   def insert[F[_]: Async](tx: Tx): EitherT[F, String, Long] =
-    inline def insertQuery =
-      quote { (tx: Tx) =>
-        query[Tx].insertValue(lift(tx))
-      }
-    super.insert(insertQuery(tx))
+    println("11111")
+    super.insertWithoutTransaction(tx)
+
+  // def insertBatch[F[_]: Async](txs: Seq[Tx]): EitherT[F, String, Unit] =
+  //   val batchInsert = quote { (txs: Seq[Tx]) =>
+  //     liftQuery(txs)
+  //       .foreach(tx =>
+  //         query[Tx]
+  //           .insertValue(tx)
+  //           .returning(_.hash),
+  //       )
+  //   }
+
+  //   for x <- super.insert(batchInsert(lift(txs)))
+  //   yield ()
+
+  def run(args: List[String]): IO[cats.effect.ExitCode] =
+    for _ <- ArmeriaCatsBackend
+        .resource[IO](SttpBackendOptions.Default)
+        .use { backend =>
+          {
+
+            val x =
+              for count <- insert[IO](
+                  Tx(
+                    "123",
+                    "account",
+                    "token",
+                    "123a",
+                    Seq("111", "222"),
+                    "xx123a",
+                    112L,
+                    Instant.now().getEpochSecond(),
+                    Instant.now().getEpochSecond(),
+                    Seq(
+                      "4913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
+                    ),
+                    Seq(
+                      "b775871c85faae7eb5f6bcebfd28b1e1b412235c/123456789.12345678912345678",
+                      "b775871c85faae7eb5f6bcebfd28b1e1b412235c/123456789.12345678912345678",
+                    ),
+                    "sssssss",
+                  ),
+                )
+              yield count
+            println("ccccc : ")
+            // println("zzzzzzzzzz : " + x.value.unsafeRunSync())
+            scribe.info(s"count: ${x.value}")
+            x
+          }.value
+        }
+    yield ExitCode.Success
