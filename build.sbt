@@ -202,9 +202,9 @@ val Dependencies = new {
       "io.circe"                      %% "circe-parser"         % V.circe,
       "io.circe"                      %% "circe-refined"        % V.circe,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
-      "org.typelevel" %% "cats-effect"           % V.catsEffect,
-      "io.getquill"   %% "quill-jasync-postgres" % V.quill,
-      "org.postgresql" % "postgresql"            % V.postgres,
+      "org.typelevel"               %% "cats-effect"           % V.catsEffect,
+      "io.getquill"                 %% "quill-jasync-postgres" % V.quill,
+      "org.postgresql"               % "postgresql"            % V.postgres,
     ),
   )
 }
@@ -422,3 +422,6 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
         oldStrategy(x)
     },
   )
+  .dependsOn(api.jvm)
+  
+
