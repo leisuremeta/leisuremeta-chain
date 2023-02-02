@@ -82,7 +82,17 @@ object Row2:
 
   def genTable = (payload: List[Tx], model: Model) =>
     payload.isEmpty match
-      case true => div()
+      case true =>
+        model.curPage match
+          case NavMsg.BlockDetail(_) => div()
+          case _ =>
+            div(`class` := "table-container")(
+              Row2.title(model),
+              div(`class` := "table w-[100%]")(
+                Row2.head :: Row2.genBody(payload),
+              ),
+              Row2.search(model),
+            )
       case _ =>
         model.curPage match
           case NavMsg.BlockDetail(_) =>
