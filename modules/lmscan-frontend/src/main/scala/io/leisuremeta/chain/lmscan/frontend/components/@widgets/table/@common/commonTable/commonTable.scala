@@ -22,7 +22,7 @@ object Tables:
           ),
         )
 
-      case NavMsg.BlockDetail =>
+      case NavMsg.BlockDetail(_) =>
         div(`class` := "table-area ")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             TransactionTable.view(model),

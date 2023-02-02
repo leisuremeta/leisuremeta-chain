@@ -5,9 +5,10 @@ import io.circe.Json
 sealed trait Msg
 
 enum NavMsg extends Msg:
-  case DashBoard, Blocks, BlockDetail, Transactions, NoPage,
+  case DashBoard, Blocks, Transactions, NoPage,
     Account, Nft
   case TransactionDetail(hash: String) extends NavMsg
+  case BlockDetail(hash: String)       extends NavMsg
 
 enum ToggleMsg extends Msg:
   case Click
@@ -35,6 +36,11 @@ enum BlockMsg extends Msg:
   case Refresh                     extends BlockMsg
   case GetNewBlock(result: String) extends BlockMsg
   case GetError(error: String)     extends BlockMsg
+
+enum BlockDetailMsg extends Msg:
+  case Patch(hash: String)     extends BlockDetailMsg
+  case Update(result: String)  extends BlockDetailMsg
+  case GetError(error: String) extends BlockDetailMsg
 
 enum PageMoveMsg extends Msg:
   case Prev                 extends PageMoveMsg

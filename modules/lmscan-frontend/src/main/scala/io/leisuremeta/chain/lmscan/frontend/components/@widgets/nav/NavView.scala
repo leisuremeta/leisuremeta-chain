@@ -25,7 +25,9 @@ object NavView:
     DashBoardPageList.contains(model.curPage.toString())
 
   def isCurPageisBlock = (model: Model) =>
-    BlockPageList.contains(model.curPage.toString())
+    BlockPageList
+      .reduce((a, b) => a + b)
+      .contains(Log.log(model.curPage.toString().take(10))) // TODO :: simplify
 
   def isCurPageisTransaction = (model: Model) =>
     TransactionPageList

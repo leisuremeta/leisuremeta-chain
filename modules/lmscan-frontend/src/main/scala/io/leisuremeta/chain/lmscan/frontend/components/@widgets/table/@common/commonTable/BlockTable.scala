@@ -32,7 +32,9 @@ object Row:
       .map(each =>
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
-            span(onClick(NavMsg.BlockDetail))(each.hash.take(10) + "..."),
+            span(onClick(NavMsg.BlockDetail(each.hash)))(
+              each.hash.take(10) + "...",
+            ),
           ),
           div(`class` := "cell")(span()(each.createdAt.toString())),
           div(`class` := "cell")(span()(each.number.toString())),

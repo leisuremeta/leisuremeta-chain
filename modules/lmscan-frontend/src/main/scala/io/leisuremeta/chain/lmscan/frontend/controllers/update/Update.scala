@@ -16,5 +16,7 @@ object Update:
     case txMsg: TxMsg             => TxUpdate.update(model)(txMsg)
     case txDetailMsg: TxDetailMsg => TxDetailUpdate.update(model)(txDetailMsg)
     case blockMsg: BlockMsg       => BlockUpdate.update(model)(blockMsg)
+    case blockDetailMsg: BlockDetailMsg =>
+      BlockDetailUpdate.update(model)(blockDetailMsg)
 
     // case dashboardMsg: DashboardMsg => Board.update(model)(dashboardMsg)

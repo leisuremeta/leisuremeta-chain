@@ -21,10 +21,11 @@ object NavUpdate:
           Cmd.None,
         ),
       )
-    case NavMsg.BlockDetail =>
+    case NavMsg.BlockDetail(hash) =>
       log(
         (
-          model.copy(curPage = NavMsg.BlockDetail, prevPage = model.curPage),
+          model
+            .copy(curPage = NavMsg.BlockDetail(hash), prevPage = model.curPage),
           Cmd.None,
         ),
       )

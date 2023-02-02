@@ -9,7 +9,7 @@ object Pages:
         DashboardView.view(model)
       case NavMsg.Blocks =>
         BlocksView.view(model)
-      case NavMsg.BlockDetail =>
+      case NavMsg.BlockDetail(_) =>
         BlockDetailView.view(model)
       case NavMsg.Transactions =>
         TransactionsView.view(model)
