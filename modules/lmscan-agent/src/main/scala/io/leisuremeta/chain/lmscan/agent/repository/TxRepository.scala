@@ -16,28 +16,16 @@ import cats.effect.unsafe.implicits.global
 import scala.concurrent.ExecutionContext
 import java.time.Duration
 import java.time.Instant
+import io.leisuremeta.chain.lmscan.agent.model.id
 
 case class Person(name: String, age: Int)
 
 object TxRepository extends CommonQuery with IOApp:
   import ctx.{*, given}
 
-  def insert[F[_]: Async](tx: Tx): EitherT[F, String, Long] =
-    println("11111")
-    super.insertWithoutTransaction(tx)
+  // def insert[F[_]: Async, T <: id](tx: T): EitherT[F, String, Long] =
+  //   insertTransaction[F, T](tx)
 
-  // def insertBatch[F[_]: Async](txs: Seq[Tx]): EitherT[F, String, Unit] =
-  //   val batchInsert = quote { (txs: Seq[Tx]) =>
-  //     liftQuery(txs)
-  //       .foreach(tx =>
-  //         query[Tx]
-  //           .insertValue(tx)
-  //           .returning(_.hash),
-  //       )
-  //   }
-
-  //   for x <- super.insert(batchInsert(lift(txs)))
-  //   yield ()
 
   def run(args: List[String]): IO[cats.effect.ExitCode] =
     for _ <- ArmeriaCatsBackend
@@ -46,7 +34,7 @@ object TxRepository extends CommonQuery with IOApp:
           {
 
             val x =
-              for count <- insert[IO](
+              for count <- insertTransaction[IO, Tx](
                   Tx(
                     "123",
                     "account",
