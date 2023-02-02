@@ -53,9 +53,12 @@ object Tables:
             TransactionTable.view(model),
           ),
         )
-
-      case _ =>
-        div(`class` := "hidden")()
+      case NavMsg.NftDetail(_) =>
+        div(`class` := "table-area")(
+          div(id := "oop-table-blocks", `class` := "table-list x")(
+            NftTable.view(model),
+          ),
+        )
 
 object CommonTableView:
   def view(model: Model): Html[Msg] =
