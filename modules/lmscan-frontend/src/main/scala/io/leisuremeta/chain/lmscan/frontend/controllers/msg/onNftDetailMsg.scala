@@ -26,5 +26,5 @@ object UnderNftDetailMsg:
 object OnNftDetailMsg:
   def getNftDetail(hash: String): Cmd[IO, Msg] =
     val url =
-      s"http://localhost:8081/tx/$hash/detail"
+      s"http://localhost:8081/nft/${hash}/detail"
     Http.send(Request.get(url), UnderNftDetailMsg.fromHttpResponse)

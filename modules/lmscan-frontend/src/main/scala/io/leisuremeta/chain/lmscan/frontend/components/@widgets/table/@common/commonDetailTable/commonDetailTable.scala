@@ -38,7 +38,7 @@ object DetailTables:
           ),
         )
 
-      case NavMsg.Nft =>
+      case NavMsg.Nft(_) =>
         div(`class` := "y-start gap-10px w-[100%] ")(
           div()("Light in the Shadows #1"),
           div(`class` := "x")(

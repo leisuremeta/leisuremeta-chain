@@ -19,7 +19,7 @@ object Pages:
         NoPageView.view(model)
       case NavMsg.Account =>
         AccountView.view(model)
-      case NavMsg.Nft =>
+      case NavMsg.Nft(_) =>
         NftView.view(model)
 
 object PagesView:
