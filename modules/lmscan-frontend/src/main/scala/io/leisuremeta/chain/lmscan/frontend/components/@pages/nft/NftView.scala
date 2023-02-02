@@ -7,5 +7,4 @@ object NftView:
   def view(model: Model): Html[Msg] =
     div(`class` := "pb-32px p-16px")(
       CommonDetailTable.view(model),
-      CommonTableView.view(model),
     )

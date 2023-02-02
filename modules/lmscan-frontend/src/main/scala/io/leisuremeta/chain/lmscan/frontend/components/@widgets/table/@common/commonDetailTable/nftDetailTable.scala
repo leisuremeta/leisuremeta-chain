@@ -12,31 +12,13 @@ object NftDetailTable:
       .map(data => genView(model, data))
       .getOrElse(div())
 
-  // TODO :: zip 말고 더 좋은 방법?
-  // val input = (data: List[String]) =>
-  //   data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }
-  // val output = (data: List[Transfer]) =>
-  //   data.zipWithIndex.map { case ((output), i) => genOutput(output, i + 1) }
+  // div(`class` := "table-area")(
+  //   div(id := "oop-table-blocks", `class` := "table-list x")(
+  //     BlockTable.view(model),
+  //     TransactionTable.view(model),
+  //   ),
+  // )
 
-  // val genInput = (data: String, i: Any) =>
-  //   div(`class` := "row")(
-  //     div(`class` := "cell type-detail-body")(i.toString()),
-  //     div(`class` := "cell type-3 type-detail-body")(
-  //       data,
-  //     ),
-  //   )
-  // val genOutput = (data: Transfer, i: Any) =>
-  //   div(`class` := "row")(
-  //     div(`class` := "cell type-detail-head")(i.toString()),
-  //     div(`class` := "cell type-3 type-detail-body")(
-  //       data.toAddress,
-  //     ),
-  //     div(`class` := "cell type-detail-body")(
-  //       data.value.toString(),
-  //     ),
-  //   )
-
-  // val genView = (model: Model, data: TxDetail) =>
   val genView = (model: Model, data: NftDetail) =>
     div(`class` := "x gap-32px")(
       video(`class` := "nft-image p-10px", autoPlay, loop)(

@@ -4,6 +4,7 @@ import io.circe.syntax.*
 import io.circe.parser.*
 
 case class BlockList(totalCount: Int, totalPages: Int, payload: List[Block])
+
 case class Block(
     number: Int,
     hash: String,

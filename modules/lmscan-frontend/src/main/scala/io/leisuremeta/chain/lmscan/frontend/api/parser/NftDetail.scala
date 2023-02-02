@@ -22,6 +22,7 @@ case class NftFile(
     createdAt: Int,
     owner: String,
 )
+
 case class NftActivities(
     txHash: String,
     action: String,
