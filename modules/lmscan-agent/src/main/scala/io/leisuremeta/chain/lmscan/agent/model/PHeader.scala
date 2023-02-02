@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.agent.model
 
 final case class PHeader(
-  number: BigInt,
+  number: Long,
   parentHash: String,
-  
+  timestamp: String,
 )
