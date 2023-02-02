@@ -1,5 +1,4 @@
 package io.leisuremeta.chain.lmscan.agent.entity
-import io.leisuremeta.chain.lmscan.agent.model.id
 
 final case class Tx(
     hash: String,
@@ -14,6 +13,4 @@ final case class Tx(
     inputHashs: Seq[String],
     outputVals: Seq[String],
     json: String,
-) extends id:
-    def id: String =
-        this.hash
+) 
