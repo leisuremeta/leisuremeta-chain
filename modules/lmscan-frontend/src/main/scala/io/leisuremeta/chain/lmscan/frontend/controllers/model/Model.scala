@@ -29,4 +29,5 @@ final case class Model(
     blockListData: Option[String] = Some(""),
     txDetailData: Option[String] = Some(""),
     blockDetailData: Option[String] = Some(""),
+    nftDetailData: Option[String] = Some(""),
 )

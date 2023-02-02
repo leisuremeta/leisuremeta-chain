@@ -42,6 +42,11 @@ enum BlockDetailMsg extends Msg:
   case Update(result: String)  extends BlockDetailMsg
   case GetError(error: String) extends BlockDetailMsg
 
+enum NftDetailMsg extends Msg:
+  case Patch(hash: String)     extends NftDetailMsg
+  case Update(result: String)  extends NftDetailMsg
+  case GetError(error: String) extends NftDetailMsg
+
 enum PageMoveMsg extends Msg:
   case Prev                 extends PageMoveMsg
   case Next                 extends PageMoveMsg
