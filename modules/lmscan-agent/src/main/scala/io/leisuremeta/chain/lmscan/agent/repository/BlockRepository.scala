@@ -18,6 +18,9 @@ object BlockRepository extends CommonQuery:
       }
     optionQuery(detailQuery(lift(hash)))
 
+  def insert[F[_]: Async](block: Block): EitherT[F, String, Long] =
+    println("11111")
+    insertTransaction(block)
   /*
 val a = quote {
   liftQuery(List(Person(0, "John", 31),Person(0, "name2", 32)))
