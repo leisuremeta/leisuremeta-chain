@@ -60,10 +60,11 @@ object NavUpdate:
           Cmd.None,
         ),
       )
-    case NavMsg.Nft(hash) =>
+    case NavMsg.NftDetail(hash) =>
       log(
         (
-          model.copy(curPage = NavMsg.Nft(hash), prevPage = model.prevPage),
-          Cmd.None,
+          model
+            .copy(curPage = NavMsg.NftDetail(hash), prevPage = model.prevPage),
+          OnNftDetailMsg.getNftDetail(hash),
         ),
       )

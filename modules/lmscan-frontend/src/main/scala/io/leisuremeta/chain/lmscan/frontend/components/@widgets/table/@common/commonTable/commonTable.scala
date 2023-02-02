@@ -50,7 +50,7 @@ object Tables:
           ),
         )
 
-      case NavMsg.Nft(_) =>
+      case NavMsg.NftDetail(_) =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             BlockTable.view(model),

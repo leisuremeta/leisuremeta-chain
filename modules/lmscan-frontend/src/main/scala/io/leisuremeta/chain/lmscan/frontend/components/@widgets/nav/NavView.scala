@@ -18,7 +18,7 @@ object NavView:
     NavMsg.Transactions.toString(),
     Log.log(NavMsg.TransactionDetail.toString()),
     NavMsg.Account.toString(),
-    NavMsg.Nft.toString(),
+    NavMsg.NftDetail.toString(),
   )
 
   def isCurPageisDashBoard = (model: Model) =>

@@ -48,7 +48,7 @@ object Row2:
           div(
             `class` := s"cell ${isEqGet[String](each.tokenType, "NFT", "type-3")}",
           )(
-            span(onClick(NavMsg.TransactionDetail(each.hash)))(
+            span(onClick(NavMsg.NftDetail(each.value)))(
               each.value.take(10) + "...",
             ),
           ),

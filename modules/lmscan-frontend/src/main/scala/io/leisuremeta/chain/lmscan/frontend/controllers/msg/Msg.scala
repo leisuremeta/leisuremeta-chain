@@ -9,7 +9,7 @@ enum NavMsg extends Msg:
     Account
   case TransactionDetail(hash: String) extends NavMsg
   case BlockDetail(hash: String)       extends NavMsg
-  case Nft(hash: String)               extends NavMsg
+  case NftDetail(hash: String)         extends NavMsg
 
 enum ToggleMsg extends Msg:
   case Click
