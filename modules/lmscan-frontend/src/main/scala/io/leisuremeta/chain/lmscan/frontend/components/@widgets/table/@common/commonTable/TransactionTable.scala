@@ -29,7 +29,7 @@ object Row2:
     div(`class` := "cell")(span()("Signer")), // signer
     div(`class` := "cell")(span()("Type")), // txType
     div(`class` := "cell")(span()("Token Type")),
-    div(`class` := "cell")(span()("value")),
+    div(`class` := "cell")(span()("Value")),
   )
   def genBody = (payload: List[Tx]) =>
     payload
