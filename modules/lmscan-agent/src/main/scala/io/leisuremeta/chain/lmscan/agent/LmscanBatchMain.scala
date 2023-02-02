@@ -27,11 +27,74 @@ import java.nio.file.Files
 import scala.jdk.CollectionConverters.*
 // import io.leisuremeta.chain.lmscan.agent.service.TxService
 import cats.syntax.traverse.toTraverseOps
+import io.leisuremeta.chain.lmscan.agent.entity.Tx
+import io.leisuremeta.chain.lmscan.agent.service.BlockService
+import java.sql.Timestamp
+import java.time.Instant
+import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
+import io.leisuremeta.chain.lmscan.backend.entity.Nft
+
+
+import io.leisuremeta.chain.lmscan.agent.model.id
+import scala.concurrent.ExecutionContext
+import io.getquill.PostgresJAsyncContext
+import io.getquill.SnakeCase
+import io.getquill.*
+import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext
+import cats.implicits.*
+import java.sql.SQLException
+
+import api.model.*
+import io.leisuremeta.chain.api.model.Transaction.TokenTx
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
+
+
 
 object LmscanBatchMain extends IOApp:
-  val baseUri = "http://localhost:8081"
+  
+  val baseUri = "http://test.chain.leisuremeta.io"
 
-  val initalBlock = ""
+  val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
+  import ctx.{*, given}
+  inline def insertTransaction[F[_]: Async, T <: id](
+      tx: T,
+  ): EitherT[F, String, Long] =
+    scribe.info("222222")
+    EitherT {
+      Async[F].recover {
+        for
+          given ExecutionContext <- Async[F].executionContext
+          ids <- Async[F]
+            .fromCompletableFuture(Async[F].delay {
+              scribe.info("333333")
+              ctx.transaction[Long] {
+                for p <- ctx
+                    .run(
+                      quote {
+                        query[T]
+                          .insertValue(
+                            lift(tx),
+                          )
+                          .onConflictUpdate(_.id)((t, e) => t.id -> e.id)
+                      },
+                    )
+                yield p
+              }
+            })
+            .map(Either.right(_))
+        yield
+          scribe.info("444444")
+          ids
+      } {
+        case e: SQLException =>
+          scribe.info("55555")
+          Left(s"sql exception occured: " + e.getMessage())
+        case e: Exception =>
+          scribe.info("66666: " + e.getMessage())
+          Left(e.getMessage())
+      }
+    }
 
   def run(args: List[String]): IO[ExitCode] =
     for _ <- ArmeriaCatsBackend
@@ -44,45 +107,61 @@ object LmscanBatchMain extends IOApp:
               status.bestHash,
               status.genesisHash,
               0,
-            )
-          //  { (block, txList) =>
-          //   for txs <- txList.traverse { txHash =>
-          //       TxService.insert(
-          //         getTransaciton[IO](backend)(txHash),
-          //       )
-          //     }
-          //   yield ()
-          // }
-          yield (ExitCode.Success)
-          // val unsavedBlocks = readUnsavedBlocks()
-          // val lastReadBlock = getLastBlockRead()
-          // lastReadBlock.map {
+            ) { (blockHash, block, txList) =>
+              for 
+                txs <- txList.traverse { txHash =>
+                  for
+                    txResult <- getTransaciton[IO](backend)(txHash)
+                    nftEntity <- txResult.signedTx match 
+                      case tx: Transaction.TokenTx => match 
+                        case nft: DefineToken => Nft(nft)
+                        case nft: MintFungibleToken =>  
+                        case nft: MintNFT =>  
+                        case nft: BurnFungibleToken =>  
+                        case nft: BurnFungibleTokenResult =>  
+                        case nft: BurnNFT =>  
+                        case nft: TransferFungibleToken =>
+                        case nft: TransferFungibleToken =>  
+                        
 
-          //   block <- getBlockListFrom(backend, .)
 
-          // }
-          // getTx()
+                    _ <- insertTransaction[IO, Tx](tx)
+                    // _ <- TxService.insert[IO, Tx](tx)
+                  yield ()
+                }
+                // _ <- TxService.insert[IO, Block]( Block (
+                _ <- insertTransaction[IO, Block]( Block (
+                  block.header.number,
+                  blockHash,
+                  block.header.parentHash,
+                  block.transactionHashes.size,
+                  Timestamp.valueOf(block.header.timestamp).getTime(),
+                  Instant.now().getEpochSecond(),
+                ))
+              yield ()
+            }
+          yield (count)
           IO.unit
         }
     yield ExitCode.Success
 
   def loop[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(next: String, genesis: String, count: Long): EitherT[F, String, Long] =
+  )(next: String, genesis: String, count: Long)(
+      run: (String, PBlock, Seq[String]) => EitherT[F, String, Unit],
+  ): EitherT[F, String, Long] =
     for
       block <- getBlock[F](backend)(next)
       _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
+      _     <- run(next, block, block.transactionHashes)
     yield 2L
 
   // def loop[F[_]: Async](
   //     backend: SttpBackend[F, Any],
-  // )(next: String, genesis: String, count: Long)(
-  //     run: (PBlock, Seq[String]) => EitherT[F, String, Unit],
-  // ): EitherT[F, String, Long] =
+  // )(next: String, genesis: String, count: Long): EitherT[F, String, Long] =
   //   for
   //     block <- getBlock[F](backend)(next)
   //     _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
-  //     _     <- run(block, block.transactionHashes)
   //   yield 2L
 
   def checkLoop(): IO[Unit] = for
@@ -119,9 +198,12 @@ object LmscanBatchMain extends IOApp:
 
   def getTransaciton[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(txHash: String): EitherT[F, String, String] =
-    get[F, String](backend) {
+  )(txHash: String): EitherT[F, String, TransactionWithResult] =
+    get[F, TransactionWithResult](backend) {
       uri"$baseUri/tx/${txHash}"
+    }.leftMap { msg =>
+      scribe.error(s"getTransaciton error msg: $msg")  
+      msg
     }
 
   def getBlock[F[_]: Async](
@@ -129,14 +211,12 @@ object LmscanBatchMain extends IOApp:
   )(blockHash: String): EitherT[F, String, PBlock] =
     get[F, PBlock](backend) {
       uri"$baseUri/block/${blockHash}"
+    }.leftMap { msg =>
+      scribe.error(s"getBlock error msg: $msg")  
+      msg
     }
 
-  def getBlockListFrom[F[_]: Async](
-      backend: SttpBackend[F, Any],
-  )(blockHash: String): EitherT[F, String, Seq[BlockInfo]] =
-    get[F, Seq[BlockInfo]](backend) {
-      uri"$baseUri/block?from=${blockHash}"
-    }
+
 
   def readUnsavedBlocks(): IO[Seq[String]] = IO.blocking {
     val path = Paths.get("unsaved-blocks.json")
