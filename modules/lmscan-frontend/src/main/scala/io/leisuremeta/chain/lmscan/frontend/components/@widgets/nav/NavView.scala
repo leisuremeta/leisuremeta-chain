@@ -3,6 +3,8 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 
+// TODO :: A :: 페이지 매칭 방식 더 좋은 방법으로 대체하기
+
 object NavView:
   val DashBoardPageList = List(
     NavMsg.DashBoard.toString(),
@@ -16,7 +18,7 @@ object NavView:
 
   val TransactionPageList = List(
     NavMsg.Transactions.toString(),
-    Log.log(NavMsg.TransactionDetail.toString()),
+    NavMsg.TransactionDetail.toString(),
     NavMsg.Account.toString(),
     NavMsg.NftDetail.toString(),
   )
@@ -27,12 +29,12 @@ object NavView:
   def isCurPageisBlock = (model: Model) =>
     BlockPageList
       .reduce((a, b) => a + b)
-      .contains(Log.log(model.curPage.toString().take(10))) // TODO :: simplify
+      .contains(Log.log(model.curPage.toString().take(5))) // TODO :: A
 
   def isCurPageisTransaction = (model: Model) =>
     TransactionPageList
       .reduce((a, b) => a + b)
-      .contains(model.curPage.toString().take(10)) // TODO :: simplify
+      .contains(model.curPage.toString().take(5)) // TODO :: A
 
   def isPrevPageisDashBoard = (model: Model) =>
     model.curPage == NavMsg.NoPage && DashBoardPageList.contains(
@@ -40,15 +42,17 @@ object NavView:
     )
 
   def isPrevPageisBlock = (model: Model) =>
-    model.curPage == NavMsg.NoPage && BlockPageList.contains(
-      model.prevPage.toString(),
-    )
+    model.curPage == NavMsg.NoPage && BlockPageList
+      .reduce((a, b) => a + b)
+      .contains(
+        model.prevPage.toString().take(5), // TODO :: A
+      )
 
   def isPrevPageisTransaction = (model: Model) =>
     model.curPage == NavMsg.NoPage && TransactionPageList
       .reduce((a, b) => a + b)
       .contains(
-        model.prevPage.toString().take(10), // TODO :: simplify
+        model.prevPage.toString().take(5), // TODO :: A
       )
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
