@@ -11,3 +11,8 @@ object BlockService:
     hash: String,
   ): EitherT[F, String, Option[Block]] =
     BlockRepository.get(hash)
+
+  def insert[F[_]: Async](
+      block: Block,
+  ): EitherT[F, String, Long] =
+    BlockRepository.insert(block)
