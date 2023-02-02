@@ -16,6 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.{global as ec}
 import io.leisuremeta.chain.lmscan.agent.entity.Tx
 import io.getquill.Query
 import java.time.Instant
+import io.leisuremeta.chain.lmscan.agent.model.id
 
 trait CommonQuery:
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
@@ -40,8 +41,8 @@ trait CommonQuery:
       }
     }
 
-  inline def insertWithoutTransaction[F[_]: Async, T](
-      tx: Tx,
+  inline def insertTransaction[F[_]: Async, T <: id](
+      tx: T,
   ): EitherT[F, String, Long] =
     println("222222")
     EitherT {
@@ -55,11 +56,11 @@ trait CommonQuery:
                 for p <- ctx
                     .run(
                       quote {
-                        query[Tx]
+                        query[T]
                           .insertValue(
                             lift(tx),
                           )
-                          .onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash)
+                          .onConflictUpdate(_.id)((t, e) => t.id -> e.id)
                       },
                     )
                 yield p
@@ -78,6 +79,7 @@ trait CommonQuery:
           Left(e.getMessage())
       }
     }
+
 
   // inline def insert[F[_]: Async, T](): EitherT[F, String, Long] =
   //   println("222222")
