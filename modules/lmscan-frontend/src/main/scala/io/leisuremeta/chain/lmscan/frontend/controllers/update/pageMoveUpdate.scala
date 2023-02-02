@@ -74,9 +74,11 @@ object PageMoveUpdate:
             case "Enter" => model.tx_list_Search
             case _       => value
 
-          val res = // filter only number like string
-            !str.forall(Character.isDigit) || str == "" match
-              case true  => 1
+          val res = // filter only number like string and filter overflow pagenumber
+            !str.forall(
+              Character.isDigit,
+            ) || str == "" || str.toInt > model.tx_TotalPage match
+              case true  => model.tx_CurrentPage
               case false => str.toInt
 
           log(s"PageMoveMsg.Patch ${str} ${res}")
@@ -92,9 +94,11 @@ object PageMoveUpdate:
             case "Enter" => model.block_list_Search
             case _       => value
 
-          val res = // filter only number like string
-            !str.forall(Character.isDigit) || str == "" match
-              case true  => 1
+          val res = // filter only number like string and filter overflow pagenumber
+            !str.forall(
+              Character.isDigit,
+            ) || str == "" || str.toInt > model.block_TotalPage match
+              case true  => model.block_CurrentPage
               case false => str.toInt
 
           (
