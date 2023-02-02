@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import Dom.{_hidden}
+import Dom.{_hidden, isEqGet}
 
 import Log.*
 
@@ -45,7 +45,13 @@ object Row2:
           div(`class` := "cell")(span()(each.signer.take(10) + "...")),
           div(`class` := "cell")(span()(each.txType)),
           div(`class` := "cell")(span()(each.tokenType)),
-          div(`class` := "cell")(span()(each.value.take(14) + "...")),
+          div(
+            `class` := s"cell ${isEqGet[String](each.tokenType, "NFT", "type-3")}",
+          )(
+            span(onClick(NavMsg.TransactionDetail(each.hash)))(
+              each.value.take(10) + "...",
+            ),
+          ),
         ),
       )
   val search = (model: Model) =>

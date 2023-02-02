@@ -7,3 +7,5 @@ object Dom:
     window.document.getElementsByClassName(s"$className").item(0)
 
   def _hidden[A](a: A, b: A) = if (a == b) then "hidden" else ""
+
+  def isEqGet[A](a: A, b: A, c: Any) = if (a == b) then s"$c" else ""
