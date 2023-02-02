@@ -35,7 +35,6 @@ import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
 import io.leisuremeta.chain.lmscan.backend.entity.Nft
 
 
-import io.leisuremeta.chain.lmscan.agent.model.id
 import scala.concurrent.ExecutionContext
 import io.getquill.PostgresJAsyncContext
 import io.getquill.SnakeCase
@@ -48,6 +47,7 @@ import java.sql.SQLException
 import api.model.*
 import io.leisuremeta.chain.api.model.Transaction.TokenTx
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
+import io.getquill.Insert
 
 
 
@@ -57,8 +57,8 @@ object LmscanBatchMain extends IOApp:
 
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
   import ctx.{*, given}
-  inline def insertTransaction[F[_]: Async, T <: id](
-      tx: T,
+  inline def insertTransaction[F[_]: Async, T](
+      inline query: Insert[T]
   ): EitherT[F, String, Long] =
     scribe.info("222222")
     EitherT {
@@ -71,13 +71,14 @@ object LmscanBatchMain extends IOApp:
               ctx.transaction[Long] {
                 for p <- ctx
                     .run(
-                      quote {
-                        query[T]
-                          .insertValue(
-                            lift(tx),
-                          )
-                          .onConflictUpdate(_.id)((t, e) => t.id -> e.id)
-                      },
+                      // quote {
+                      //   query[T]
+                      //     .insertValue(
+                      //       lift(entity),
+                      //     )
+                      //     .onConflictUpdate(_.id())((t, e) => t.id() -> e.id())
+                      // },
+                      query
                     )
                 yield p
               }
@@ -97,57 +98,85 @@ object LmscanBatchMain extends IOApp:
     }
 
   def run(args: List[String]): IO[ExitCode] =
-    for _ <- ArmeriaCatsBackend
-        .resource[IO](SttpBackendOptions.Default)
-        .use { backend =>
-          for
-            status <- getStatus[IO](backend)
-            block  <- getBlock[IO](backend)(status.bestHash)
-            count <- loop[IO](backend)(
-              status.bestHash,
-              status.genesisHash,
-              0,
-            ) { (blockHash, block, txList) =>
-              for 
-                txs <- txList.traverse { txHash =>
-                  for
-                    txResult <- getTransaciton[IO](backend)(txHash)
-                    nftEntity <- txResult.signedTx match 
-                      case tx: Transaction.TokenTx => match 
-                        case nft: DefineToken => Nft(nft)
-                        case nft: MintFungibleToken =>  
-                        case nft: MintNFT =>  
-                        case nft: BurnFungibleToken =>  
-                        case nft: BurnFungibleTokenResult =>  
-                        case nft: BurnNFT =>  
-                        case nft: TransferFungibleToken =>
-                        case nft: TransferFungibleToken =>  
-                        
+    ArmeriaCatsBackend
+      .resource[IO](SttpBackendOptions.Default)
+      .use { backend =>
+        for
+          status <- getStatus[IO](backend)
+          // TODO: read sequentially saved last block
+          block  <- getBlock[IO](backend)(status.bestHash)
+          val lastBlockNumber = BlockService.getLastSavedBlock[IO].flatMap {
+            case Some(lastBlock) => lastBlock.number
+            case None => getBlock[IO](backend)(status.genesisHash)
+          }
+          count <- loop[IO](backend)(
+            status.bestHash,
+            status.genesisHash,
+          ) { (blockHash, block, txList) =>
+            for 
+              txs <- txList.traverse { txHash =>
+                for
+                  txResult <- getTransaciton[IO](backend)(txHash)
 
+                  // TODO: NFT 타입 트랜잭션은 nft 테이블에 추가 저장. (extract nft entity field)
+                  // extract nft entity from sub nft models
+                  nftEntity: Option[Nft] <- txResult.signedTx match 
+                    case tx: Transaction.TokenTx => match 
+                    // TODO: 
+                    // case nft: DefineToken => Nft(nft)
+                    case nft: MintNFT => {
+                          insertTransaction[IO, NftFile]( NftFile() )
+                          Nft()
+                        }  
+                    case nft: TransferNFT => Nft()
+                    case nft: BurnNFT => Nft()
+                    case nft: EntrustNFT => Nft()
+                    case nft: DisposeEntrustedNFT => Nft()
+                    // case nft: MintFungibleToken =>  
+                    // case nft: TransferFungibleToken =>
+                    // case nft: BurnFungibleToken =>  
+                    // case nft: EntrustFungibleToken =>
+                    // case nft: DisposeEntrustedFungibleToken =>  
 
-                    _ <- insertTransaction[IO, Tx](tx)
-                    // _ <- TxService.insert[IO, Tx](tx)
-                  yield ()
-                }
-                // _ <- TxService.insert[IO, Block]( Block (
-                _ <- insertTransaction[IO, Block]( Block (
-                  block.header.number,
-                  blockHash,
-                  block.header.parentHash,
-                  block.transactionHashes.size,
-                  Timestamp.valueOf(block.header.timestamp).getTime(),
-                  Instant.now().getEpochSecond(),
-                ))
-              yield ()
-            }
-          yield (count)
-          IO.unit
-        }
-    yield ExitCode.Success
+                  //  _ <- nftEntity.map( nft => insertTransaction[IO, Nft](nft)) 
+
+                  v <- insertTransaction[IO, Tx](quote {
+                    query[Tx]
+                      .insertValue(lift(txResult))
+                      .onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash)
+                  })
+                
+                yield ()
+              }
+              // _ <- TxService.insert[IO, Block]( Block (
+              _ <- insertTransaction[IO, Block](
+                quote {
+                  query[Block]
+                    .insertValue(
+                      lift( Block (
+                        blockHash,
+                        block.header.number,
+                        block.header.parentHash,
+                        block.transactionHashes.size,
+                        Timestamp.valueOf(block.header.timestamp).getTime(),
+                        Instant.now().getEpochSecond(),
+                      )),
+                    )
+                    .onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash)
+                  },
+                ) 
+            yield ()
+          }
+        yield ()
+
+        //   case None => EitherT.pure(())
+        // }
+      }
+      .as(ExitCode.Success)
 
   def loop[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(next: String, genesis: String, count: Long)(
+  )(next: String, genesis: String)(
       run: (String, PBlock, Seq[String]) => EitherT[F, String, Unit],
   ): EitherT[F, String, Long] =
     for
