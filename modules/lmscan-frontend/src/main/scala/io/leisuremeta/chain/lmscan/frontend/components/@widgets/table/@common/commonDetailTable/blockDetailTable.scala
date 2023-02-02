@@ -16,27 +16,27 @@ object BlockDetailTable:
       div(`class` := "table w-[100%]")(
         div(`class` := "row")(
           div(`class` := "cell type-detail-head ")("Block Number"),
-          div(`class` := "cell type-detail-body ")("1231231"),
+          div(`class` := "cell type-detail-body ")(data.number.toString()),
         ),
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Timestamp"),
-          div(`class` := "cell type-detail-body")("yyyy-mm-dd hh:mm:ss"),
+          div(`class` := "cell type-detail-body")(data.timestamp.toString()),
         ),
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Block hash"),
           div(`class` := "cell type-detail-body")(
-            "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
+            data.hash,
           ),
         ),
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Parent hash"),
           div(`class` := "cell type-detail-body")(
-            "6913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
+            data.parentHash,
           ),
         ),
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Transcation count"),
-          div(`class` := "cell type-detail-body")("1234"),
+          div(`class` := "cell type-detail-body")(data.txCount.toString()),
         ),
       ),
     )

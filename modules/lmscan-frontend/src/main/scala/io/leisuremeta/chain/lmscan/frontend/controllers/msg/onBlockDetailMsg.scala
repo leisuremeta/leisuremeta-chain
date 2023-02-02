@@ -26,5 +26,5 @@ object UnderBlockDetailMsg:
 object OnBlockDetailMsg:
   def getBlockDetail(hash: String): Cmd[IO, Msg] =
     val url =
-      s"http://localhost:8081/tx/$hash/detail"
+      s"http://localhost:8081/block/$hash/detail"
     Http.send(Request.get(url), UnderBlockDetailMsg.fromHttpResponse)

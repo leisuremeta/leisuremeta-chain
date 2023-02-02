@@ -39,14 +39,17 @@ object Tables:
         )
       case NavMsg.TransactionDetail(_) =>
         TransactionDetailView.view(model)
+
       case NavMsg.NoPage =>
         NoPageView.view(model)
+
       case NavMsg.Account =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             TransactionTable.view(model),
           ),
         )
+
       case NavMsg.Nft =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(

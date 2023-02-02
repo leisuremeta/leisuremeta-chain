@@ -26,7 +26,7 @@ object NavUpdate:
         (
           model
             .copy(curPage = NavMsg.BlockDetail(hash), prevPage = model.curPage),
-          Cmd.None,
+          OnBlockDetailMsg.getBlockDetail(hash),
         ),
       )
     case NavMsg.Transactions =>

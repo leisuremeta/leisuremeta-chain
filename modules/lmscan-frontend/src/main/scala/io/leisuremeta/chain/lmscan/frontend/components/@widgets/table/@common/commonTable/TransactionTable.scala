@@ -8,6 +8,7 @@ import Dom.{_hidden}
 
 import Log.*
 
+// TODO :: simplify
 object Row2:
   def title = (model: Model) =>
     div(
@@ -47,18 +48,6 @@ object Row2:
           div(`class` := "cell")(span()(each.value.take(14) + "...")),
         ),
       )
-
-  def genTable = (payload: List[Tx]) =>
-    div(`class` := "table w-[100%]")(
-      Row2.head :: Row2.genBody(payload),
-    )
-
-  val table = (model: Model) =>
-    TxParser
-      .decodeParser(model.txListData.get)
-      .map(data => Row2.genTable(data.payload))
-      .getOrElse(div())
-
   val search = (model: Model) =>
     div(
       `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
@@ -91,10 +80,43 @@ object Row2:
       ),
     )
 
+  def genTable = (payload: List[Tx], model: Model) =>
+    payload.isEmpty match
+      case true => div()
+      case _ =>
+        model.curPage match
+          case NavMsg.BlockDetail(_) =>
+            div(`class` := "table-container")(
+              div(`class` := "table w-[100%]")(
+                Row2.head :: Row2.genBody(payload),
+              ),
+            )
+          case _ =>
+            div(`class` := "table-container")(
+              Row2.title(model),
+              div(`class` := "table w-[100%]")(
+                Row2.head :: Row2.genBody(payload),
+              ),
+              Row2.search(model),
+            )
+
+  val txList_txtable = (model: Model) =>
+    TxParser
+      .decodeParser(model.txListData.get)
+      .map(data => Row2.genTable(data.payload, model))
+      .getOrElse(div())
+
+  val blockDetail_txtable = (model: Model) =>
+    BlockDetailParser
+      .decodeParser(model.blockDetailData.get)
+      .map(data => Row2.genTable(data.txs, model))
+      .getOrElse(div())
+
 object TransactionTable:
   def view(model: Model): Html[Msg] =
-    div(`class` := "table-container")(
-      Row2.title(model),
-      Row2.table(model),
-      Row2.search(model),
-    )
+    model.curPage match
+      case NavMsg.BlockDetail(_) =>
+        Row2.blockDetail_txtable(model)
+
+      case _ =>
+        Row2.txList_txtable(model)

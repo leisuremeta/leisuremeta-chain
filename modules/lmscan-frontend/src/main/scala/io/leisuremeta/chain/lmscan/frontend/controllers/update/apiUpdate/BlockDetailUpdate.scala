@@ -15,6 +15,7 @@ object BlockDetailUpdate:
         Cmd.None,
       )
     case BlockDetailMsg.Update(data) =>
+      log("BlockDetailMsg.Update(data)")
       (
         model.copy(blockDetailData = Some(data)),
         Cmd.None,
