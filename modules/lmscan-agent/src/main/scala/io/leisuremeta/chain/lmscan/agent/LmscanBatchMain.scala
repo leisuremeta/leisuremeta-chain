@@ -20,7 +20,7 @@ import cats.Monad
 import cats.syntax.bifunctor.*
 import cats.syntax.functor.*
 import io.leisuremeta.chain.lmscan.agent.entity.Block
-import io.leisuremeta.chain.lmscan.agent.model.{PBlock, BlockInfo, NodeStatus}
+import io.leisuremeta.chain.lmscan.agent.model.{PBlock, BlockInfo, NodeStatus, NftMetaInfo}
 import java.nio.file.Paths
 import scala.util.Try
 import java.nio.file.Files
@@ -32,7 +32,8 @@ import io.leisuremeta.chain.lmscan.agent.service.BlockService
 import java.sql.Timestamp
 import java.time.Instant
 import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
-import io.leisuremeta.chain.lmscan.backend.entity.Nft
+import io.leisuremeta.chain.lmscan.agent.entity.Nft
+import io.leisuremeta.chain.lmscan.agent.entity.NftFile
 
 
 import scala.concurrent.ExecutionContext
@@ -45,10 +46,13 @@ import cats.implicits.*
 import java.sql.SQLException
 
 import api.model.*
-import io.leisuremeta.chain.api.model.Transaction.TokenTx
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
+import io.leisuremeta.chain.api.model.Transaction.*
 import io.getquill.Insert
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
+import io.leisuremeta.chain.api.model.Transaction.AccountTx.*
 
+import sttp.model.Uri
+import io.getquill.Update
 
 
 object LmscanBatchMain extends IOApp:
@@ -57,7 +61,7 @@ object LmscanBatchMain extends IOApp:
 
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
   import ctx.{*, given}
-  inline def insertTransaction[F[_]: Async, T](
+  inline def upsertTransaction[F[_]: Async, T](
       inline query: Insert[T]
   ): EitherT[F, String, Long] =
     scribe.info("222222")
@@ -97,17 +101,110 @@ object LmscanBatchMain extends IOApp:
       }
     }
 
+  inline def updateTransaction[F[_]: Async, T](
+      inline query: Update[T]
+  ): EitherT[F, String, Long] =
+    scribe.info("222222")
+    EitherT {
+      Async[F].recover {
+        for
+          given ExecutionContext <- Async[F].executionContext
+          ids <- Async[F]
+            .fromCompletableFuture(Async[F].delay {
+              scribe.info("333333")
+              ctx.transaction[Long] {
+                for p <- ctx
+                    .run(
+                      // quote {
+                      //   query[T]
+                      //     .insertValue(
+                      //       lift(entity),
+                      //     )
+                      //     .onConflictUpdate(_.id())((t, e) => t.id() -> e.id())
+                      // },
+                      query
+                    )
+                yield p
+              }
+            })
+            .map(Either.right(_))
+        yield
+          scribe.info("444444")
+          ids
+      } {
+        case e: SQLException =>
+          scribe.info("55555")
+          Left(s"sql exception occured: " + e.getMessage())
+        case e: Exception =>
+          scribe.info("66666: " + e.getMessage())
+          Left(e.getMessage())
+      }
+    }
+
+  def genUpsertNftFileQuery(nft: MintNFT, metaInfo: NftMetaInfo): Insert[NftFile] =
+    quote {
+      query[NftFile]
+        .insertValue(lift(NftFile(
+          nft.tokenId.utf8.value,
+          nft.tokenDefinitionId.utf8.value,
+          metaInfo.Collection_name,
+          metaInfo.NFT_name,
+          metaInfo.NFT_URI,
+          metaInfo.Creator_description,
+          nft.dataUrl.value,
+          metaInfo.Rarity,
+          metaInfo.Creator,
+          nft.createdAt.getEpochSecond(),
+          Instant.now().getEpochSecond(),
+          nft.output.utf8.value
+        )))
+        .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
+    }
+
+  def genUpsertNftQueryFromMintNft(nft: MintNFT, txHash: String): Insert[Nft] =
+    quote {
+      query[Nft]
+        .insertValue(lift(Nft (
+          nft.tokenId.utf8.value, 
+          txHash, 
+          Some(nft.rarity.utf8.value),
+          nft.output.utf8.value,
+          "MintNFT",
+          None,
+          nft.output.utf8.value,
+          nft.createdAt.getEpochSecond(),
+          Instant.now().getEpochSecond()
+        )))
+        .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
+    }
+
+  def genUpdateNftQueryFromTransferNFT(nft: TransferNFT): Update[Nft] =
+    query[Nft]
+      .updateValue(lift(Nft(
+        nft.tokenId.utf8.value,
+        nft.input.toUInt256Bytes.toHex, // ???
+        None,
+        nft.output.utf8.value,
+        "TransferNft",
+        None,
+        nft.output.utf8.value,
+        nft.createdAt.getEpochSecond(),
+        Instant.now().getEpochSecond(),
+      )))
+
+
+
   def run(args: List[String]): IO[ExitCode] =
     ArmeriaCatsBackend
       .resource[IO](SttpBackendOptions.Default)
       .use { backend =>
         for
           status <- getStatus[IO](backend)
-          // TODO: read sequentially saved last block
           block  <- getBlock[IO](backend)(status.bestHash)
-          val lastBlockNumber = BlockService.getLastSavedBlock[IO].flatMap {
-            case Some(lastBlock) => lastBlock.number
-            case None => getBlock[IO](backend)(status.genesisHash)
+          // TODO: read sequentially saved last block
+          lastBlockNumber <- BlockService.getLastSavedBlock[IO].flatMap {
+            case Some(lastBlock) => EitherT.pure(lastBlock.number)
+            case None => for genesisBlock <- getBlock[IO](backend)(status.genesisHash) yield genesisBlock.header.number
           }
           count <- loop[IO](backend)(
             status.bestHash,
@@ -116,33 +213,44 @@ object LmscanBatchMain extends IOApp:
             for 
               txs <- txList.traverse { txHash =>
                 for
-                  txResult <- getTransaciton[IO](backend)(txHash)
+                  result <- getTransaciton[IO](backend)(txHash)
+                  (txResult, txJson) = result
 
                   // TODO: NFT 타입 트랜잭션은 nft 테이블에 추가 저장. (extract nft entity field)
                   // extract nft entity from sub nft models
-                  nftEntity: Option[Nft] <- txResult.signedTx match 
-                    case tx: Transaction.TokenTx => match 
-                    // TODO: 
-                    // case nft: DefineToken => Nft(nft)
-                    case nft: MintNFT => {
-                          insertTransaction[IO, NftFile]( NftFile() )
-                          Nft()
-                        }  
-                    case nft: TransferNFT => Nft()
-                    case nft: BurnNFT => Nft()
-                    case nft: EntrustNFT => Nft()
-                    case nft: DisposeEntrustedNFT => Nft()
-                    // case nft: MintFungibleToken =>  
-                    // case nft: TransferFungibleToken =>
-                    // case nft: BurnFungibleToken =>  
-                    // case nft: EntrustFungibleToken =>
-                    // case nft: DisposeEntrustedFungibleToken =>  
-
-                  //  _ <- nftEntity.map( nft => insertTransaction[IO, Nft](nft)) 
+                  txEntity <- txResult.signedTx match 
+                    case tx: Transaction.TokenTx => tx match 
+                      case nft: MintNFT => {
+                        val url = Uri.unsafeParse(nft.dataUrl.value)
+                        val txEntity: EitherT[IO, String, Option[Tx]] = get[IO, NftMetaInfo](backend)(url).flatMap {
+                          // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
+                          case metaInfo: NftMetaInfo =>
+                            upsertTransaction[IO, NftFile](genUpsertNftFileQuery(nft, metaInfo))
+                            upsertTransaction[IO, Nft](genUpsertNftQueryFromMintNft(nft, txHash))
+                            EitherT.pure(Some(Tx.fromNft(txHash, nft, block, blockHash, txJson)))
+                        }
+                        txEntity.recover{(msg: String) => scribe.info(s"get error"); None}
+                      }  
+                      case nft: TransferNFT => {
+                        updateTransaction[IO, Nft](genUpdateNftQueryFromTransferNFT(nft))
+                        Some(Tx.fromNft(txHash, nft, block, blockHash, txJson))
+                      }
+                      case nft: BurnNFT => {
+                        updateTransaction[IO, Nft](genUpdateNftQueryFromBurnNFT(nft))
+                        Some(Tx.fromNft(txHash, nft, block, blockHash, txJson))
+                      }
+                      case nft: EntrustNFT => ???
+                      case nft: DisposeEntrustedNFT => ???
+                    case tx: Transaction.AccountTx => tx match
+                      case CreateAccount => 
+                      case UpdateAccount =>
+                      case AddPublicKeySummaries => 
+                      case AddPublicKeySummariesResult =>
+                      
 
                   v <- insertTransaction[IO, Tx](quote {
                     query[Tx]
-                      .insertValue(lift(txResult))
+                      .insertValue(lift(txEntity))
                       .onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash)
                   })
                 
@@ -209,12 +317,24 @@ object LmscanBatchMain extends IOApp:
         .get(uri)
         .send(backend)
         .map { response =>
-          val result = for
+          for
             body <- response.body
             a    <- decode[A](body).leftMap(_.getMessage())
           yield a
-
-          result
+        }
+    }
+  def getWithJson[F[_]: Async, A: io.circe.Decoder](
+      backend: SttpBackend[F, Any],
+  )(uri: Uri): EitherT[F, String, (A, String)] =
+    EitherT {
+      basicRequest
+        .get(uri)
+        .send(backend)
+        .map { response => 
+          for
+            body <- response.body
+            a <- decode[A](body).leftMap(_.getMessage())  
+          yield (a, body)
         }
     }
 
@@ -227,8 +347,8 @@ object LmscanBatchMain extends IOApp:
 
   def getTransaciton[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(txHash: String): EitherT[F, String, TransactionWithResult] =
-    get[F, TransactionWithResult](backend) {
+  )(txHash: String): EitherT[F, String, (TransactionWithResult, String)] =
+    getWithJson[F, TransactionWithResult](backend) {
       uri"$baseUri/tx/${txHash}"
     }.leftMap { msg =>
       scribe.error(s"getTransaciton error msg: $msg")  
