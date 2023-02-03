@@ -16,7 +16,6 @@ import cats.effect.unsafe.implicits.global
 import scala.concurrent.ExecutionContext
 import java.time.Duration
 import java.time.Instant
-import io.leisuremeta.chain.lmscan.agent.model.id
 
 case class Person(name: String, age: Int)
 
@@ -35,25 +34,31 @@ object TxRepository extends CommonQuery with IOApp:
 
             val x =
               for count <- insertTransaction[IO, Tx](
-                  Tx(
-                    "123",
-                    "account",
-                    "token",
-                    "123a",
-                    Seq("111", "222"),
-                    "xx123a",
-                    112L,
-                    Instant.now().getEpochSecond(),
-                    Instant.now().getEpochSecond(),
-                    Seq(
-                      "4913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
-                    ),
-                    Seq(
-                      "b775871c85faae7eb5f6bcebfd28b1e1b412235c/123456789.12345678912345678",
-                      "b775871c85faae7eb5f6bcebfd28b1e1b412235c/123456789.12345678912345678",
-                    ),
-                    "sssssss",
-                  ),
+                quote {
+                  query[Tx]
+                    .insertValue(
+                      lift(Tx(
+                          "123",
+                          "account",
+                          "token",
+                          "123a",
+                          Seq("111", "222"),
+                          "xx123a",
+                          112L,
+                          Instant.now().getEpochSecond(),
+                          Instant.now().getEpochSecond(),
+                          Seq(
+                            "4913b313f68610159bca2cfcc0758a726494c442d8116200e1ec2f459642f2da",
+                          ),
+                          Seq(
+                            "b775871c85faae7eb5f6bcebfd28b1e1b412235c/123456789.12345678912345678",
+                            "b775871c85faae7eb5f6bcebfd28b1e1b412235c/123456789.12345678912345678",
+                          ),
+                          "sssssss",
+                        )),
+                      )
+                      .onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash)
+                  },
                 )
               yield count
             println("ccccc : ")
