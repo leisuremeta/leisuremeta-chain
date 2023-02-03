@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import Dom.{_hidden, isEqGet}
+import Dom.{_hidden, isEqGet, yyyy_mm_dd_time}
 
 import Log.*
 
@@ -41,7 +41,11 @@ object Row2:
             )(each.hash.take(10) + "..."),
           ),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
-          div(`class` := "cell")(span()(each.createdAt.toString())),
+          div(`class` := "cell")(
+            span()(
+              yyyy_mm_dd_time(each.createdAt),
+            ),
+          ),
           div(`class` := "cell")(span()(each.signer.take(10) + "...")),
           div(`class` := "cell")(span()(each.txType)),
           div(`class` := "cell")(span()(each.tokenType)),

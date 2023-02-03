@@ -17,6 +17,7 @@ object TxDetailTable:
   val output = (data: List[Transfer]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput(output, i + 1) }
 
+  // TODO :: add click event
   val genInput = (data: String, i: Any) =>
     div(`class` := "row")(
       div(`class` := "cell type-detail-body")(i.toString()),
