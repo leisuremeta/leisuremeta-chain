@@ -1,12 +1,12 @@
-package io.leisuremeta.chain.lmscan.backend.entity
+package io.leisuremeta.chain.lmscan.agent.entity
 
 final case class Nft(
     tokenId: String,
     txHash: String,
-    rarity: String,
+    rarity: Option[String],
     owner: String,
     action: String,
-    fromAddr: String,
+    fromAddr: Option[String],
     toAddr: String,
     eventTime: Long,
     createdAt: Long,
