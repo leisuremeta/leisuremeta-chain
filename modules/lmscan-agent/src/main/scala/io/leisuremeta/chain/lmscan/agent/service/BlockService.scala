@@ -3,7 +3,7 @@ package io.leisuremeta.chain.lmscan.agent.service
 import cats.data.EitherT
 import cats.effect.kernel.Async
 import io.leisuremeta.chain.lmscan.agent.repository.BlockRepository
-import io.leisuremeta.chain.lmscan.agent.entity.Block
+import io.leisuremeta.chain.lmscan.agent.entity.{Block, BlockSavedLog}
 
 
 object BlockService:
@@ -12,7 +12,13 @@ object BlockService:
   ): EitherT[F, String, Option[Block]] =
     BlockRepository.get(hash)
 
-  def insert[F[_]: Async](
-      block: Block,
-  ): EitherT[F, String, Long] =
-    BlockRepository.insert(block)
+  // def insert[F[_]: Async](
+  //     block: Block,
+  // ): EitherT[F, String, Long] =
+  //   BlockRepository.insert(block)
+
+
+  def getLastSavedBlock[F[_]: Async]: 
+    EitherT[F, String, Option[BlockSavedLog]] =
+    BlockRepository.getLastSavedBlock
+
