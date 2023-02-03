@@ -16,7 +16,6 @@ import scala.concurrent.ExecutionContext.Implicits.{global as ec}
 import io.leisuremeta.chain.lmscan.agent.entity.Tx
 import io.getquill.Query
 import java.time.Instant
-import io.leisuremeta.chain.lmscan.agent.model.id
 
 trait CommonQuery:
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
@@ -40,45 +39,85 @@ trait CommonQuery:
         case e: Exception => Left(e.getMessage())
       }
     }
-
-  inline def insertTransaction[F[_]: Async, T <: id](
-      tx: T,
-  ): EitherT[F, String, Long] =
-    println("222222")
-    EitherT {
-      Async[F].recover {
-        for
-          given ExecutionContext <- Async[F].executionContext
-          ids <- Async[F]
-            .fromCompletableFuture(Async[F].delay {
-              println("333333")
-              ctx.transaction[Long] {
-                for p <- ctx
-                    .run(
-                      quote {
-                        query[T]
-                          .insertValue(
-                            lift(tx),
-                          )
-                          .onConflictUpdate(_.id)((t, e) => t.id -> e.id)
-                      },
-                    )
-                yield p
-              }
-            })
-            .map(Either.right(_))
-        yield
-          scribe.info("444444")
-          ids
-      } {
-        case e: SQLException =>
-          scribe.info("55555")
-          Left(s"sql exception occured: " + e.getMessage())
-        case e: Exception =>
-          scribe.info("66666: " + e.getMessage())
-          Left(e.getMessage())
+  inline def insertTransaction[F[_]: Async, T](
+        inline query: Insert[T]
+    ): EitherT[F, String, Long] =
+      scribe.info("222222")
+      EitherT {
+        Async[F].recover {
+          for
+            given ExecutionContext <- Async[F].executionContext
+            ids <- Async[F]
+              .fromCompletableFuture(Async[F].delay {
+                scribe.info("333333")
+                ctx.transaction[Long] {
+                  for p <- ctx
+                      .run(
+                        // quote {
+                        //   query[T]
+                        //     .insertValue(
+                        //       lift(entity),
+                        //     )
+                        //     .onConflictUpdate(_.id())((t, e) => t.id() -> e.id())
+                        // },
+                        query
+                      )
+                  yield p
+                }
+              })
+              .map(Either.right(_))
+          yield
+            scribe.info("444444")
+            ids
+        } {
+          case e: SQLException =>
+            scribe.info("55555")
+            Left(s"sql exception occured: " + e.getMessage())
+          case e: Exception =>
+            scribe.info("66666: " + e.getMessage())
+            Left(e.getMessage())
+        }
       }
-    }
+
+  // inline def insertTransaction[F[_]: Async, T](
+  //     tx: T,
+  // ): EitherT[F, String, Long] =
+  //   println("222222")
+  //   EitherT {
+  //     Async[F].recover {
+  //       for
+  //         given ExecutionContext <- Async[F].executionContext
+  //         ids <- Async[F]
+  //           .fromCompletableFuture(Async[F].delay {
+  //             println("333333")
+  //             ctx.transaction[Long] {
+  //               for p <- ctx
+  //                   .run(
+  //                     quote {
+  //                       query[T]
+  //                         .insertValue(
+  //                           lift(tx),
+  //                         )
+  //                         // .onConflictUpdate(_.id())((t, e) => t.id() -> e.id())
+  //                         // .onConflictUpdate(_.id())((t, e) => t.id() -> e.id())
+  //                     },
+  //                   )
+  //               yield p
+  //             }
+  //           })
+  //           .map(Either.right(_))
+  //       yield
+  //         scribe.info("444444")
+  //         ids
+  //     } {
+  //       case e: SQLException =>
+  //         scribe.info("55555")
+  //         Left(s"sql exception occured: " + e.getMessage())
+  //       case e: Exception =>
+  //         scribe.info("66666: " + e.getMessage())
+  //         Left(e.getMessage())
+  //     }
+  //   }
 
 
   // inline def insert[F[_]: Async, T](): EitherT[F, String, Long] =
