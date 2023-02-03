@@ -25,6 +25,7 @@ object UnderBlockDetailMsg:
 
 object OnBlockDetailMsg:
   def getBlockDetail(hash: String): Cmd[IO, Msg] =
+    // TODO :: url 관리 컴파일타임에 url 가져오기
     val url =
       s"http://localhost:8081/block/$hash/detail"
     Http.send(Request.get(url), UnderBlockDetailMsg.fromHttpResponse)

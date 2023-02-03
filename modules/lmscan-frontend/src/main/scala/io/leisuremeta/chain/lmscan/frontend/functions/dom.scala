@@ -17,7 +17,6 @@ object Dom:
       .toISOString()
       .slice(0, 19)
       .replace("T", " ")
-    timeAgo(timestamp)
 
   // [timestamp] => YYYY-MM-DD TIME
   //  1673939878 =>  1970-01-20 08:58:59

@@ -20,9 +20,9 @@ case class Transfer(
 )
 
 object TxDetailParser:
-  implicit val transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
-  implicit val txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
-  def decodeParser(body: String)                  = decode[TxDetail](body)
+  given transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
+  given txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
+  def decodeParser(body: String)           = decode[TxDetail](body)
 
-  implicit val transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
-  implicit val txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]
+  given transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
+  given txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]
