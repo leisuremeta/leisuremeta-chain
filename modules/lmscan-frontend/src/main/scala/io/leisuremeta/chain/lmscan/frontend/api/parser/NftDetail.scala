@@ -32,8 +32,8 @@ case class NftActivities(
 )
 
 object NftDetailParser:
-  implicit val nftFileDecoder: Decoder[NftFile] = deriveDecoder[NftFile]
-  implicit val nftActivitiesDecoder: Decoder[NftActivities] =
+  given nftFileDecoder: Decoder[NftFile] = deriveDecoder[NftFile]
+  given nftActivitiesDecoder: Decoder[NftActivities] =
     deriveDecoder[NftActivities]
-  implicit val txDetailDecoder: Decoder[NftDetail] = deriveDecoder[NftDetail]
-  def decodeParser(body: String)                   = decode[NftDetail](body)
+  given txDetailDecoder: Decoder[NftDetail] = deriveDecoder[NftDetail]
+  def decodeParser(body: String)            = decode[NftDetail](body)

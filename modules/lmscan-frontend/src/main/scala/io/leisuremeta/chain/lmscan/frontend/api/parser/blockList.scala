@@ -13,6 +13,6 @@ case class Block(
 )
 
 object BlockParser:
-  implicit val blocklistDecoder: Decoder[BlockList] = deriveDecoder[BlockList]
-  implicit val blockDecoder: Decoder[Block]         = deriveDecoder[Block]
-  def decodeParser(body: String)                    = decode[BlockList](body)
+  given blocklistDecoder: Decoder[BlockList] = deriveDecoder[BlockList]
+  given blockDecoder: Decoder[Block]         = deriveDecoder[Block]
+  def decodeParser(body: String)             = decode[BlockList](body)

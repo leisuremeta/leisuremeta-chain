@@ -15,6 +15,6 @@ case class Tx(
 )
 
 object TxParser:
-  implicit val txlistDecoder: Decoder[TxList] = deriveDecoder[TxList]
-  implicit val txDecoder: Decoder[Tx]         = deriveDecoder[Tx]
-  def decodeParser(body: String)              = decode[TxList](body)
+  given txlistDecoder: Decoder[TxList] = deriveDecoder[TxList]
+  given txDecoder: Decoder[Tx]         = deriveDecoder[Tx]
+  def decodeParser(body: String)       = decode[TxList](body)

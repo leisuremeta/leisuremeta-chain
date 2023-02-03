@@ -27,10 +27,15 @@ case class AccountDetailTxHistList(
 )
 
 object AccountDetailParser:
-    implicit val accountDetailDecoder: Decoder[AccountDetail] = deriveDecoder[AccountDetail]
-    implicit val accountDetailTxHistDecoder: Decoder[AccountDetailTxHist] = deriveDecoder[AccountDetailTxHist]
-    def decodeParser(body: String) = decode[AccountDetail](body)
+  given accountDetailDecoder: Decoder[AccountDetail] =
+    deriveDecoder[AccountDetail]
+  given accountDetailTxHistDecoder: Decoder[AccountDetailTxHist] =
+    deriveDecoder[AccountDetailTxHist]
+  def decodeParser(body: String) = decode[AccountDetail](body)
 
-    implicit val txHistListEncoder: Encoder[AccountDetailTxHistList] = deriveEncoder[AccountDetailTxHistList]
-    implicit val txHistEncoder: Encoder[AccountDetailTxHist] = deriveEncoder[AccountDetailTxHist]
-    def txEncodeParser(list: List[AccountDetailTxHist]) = AccountDetailTxHistList(20, 1, list).asJson.spaces2
+  given txHistListEncoder: Encoder[AccountDetailTxHistList] =
+    deriveEncoder[AccountDetailTxHistList]
+  given txHistEncoder: Encoder[AccountDetailTxHist] =
+    deriveEncoder[AccountDetailTxHist]
+  def txEncodeParser(list: List[AccountDetailTxHist]) =
+    AccountDetailTxHistList(20, 1, list).asJson.spaces2
