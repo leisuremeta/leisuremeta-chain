@@ -19,7 +19,7 @@ import cats.effect.kernel.Async
 import cats.Monad
 import cats.syntax.bifunctor.*
 import cats.syntax.functor.*
-import io.leisuremeta.chain.lmscan.agent.entity.Block
+import io.leisuremeta.chain.lmscan.agent.entity.{Block,Tx, AccountEntity}
 import io.leisuremeta.chain.lmscan.agent.model.{PBlock, BlockInfo, NodeStatus, NftMetaInfo}
 import java.nio.file.Paths
 import scala.util.Try
@@ -27,8 +27,7 @@ import java.nio.file.Files
 import scala.jdk.CollectionConverters.*
 // import io.leisuremeta.chain.lmscan.agent.service.TxService
 import cats.syntax.traverse.toTraverseOps
-import io.leisuremeta.chain.lmscan.agent.entity.Tx
-import io.leisuremeta.chain.lmscan.agent.service.BlockService
+import io.leisuremeta.chain.lmscan.agent.service.{BlockService, NftService}
 import java.sql.Timestamp
 import java.time.Instant
 import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
@@ -192,6 +191,53 @@ object LmscanBatchMain extends IOApp:
         Instant.now().getEpochSecond(),
       )))
 
+  def genUpdateNftQueryFromBurnNFT(nft: BurnNFT, tokenId: String): Update[Nft] =
+    query[Nft]
+      .updateValue(lift(Nft(
+        tokenId,
+        nft.input.toUInt256Bytes.toHex, // ???
+        None,
+        nft.output.utf8.value,
+        "BurnNFT",
+        None,
+        nft.output.utf8.value,
+        nft.createdAt.getEpochSecond(),
+        Instant.now().getEpochSecond(),
+      )))
+  
+  def genUpdateNftQueryFromEntrustNFT(nft: EntrustNFT): Update[Nft] =
+    query[Nft]
+      .updateValue(lift(Nft(
+        nft.tokenId.utf8.value,
+        nft.input.toUInt256Bytes.toHex, // ???
+        None,
+        nft.to.utf8.value,
+        "EntrustNFT",
+        None,
+        nft.to.utf8.value,
+        nft.createdAt.getEpochSecond(),
+        Instant.now().getEpochSecond(),
+      )))
+  
+  def genUpdateNftQueryFromDisposeEntrustedNFT(nft: DisposeEntrustedNFT): Update[Nft] =
+    query[Nft]
+      .updateValue(lift(Nft(
+        nft.tokenId.utf8.value,
+        nft.input.toUInt256Bytes.toBytes.toHex, // ???  nft.input.toUInt256Bytes.toHex
+        None,
+        nft.to.utf8.value,
+        "DisposeEntrustedNFT",
+        None,
+        nft.to.utf8.value,
+        nft.createdAt.getEpochSecond(),
+        Instant.now().getEpochSecond(),
+      )))
+
+  def genUpsertAccountQuery(tx: AccountEntity): Insert[AccountEntity] =
+    query[AccountEntity]
+      .insertValue(tx)
+      .onConflictUpdate(_.address)((t, e) => t.address -> e.address)
+
 
 
   def run(args: List[String]): IO[ExitCode] =
@@ -202,13 +248,14 @@ object LmscanBatchMain extends IOApp:
           status <- getStatus[IO](backend)
           block  <- getBlock[IO](backend)(status.bestHash)
           // TODO: read sequentially saved last block
-          lastBlockNumber <- BlockService.getLastSavedBlock[IO].flatMap {
-            case Some(lastBlock) => EitherT.pure(lastBlock.number)
-            case None => for genesisBlock <- getBlock[IO](backend)(status.genesisHash) yield genesisBlock.header.number
+          lastBlockHash <- BlockService.getLastSavedBlock[IO].flatMap {
+            case Some(lastBlock) => EitherT.pure(lastBlock.hash)
+            case None => EitherT.pure(status.genesisHash)
           }
           count <- loop[IO](backend)(
             status.bestHash,
-            status.genesisHash,
+            // status.genesisHash,
+            lastBlockHash,
           ) { (blockHash, block, txList) =>
             for 
               txs <- txList.traverse { txHash =>
@@ -236,16 +283,37 @@ object LmscanBatchMain extends IOApp:
                         Some(Tx.fromNft(txHash, nft, block, blockHash, txJson))
                       }
                       case nft: BurnNFT => {
-                        updateTransaction[IO, Nft](genUpdateNftQueryFromBurnNFT(nft))
-                        Some(Tx.fromNft(txHash, nft, block, blockHash, txJson))
+                        val txHash = nft.input.toUInt256Bytes.toHex
+                        val newTxEntity = for 
+                            nftEntityInDb <- NftService.getByTxHash[IO](txHash)
+                          yield nftEntityInDb.map {
+                            prevNftEntity => 
+                              updateTransaction[IO, Nft](genUpdateNftQueryFromBurnNFT(nft, prevNftEntity.tokenId))
+                              Tx.fromNft(txHash, nft, prevNftEntity.tokenId, block, blockHash, txJson)
+                          }
+                        newTxEntity.recover{(msg: String) =>
+                          scribe.info(s"previous nft by txHash '${txHash}' entity doesn't exist in db")
+                          None
+                        }
                       }
-                      case nft: EntrustNFT => ???
-                      case nft: DisposeEntrustedNFT => ???
+                      case nft: EntrustNFT => {
+                        updateTransaction[IO, Nft](genUpdateNftQueryFromEntrustNFT(nft))
+                        Tx.fromNft(txHash, nft, block, blockHash, txJson)
+                      }
+                      case nft: DisposeEntrustedNFT => {
+                        updateTransaction[IO, Nft](genUpdateNftQueryFromDisposeEntrustedNFT(nft))
+                        Tx.fromNft(txHash, nft, block, blockHash, txJson)
+                      }
                     case tx: Transaction.AccountTx => tx match
-                      case CreateAccount => 
-                      case UpdateAccount =>
-                      case AddPublicKeySummaries => 
-                      case AddPublicKeySummariesResult =>
+                      case CreateAccount => {
+                        upsertTransaction(IO, AccountEntity)(genUpsertAccountQuery(AccountEntity.from(tx)))
+                        Tx.fromTx(tx)
+                      }
+                      case UpdateAccount => {
+
+                      }
+                      case AddPublicKeySummaries => ???
+                      case AddPublicKeySummariesResult => ???
                       
 
                   v <- insertTransaction[IO, Tx](quote {
@@ -284,7 +352,7 @@ object LmscanBatchMain extends IOApp:
 
   def loop[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(next: String, genesis: String)(
+  )(next: String, lastSavedBlockHash: String)(
       run: (String, PBlock, Seq[String]) => EitherT[F, String, Unit],
   ): EitherT[F, String, Long] =
     for
