@@ -19,7 +19,7 @@ object NavView:
   val TransactionPageList = List(
     NavMsg.Transactions.toString(),
     NavMsg.TransactionDetail.toString(),
-    NavMsg.Account.toString(),
+    NavMsg.AccountDetail.toString(),
     NavMsg.NftDetail.toString(),
   )
 

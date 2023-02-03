@@ -20,5 +20,7 @@ object Update:
       BlockDetailUpdate.update(model)(blockDetailMsg)
     case nftDetailMsg: NftDetailMsg =>
       NftDetailUpdate.update(model)(nftDetailMsg)
+    case accountDetailMsg: AccountDetailMsg =>
+      AccountDetailUpdate.update(model)(accountDetailMsg)  
 
     // case dashboardMsg: DashboardMsg => Board.update(model)(dashboardMsg)

@@ -41,12 +41,12 @@ object Row2:
             )(each.hash.take(10) + "..."),
           ),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
-          div(`class` := "cell")(
-            span()(
-              yyyy_mm_dd_time(each.createdAt),
-            ),
+          div(`class` := "cell")(span()(yyyy_mm_dd_time(each.createdAt))),
+          div(`class` := "cell type-3")(
+            span(
+              onClick(NavMsg.AccountDetail(each.signer)),
+            )(each.signer.take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.signer.take(10) + "...")),
           div(`class` := "cell")(span()(each.txType)),
           div(`class` := "cell")(span()(each.tokenType)),
           div(
@@ -107,6 +107,13 @@ object Row2:
         model.curPage match
           case NavMsg.BlockDetail(_) =>
             div(`class` := "table-container")(
+              div(`class` := "table w-[100%]")(
+                Row2.head :: Row2.genBody(payload),
+              ),
+            )
+          case NavMsg.AccountDetail(_) =>
+            div(`class` := "table-container")(
+              Row2.title(model),
               div(`class` := "table w-[100%]")(
                 Row2.head :: Row2.genBody(payload),
               ),

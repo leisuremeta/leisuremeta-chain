@@ -47,7 +47,7 @@ object Tables:
       case NavMsg.NoPage =>
         NoPageView.view(model)
 
-      case NavMsg.Account =>
+      case NavMsg.AccountDetail(_) =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             TransactionTable.view(model),
