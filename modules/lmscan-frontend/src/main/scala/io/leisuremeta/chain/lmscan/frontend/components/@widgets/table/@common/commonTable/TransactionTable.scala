@@ -31,6 +31,13 @@ object Row2:
     div(`class` := "cell")(span()("Token Type")),
     div(`class` := "cell")(span()("Value")),
   )
+  val headForDashboard = div(`class` := "row table-head")(
+    div(`class` := "cell")(span()("Tx Hash")), // hash
+    div(`class` := "cell")(span()("Age")), // createdAt
+    div(`class` := "cell")(span()("Signer")), // signer
+    div(`class` := "cell")(span()("Type")), // txType
+  )
+
   def genBody = (payload: List[Tx]) =>
     payload
       .map(each =>
@@ -58,6 +65,24 @@ object Row2:
           ),
         ),
       )
+  def genBodyForDashboard = (payload: List[Tx]) =>
+    payload
+      .map(each =>
+        div(`class` := "row table-body")(
+          div(`class` := "cell type-3")(
+            span(
+              onClick(NavMsg.TransactionDetail(each.hash)),
+            )(each.hash.take(10) + "..."),
+          ),
+          div(`class` := "cell")(span()(each.createdAt.toString())),
+          div(`class` := "cell type-3")(
+            span(
+              onClick(NavMsg.AccountDetail(each.signer)),
+            )(each.signer.take(10) + "..."),
+          ),          
+          div(`class` := "cell")(span()(each.txType)),
+        ),
+      )      
   val search = (model: Model) =>
     div(
       `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
@@ -116,6 +141,13 @@ object Row2:
               div(`class` := "table w-[100%]")(
                 Row2.head :: Row2.genBody(payload),
               ),
+            )
+          case NavMsg.DashBoard =>
+            div(`class` := "table-container")(
+              Row2.title(model),
+              div(`class` := "table w-[100%]")(
+                Row2.headForDashboard :: Row2.genBodyForDashboard(payload),
+              )
             )
           case _ =>
             div(`class` := "table-container")(
