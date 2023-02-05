@@ -228,8 +228,20 @@ object LmscanBatchMain extends IOApp:
     backend: SttpBackend[F, Any],
     config: BatchConfig,
   ): IO[Unit] = 
-    // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
 
+    def loop: IO[Unit] = for
+      status <- getStatus[F](backend)
+      block  <- getBlock[F](backend)(status.bestHash)
+      // TODO: read sequentially saved last block
+      lastBlockHash <- BlockService.getLastSavedBlock[IO].flatMap {
+        case Some(lastBlock) => EitherT.pure(lastBlock.hash)
+        case None => EitherT.pure(status.genesisHash)
+      }
+      _ <- IO.sleep(10000.millis)
+      _ <- loop
+    yield ()
+
+    // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
     def bestBlock[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, (Block, String)] = 
       for status <- getStatus[F](backend)
       block <- getBlock[F](backend)(status.bestHash)
@@ -337,7 +349,7 @@ object LmscanBatchMain extends IOApp:
                         updateTransaction[F, NftFile](
                           query[NftFile].filter(n => n.tokenId == lift(nft.tokenId.utf8.value)).update(_.owner -> nft.output.utf8.value)
                         )
-                        Some(TxEntity.from(txHash, nft, block, blockHash, txJson))
+                        TxEntity.from(txHash, nft, block, blockHash, txJson)
                       }
                       case nft: BurnNFT => {
                         val txHash = nft.input.toUInt256Bytes.toHex
@@ -423,13 +435,14 @@ object LmscanBatchMain extends IOApp:
     def saveLastSavedBlockLog[F[_]: Async](blockJson: (Block, String)) = EitherT[F, String, BlockStateEntity] = 
       (json, block) = blockJson
       upsertTransaction[F, BlockSavedLog](
-        query[BlockSavedLog]
-          .insert(
-            _.eventTime -> block.header.timestamp.getEpochSecond(),
-            _.json -> json,
-            _.isBuild -> false,
+          query[BlockSavedLog]
+            .insert(
+              _.eventTime -> block.header.timestamp.getEpochSecond(),
+              _.hash -> block.toHash,
+              _.eventTime -> block.header.timestamp.getEpochSecond(),
+              _.createdAt -> java.time.Instant.now().getEpochSecond(),
+            )
           )
-        )
 
     //   case false =>
     // def rollbackSavedDiffStates(): IO[Unit] = ???
@@ -479,3 +492,16 @@ object LmscanBatchMain extends IOApp:
         scribe.error(s"Error reading unsaved blocks: ${e.getMessage}")
         Seq.empty
   }
+
+
+  def run(args: List[String]): IO[ExitCode] =
+    ArmeriaCatsBackend
+      .resource[IO](SttpBackendOptions.Default)
+      .use { backend =>
+        for
+          
+        
+        yield ()
+
+    }
+    .as(ExitCode.Success)
