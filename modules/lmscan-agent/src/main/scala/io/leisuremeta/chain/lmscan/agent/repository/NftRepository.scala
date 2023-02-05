@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.agent.repository
 
 import cats.effect.kernel.Async
 import cats.data.EitherT
-import io.leisuremeta.chain.lmscan.agent.entity.{Nft}
+import io.leisuremeta.chain.lmscan.agent.entity.{NftTxEntity}
 import io.getquill.*
   
 object NftRepository extends CommonQuery:
@@ -11,9 +11,9 @@ object NftRepository extends CommonQuery:
 
   def getByTxHash[F[_]: Async](
       hash: String,
-  ): EitherT[F, String, Option[Nft]] =
+  ): EitherT[F, String, Option[NftTxEntity]] =
     inline def detailQuery =
       quote { (hash: String) =>
-        query[Nft].filter(b => b.txHash == hash).take(1)
+        query[NftTxEntity].filter(b => b.txHash == hash).take(1)
       }
     optionQuery(detailQuery(lift(hash)))
