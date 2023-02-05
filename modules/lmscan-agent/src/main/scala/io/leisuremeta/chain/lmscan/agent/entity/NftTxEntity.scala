@@ -3,6 +3,7 @@ package io.leisuremeta.chain.lmscan.agent.entity
 
 import java.time.Instant
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.{TransferNFT, BurnNFT, EntrustNFT, DisposeEntrustedNFT}
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintNFT
 
 final case class NftTxEntity(
     tokenId: String,
@@ -17,10 +18,10 @@ final case class NftTxEntity(
 )
 
 object NftTxEntity:
-  def from(nft: TransferNFT) =
+  def from(nft: MintNFT, txHash: String) =
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
-      txHash = nft.input.toUInt256Bytes.toBytes.toHex,
+      txHash = txHash,
       action = "TransferNFT",
       fromAddr = None,
       toAddr = Some(nft.output.utf8.value),
@@ -28,10 +29,21 @@ object NftTxEntity:
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: BurnNFT, tokenId: String) =
+  def from(nft: TransferNFT, txHash: String) =
+    NftTxEntity(
+      tokenId = nft.tokenId.utf8.value,
+      txHash = txHash,
+      action = "TransferNFT",
+      fromAddr = None,
+      toAddr = Some(nft.output.utf8.value),
+      eventTime = nft.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond(),
+    )
+
+  def from(nft: BurnNFT, tokenId: String, txHash: String) =
     NftTxEntity(
       tokenId = tokenId,
-      txHash = nft.input.toUInt256Bytes.toBytes.toHex,
+      txHash = txHash,
       action = "BurnNFT",
       fromAddr = None,
       toAddr = None,
@@ -39,10 +51,10 @@ object NftTxEntity:
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: EntrustNFT) =
+  def from(nft: EntrustNFT, txHash: String) =
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
-      txHash = nft.input.toUInt256Bytes.toBytes.toHex,
+      txHash = txHash,
       action = "EntrustNFT",
       fromAddr = None,
       toAddr = Some(nft.to.utf8.value),
@@ -50,13 +62,13 @@ object NftTxEntity:
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: DisposeEntrustedNFT) =
+  def from(nft: DisposeEntrustedNFT, txHash: String) =
     val toAccountOpt = nft.output match 
         case Some(value) => Some(value.utf8.value)
         case None =>  None
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
-      txHash = nft.input.toUInt256Bytes.toBytes.toHex,
+      txHash = txHash,
       action = "DisposeEntrustedNFT",
       fromAddr = None,
       toAddr = toAccountOpt,
