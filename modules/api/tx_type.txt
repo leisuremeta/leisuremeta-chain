@@ -1,0 +1,46 @@
+
+모든 트랜잭션 공통 create Transaction
+Transaction
+ 	- TokenTx
+		// LM Token
+		- MintFungibleToken
+		- TransferFungibleToken
+		- EntrustFungibleToken
+		- DisposeEntrustedFungibleToken
+		- BurnFungibleToken
+
+		// NFT Token
+		- DefineToken
+		- MintNFT
+		- TransferNFT
+		- EntrustNFT
+		- DisposeEntrustedNFT
+		- BurnNFT
+
+	- AccountTx
+		- CreateAccount
+			=> insertAccount
+		- UpdateAccount
+			=> updateAccount
+		- AddPublicKeySummaries
+
+	- GroupTx		
+		- CreateGroup
+		- AddAccounts
+
+	- RewardTx
+		- RegisterDao
+		- UpdateDao
+		- RecordActivity
+		- BuildSnapshot
+		- ExecuteAccountReward   (Fungible)
+		- ExecuteTokenReward.   (Fungible) 
+		- ExecuteOwnershipReward.    (Fungible)
+
+
+NFT 테이블 NFT_TX 테이블 로 변경.
+
+backend 서버에서 NFT_activities 리스트는 tx 테이블에서 조회해서 주기.
+
+
+

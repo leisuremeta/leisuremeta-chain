@@ -1,6 +1,6 @@
 package io.leisuremeta.chain.lmscan.agent.entity
 
-final case class Block(
+final case class BlockEntity(
     hash: String,
     number: Long,
     parentHash: String,
