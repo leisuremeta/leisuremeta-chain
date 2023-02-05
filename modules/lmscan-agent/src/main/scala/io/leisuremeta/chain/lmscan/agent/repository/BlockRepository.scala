@@ -2,7 +2,8 @@ package io.leisuremeta.chain.lmscan.agent.repository
 
 import cats.effect.kernel.Async
 import cats.data.EitherT
-import io.leisuremeta.chain.lmscan.agent.entity.{Block, BlockSavedLog}
+import io.leisuremeta.chain.lmscan.agent.entity.{BlockSavedLog}
+import io.leisuremeta.chain.lmscan.agent.entity.BlockEntity
 import io.getquill.*
 
 object BlockRepository extends CommonQuery:
@@ -11,10 +12,10 @@ object BlockRepository extends CommonQuery:
 
   def get[F[_]: Async](
       hash: String,
-  ): EitherT[F, String, Option[Block]] =
+  ): EitherT[F, String, Option[BlockEntity]] =
     inline def detailQuery =
       quote { (hash: String) =>
-        query[Block].filter(b => b.hash == hash).take(1)
+        query[BlockEntity].filter(b => b.hash == hash).take(1)
       }
     optionQuery(detailQuery(lift(hash)))
 

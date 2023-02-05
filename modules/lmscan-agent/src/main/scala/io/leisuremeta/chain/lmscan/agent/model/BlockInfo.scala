@@ -5,6 +5,6 @@ import java.time.Instant
 final case class BlockInfo(
   blockNumber: BigInt,
   timestamp: Instant,
-  blockHash: PBlock,
+  // blockHash: PBlock,
   txCount: Int,
 )
