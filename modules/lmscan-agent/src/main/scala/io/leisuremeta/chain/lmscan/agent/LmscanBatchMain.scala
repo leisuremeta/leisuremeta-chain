@@ -167,73 +167,6 @@ object LmscanBatchMain extends IOApp:
         .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
     }
 
-  def genUpsertNftQueryFromMintNft(nft: MintNFT, txHash: String): Insert[Nft] =
-    quote {
-      query[Nft]
-        .insertValue(lift(Nft (
-          nft.tokenId.utf8.value, 
-          txHash, 
-          Some(nft.rarity.utf8.value),
-          nft.output.utf8.value,
-          "MintNFT",
-          None,
-          nft.output.utf8.value,
-          nft.createdAt.getEpochSecond(),
-          Instant.now().getEpochSecond()
-        )))
-        .onConflictUpdate(_.tokenId)((t, e) => t.txHash -> e.txHash)
-    }
-
-  def genUpdateNftQueryFromTransferNFT(nft: TransferNFT): Update[NftTxEntity] =
-//      query[Person].filter(p => p.id == lift(999)).update(_.age -> lift(18))
-
-    query[NftTxEntity]
-      .filter(n => n.tokenId == lift(nft.tokenId.utf8.value))
-      .update()
-
-  def genUpdateNftQueryFromBurnNFT(nft: BurnNFT, tokenId: String): Insert[NftTxEntity] =
-    query[NftTxEntity]
-      .insertValue(lift(NftTxEntity(
-        tokenId,
-        nft.input.toUInt256Bytes.toHex, // ???
-        None,
-        nft.output.utf8.value,
-        "BurnNFT",
-        None,
-        nft.output.utf8.value,
-        nft.creaedAt.getEpochSecond(),
-        Instant.now().getEpochSecond(),
-      )))
-      .onConflictUpdate(_.tokenId)((t, e) => t.txHash -> e.txHash)
-  
-  def genUpdateNftQueryFromEntrustNFT(nft: EntrustNFT): Insert[NftTxEntity] =
-    query[NftTxEntity]
-      .insertValue(lift(NftTxEntity(
-        nft.tokenId.utf8.value,
-        nft.input.toUInt256Bytes.toHex, // ???
-        None,
-        nft.to.utf8.value,
-        "EntrustNFT",
-        None,
-        nft.to.utf8.value,
-        nft.createdAt.getEpochSecond(),
-        Instant.now().getEpochSecond(),
-      )))
-  
-  def genUpdateNftQueryFromDisposeEntrustedNFT(nft: DisposeEntrustedNFT): Insert[NftTxEntity] =
-    query[NftTxEntity]
-      .insertValue(lift(NftTxEntity(
-        nft.tokenId.utf8.value,
-        nft.input.toUInt256Bytes.toBytes.toHex, // ???  nft.input.toUInt256Bytes.toHex
-        None,
-        nft.to.utf8.value,
-        "DisposeEntrustedNFT",
-        None,
-        nft.to.utf8.value,
-        nft.createdAt.getEpochSecond(),
-        Instant.now().getEpochSecond(),
-      )))
-
   def genUpsertAccountQuery(tx: AccountEntity): Insert[AccountEntity] =
     query[AccountEntity]
       .insertValue(tx)
@@ -389,7 +322,9 @@ object LmscanBatchMain extends IOApp:
                         val txEntity: EitherT[F, String, Option[TxEntity]] = get[F, NftMetaInfo](backend)(url).flatMap {
                           // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
                           case metaInfo: NftMetaInfo =>
-                            upsertTransaction[F, NftTxEntity](genUpsertNftQueryFromMintNft(nft, txHash))
+                            upsertTransaction[F, NftTxEntity](
+                              query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                            )
                             upsertTransaction[F, NftFile](genUpsertNftFileQuery(nft, metaInfo))
                             EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
                         }
@@ -397,7 +332,7 @@ object LmscanBatchMain extends IOApp:
                       }  
                       case nft: TransferNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(NftTxEntity.from(nft)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
                         updateTransaction[F, NftFile](
                           query[NftFile].filter(n => n.tokenId == lift(nft.tokenId.utf8.value)).update(_.owner -> nft.output.utf8.value)
@@ -412,7 +347,7 @@ object LmscanBatchMain extends IOApp:
                           yield nftEntityInDb.map {
                             prevNftEntity => 
                               upsertTransaction[F, NftTxEntity](
-                                query[NftTxEntity].insertValue(NftTxEntity.from(nft, prevNftEntity.tokenId)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                                query[NftTxEntity].insertValue(NftTxEntity.from(nft, prevNftEntity.tokenId, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                               )
                               TxEntity.from(txHash, nft, prevNftEntity.tokenId, block, blockHash, txJson)
                           }
@@ -423,13 +358,13 @@ object LmscanBatchMain extends IOApp:
                       }
                       case nft: EntrustNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(NftTxEntity.from(nft)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
                         TxEntity.from(txHash, nft, block, blockHash, txJson)
                       }
                       case nft: DisposeEntrustedNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(NftTxEntity.from(nft)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
                         TxEntity.from(txHash, nft, block, blockHash, txJson)
                       }
@@ -544,8 +479,3 @@ object LmscanBatchMain extends IOApp:
         scribe.error(s"Error reading unsaved blocks: ${e.getMessage}")
         Seq.empty
   }
-
-  def getLastBlockRead(): IO[Option[Block]] =
-    IO.blocking {
-      ???
-    }
