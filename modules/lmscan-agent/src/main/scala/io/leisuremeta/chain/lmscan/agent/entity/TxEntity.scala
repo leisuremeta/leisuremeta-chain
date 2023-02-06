@@ -313,3 +313,93 @@ object TxEntity:
       outputVals = None,
       json = txJson,
     )
+
+  def from(txHash: String, tx: MintFungibleToken, block: Block, blockHash: String, txJson: String): TxEntity =
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = None,
+      toAddr = None,
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = None,
+      outputVals = None,
+      json = txJson,
+    )
+
+  def from(txHash: String, tx: BurnFungibleToken, block: Block, blockHash: String, txJson: String, account: String): TxEntity =
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = None,
+      toAddr = Some(Seq(account)),
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
+      outputVals = Some(Seq(account + "/" + tx.amount.toBigInt.toString())),
+      json = txJson,
+    )
+
+  def from(txHash: String, tx: TransferFungibleToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
+    val toAccounts = tx.outputs.keySet.map(_.utf8.value).toSeq
+    val outputVals: Seq[String] = tx.outputs.toList.map { case (account, amount) =>
+      account.utf8.value + "/" + amount.toBigInt.toString()
+    }
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = Some(fromAccount),
+      toAddr = Some(toAccounts),
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
+      outputVals = Some(outputVals),
+      json = txJson,
+    )
+
+  def from(txHash: String, tx: EntrustFungibleToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = Some(fromAccount),
+      toAddr = Some(Seq(tx.to.utf8.value)),
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
+      outputVals = Some(Seq(tx.to.utf8.value + "/" + tx.amount.toBigInt.toString())),
+      json = txJson,
+    )
+  
+
+  def from(txHash: String, tx: DisposeEntrustedFungibleToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
+
+    val toAccounts = tx.outputs.keySet.map(_.utf8.value).toSeq
+    val outputVals: Seq[String] = tx.outputs.toList.map { case (account, amount) =>
+      account.utf8.value + "/" + amount.toBigInt.toString()
+    }
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = Some(fromAccount),
+      toAddr = Some(toAccounts),
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
+      outputVals = Some(outputVals),
+      json = txJson,
+    )

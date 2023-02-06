@@ -6,7 +6,7 @@ import java.time.Instant
 
 final case class AccountEntity(
     address: String,
-    balance: Double,
+    balance: Long,
     amount: Double,
     eventTime: Long,
     createdAt: Long,
