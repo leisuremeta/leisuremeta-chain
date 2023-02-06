@@ -17,7 +17,7 @@ import io.circe.refined.*
 import io.circe.syntax.*
 
 import scala.concurrent.duration.*
-import cats.effect.kernel.Async
+import cats.effect.{Async, Concurrent}
 import cats.Monad
 import cats.syntax.bifunctor.*
 import cats.syntax.functor.*
@@ -145,7 +145,7 @@ object LmscanBatchMain extends IOApp:
       }
     }
 
-  def genUpsertNftFileQuery(nft: MintNFT, metaInfo: NftMetaInfo): Insert[NftFile] =
+  inline def genUpsertNftFileQuery(nft: MintNFT, metaInfo: NftMetaInfo): Insert[NftFile] =
     quote {
       query[NftFile]
         .insertValue(lift(NftFile(
@@ -170,20 +170,20 @@ object LmscanBatchMain extends IOApp:
       .insertValue(tx)
       .onConflictUpdate(_.address)((t, e) => t.address -> e.address)
   
-  def genBlockStateEntityInsertQuery(eventTime: Long, json: String): Insert[BlockStateEntity] =
+  inline def genBlockStateEntityInsertQuery(eventTime: Long, json: String): Insert[BlockStateEntity] =
     query[BlockStateEntity].insert(
-      _.eventTime -> eventTime,
-      _.json -> json,
-      _.isBuild -> false
+      _.eventTime -> lift(eventTime),
+      _.json -> lift(json),
+      _.isBuild -> lift(false)
     )
 
-  def genTxStateEntityInsertQuery(eventTime: Long, blockHash: String, json: String): Insert[TxStateEntity] =
+  inline def genTxStateEntityInsertQuery(eventTime: Long, blockHash: String, json: String): Insert[TxStateEntity] =
     query[TxStateEntity].insertValue(TxStateEntity (
       id = 0L, // generated id
-      eventTime = eventTime,
-      blockHash = blockHash,
-      json = json,
-      isBuild = false
+      eventTime = lift(eventTime),
+      blockHash = lift(blockHash),
+      json = lift(json),
+      isBuild = lift(false)
     ))
   
   
@@ -204,7 +204,7 @@ object LmscanBatchMain extends IOApp:
 
   def getBlock[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(blockHash: Block.BlockHash): EitherT[F, String, (Block, String)] =
+  )(blockHash: Block.BlockHash): EitherT[F, String, Option[(Block, String)]] =
     getWithJson[F, Block](backend) {
       uri"$baseUri/block/${blockHash.toUInt256Bytes.toBytes.toHex}"
     }.leftMap { msg =>
@@ -223,95 +223,101 @@ object LmscanBatchMain extends IOApp:
   
   def checkLoop[F[_]: Async](
     backend: SttpBackend[F, Any],
-  ): IO[Unit] = 
+  ): EitherT[F, String, Unit] = 
      // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
-    def bestBlock[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, (Block, String)] = 
-      for status <- getStatus[F](backend)
-      block <- getBlock[F](backend)(status.bestHash)
+    def bestBlock[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Option[(Block, String)]] = 
+      for 
+        status <- getStatus[F](backend)
+        block <- getBlock[F](backend)(status.bestHash)
       yield block
 
     
     def getLastSavedBlock[F[_]: Async]: EitherT[F, String, /*prevLastSavedBlock:*/ Option[BlockSavedLog]] = 
        BlockService.getLastSavedBlock[F]
 
-    // loop from bestBlock to lastSavedBlock's next block 
+    //loop from bestBlock to lastSavedBlock's next block 
     def saveDiffStateLoop[F[_]: Async](backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String)
     : EitherT[F, String, /* lastSavedBlock:*/ Option[Block]] = 
-      def isContinue(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): Boolean =
-        val result = for 
-          currBlock <- currBlockOpt
-          (block, json) = currBlock
-        yield block.toHash.toUInt256Bytes.toBytes.toHex != lastSavedBlockHash
-        result.getOrElse(false)
+      def isContinue(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, (Block, String)] =
+        currBlockOpt match
+          case Some((block, json)) if block.toHash.toUInt256Bytes.toBytes.toHex != lastSavedBlockHash => EitherT.pure((block, json))
+          case _ => EitherT.leftT(s"error ..")
+      def loop1(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
+        for
+          result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
+          (block, blockJson) = result1
+          // _ <- upsertTransaction[F, BlockStateEntity](genBlockStateEntityInsertQuery(block.header.timestamp.getEpochSecond(), blockJson))
+          _ <- upsertTransaction[F, BlockStateEntity](query[BlockStateEntity].insert(
+              _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
+              _.json -> lift(blockJson),
+              _.isBuild -> lift(false)
+            ))
+          
 
-      def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): Option[(Block, String)] =
-        if isContinue(currBlockOpt, lastSavedBlockHash) then
-          val s = for 
-            result <- currBlockOpt
-            (block, blockJson) = result
-            _ <- upsertTransaction[F, BlockStateEntity](genBlockStateEntityInsertQuery(block.header.timestamp.getEpochSecond(), blockJson))
-
-            txs <- block.transactionHashes.toList.traverse { 
-              (txHash: Hash.Value[Signed.Tx]) =>
-                for
-                  result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
-                  (txResult, txJson) = result
-                  
-                  _ <- upsertTransaction[F, TxStateEntity](genTxStateEntityInsertQuery(txResult.signedTx.value.createdAt.getEpochSecond(), block.toHash.toUInt256Bytes.toBytes.toHex, txJson))
-                yield ()
-              }
-            nextBlock <- getBlock[F](backend)(block.header.parentHash)
-          // block.header.parentHash.toUInt256Bytes.toHex
-          yield nextBlock
-          loop(backend)(s, lastSavedBlockHash)
-        else 
-          None
+          txs <- block.transactionHashes.toList.traverse { 
+            (txHash: Hash.Value[Signed.Tx]) =>
+              for
+                result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
+                _ = result.map { 
+                  case (txResult, txJson) => 
+                    upsertTransaction[F, TxStateEntity](genTxStateEntityInsertQuery(txResult.signedTx.value.createdAt.getEpochSecond(), block.toHash.toUInt256Bytes.toBytes.toHex, txJson))
+                }
+              yield ()
+            }
+        // block.header.parentHash.toUInt256Bytes.toHex
+          nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
+          result2 <- loop1(backend)(nextBlockOpt, lastSavedBlockHash)
+        yield result2
         
-      loop(currBlockOpt, lastSavedBlockHash)
+      loop1(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}
 
-      // EitherT.cond (
-      //   isContinue(currBlockOpt, lastSavedBlockHash),
+      // def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): Option[(Block, String)] =
+      //   if isContinue(currBlockOpt, lastSavedBlockHash) then
+      //     val s = for 
+      //       result <- EitherT.fromOption(currBlockOpt, s"There is no current block: ${currBlockOpt}")
+      //       (block, blockJson) = result
+      //       _ <- upsertTransaction[F, BlockStateEntity](genBlockStateEntityInsertQuery(block.header.timestamp.getEpochSecond(), blockJson))
 
-      //   for 
-      //     result <- currBlockOpt
-      //     (block, blockJson) = result
-      //     _ <- upsertTransaction[F, BlockStateEntity](genBlockStateEntityInsertQuery(block.header.timestamp.getEpochSecond(), blockJson))
+      //       txs <- block.transactionHashes.toList.traverse { 
+      //         (txHash: Hash.Value[Signed.Tx]) =>
+      //           for
+      //             result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
+      //             (txResult, txJson) = result
+                  
+      //             _ <- upsertTransaction[F, TxStateEntity](genTxStateEntityInsertQuery(txResult.signedTx.value.createdAt.getEpochSecond(), block.toHash.toUInt256Bytes.toBytes.toHex, txJson))
+      //           yield ()
+      //         }
+      //       nextBlock <- getBlock[F](backend)(block.header.parentHash)
+      //     // block.header.parentHash.toUInt256Bytes.toHex
+      //     yield nextBlock
+      //     loop(backend)(s, lastSavedBlockHash)
+      //   else 
+      //     None
+        
 
-      //     txs <- block.transactionHashes.toList.traverse { 
-      //       (txHash: Hash.Value[Signed.Tx]) =>
-      //         for
-      //           result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
-      //           (txResult, txJson) = result
-                
-      //           _ <- upsertTransaction[F, TxStateEntity](genTxStateEntityInsertQuery(txResult.signedTx.value.createdAt.getEpochSecond(), block.toHash.toUInt256Bytes.toBytes.toHex, txJson))
-      //         yield ()
-      //       }
-      //     nextBlock <- getBlock[F](backend)(block.header.parentHash)
-      //   // block.header.parentHash.toUInt256Bytes.toHex
-      //   yield saveDiffStateLoop(backend)(Some(nextBlock), lastSavedBlockHash),
 
-      //   "error occured"
-      // )
       
     def isEqual(prevLastSavedBlockHash: String, parentHashOfCurrLastSavedBlock: String): IO[Boolean] = 
       IO.blocking { prevLastSavedBlockHash == parentHashOfCurrLastSavedBlock }
     
     // isEqual  match
     //   case true =>
-    def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ (Block, String)] = 
+    def buildSavedStateLoop[F[_]: Async/*: cats.Applicative*/](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Block] = 
       for 
         blockStates <- StateService.getBlockStatesByNotBuildedOrderByEventTimeAsc[F]
-        _ <- blockStates.map(b => decode[Block](b.json)).traverse { blockEither => 
+        blockWithJsonEither = blockStates.map(b => decode[Block](b.json))
+        _ <-  blockWithJsonEither.traverse[EitherT[F, String, *], Unit] { blockEither => 
           for 
-            block: Block <- blockEither
+            block: Block <- EitherT.fromEither[F](blockEither).leftMap{ e => e.getMessage() }
             blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
             txStates <- StateService.getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F](blockHash)
-            txWithResults <- txStates.traverse { txState => decode[TransactionWithResult](txState.json) }
-            _ <- (txWithResults zip txStates.map(_.json)).traverse {
+            txWithResults <- txStates.traverse { txState => EitherT.fromEither[F](decode[TransactionWithResult](txState.json)).leftMap{ e => e.getMessage() } }
+            _ <- (txWithResults zip txStates.map(_.json)).traverse[EitherT[F, String, *], Unit] {
               case (txResult, txJson) =>
                 val txHash = txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex
-                for
-                  _ <- txResult.signedTx match 
+                val fromAccount = txResult.signedTx.sig.account.utf8.value
+                val result: EitherT[F, String, Option[TxEntity]] =  for 
+                  txEntityOpt: Option[TxEntity] <- txResult.signedTx.value match 
                     case tokenTx: Transaction.TokenTx => tokenTx match 
                       case nft: MintNFT => {
                         val url = Uri.unsafeParse(nft.dataUrl.value)
@@ -319,31 +325,49 @@ object LmscanBatchMain extends IOApp:
                           // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
                           case metaInfo: NftMetaInfo =>
                             upsertTransaction[F, NftTxEntity](
-                              query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                              query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                             )
-                            upsertTransaction[F, NftFile](genUpsertNftFileQuery(nft, metaInfo))
+                            upsertTransaction[F, NftFile](quote {
+                              query[NftFile]
+                                .insertValue(lift(NftFile(
+                                  nft.tokenId.utf8.value,
+                                  nft.tokenDefinitionId.utf8.value,
+                                  metaInfo.Collection_name,
+                                  metaInfo.NFT_name,
+                                  metaInfo.NFT_URI,
+                                  metaInfo.Creator_description,
+                                  nft.dataUrl.value,
+                                  metaInfo.Rarity,
+                                  metaInfo.Creator,
+                                  nft.createdAt.getEpochSecond(),
+                                  Instant.now().getEpochSecond(),
+                                  nft.output.utf8.value
+                                )))
+                                .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
+                            })
                             EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
                         }
                         txEntity.recover{(msg: String) => scribe.info(s"get error"); None}
                       }  
                       case nft: TransferNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
                         updateTransaction[F, NftFile](
-                          query[NftFile].filter(n => n.tokenId == lift(nft.tokenId.utf8.value)).update(_.owner -> nft.output.utf8.value)
+                          query[NftFile].filter(n => n.tokenId == lift(nft.tokenId.utf8.value)).update(_.owner -> lift(nft.output.utf8.value))
                         )
-                        TxEntity.from(txHash, nft, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
                       }
                       case nft: BurnNFT => {
                         val txHash = nft.input.toUInt256Bytes.toHex
-                        val newTxEntity = for 
+                        val newTxEntity: EitherT[F, String, Option[TxEntity]] = 
+                          for 
                             // TODO: burnNft 트랜잭션에서는 tokenId가 없어서 이전 트랜잭션 데이터들에서 tokenId 값을 가져와야 하는데 조회에 사용할 필드가 없음.
                             nftEntityInDb <- NftService.getByTxHash[F](txHash)
                           yield nftEntityInDb.map {
                             prevNftEntity => 
                               upsertTransaction[F, NftTxEntity](
-                                query[NftTxEntity].insertValue(NftTxEntity.from(nft, prevNftEntity.tokenId, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                                query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, prevNftEntity.tokenId, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                               )
                               TxEntity.from(txHash, nft, prevNftEntity.tokenId, block, blockHash, txJson)
                           }
@@ -354,69 +378,127 @@ object LmscanBatchMain extends IOApp:
                       }
                       case nft: EntrustNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
-                        TxEntity.from(txHash, nft, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
                       }
                       case nft: DisposeEntrustedNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(NftTxEntity.from(nft, txHash)).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
-                        TxEntity.from(txHash, nft, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                      }
+                      
+                      case tx: MintFungibleToken => {
+                        tx.outputs.toList.traverse { case (account, amount) =>
+                          updateTransaction[F, AccountEntity](
+                            query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                          )
+                        }
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                      }
+                      case tx: TransferFungibleToken => {
+                        var sum = 0l;
+                        tx.outputs.toList.traverse { case (account, amount) =>
+                          sum = sum + amount.toBigInt.longValue
+                          updateTransaction[F, AccountEntity](
+                            query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                          )
+                        }
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
+                        )
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
+                      }
+                      case tx: EntrustFungibleToken => {
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(tx.to.utf8.value)).update(a => a.balance -> (a.balance + lift(tx.amount.toBigInt.longValue)))
+                        )
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(tx.amount.toBigInt.longValue)))
+                        )
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson,  fromAccount)))
+                      }
+                      case tx: DisposeEntrustedFungibleToken => {
+                        var sum = 0l;
+                        tx.outputs.toList.traverse { case (account, amount) =>
+                          sum = sum + amount.toBigInt.longValue
+                          updateTransaction[F, AccountEntity](
+                            query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                          )
+                        }
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
+                        )
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
+                      }
+                      case tx: BurnFungibleToken => {
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(tx.amount.toBigInt.longValue)))
+                        )
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                     case accountTx: Transaction.AccountTx => accountTx match
                       case tx: CreateAccount => {
                         upsertTransaction[F, AccountEntity](
-                          query[AccountEntity].insertValue(AccountEntity.from(tx)).onConflictUpdate(_.address)((t, e) => t.address -> e.address)
+                          query[AccountEntity].insertValue(lift(AccountEntity.from(tx))).onConflictUpdate(_.address)((t, e) => t.address -> e.address)
                         )
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: UpdateAccount => {
                         // updateTransaction[F, AccountEntity](genUpdateAccountQuery(AccountEntity.from(tx)))
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: AddPublicKeySummaries => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                     case groupTx: Transaction.GroupTx => groupTx match
                       case tx: CreateGroup => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: AddAccounts => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                     case rewardTx: Transaction.RewardTx => rewardTx match
                       case tx: RegisterDao => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: UpdateDao => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: RecordActivity => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: BuildSnapshot => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: ExecuteAccountReward => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: ExecuteTokenReward => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: ExecuteOwnershipReward => {
-                        TxEntity.from(txHash, tx, block, blockHash, txJson)
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
-                yield ()
-            }
+
+                  s = txEntityOpt match  
+                    case Some(value) => upsertTransaction[F, TxEntity](query[TxEntity].insertValue(value))
+                    case None => None
+
+                yield txEntityOpt
+                result.map(_=>())
+            } 
           yield ()
-        }        
-      yield ()
+        }
+        blockWithJson <- blockWithJsonEither.traverse{ EitherT.fromEither(_) }.leftMap(e => e.getMessage())
+      yield blockWithJson.last
 
     // isEqual  match
     //   case true =>
       //     .insert(_.id -> 1, _.sku -> 10)
-    def saveLastSavedBlockLog[F[_]: Async](blockJson: (Block, String)): IO[Unit] =
+    def saveLastSavedBlockLog[F[_]: Async](blockJson: (Block, String)): EitherT[F, String, Long] =
       val (block, json) = blockJson
       upsertTransaction[F, BlockSavedLog](
         query[BlockSavedLog]
@@ -428,37 +510,44 @@ object LmscanBatchMain extends IOApp:
             _.createdAt -> java.time.Instant.now().getEpochSecond(),
           )
         )
-      IO.unit
+      
 
     //   case false =>
     // def rollbackSavedDiffStates(): IO[Unit] = ???
 
-    def loop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] = for 
-      _ <- IO.delay(scribe.info(s"Checking for newly created blocks"))
-      status <- getStatus[F](backend)
-      block <- getBlock[F](backend)(status.bestHash)
-      // TODO: read sequentially saved last block
-      prevLastBlockHash: String <- getLastSavedBlock[F].flatMap {
-        case Some(lastBlock) => EitherT.pure(lastBlock.hash)
-        case None => EitherT.pure(status.genesisHash)
-      }
+    def loop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
+      for 
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"Checking for newly created blocks")))
+        status <- getStatus[F](backend)
+        _ <- getBlock[F](backend)(status.bestHash).map { value =>
+          for 
+            // TODO: read sequentially saved last block
+            prevLastBlockHash: String <- getLastSavedBlock[F].map {
+              case Some(lastBlock) => lastBlock.hash
+              case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
+            }
 
-      lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(Some(block), prevLastBlockHash)
+            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(value, prevLastBlockHash)
 
-      currLastSavedBlock <- buildSavedStateLoop[F](backend)
+            currLastSavedBlock <- buildSavedStateLoop[F](backend)
 
-      _ <- saveLastSavedBlockLog[F](currLastSavedBlock)
-      _ <- IO.delay(scribe.info(s"New block checking finished."))
+            _ <- saveLastSavedBlockLog[F]((currLastSavedBlock, currLastSavedBlock.asJson.spaces2))
+            
+            _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
+            _ <- EitherT.right(Async[F].sleep(10000.millis))
+          yield ()
+        }
+        
+        _ <- loop[F](backend)
+      yield ()
 
-      _ <- IO.sleep(10000.millis)
-      _ <- loop[F](backend)
-    yield ()
+    loop(backend)
 
 
   
   def getWithJson[F[_]: Async, A: io.circe.Decoder](
       backend: SttpBackend[F, Any],
-  )(uri: Uri): EitherT[F, String, (A, String)] =
+  )(uri: Uri): EitherT[F, String, Option[(A, String)]] =
     EitherT {
       basicRequest
         .get(uri)
@@ -467,7 +556,7 @@ object LmscanBatchMain extends IOApp:
           for
             body <- response.body
             a <- decode[A](body).leftMap(_.getMessage())  
-          yield (a, body)
+          yield Some(a, body)
         }
     }
 
@@ -475,7 +564,7 @@ object LmscanBatchMain extends IOApp:
 
   def getTransaciton[F[_]: Async](
       backend: SttpBackend[F, Any],
-  )(txHash: String): EitherT[F, String, (TransactionWithResult, String)] =
+  )(txHash: String): EitherT[F, String, Option[(TransactionWithResult, String)]] =
     getWithJson[F, TransactionWithResult](backend) {
       uri"$baseUri/tx/${txHash}"
     }.leftMap { msg =>
@@ -505,10 +594,9 @@ object LmscanBatchMain extends IOApp:
     ArmeriaCatsBackend
       .resource[IO](SttpBackendOptions.Default)
       .use { backend =>
-        for
-          checkLoop(backend)
-        
+        val program = for
+          _ <- checkLoop(backend)
         yield ()
-
+        program.value
     }
     .as(ExitCode.Success)
