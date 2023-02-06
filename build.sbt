@@ -1,3 +1,4 @@
+import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
   val Scala      = "3.2.1"
   val ScalaGroup = "3.2"
@@ -178,17 +179,10 @@ val Dependencies = new {
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
       "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
       "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
-<<<<<<< HEAD
       "com.softwaremill.sttp.tapir"   %% "tapir-core"           % V.tapir,
       "io.circe"                      %% "circe-generic"        % V.circe,
       "io.circe"                      %% "circe-parser"         % V.circe,
       "io.circe"                      %% "circe-refined"        % V.circe,
-=======
-      "com.softwaremill.sttp.tapir"  %%% "tapir-core"           % V.tapir,
-      "io.circe"                     %%% "circe-generic"        % V.circe,
-      "io.circe"                     %%% "circe-parser"         % V.circe,
-      "io.circe"                     %%% "circe-refined"        % V.circe,
->>>>>>> d7596a5 (update build.sbt / .gitignore)
       "com.outr"                      %% "scribe-slf4j"         % V.scribe,
       "com.outr"                      %% "scribe-cats"          % V.scribe,
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
@@ -197,6 +191,16 @@ val Dependencies = new {
       "io.getquill"             %% "quill-jasync-postgres" % V.quill,
       "org.postgresql"           % "postgresql"            % V.postgres,
       "com.opentable.components" % "otj-pg-embedded"       % V.pgEmbedded,
+    ),
+  )
+
+  lazy val lmscanAgent = Seq(
+    libraryDependencies ++= Seq(
+      "com.outr"    %% "scribe-slf4j" % V.scribe,
+      "com.typesafe" % "config"       % V.typesafeConfig,
+      "org.web3j"    % "core"         % V.web3J,
+      "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
+      "org.typelevel" %% "cats-effect" % V.catsEffect,
     ),
   )
 }
@@ -220,6 +224,7 @@ lazy val root = (project in file("."))
     lmscanCommon.js,
     lmscanFrontend,
     lmscanBackend,
+    lmscanAgent,
   )
 
 lazy val node = (project in file("modules/node"))
@@ -398,3 +403,18 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
     flywayLocations ++= Settings.flywaySettings.locations,
   )
   .dependsOn(lmscanCommon.jvm)
+
+lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
+  .settings(Dependencies.lmscanAgent)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-lmscan-agent",
+    assemblyMergeStrategy := {
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
+  )
