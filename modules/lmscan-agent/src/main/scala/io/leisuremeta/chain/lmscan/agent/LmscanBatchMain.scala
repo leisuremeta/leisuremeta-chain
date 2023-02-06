@@ -27,12 +27,10 @@ import java.nio.file.Paths
 import scala.util.Try
 import java.nio.file.Files
 import scala.jdk.CollectionConverters.*
-// import io.leisuremeta.chain.lmscan.agent.service.TxService
 import cats.syntax.traverse.toTraverseOps
 import io.leisuremeta.chain.lmscan.agent.service.{BlockService, NftService, StateService}
 import java.sql.Timestamp
 import java.time.Instant
-// import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
 import io.leisuremeta.chain.lmscan.agent.entity.NftFile
 
 
@@ -46,11 +44,13 @@ import cats.implicits.*
 import java.sql.SQLException
 
 import io.getquill.Insert
-import io.leisuremeta.chain.api.model.Block
 
 // import api.model.*
 // import api.model.Block
+import io.leisuremeta.chain.api.model.Block
+import io.leisuremeta.chain.api.model.Signed
 import io.leisuremeta.chain.api.model.Signed.Tx
+import io.leisuremeta.chain.api.model.Transaction
 import io.leisuremeta.chain.api.model.Transaction.*
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
 import io.leisuremeta.chain.api.model.Transaction.AccountTx.*
@@ -70,8 +70,6 @@ import api.model.Block.ops.*
 import api.model.TransactionWithResult.ops.*
 
 import io.leisuremeta.chain.lib.crypto.Hash
-import io.leisuremeta.chain.api.model.Transaction
-import io.leisuremeta.chain.api.model.Signed
 
 
 
@@ -173,12 +171,11 @@ object LmscanBatchMain extends IOApp:
       .onConflictUpdate(_.address)((t, e) => t.address -> e.address)
   
   def genBlockStateEntityInsertQuery(eventTime: Long, json: String): Insert[BlockStateEntity] =
-    query[BlockStateEntity].insertValue(BlockStateEntity (
-      id = 0L, // generated id
-      eventTime = eventTime,
-      json = json,
-      isBuild = false
-    ))
+    query[BlockStateEntity].insert(
+      _.eventTime -> eventTime,
+      _.json -> json,
+      _.isBuild -> false
+    )
 
   def genTxStateEntityInsertQuery(eventTime: Long, blockHash: String, json: String): Insert[TxStateEntity] =
     query[TxStateEntity].insertValue(TxStateEntity (
@@ -226,33 +223,20 @@ object LmscanBatchMain extends IOApp:
   
   def checkLoop[F[_]: Async](
     backend: SttpBackend[F, Any],
-    config: BatchConfig,
   ): IO[Unit] = 
-
-    def loop: IO[Unit] = for
-      status <- getStatus[F](backend)
-      block  <- getBlock[F](backend)(status.bestHash)
-      // TODO: read sequentially saved last block
-      lastBlockHash <- BlockService.getLastSavedBlock[IO].flatMap {
-        case Some(lastBlock) => EitherT.pure(lastBlock.hash)
-        case None => EitherT.pure(status.genesisHash)
-      }
-      _ <- IO.sleep(10000.millis)
-      _ <- loop
-    yield ()
-
-    // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
+     // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
     def bestBlock[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, (Block, String)] = 
       for status <- getStatus[F](backend)
       block <- getBlock[F](backend)(status.bestHash)
       yield block
 
     
-    def lastSavedBlock[F[_]: Async]: EitherT[F, String, /*prevLastSavedBlock:*/ Option[BlockSavedLog]] = 
+    def getLastSavedBlock[F[_]: Async]: EitherT[F, String, /*prevLastSavedBlock:*/ Option[BlockSavedLog]] = 
        BlockService.getLastSavedBlock[F]
 
     // loop from bestBlock to lastSavedBlock's next block 
-    def saveDiffStateLoop[F[_]: Async](backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, /* lastSavedBlock:*/ Option[Block]] = 
+    def saveDiffStateLoop[F[_]: Async](backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String)
+    : EitherT[F, String, /* lastSavedBlock:*/ Option[Block]] = 
       def isContinue(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): Boolean =
         val result = for 
           currBlock <- currBlockOpt
@@ -314,7 +298,7 @@ object LmscanBatchMain extends IOApp:
     
     // isEqual  match
     //   case true =>
-    def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Unit] = 
+    def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ (Block, String)] = 
       for 
         blockStates <- StateService.getBlockStatesByNotBuildedOrderByEventTimeAsc[F]
         _ <- blockStates.map(b => decode[Block](b.json)).traverse { blockEither => 
@@ -322,7 +306,7 @@ object LmscanBatchMain extends IOApp:
             block: Block <- blockEither
             blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
             txStates <- StateService.getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F](blockHash)
-            txWithResults <- txStates.traverse { txState => decode[TransactionWithResult](txState.json)}
+            txWithResults <- txStates.traverse { txState => decode[TransactionWithResult](txState.json) }
             _ <- (txWithResults zip txStates.map(_.json)).traverse {
               case (txResult, txJson) =>
                 val txHash = txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex
@@ -432,20 +416,43 @@ object LmscanBatchMain extends IOApp:
     // isEqual  match
     //   case true =>
       //     .insert(_.id -> 1, _.sku -> 10)
-    def saveLastSavedBlockLog[F[_]: Async](blockJson: (Block, String)) = EitherT[F, String, BlockStateEntity] = 
-      (json, block) = blockJson
+    def saveLastSavedBlockLog[F[_]: Async](blockJson: (Block, String)): IO[Unit] =
+      val (block, json) = blockJson
       upsertTransaction[F, BlockSavedLog](
-          query[BlockSavedLog]
-            .insert(
-              _.eventTime -> block.header.timestamp.getEpochSecond(),
-              _.hash -> block.toHash,
-              _.eventTime -> block.header.timestamp.getEpochSecond(),
-              _.createdAt -> java.time.Instant.now().getEpochSecond(),
-            )
+        query[BlockSavedLog]
+          .insert(
+            _.eventTime -> block.header.timestamp.getEpochSecond(),
+            _.hash -> block.toHash,
+            _.json -> json,
+            _.eventTime -> block.header.timestamp.getEpochSecond(),
+            _.createdAt -> java.time.Instant.now().getEpochSecond(),
           )
+        )
+      IO.unit
 
     //   case false =>
     // def rollbackSavedDiffStates(): IO[Unit] = ???
+
+    def loop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] = for 
+      _ <- IO.delay(scribe.info(s"Checking for newly created blocks"))
+      status <- getStatus[F](backend)
+      block <- getBlock[F](backend)(status.bestHash)
+      // TODO: read sequentially saved last block
+      prevLastBlockHash: String <- getLastSavedBlock[F].flatMap {
+        case Some(lastBlock) => EitherT.pure(lastBlock.hash)
+        case None => EitherT.pure(status.genesisHash)
+      }
+
+      lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(Some(block), prevLastBlockHash)
+
+      currLastSavedBlock <- buildSavedStateLoop[F](backend)
+
+      _ <- saveLastSavedBlockLog[F](currLastSavedBlock)
+      _ <- IO.delay(scribe.info(s"New block checking finished."))
+
+      _ <- IO.sleep(10000.millis)
+      _ <- loop[F](backend)
+    yield ()
 
 
   
@@ -499,7 +506,7 @@ object LmscanBatchMain extends IOApp:
       .resource[IO](SttpBackendOptions.Default)
       .use { backend =>
         for
-          
+          checkLoop(backend)
         
         yield ()
 
