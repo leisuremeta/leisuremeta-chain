@@ -32,7 +32,7 @@ import cats.syntax.traverse.toTraverseOps
 import io.leisuremeta.chain.lmscan.agent.service.{BlockService, NftService, StateService}
 import java.sql.Timestamp
 import java.time.Instant
-import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
+// import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
 import io.leisuremeta.chain.lmscan.agent.entity.NftFile
 
 
