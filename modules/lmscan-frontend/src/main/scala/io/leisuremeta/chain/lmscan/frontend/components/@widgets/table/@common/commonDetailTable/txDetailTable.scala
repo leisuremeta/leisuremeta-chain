@@ -3,6 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
+import Dom.*
 
 object TxDetailTable:
   val view = (model: Model) =>
@@ -22,14 +23,18 @@ object TxDetailTable:
     div(`class` := "row")(
       div(`class` := "cell type-detail-body")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
-        data,
+        span(
+          onClick(NavMsg.TransactionDetail(data)),
+        )(data),
       ),
     )
   val genOutput = (data: Transfer, i: Any) =>
     div(`class` := "row")(
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
-        data.toAddress,
+        span(
+          onClick(NavMsg.AccountDetail(data.toAddress)),
+        )(data.toAddress),
       ),
       div(`class` := "cell type-detail-body")(
         data.value.toString(),
@@ -53,8 +58,12 @@ object TxDetailTable:
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Signer"),
-              div(`class` := "cell type-3 type-detail-body")(
-                data.signer,
+              div(
+                `class` := "cell type-3 type-detail-body",
+              )(
+                span(
+                  onClick(NavMsg.AccountDetail(data.signer)),
+                )(data.signer),
               ),
             ),
             div(`class` := "row")(
@@ -92,7 +101,10 @@ object TxDetailTable:
                 "To",
               ),
               div(`class` := "cell type-detail-body font-bold")(
-                "Value",
+                s"${data.tokenType == "NFT" match
+                    case true  => "Token ID"
+                    case false => "Value"
+                  }",
               ),
             )
               :: output(data.transferHist),

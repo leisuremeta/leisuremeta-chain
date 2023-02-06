@@ -12,6 +12,9 @@ object Dom:
 
   def isEqGet[A](a: A, b: A, c: Any) = if (a == b) then s"$c" else ""
 
+  def isEqGetElse[A](a: A, b: A, c: Any, d: Any) =
+    if (a == b) then s"$c" else s"$d"
+
   def yyyy_mm_dd_time(timestamp: Int) =
     new Date(timestamp)
       .toISOString()
