@@ -6,29 +6,96 @@ import tyrian.*
 
 import Log.log
 
+case class Page(
+    // 해시 자릿수에 따른 페이지 렌더링
+    accountDetail: Int = 40,
+    nftDetail: Int = 25,
+    transactionDetail: Int = 64,
+    blockDetail: Int = 64,
+    custom: Int = 1,
+)
+
 object SearchUpdate:
   def update(model: Model): InputMsg => (Model, Cmd[IO, Msg]) =
     case InputMsg.Get(s) =>
       (model.copy(searchValue = s), Cmd.None)
     case InputMsg.Patch =>
-      val updated =
-        model.copy(
-          searchValue = "",
-          curPage = model.searchValue match
-            case "1" => NavMsg.DashBoard
-            case "2" => NavMsg.Blocks
-            case "3" => NavMsg.Transactions
-            case _   => NavMsg.NoPage
-          ,
-          prevPage = model.searchValue match
-            case "1" => model.curPage
-            case "2" => model.curPage
-            case "3" => model.curPage
+      val hash = model.searchValue
+      val p    = Page()
+
+      model.searchValue.length() match
+
+        case p.accountDetail =>
+          (
+            model.copy(searchValue = "", curPage = NavMsg.AccountDetail(hash)),
+            OnAccountDetailMsg.getAcountDetail(hash),
+          )
+
+        case p.nftDetail =>
+          (
+            model.copy(searchValue = "", curPage = NavMsg.NftDetail(hash)),
+            OnNftDetailMsg.getNftDetail(hash),
+          )
+
+        case p.transactionDetail =>
+          (
+            model.copy(
+              searchValue = "",
+              curPage = NavMsg.TransactionDetail(hash),
+            ),
+            OnTxDetailMsg.getTxDetail(hash),
+          )
+
+        case p.custom =>
+          model.searchValue match
+            case "1" =>
+              (
+                model.copy(
+                  searchValue = "",
+                  curPage = NavMsg.DashBoard,
+                  prevPage = model.curPage,
+                ),
+                Cmd.None,
+              )
+            case "2" =>
+              (
+                model.copy(
+                  searchValue = "",
+                  curPage = NavMsg.Blocks,
+                  prevPage = model.curPage,
+                ),
+                Cmd.None,
+              )
+            case "3" =>
+              (
+                model.copy(
+                  searchValue = "",
+                  curPage = NavMsg.Transactions,
+                  prevPage = model.curPage,
+                ),
+                Cmd.None,
+              )
             case _ =>
-              model.curPage match
+              (
+                model.copy(
+                  searchValue = "",
+                  curPage = NavMsg.NoPage,
+                  prevPage = model.curPage match
+                    // noPage 일때는, 이전페이지를 변경하지 않는다.
+                    case NavMsg.NoPage => model.prevPage
+                    case _             => model.curPage,
+                ),
+                Cmd.None,
+              )
+        case _ =>
+          (
+            model.copy(
+              searchValue = "",
+              curPage = NavMsg.NoPage,
+              prevPage = model.curPage match
                 // noPage 일때는, 이전페이지를 변경하지 않는다.
                 case NavMsg.NoPage => model.prevPage
                 case _             => model.curPage,
-        )
-
-      (log(updated), Cmd.None)
+            ),
+            Cmd.None,
+          )

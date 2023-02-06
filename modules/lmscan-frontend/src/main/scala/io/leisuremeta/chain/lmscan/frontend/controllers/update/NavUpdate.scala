@@ -10,14 +10,14 @@ object NavUpdate:
     case NavMsg.DashBoard =>
       log(
         (
-          model.copy(curPage = NavMsg.DashBoard, prevPage = model.curPage),
+          model.copy(curPage = NavMsg.DashBoard),
           Cmd.None,
         ),
       )
     case NavMsg.Blocks =>
       log(
         (
-          model.copy(curPage = NavMsg.Blocks, prevPage = model.curPage),
+          model.copy(curPage = NavMsg.Blocks),
           Cmd.None,
         ),
       )
@@ -25,14 +25,14 @@ object NavUpdate:
       log(
         (
           model
-            .copy(curPage = NavMsg.BlockDetail(hash), prevPage = model.curPage),
+            .copy(curPage = NavMsg.BlockDetail(hash)),
           OnBlockDetailMsg.getBlockDetail(hash),
         ),
       )
     case NavMsg.Transactions =>
       log(
         (
-          model.copy(curPage = NavMsg.Transactions, prevPage = model.curPage),
+          model.copy(curPage = NavMsg.Transactions),
           Cmd.None,
         ),
       )
@@ -41,7 +41,6 @@ object NavUpdate:
         (
           model.copy(
             curPage = NavMsg.TransactionDetail(hash),
-            prevPage = model.prevPage,
           ),
           OnTxDetailMsg.getTxDetail(hash),
         ),
@@ -49,16 +48,16 @@ object NavUpdate:
     case NavMsg.NoPage =>
       log(
         (
-          model.copy(curPage = NavMsg.NoPage, prevPage = model.prevPage),
+          model.copy(curPage = NavMsg.NoPage),
           Cmd.None,
         ),
       )
     case NavMsg.AccountDetail(hash) =>
+      log("NavMsg.AccountDetail(hash)")
       log(
         (
           model.copy(
             curPage = NavMsg.AccountDetail(hash),
-            prevPage = model.prevPage,
           ),
           OnAccountDetailMsg.getAcountDetail(hash),
         ),
