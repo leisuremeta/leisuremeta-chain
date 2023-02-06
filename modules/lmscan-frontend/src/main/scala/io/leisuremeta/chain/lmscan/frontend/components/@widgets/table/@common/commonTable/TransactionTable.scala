@@ -113,7 +113,6 @@ object Row2:
             )
           case NavMsg.AccountDetail(_) =>
             div(`class` := "table-container")(
-              Row2.title(model),
               div(`class` := "table w-[100%]")(
                 Row2.head :: Row2.genBody(payload),
               ),

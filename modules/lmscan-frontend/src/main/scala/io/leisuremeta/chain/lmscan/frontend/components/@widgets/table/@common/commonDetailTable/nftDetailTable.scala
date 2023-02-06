@@ -38,7 +38,14 @@ object NftDetailTable:
                   div(`class` := "row")(
                     div(`class` := "cell type-detail-head")("Owner"),
                     div(`class` := "cell type-3 type-detail-body")(
-                      data.nftFile.owner,
+                      span(
+                        // onClick(NavMsg.AccountDetail(data.nftFile.owner)), TODO:: 실데이터 받을때 이거로 변경
+                        onClick(
+                          NavMsg.AccountDetail(
+                            "26A463A0ED56A4A97D673A47C254728409C7B002",
+                          ),
+                        ),
+                      )(data.nftFile.owner),
                     ),
                   ),
                 ),

@@ -15,10 +15,12 @@ object TxDetailTable:
   // TODO :: zip 말고 더 좋은 방법?
   val input = (data: List[String]) =>
     data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }
+
   val output = (data: List[Transfer]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput(output, i + 1) }
+  val output_NFT = (data: List[Transfer]) =>
+    data.zipWithIndex.map { case ((output), i) => genOutput_NFT(output, i + 1) }
 
-  // TODO :: add click event
   val genInput = (data: String, i: Any) =>
     div(`class` := "row")(
       div(`class` := "cell type-detail-body")(i.toString()),
@@ -28,6 +30,7 @@ object TxDetailTable:
         )(data),
       ),
     )
+
   val genOutput = (data: Transfer, i: Any) =>
     div(`class` := "row")(
       div(`class` := "cell type-detail-head")(i.toString()),
@@ -38,6 +41,21 @@ object TxDetailTable:
       ),
       div(`class` := "cell type-detail-body")(
         data.value.toString(),
+      ),
+    )
+  val genOutput_NFT = (data: Transfer, i: Any) =>
+    div(`class` := "row")(
+      div(`class` := "cell type-detail-head")(i.toString()),
+      div(`class` := "cell type-3 type-detail-body")(
+        span(
+          onClick(NavMsg.AccountDetail(data.toAddress)),
+        )(data.toAddress),
+      ),
+      div(`class` := "cell type-3 type-detail-body")(
+        span(
+          // onClick(NavMsg.NftDetail(data.value.toString())), // TODO :: 실데이터 받을때 이걸로 변경
+          onClick(NavMsg.NftDetail("2022122110000930000002558")),
+        )(data.value.toString()),
       ),
     )
 
@@ -107,7 +125,11 @@ object TxDetailTable:
                   }",
               ),
             )
-              :: output(data.transferHist),
+              :: {
+                data.tokenType match
+                  case "NFT" => output_NFT(data.transferHist)
+                  case _     => output(data.transferHist)
+              },
           ),
         ),
       ),
