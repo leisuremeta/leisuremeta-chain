@@ -18,7 +18,7 @@ final case class NftTxEntity(
 )
 
 object NftTxEntity:
-  def from(nft: MintNFT, txHash: String) =
+  inline def from(nft: MintNFT, txHash: String) =
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
       txHash = txHash,
