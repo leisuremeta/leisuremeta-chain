@@ -6,38 +6,37 @@ import tyrian.*
 
 import Log.log
 
-case class Page(
-    // 해시 자릿수에 따른 페이지 렌더링
-    accountDetail: Int = 40,
-    nftDetail: Int = 25,
-    transactionDetail: Int = 64,
-    blockDetail: Int = 64,
-    custom: Int = 1,
-)
+object Page:
+  // 해시 자릿수에 따른 페이지 렌더링
+  val accountDetail: Int     = 40
+  val nftDetail: Int         = 25
+  val transactionDetail: Int = 64
+  val blockDetail: Int       = 64
+  val custom: Int            = 1
 
 object SearchUpdate:
   def update(model: Model): InputMsg => (Model, Cmd[IO, Msg]) =
     case InputMsg.Get(s) =>
       (model.copy(searchValue = s), Cmd.None)
+
     case InputMsg.Patch =>
       val hash = model.searchValue
-      val p    = Page()
 
       model.searchValue.length() match
 
-        case p.accountDetail =>
+        case Page.accountDetail =>
           (
             model.copy(searchValue = "", curPage = NavMsg.AccountDetail(hash)),
             OnAccountDetailMsg.getAcountDetail(hash),
           )
 
-        case p.nftDetail =>
+        case Page.nftDetail =>
           (
             model.copy(searchValue = "", curPage = NavMsg.NftDetail(hash)),
             OnNftDetailMsg.getNftDetail(hash),
           )
 
-        case p.transactionDetail =>
+        case Page.transactionDetail =>
           (
             model.copy(
               searchValue = "",
@@ -46,7 +45,7 @@ object SearchUpdate:
             OnTxDetailMsg.getTxDetail(hash),
           )
 
-        case p.custom =>
+        case Page.custom =>
           model.searchValue match
             case "1" =>
               (
