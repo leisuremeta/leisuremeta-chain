@@ -56,8 +56,11 @@ object NavUpdate:
     case NavMsg.AccountDetail(hash) =>
       log(
         (
-          model.copy(curPage = NavMsg.AccountDetail(hash), prevPage = model.prevPage),
-          onAccountDetailMsg.getAcountDetail(hash),
+          model.copy(
+            curPage = NavMsg.AccountDetail(hash),
+            prevPage = model.prevPage,
+          ),
+          OnAccountDetailMsg.getAcountDetail(hash),
         ),
       )
     case NavMsg.NftDetail(hash) =>

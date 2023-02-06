@@ -13,17 +13,20 @@ object UnderAccountDetailMsg:
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
       case Left(parsingError) =>
-        AccountDetailMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
+        AccountDetailMsg.GetError(
+          s"Invalid JSON object: ${parsingError.message}",
+        )
       case Right(json) => {
         AccountDetailMsg.Update(response.body)
       }
 
-  private val onError: HttpError => Msg = e => AccountDetailMsg.GetError(e.toString)
+  private val onError: HttpError => Msg = e =>
+    AccountDetailMsg.GetError(e.toString)
 
   def fromHttpResponse: Decoder[Msg] =
     Decoder[Msg](onResponse, onError)
 
-object onAccountDetailMsg:
+object OnAccountDetailMsg:
   def getAcountDetail(hash: String): Cmd[IO, Msg] =
     val url = s"http://localhost:8081/account/${hash}/detail"
     Http.send(Request.get(url), UnderAccountDetailMsg.fromHttpResponse)

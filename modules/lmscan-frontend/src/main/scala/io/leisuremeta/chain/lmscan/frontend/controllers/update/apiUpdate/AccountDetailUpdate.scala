@@ -9,7 +9,7 @@ import Log.log
 object AccountDetailUpdate:
   def update(model: Model): AccountDetailMsg => (Model, Cmd[IO, Msg]) =
     case AccountDetailMsg.Patch(hash) =>
-      onAccountDetailMsg.getAcountDetail(hash)
+      OnAccountDetailMsg.getAcountDetail(hash)
       (
         model,
         Cmd.None,

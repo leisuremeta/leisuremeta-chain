@@ -132,6 +132,12 @@ object Row2:
       .map(data => Row2.genTable(data.payload, model))
       .getOrElse(div())
 
+  val account_txtable = (model: Model) =>
+    AccountDetailParser
+      .decodeParser(model.accountDetailData.get)
+      .map(data => Row2.genTable(data.txHistory, model))
+      .getOrElse(div())
+
   val blockDetail_txtable = (model: Model) =>
     BlockDetailParser
       .decodeParser(model.blockDetailData.get)
@@ -143,6 +149,9 @@ object TransactionTable:
     model.curPage match
       case NavMsg.BlockDetail(_) =>
         Row2.blockDetail_txtable(model)
+
+      case NavMsg.AccountDetail(_) =>
+        Row2.account_txtable(model)
 
       case _ =>
         Row2.txList_txtable(model)
