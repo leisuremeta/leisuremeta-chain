@@ -22,7 +22,7 @@ object BoardView:
           div(
             `class` := "board-text y-center gap-10px",
           )(
-            div()(Board.LM_Price),
+            div(`class` := "font-16px color-grey")(Board.LM_Price),
             div()(Board.LM_Price_value),
           ),
         ),
@@ -30,7 +30,7 @@ object BoardView:
           div(
             `class` := "board-text y-center gap-10px",
           )(
-            div()(Board.Block_Number),
+            div(`class` := "font-16px color-grey")(Board.Block_Number),
             div()(Board.Block_Number_value),
           ),
         ),
@@ -40,7 +40,7 @@ object BoardView:
           div(
             `class` := "board-text y-center gap-10px",
           )(
-            div()(Board.Transactions),
+            div(`class` := "font-16px color-grey")(Board.Transactions),
             div()(Board.Transactions_value),
           ),
         ),
@@ -48,7 +48,7 @@ object BoardView:
           div(
             `class` := "board-text y-center gap-10px",
           )(
-            div()(Board.Accounts),
+            div(`class` := "font-16px color-grey")(Board.Accounts),
             div()(Board.Accounts_value),
           ),
         ),

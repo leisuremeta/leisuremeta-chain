@@ -130,6 +130,14 @@
 }
 
 /* font */
+.font-12px{
+    font-size: 12px !important;
+}
+
+.font-16px{
+    font-size: 16px !important;
+}
+
 .font-20px{
     font-size: 20px !important;
 }
@@ -140,6 +148,10 @@
 
 .font-bold{
     font-weight: 700;
+}
+
+.color-grey{
+    color: grey;
 }
 
 .hidden{
