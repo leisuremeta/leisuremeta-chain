@@ -165,9 +165,9 @@ object LmscanBatchMain extends IOApp:
         .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
     }
 
-  def genUpsertAccountQuery(tx: AccountEntity): Insert[AccountEntity] =
+  inline def genUpsertAccountQuery(tx: AccountEntity): Insert[AccountEntity] =
     query[AccountEntity]
-      .insertValue(tx)
+      .insertValue(lift(tx))
       .onConflictUpdate(_.address)((t, e) => t.address -> e.address)
   
   inline def genBlockStateEntityInsertQuery(eventTime: Long, json: String): Insert[BlockStateEntity] =
@@ -253,7 +253,6 @@ object LmscanBatchMain extends IOApp:
               _.isBuild -> lift(false)
             ))
           
-
           txs <- block.transactionHashes.toList.traverse { 
             (txHash: Hash.Value[Signed.Tx]) =>
               for
@@ -319,6 +318,9 @@ object LmscanBatchMain extends IOApp:
                 val result: EitherT[F, String, Option[TxEntity]] =  for 
                   txEntityOpt: Option[TxEntity] <- txResult.signedTx.value match 
                     case tokenTx: Transaction.TokenTx => tokenTx match 
+                      case nft: DefineToken => {
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                      }
                       case nft: MintNFT => {
                         val url = Uri.unsafeParse(nft.dataUrl.value)
                         val txEntity: EitherT[F, String, Option[TxEntity]] = get[F, NftMetaInfo](backend)(url).flatMap {
@@ -470,21 +472,39 @@ object LmscanBatchMain extends IOApp:
                       case tx: RecordActivity => {
                         EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
-                      case tx: BuildSnapshot => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                      case tx: OfferReward => {
+                        var sum = 0l;
+                        tx.outputs.toList.traverse { case (account, amount) =>
+                          sum = sum + amount.toBigInt.longValue
+                          updateTransaction[F, AccountEntity](
+                            query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                          )
+                        }
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
+                        )
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
-                      case tx: ExecuteAccountReward => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
-                      }
-                      case tx: ExecuteTokenReward => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
-                      }
-                      case tx: ExecuteOwnershipReward => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                      case tx: ExecuteReward => {
+                        txResult.result.getOrElse(EitherT.pure(None)) match {
+                          case rewardRes: ExecuteRewardResult => 
+                            var sum = 0l
+                            rewardRes.outputs.toList.traverse { case (account, amount) =>
+                              sum = sum + amount.toBigInt.longValue
+                              updateTransaction[F, AccountEntity](
+                                query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                              )
+                            }
+                            updateTransaction[F, AccountEntity](
+                              query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
+                            )
+                            EitherT.pure(Some(TxEntity.from(txHash, tx, rewardRes, block, blockHash, txJson, fromAccount)))
+                          case _ => EitherT.pure(None)
+                        }
                       }
 
                   s = txEntityOpt match  
-                    case Some(value) => upsertTransaction[F, TxEntity](query[TxEntity].insertValue(value))
+                    case Some(value) => upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)))
                     case None => None
 
                 yield txEntityOpt
@@ -503,11 +523,11 @@ object LmscanBatchMain extends IOApp:
       upsertTransaction[F, BlockSavedLog](
         query[BlockSavedLog]
           .insert(
-            _.eventTime -> block.header.timestamp.getEpochSecond(),
-            _.hash -> block.toHash,
-            _.json -> json,
-            _.eventTime -> block.header.timestamp.getEpochSecond(),
-            _.createdAt -> java.time.Instant.now().getEpochSecond(),
+            _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
+            _.hash -> lift(block.toHash.toUInt256Bytes.toBytes.toHex),
+            _.json -> lift(json),
+            _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
+            _.createdAt -> lift(java.time.Instant.now().getEpochSecond()),
           )
         )
       

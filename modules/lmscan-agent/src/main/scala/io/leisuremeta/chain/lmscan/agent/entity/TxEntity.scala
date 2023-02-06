@@ -27,6 +27,22 @@ final case class TxEntity(
 ) 
 
 object TxEntity:
+  def from(txHash: String, nft: DefineToken, block: Block, blockHash: String, txJson: String): TxEntity =
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = nft.definitionId.utf8.value,
+      fromAddr = None,
+      toAddr = None,
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = nft.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = None,
+      outputVals = None,
+      json = txJson,
+    )
+
   def from(txHash: String, nft: MintNFT, block: Block, blockHash: String, txJson: String): TxEntity =
     TxEntity(
       txHash,
@@ -249,71 +265,6 @@ object TxEntity:
       json = txJson,
     )
 
-    
-  def from(txHash: String, tx: BuildSnapshot, block: Block, blockHash: String, txJson: String): TxEntity =
-    TxEntity(
-      hash = txHash,
-      txType = "Reward",
-      tokenType = "LM",
-      fromAddr = None,
-      toAddr = None,
-      blockHash = blockHash,
-      blockNumber = block.header.number.toBigInt.longValue,
-      eventTime = tx.createdAt.getEpochSecond(),
-      createdAt = Instant.now().getEpochSecond,
-      inputHashs = None,
-      outputVals = None,
-      json = txJson,
-    )
-
-  def from(txHash: String, tx: ExecuteAccountReward, block: Block, blockHash: String, txJson: String): TxEntity =
-    TxEntity(
-      hash = txHash,
-      txType = "Reward",
-      tokenType = "LM",
-      fromAddr = None,
-      toAddr = None,
-      blockHash = blockHash,
-      blockNumber = block.header.number.toBigInt.longValue,
-      eventTime = tx.createdAt.getEpochSecond(),
-      createdAt = Instant.now().getEpochSecond,
-      inputHashs = None,
-      outputVals = None,
-      json = txJson,
-    )
-
-  def from(txHash: String, tx: ExecuteTokenReward, block: Block, blockHash: String, txJson: String): TxEntity =
-    TxEntity(
-      hash = txHash,
-      txType = "Reward",
-      tokenType = "LM",
-      fromAddr = None,
-      toAddr = None,
-      blockHash = blockHash,
-      blockNumber = block.header.number.toBigInt.longValue,
-      eventTime = tx.createdAt.getEpochSecond(),
-      createdAt = Instant.now().getEpochSecond,
-      inputHashs = None,
-      outputVals = None,
-      json = txJson,
-    )
-
-  def from(txHash: String, tx: ExecuteOwnershipReward, block: Block, blockHash: String, txJson: String): TxEntity =
-    TxEntity(
-      hash = txHash,
-      txType = "Reward",
-      tokenType = "LM",
-      fromAddr = None,
-      toAddr = None,
-      blockHash = blockHash,
-      blockNumber = block.header.number.toBigInt.longValue,
-      eventTime = tx.createdAt.getEpochSecond(),
-      createdAt = Instant.now().getEpochSecond,
-      inputHashs = None,
-      outputVals = None,
-      json = txJson,
-    )
-
   def from(txHash: String, tx: MintFungibleToken, block: Block, blockHash: String, txJson: String): TxEntity =
     TxEntity(
       hash = txHash,
@@ -381,9 +332,30 @@ object TxEntity:
       outputVals = Some(Seq(tx.to.utf8.value + "/" + tx.amount.toBigInt.toString())),
       json = txJson,
     )
-  
 
   def from(txHash: String, tx: DisposeEntrustedFungibleToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
+    val toAccounts = tx.outputs.keySet.map(_.utf8.value).toSeq
+    val outputVals: Seq[String] = tx.outputs.toList.map { case (account, amount) =>
+      account.utf8.value + "/" + amount.toBigInt.toString()
+    }
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = Some(fromAccount),
+      toAddr = Some(toAccounts),
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
+      outputVals = Some(outputVals),
+      json = txJson,
+    )
+
+  
+
+  def from(txHash: String, tx: OfferReward, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
 
     val toAccounts = tx.outputs.keySet.map(_.utf8.value).toSeq
     val outputVals: Seq[String] = tx.outputs.toList.map { case (account, amount) =>
@@ -400,6 +372,28 @@ object TxEntity:
       eventTime = tx.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond,
       inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
+      outputVals = Some(outputVals),
+      json = txJson,
+    )
+
+  
+  def from(txHash: String, tx: ExecuteReward, rewardRes: ExecuteRewardResult, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
+
+    val toAccounts = rewardRes.outputs.keySet.map(_.utf8.value).toSeq
+    val outputVals: Seq[String] = rewardRes.outputs.toList.map { case (account, amount) =>
+      account.utf8.value + "/" + amount.toBigInt.toString()
+    }
+    TxEntity(
+      hash = txHash,
+      txType = "Token",
+      tokenType = "LM",
+      fromAddr = Some(fromAccount),
+      toAddr = Some(toAccounts),
+      blockHash = blockHash,
+      blockNumber = block.header.number.toBigInt.longValue,
+      eventTime = tx.createdAt.getEpochSecond(),
+      createdAt = Instant.now().getEpochSecond,
+      inputHashs = None,
       outputVals = Some(outputVals),
       json = txJson,
     )
