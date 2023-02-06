@@ -29,6 +29,11 @@ object BlockService:
       hash: String,
   ): EitherT[F, String, Option[Block]] =
     BlockRepository.get(hash)
+  
+  def getByNumber[F[_]: Async](
+      number: Long,
+  ): EitherT[F, String, Option[Block]] =
+    BlockRepository.getByNumber(number)
 
   def getDetail[F[_]: Async](
       hash: String,

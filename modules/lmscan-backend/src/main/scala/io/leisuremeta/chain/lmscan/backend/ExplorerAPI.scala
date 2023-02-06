@@ -11,6 +11,7 @@ import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.model.AccountDetail
 import io.leisuremeta.chain.lmscan.backend.model.NftDetail
 import io.leisuremeta.chain.lmscan.backend.model.{TxDetail, TxInfo, BlockInfo, BlockDetail}
+import io.leisuremeta.chain.lmscan.backend.entity.Summary
 
 import io.circe.*
 
@@ -89,22 +90,27 @@ object ExploreApi:
     .out(jsonBody[Option[BlockDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getAccountDetail = baseEndpoint.get
+  val getAccountDetailEndPoint = baseEndpoint.get
     .in("account")
     .in(path[String]("accountAddr")) // account_address
     .in("detail")
     .out(jsonBody[Option[AccountDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getNftDetail = baseEndpoint.get
+  val getNftDetailEndPoint = baseEndpoint.get
     .in("nft")
     .in(path[String]("tokenId")) // token_id
     .in("detail")
     .out(jsonBody[Option[NftDetail]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getSummaryMainEndPoint = baseEndpoint.get
+    .in("summary")
+    .in("main")
+    .out(jsonBody[Option[Summary]])
+
   // @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  // val getSearchDetail = baseEndpoint.get
+  // val getSearchTargetType = baseEndpoint.get
   //   .in("search")
-  //   .in(path[String]("target")) // targetValue
-  //   .in("detail")
-  //   .out(jsonBody[Option[Object]])
+  //   .in(query[String]("target")) // targetValue
+  //   .out(jsonBody[Option[String]])
