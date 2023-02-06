@@ -10,6 +10,10 @@ import io.getquill.PostgresJAsyncContext
 import io.getquill.SnakeCase
 import io.getquill.*
 import io.getquill.Literal
+<<<<<<< HEAD
+=======
+
+>>>>>>> bd0e94c (gitignore locall)
 import cats.effect.{Async, IO}
 import scala.concurrent.Future
 
@@ -68,9 +72,15 @@ object TransactionRepository extends CommonQuery:
     optionQuery(detailQuery(lift(hash)))
 
   def getPageByAccount[F[_]: Async](
+<<<<<<< HEAD
       addr: String,
       pageNavInfo: PageNavigation,
   ): EitherT[F, String, PageResponse[Tx]] =
+=======
+      pageNavInfo: PageNavigation,
+      addr: String,
+  )(using ExecutionContext): EitherT[F, String, PageResponse[Tx]] =
+>>>>>>> bd0e94c (gitignore locall)
     val cntQuery = quote {
       query[Tx]
     }
@@ -100,6 +110,7 @@ object TransactionRepository extends CommonQuery:
       new PageResponse(totalCnt, totalPages, r)
     }
 
+<<<<<<< HEAD
   def getTxPageByBlock[F[_]: Async](
       blockHash: String,
       pageNavInfo: PageNavigation,
@@ -129,6 +140,8 @@ object TransactionRepository extends CommonQuery:
       val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
       new PageResponse(totalCnt, totalPages, r)
     }
+=======
+>>>>>>> bd0e94c (gitignore locall)
   // EitherT {
   //   Async[F].recover {
   //     for tx <- Async[F]
