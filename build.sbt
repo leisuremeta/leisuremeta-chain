@@ -34,8 +34,11 @@ val V = new {
   val pgEmbedded    = "1.0.1"
   val quill         = "4.5.0"
   val postgres      = "42.5.1"
+<<<<<<< HEAD
 
   val flywayCore = "9.11.0"
+=======
+>>>>>>> d7596a5 (update build.sbt / .gitignore)
 }
 
 val Dependencies = new {
@@ -175,10 +178,17 @@ val Dependencies = new {
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
       "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
       "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
+<<<<<<< HEAD
       "com.softwaremill.sttp.tapir"   %% "tapir-core"           % V.tapir,
       "io.circe"                      %% "circe-generic"        % V.circe,
       "io.circe"                      %% "circe-parser"         % V.circe,
       "io.circe"                      %% "circe-refined"        % V.circe,
+=======
+      "com.softwaremill.sttp.tapir"  %%% "tapir-core"           % V.tapir,
+      "io.circe"                     %%% "circe-generic"        % V.circe,
+      "io.circe"                     %%% "circe-parser"         % V.circe,
+      "io.circe"                     %%% "circe-refined"        % V.circe,
+>>>>>>> d7596a5 (update build.sbt / .gitignore)
       "com.outr"                      %% "scribe-slf4j"         % V.scribe,
       "com.outr"                      %% "scribe-cats"          % V.scribe,
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
