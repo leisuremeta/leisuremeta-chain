@@ -285,3 +285,21 @@
   ]
 }
 ```
+
+`GET` **/summary/main** 조회시점 기준 가장 최근 24시간 이내 통계 데이터 조회
+
+- Response: Option[Summary]
+
+  - Example 
+    - http://localhost:8081/summary/main
+
+```json
+{
+  "id": 1,
+  "lmPrice": 0.394,
+  "blockNumber": 123456789,
+  "txCountInLatest24h": 123456789,
+  "totalAccounts": 123456789,
+  "createdAt": 1675612055
+}
+```
