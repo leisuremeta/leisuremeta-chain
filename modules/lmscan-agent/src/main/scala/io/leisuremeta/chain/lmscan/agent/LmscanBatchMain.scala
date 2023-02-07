@@ -167,22 +167,6 @@ object LmscanBatchMain extends IOApp:
       .insertValue(lift(tx))
       .onConflictUpdate(_.address)((t, e) => t.address -> e.address)
   
-  inline def genBlockStateEntityInsertQuery(eventTime: Long, json: String): Insert[BlockStateEntity] =
-    query[BlockStateEntity].insert(
-      _.eventTime -> lift(eventTime),
-      _.json -> lift(json),
-      _.isBuild -> lift(false)
-    )
-
-  inline def genTxStateEntityInsertQuery(eventTime: Long, blockHash: String, json: String): Insert[TxStateEntity] =
-    query[TxStateEntity].insertValue(TxStateEntity (
-      id = 0L, // generated id
-      eventTime = lift(eventTime),
-      blockHash = lift(blockHash),
-      json = lift(json),
-      isBuild = lift(false)
-    ))
-  
   def get[F[_]: Async, A: io.circe.Decoder](
       backend: SttpBackend[F, Any],
   )(uri: Uri): EitherT[F, String, A] =
@@ -239,7 +223,6 @@ object LmscanBatchMain extends IOApp:
         for
           result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
           (block, blockJson) = result1
-          // _ <- upsertTransaction[F, BlockStateEntity](genBlockStateEntityInsertQuery(block.header.timestamp.getEpochSecond(), blockJson))
           _ <- upsertTransaction[F, BlockStateEntity](query[BlockStateEntity].insert(
               _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
               _.json -> lift(blockJson),
@@ -252,42 +235,21 @@ object LmscanBatchMain extends IOApp:
                 result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
                 _ = result.map { 
                   case (txResult, txJson) => 
-                    upsertTransaction[F, TxStateEntity](genTxStateEntityInsertQuery(txResult.signedTx.value.createdAt.getEpochSecond(), block.toHash.toUInt256Bytes.toBytes.toHex, txJson))
+                    upsertTransaction[F, TxStateEntity](
+                      query[TxStateEntity].insert(
+                        _.eventTime -> lift(txResult.signedTx.value.createdAt.getEpochSecond()),
+                        _.blockHash -> lift(block.toHash.toUInt256Bytes.toBytes.toHex),
+                        _.json -> lift(txJson),
+                        _.isBuild -> lift(false)
+                      ))
                 }
               yield ()
             }
-        // block.header.parentHash.toUInt256Bytes.toHex
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
           result2 <- loop(backend)(nextBlockOpt, lastSavedBlockHash)
         yield result2
         
       loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}
-
-      // def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): Option[(Block, String)] =
-      //   if isContinue(currBlockOpt, lastSavedBlockHash) then
-      //     val s = for 
-      //       result <- EitherT.fromOption(currBlockOpt, s"There is no current block: ${currBlockOpt}")
-      //       (block, blockJson) = result
-      //       _ <- upsertTransaction[F, BlockStateEntity](genBlockStateEntityInsertQuery(block.header.timestamp.getEpochSecond(), blockJson))
-
-      //       txs <- block.transactionHashes.toList.traverse { 
-      //         (txHash: Hash.Value[Signed.Tx]) =>
-      //           for
-      //             result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
-      //             (txResult, txJson) = result
-                  
-      //             _ <- upsertTransaction[F, TxStateEntity](genTxStateEntityInsertQuery(txResult.signedTx.value.createdAt.getEpochSecond(), block.toHash.toUInt256Bytes.toBytes.toHex, txJson))
-      //           yield ()
-      //         }
-      //       nextBlock <- getBlock[F](backend)(block.header.parentHash)
-      //     // block.header.parentHash.toUInt256Bytes.toHex
-      //     yield nextBlock
-      //     loop(backend)(s, lastSavedBlockHash)
-      //   else 
-      //     None
-        
-
-
       
     def isEqual(prevLastSavedBlockHash: String, parentHashOfCurrLastSavedBlock: String): IO[Boolean] = 
       IO.blocking { prevLastSavedBlockHash == parentHashOfCurrLastSavedBlock }
