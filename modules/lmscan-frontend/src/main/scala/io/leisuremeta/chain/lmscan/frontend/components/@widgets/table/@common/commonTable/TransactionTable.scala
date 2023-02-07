@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import Dom.{_hidden, isEqGet, yyyy_mm_dd_time}
+import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 
 import Log.*
 
@@ -74,15 +74,17 @@ object Row2:
               onClick(NavMsg.TransactionDetail(each.hash)),
             )(each.hash.take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.createdAt.toString())),
+          div(`class` := "cell")(
+            span()(timeAgo(each.createdAt)),
+          ),
           div(`class` := "cell type-3")(
             span(
               onClick(NavMsg.AccountDetail(each.signer)),
             )(each.signer.take(10) + "..."),
-          ),          
+          ),
           div(`class` := "cell")(span()(each.txType)),
         ),
-      )      
+      )
   val search = (model: Model) =>
     div(
       `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
@@ -147,7 +149,7 @@ object Row2:
               Row2.title(model),
               div(`class` := "table w-[100%]")(
                 Row2.headForDashboard :: Row2.genBodyForDashboard(payload),
-              )
+              ),
             )
           case _ =>
             div(`class` := "table-container")(

@@ -16,9 +16,13 @@ object UnderAccountDetailMsg:
         AccountDetailMsg.GetError(
           s"Invalid JSON object: ${parsingError.message}",
         )
-      case Right(json) => {
-        AccountDetailMsg.Update(response.body)
-      }
+      case Right(json) =>
+        response.body.contains("null") match
+          case true =>
+            AccountDetailMsg.GetError(
+              s"data is not exist",
+            )
+          case false => AccountDetailMsg.Update(response.body)
 
   private val onError: HttpError => Msg = e =>
     AccountDetailMsg.GetError(e.toString)

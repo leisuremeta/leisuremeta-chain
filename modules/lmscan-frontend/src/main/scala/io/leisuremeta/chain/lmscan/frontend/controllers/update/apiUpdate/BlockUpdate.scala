@@ -9,7 +9,6 @@ import Log.log
 object BlockUpdate:
   def update(model: Model): BlockMsg => (Model, Cmd[IO, Msg]) =
     case BlockMsg.Refresh =>
-      log("ApiUpdate > update > refresh")
       (model, OnBlockMsg.getBlockList(model.tx_CurrentPage.toString()))
     case BlockMsg.GetNewBlock(r) =>
       // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
@@ -28,5 +27,4 @@ object BlockUpdate:
         Cmd.None,
       )
     case BlockMsg.GetError(_) =>
-      log("리프레시 > 에러 나옴")
-      log((model, Cmd.None))
+      (model.copy(curPage = NavMsg.NoPage), Cmd.None)

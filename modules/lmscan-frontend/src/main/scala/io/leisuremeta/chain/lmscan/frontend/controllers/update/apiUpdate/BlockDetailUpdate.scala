@@ -15,10 +15,13 @@ object BlockDetailUpdate:
         Cmd.None,
       )
     case BlockDetailMsg.Update(data) =>
-      log("BlockDetailMsg.Update(data)")
       (
-        model.copy(blockDetailData = Some(data)),
+        model.copy(
+          blockDetailData = Some(data),
+          curPage = NavMsg.BlockDetail(model.searchValue),
+          searchValue = "",
+        ),
         Cmd.None,
       )
     case BlockDetailMsg.GetError(_) =>
-      log((model, Cmd.None))
+      (model.copy(curPage = NavMsg.NoPage, searchValue = ""), Cmd.None)

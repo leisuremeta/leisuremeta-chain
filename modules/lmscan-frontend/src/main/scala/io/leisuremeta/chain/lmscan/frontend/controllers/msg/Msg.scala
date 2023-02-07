@@ -29,10 +29,11 @@ enum TxMsg extends Msg:
   case GetError(error: String)  extends TxMsg
 
 enum TxDetailMsg extends Msg:
-  case Patch(hash: String)           extends TxDetailMsg
-  case Update(result: String)        extends TxDetailMsg
-  case GetError(error: String)       extends TxDetailMsg
-  case GetErrorHandle(error: String) extends TxDetailMsg
+  case Patch(hash: String)                              extends TxDetailMsg
+  case Update(result: String)                           extends TxDetailMsg
+  case GetError(error: String)                          extends TxDetailMsg
+  case Get_64Handle_ToBlockDetail(msg: String)          extends TxDetailMsg
+  case Get_64Handle_ToTranSactionDetail(result: String) extends TxDetailMsg
 
 enum BlockMsg extends Msg:
   case Refresh                     extends BlockMsg

@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import Dom.{_hidden}
+import Dom.{_hidden, timeAgo}
 
 import Log.*
 
@@ -36,7 +36,7 @@ object Row:
               each.hash.take(10) + "...",
             ),
           ),
-          div(`class` := "cell")(span()(each.createdAt.toString())),
+          div(`class` := "cell")(span()(timeAgo(each.createdAt))),
           div(`class` := "cell")(span()(each.number.toString())),
           div(`class` := "cell")(span()(each.txCount.toString())),
         ),

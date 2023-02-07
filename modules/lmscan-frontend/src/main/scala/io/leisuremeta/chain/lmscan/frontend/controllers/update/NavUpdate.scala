@@ -53,7 +53,6 @@ object NavUpdate:
         ),
       )
     case NavMsg.AccountDetail(hash) =>
-      log("NavMsg.AccountDetail(hash)")
       log(
         (
           model.copy(

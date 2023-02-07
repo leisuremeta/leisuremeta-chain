@@ -25,23 +25,24 @@ object SearchUpdate:
 
         case Page.accountDetail =>
           (
-            model.copy(searchValue = "", curPage = NavMsg.AccountDetail(hash)),
+            model.copy(
+              prevPage = model.curPage,
+            ),
             OnAccountDetailMsg.getAcountDetail(hash),
           )
 
         case Page.nftDetail =>
           (
-            model.copy(searchValue = "", curPage = NavMsg.NftDetail(hash)),
+            model.copy(
+              prevPage = model.curPage,
+            ),
             OnNftDetailMsg.getNftDetail(hash),
           )
 
         case Page.handle_64 =>
           (
-            model.copy(
-              searchValue = "",
-              curPage = NavMsg.TransactionDetail(hash),
-            ),
-            OnTxDetailMsg.getTxDetail(hash),
+            model,
+            OnHandle_64.getData(hash),
           )
 
         case Page.custom =>

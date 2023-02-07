@@ -12,7 +12,8 @@ object UnderTxDetailMsg:
     import io.circe.*, io.circe.generic.semiauto.*
 
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
-
+    Log.log("parseResult??")
+    Log.log(parseResult)
     parseResult match
       case Left(parsingError) =>
         TxDetailMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
@@ -28,5 +29,5 @@ object UnderTxDetailMsg:
 object OnTxDetailMsg:
   def getTxDetail(hash: String): Cmd[IO, Msg] =
     val url =
-      s"http://localhost:8081/tx/${hash + 1}/detail"
+      s"http://localhost:8081/tx/${hash}/detail"
     Http.send(Request.get(url), UnderTxDetailMsg.fromHttpResponse)

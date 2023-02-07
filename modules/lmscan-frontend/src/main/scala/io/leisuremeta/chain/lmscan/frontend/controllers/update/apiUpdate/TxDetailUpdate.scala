@@ -15,15 +15,26 @@ object TxDetailUpdate:
         Cmd.None,
       )
     case TxDetailMsg.Update(data) =>
-      log("TxDetailMsg.Update(data)")
       (
         model.copy(txDetailData = Some(data)),
         Cmd.None,
       )
     case TxDetailMsg.GetError(msg) =>
       log(msg)
-      (model, Cmd.None)
+      (model.copy(curPage = NavMsg.NoPage), Cmd.None)
 
-    case TxDetailMsg.GetErrorHandle(msg) =>
+    case TxDetailMsg.Get_64Handle_ToBlockDetail(msg) =>
       log(msg)
-      (model, OnBlockDetailMsg.getBlockDetail(model.searchValue))
+      (
+        model.copy(prevPage = model.curPage),
+        OnBlockDetailMsg.getBlockDetail(model.searchValue),
+      )
+    case TxDetailMsg.Get_64Handle_ToTranSactionDetail(data) =>
+      (
+        model.copy(
+          txDetailData = Some(data),
+          curPage = NavMsg.TransactionDetail(model.searchValue),
+          searchValue = "",
+        ),
+        Cmd.None,
+      )

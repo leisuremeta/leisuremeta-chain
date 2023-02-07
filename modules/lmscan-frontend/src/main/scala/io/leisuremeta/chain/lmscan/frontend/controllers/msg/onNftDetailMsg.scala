@@ -11,12 +11,17 @@ object UnderNftDetailMsg:
   private val onResponse: Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
+
     parseResult match
       case Left(parsingError) =>
         NftDetailMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
-      case Right(json) => {
-        NftDetailMsg.Update(response.body)
-      }
+      case Right(json) =>
+        response.body.contains("null") match
+          case true =>
+            NftDetailMsg.GetError(
+              s"data is not exist",
+            )
+          case false => NftDetailMsg.Update(response.body)
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
 

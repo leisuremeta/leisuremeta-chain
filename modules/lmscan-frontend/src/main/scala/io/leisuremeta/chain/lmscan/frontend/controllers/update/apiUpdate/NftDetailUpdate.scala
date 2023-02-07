@@ -16,8 +16,13 @@ object NftDetailUpdate:
       )
     case NftDetailMsg.Update(data) =>
       (
-        model.copy(nftDetailData = Some(data)),
+        model.copy(
+          nftDetailData = Some(data),
+          curPage = NavMsg.NftDetail(model.searchValue),
+          searchValue = "",
+        ),
         Cmd.None,
       )
-    case NftDetailMsg.GetError(_) =>
-      log((model, Cmd.None))
+    case NftDetailMsg.GetError(msg) =>
+      log(msg)
+      (model.copy(curPage = NavMsg.NoPage, searchValue = ""), Cmd.None)

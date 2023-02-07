@@ -16,8 +16,12 @@ object AccountDetailUpdate:
       )
     case AccountDetailMsg.Update(data) =>
       (
-        model.copy(accountDetailData = Some(data)),
+        model.copy(
+          accountDetailData = Some(data),
+          curPage = NavMsg.AccountDetail(model.searchValue),
+          searchValue = "",
+        ),
         Cmd.None,
       )
     case AccountDetailMsg.GetError(_) =>
-      log((model, Cmd.None))
+      (model.copy(curPage = NavMsg.NoPage, searchValue = ""), Cmd.None)
