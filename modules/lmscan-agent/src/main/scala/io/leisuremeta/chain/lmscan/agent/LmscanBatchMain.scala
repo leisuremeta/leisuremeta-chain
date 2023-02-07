@@ -68,6 +68,7 @@ import api.model.Block.ops.*
 import api.model.TransactionWithResult.ops.*
 
 import io.leisuremeta.chain.lib.crypto.Hash
+import io.getquill.SchemaMeta
 
 
 object LmscanBatchMain extends IOApp:
@@ -221,6 +222,7 @@ object LmscanBatchMain extends IOApp:
           case _ => EitherT.leftT(s"there is no exist next block")
 
       def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
+        inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
         for
           result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
           (block, blockJson) = result1
@@ -497,8 +499,10 @@ object LmscanBatchMain extends IOApp:
         _ <- EitherT.right(Async[F].delay(scribe.info(s"Checking for newly created blocks")))
         status <- getStatus[F](backend)
         _ <- EitherT.right(Async[F].delay(scribe.info(s"status: ${status}")))
-        _ <- getBlock[F](backend)(status.bestHash).map { bestBlock =>
-          for 
+        bestBlock <- getBlock[F](backend)(status.bestHash)
+        _ <- bestBlock.fold(EitherT.pure(())) { case (block, json) =>
+          for
+            _ <- EitherT.right(Async[F].delay(scribe.info(s"start ss")))
             // TODO: read sequentially saved last block
             prevLastBlockHash: String <- getLastSavedBlock[F].map {
               case Some(lastBlock) => lastBlock.hash
@@ -511,9 +515,10 @@ object LmscanBatchMain extends IOApp:
             currLastSavedBlock <- buildSavedStateLoop[F](backend)
 
             _ <- saveLastSavedBlockLog[F]((currLastSavedBlock))
-            
           yield ()
         }
+            
+
         _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
         _ <- EitherT.right(Async[F].sleep(10000.millis))
         _ <- loop[F](backend)
@@ -529,10 +534,13 @@ object LmscanBatchMain extends IOApp:
         .get(uri)
         .send(backend)
         .map { response => 
+          scribe.info(s"respone: $response")
           for
             body <- response.body
             a <- decode[A](body).leftMap(_.getMessage())  
-          yield Some(a, body)
+          yield
+            scribe.info(s"yield: $a") 
+            Some(a, body)
         }
     }
 

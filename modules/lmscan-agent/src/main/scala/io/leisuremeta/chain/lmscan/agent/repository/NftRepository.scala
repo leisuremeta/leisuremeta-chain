@@ -4,8 +4,9 @@ import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.agent.entity.{NftTxEntity}
 import io.getquill.*
+import CommonQuery.*
   
-object NftRepository extends CommonQuery:
+object NftRepository:
 
   import ctx.{*, given}
 

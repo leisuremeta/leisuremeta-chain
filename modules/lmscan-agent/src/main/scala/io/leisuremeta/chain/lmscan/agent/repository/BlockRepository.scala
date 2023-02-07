@@ -5,8 +5,9 @@ import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.agent.entity.{BlockSavedLog}
 import io.leisuremeta.chain.lmscan.agent.entity.BlockEntity
 import io.getquill.*
+import CommonQuery.*
 
-object BlockRepository extends CommonQuery:
+object BlockRepository:
 
   import ctx.{*, given}
 
