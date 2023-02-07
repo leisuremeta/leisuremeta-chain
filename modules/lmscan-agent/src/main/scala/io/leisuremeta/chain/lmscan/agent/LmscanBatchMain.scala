@@ -454,7 +454,6 @@ object LmscanBatchMain extends IOApp:
                       }
                       case tx: UpdateAccount => {
                         // updateTransaction[F, AccountEntity](genUpdateAccountQuery(AccountEntity.from(tx)))
-
                         EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: AddPublicKeySummaries => {
