@@ -10,8 +10,12 @@ object NavUpdate:
     case NavMsg.DashBoard =>
       log(
         (
-          model.copy(curPage = NavMsg.DashBoard),
-          Cmd.None,
+          model.copy(
+            curPage = NavMsg.DashBoard,
+            tx_CurrentPage = 1,
+            tx_list_Search = 1.toString(),
+          ),
+          OnTxMsg.getTxList(1.toString()),
         ),
       )
     case NavMsg.Blocks =>
