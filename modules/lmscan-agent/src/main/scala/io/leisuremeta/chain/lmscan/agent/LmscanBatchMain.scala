@@ -45,8 +45,7 @@ import java.sql.SQLException
 
 import io.getquill.Insert
 
-// import api.model.*
-// import api.model.Block
+
 import io.leisuremeta.chain.api.model.Block
 import io.leisuremeta.chain.api.model.Signed
 import io.leisuremeta.chain.api.model.Signed.Tx
@@ -70,8 +69,6 @@ import api.model.Block.ops.*
 import api.model.TransactionWithResult.ops.*
 
 import io.leisuremeta.chain.lib.crypto.Hash
-
-
 
 
 object LmscanBatchMain extends IOApp:
@@ -186,7 +183,6 @@ object LmscanBatchMain extends IOApp:
       isBuild = lift(false)
     ))
   
-  
   def get[F[_]: Async, A: io.circe.Decoder](
       backend: SttpBackend[F, Any],
   )(uri: Uri): EitherT[F, String, A] =
@@ -219,9 +215,7 @@ object LmscanBatchMain extends IOApp:
       uri"$baseUri/status"
     }
   
-  
-  
-  def checkLoop[F[_]: Async](
+  def blockCheckLoop[F[_]: Async](
     backend: SttpBackend[F, Any],
   ): EitherT[F, String, Unit] = 
      // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
@@ -231,7 +225,6 @@ object LmscanBatchMain extends IOApp:
         block <- getBlock[F](backend)(status.bestHash)
       yield block
 
-    
     def getLastSavedBlock[F[_]: Async]: EitherT[F, String, /*prevLastSavedBlock:*/ Option[BlockSavedLog]] = 
        BlockService.getLastSavedBlock[F]
 
@@ -242,7 +235,7 @@ object LmscanBatchMain extends IOApp:
         currBlockOpt match
           case Some((block, json)) if block.toHash.toUInt256Bytes.toBytes.toHex != lastSavedBlockHash => EitherT.pure((block, json))
           case _ => EitherT.leftT(s"error ..")
-      def loop1(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
+      def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
         for
           result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
           (block, blockJson) = result1
@@ -265,10 +258,10 @@ object LmscanBatchMain extends IOApp:
             }
         // block.header.parentHash.toUInt256Bytes.toHex
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
-          result2 <- loop1(backend)(nextBlockOpt, lastSavedBlockHash)
+          result2 <- loop(backend)(nextBlockOpt, lastSavedBlockHash)
         yield result2
         
-      loop1(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}
+      loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}
 
       // def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): Option[(Block, String)] =
       //   if isContinue(currBlockOpt, lastSavedBlockHash) then
@@ -566,8 +559,6 @@ object LmscanBatchMain extends IOApp:
 
     loop(backend)
 
-
-  
   def getWithJson[F[_]: Async, A: io.circe.Decoder](
       backend: SttpBackend[F, Any],
   )(uri: Uri): EitherT[F, String, Option[(A, String)]] =
@@ -583,8 +574,6 @@ object LmscanBatchMain extends IOApp:
         }
     }
 
-  
-
   def getTransaciton[F[_]: Async](
       backend: SttpBackend[F, Any],
   )(txHash: String): EitherT[F, String, Option[(TransactionWithResult, String)]] =
@@ -594,9 +583,6 @@ object LmscanBatchMain extends IOApp:
       scribe.error(s"getTransaciton error msg: $msg")  
       msg
     }
-
-
-
 
   def readUnsavedBlocks(): IO[Seq[String]] = IO.blocking {
     val path = Paths.get("unsaved-blocks.json")
@@ -612,13 +598,12 @@ object LmscanBatchMain extends IOApp:
         Seq.empty
   }
 
-
   def run(args: List[String]): IO[ExitCode] =
     ArmeriaCatsBackend
       .resource[IO](SttpBackendOptions.Default)
       .use { backend =>
         val program = for
-          _ <- checkLoop(backend)
+          _ <- blockCheckLoop(backend)
         yield ()
         program.value
     }
