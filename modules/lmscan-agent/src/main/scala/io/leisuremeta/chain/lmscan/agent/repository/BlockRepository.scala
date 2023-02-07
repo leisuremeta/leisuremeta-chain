@@ -20,11 +20,12 @@ object BlockRepository extends CommonQuery:
     optionQuery(detailQuery(lift(hash)))
 
   def getLastSavedBlock[F[_]: Async]: EitherT[F, String, Option[BlockSavedLog]] =
+    println("getLastSavedBlock")
     inline def latestQuery =
       quote { 
         query[BlockSavedLog].sortBy(t => t.eventTime)(Ord.desc).take(1)
       }
-    optionQuery(latestQuery)
+    optionQuery[F, BlockSavedLog](latestQuery)
   
   /*
 val a = quote {

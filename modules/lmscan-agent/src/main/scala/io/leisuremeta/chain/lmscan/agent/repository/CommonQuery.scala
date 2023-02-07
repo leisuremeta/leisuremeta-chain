@@ -23,21 +23,31 @@ trait CommonQuery:
   inline def optionQuery[F[_]: Async, T](
       inline query: Query[T],
   ): EitherT[F, String, Option[T]] =
+    scribe.info("2222")
+
     EitherT {
       Async[F].recover {
+        scribe.info("dd")
         for
           given ExecutionContext <- Async[F].executionContext
           detail <- Async[F]
             .fromFuture(Async[F].delay {
+              scribe.info("33333")
               ctx.run(query)
             })
-        yield Right(detail.headOption)
+        yield 
+          scribe.info("444444")
+          Right(detail.headOption)
       } {
         case e: SQLException =>
+          scribe.info("5555555")
           Left(s"sql exception occured: " + e.getMessage())
-        case e: Exception => Left(e.getMessage())
+        case e: Exception => 
+          scribe.info("666666")
+          Left(e.getMessage())
       }
     }
+
   inline def insertTransaction[F[_]: Async, T](
         inline query: Insert[T]
     ): EitherT[F, String, Long] =
