@@ -17,10 +17,10 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit;  
 import io.leisuremeta.chain.lmscan.agent.entity.TxEntity
+import CommonQuery.*
 
 
-
-object TxRepository extends CommonQuery:
+object TxRepository:
   import ctx.{*, given}
 
   def countInLatest24h[F[_]: Async]: EitherT[F, String, Long] =

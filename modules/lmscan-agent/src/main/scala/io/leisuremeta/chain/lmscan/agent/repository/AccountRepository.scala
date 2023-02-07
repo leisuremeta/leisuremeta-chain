@@ -5,8 +5,9 @@ import io.leisuremeta.chain.lmscan.agent.entity.AccountEntity
 import io.getquill.*
 import cats.effect.kernel.Async
 import cats.data.EitherT
+import CommonQuery.*
 
-object AccountRepository extends CommonQuery:
+object AccountRepository:
   import ctx.{*, given}
 
   def totalCount[F[_]: Async]: EitherT[F, String, Long] =
