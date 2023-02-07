@@ -154,7 +154,7 @@ object BackendMain extends IOApp:
   //   }
 
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getSummaryMainEndPoint.serverLogic {
+    ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
       scribe.info(s"summary request")
       val result = SummaryService
         .get
