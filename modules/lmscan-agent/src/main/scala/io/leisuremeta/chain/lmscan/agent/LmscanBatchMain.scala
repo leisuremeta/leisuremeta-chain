@@ -209,15 +209,17 @@ object LmscanBatchMain extends IOApp:
       yield block
 
     def getLastSavedBlock[F[_]: Async]: EitherT[F, String, /*prevLastSavedBlock:*/ Option[BlockSavedLog]] = 
-       BlockService.getLastSavedBlock[F]
+      BlockService.getLastSavedBlock[F]
 
     //loop from bestBlock to lastSavedBlock's next block 
     def saveDiffStateLoop[F[_]: Async](backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String)
     : EitherT[F, String, /* lastSavedBlock:*/ Option[Block]] = 
+      
       def isContinue(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, (Block, String)] =
         currBlockOpt match
           case Some((block, json)) if block.toHash.toUInt256Bytes.toBytes.toHex != lastSavedBlockHash => EitherT.pure((block, json))
-          case _ => EitherT.leftT(s"error ..")
+          case _ => EitherT.leftT(s"there is no exist next block")
+
       def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
         for
           result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
@@ -255,7 +257,7 @@ object LmscanBatchMain extends IOApp:
     
     // isEqual  match
     //   case true =>
-    def buildSavedStateLoop[F[_]: Async/*: cats.Applicative*/](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Block] = 
+    def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Block] = 
       for 
         blockStates <- StateService.getBlockStatesByNotBuildedOrderByEventTimeAsc[F]
         blockWithJsonEither = blockStates.map(b => decode[Block](b.json))
@@ -486,7 +488,6 @@ object LmscanBatchMain extends IOApp:
             _.createdAt -> lift(java.time.Instant.now().getEpochSecond()),
           )
         )
-      
 
     //   case false =>
     // def rollbackSavedDiffStates(): IO[Unit] = ???
@@ -495,25 +496,26 @@ object LmscanBatchMain extends IOApp:
       for 
         _ <- EitherT.right(Async[F].delay(scribe.info(s"Checking for newly created blocks")))
         status <- getStatus[F](backend)
-        _ <- getBlock[F](backend)(status.bestHash).map { value =>
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"status: ${status}")))
+        _ <- getBlock[F](backend)(status.bestHash).map { bestBlock =>
           for 
             // TODO: read sequentially saved last block
             prevLastBlockHash: String <- getLastSavedBlock[F].map {
               case Some(lastBlock) => lastBlock.hash
               case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
             }
+            _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
 
-            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(value, prevLastBlockHash)
+            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
 
             currLastSavedBlock <- buildSavedStateLoop[F](backend)
 
             _ <- saveLastSavedBlockLog[F]((currLastSavedBlock))
             
-            _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
-            _ <- EitherT.right(Async[F].sleep(10000.millis))
           yield ()
         }
-        
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
+        _ <- EitherT.right(Async[F].sleep(10000.millis))
         _ <- loop[F](backend)
       yield ()
 
@@ -559,13 +561,10 @@ object LmscanBatchMain extends IOApp:
   }
 
   def summaryLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
-
-
     def loop(backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
       for 
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop start")))
         coinMarket <- ExternalApiService.getLmPrice(backend)  // coinMarket response
-        // lmPrice: Option[USD] = if cm.status.error_code == 0 then Some(cm.data.quote)
-        // else scribe.error(s"coin market api returned response error (code: ${cm.status.error_code}, message: ${cm.status.error_message} )"); None
 
         lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
         
@@ -573,7 +572,6 @@ object LmscanBatchMain extends IOApp:
           case (Some(data), Some(lastSavedBlock)) => 
             val lmPrice = data.quote
             for 
-              // lastSavedBlock <- lastSavedBlockOpt
               txCountInLatest24h <- TxService.countInLatest24h[F]
               totalAccountCnt <- AccountService.totalCount[F]
               _ <- upsertTransaction[F, SummaryEntity](
@@ -587,6 +585,8 @@ object LmscanBatchMain extends IOApp:
             yield ()
           case _ => EitherT.pure(())
         }
+        _ <- EitherT.right(Async[F].sleep(10000.millis))
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop finished")))
       yield ()
     
     loop(backend)
@@ -597,11 +597,11 @@ object LmscanBatchMain extends IOApp:
       .resource[IO](SttpBackendOptions.Default)
       .use { backend =>
         val program = for
-          // _ <- blockCheckLoop(backend)
-
+          // _ <- Async[IO].racePair(blockCheckLoop(backend))
+          
           _ <- List(
             blockCheckLoop(backend), 
-            summaryLoop(backend)
+            // summaryLoop(backend)
           ).parSequence
         yield ()
         program.value
