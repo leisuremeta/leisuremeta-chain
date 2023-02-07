@@ -9,26 +9,26 @@ import cats.data.EitherT
 import sttp.client3.armeria.cats.ArmeriaCatsBackend
 import sttp.client3.SttpBackendOptions
 import sttp.client3.*
-import sttp.model.Uri
 
 import io.circe.generic.auto.*
 import io.circe.parser.decode
 import io.circe.refined.*
 import io.circe.syntax.*
 
+import cats.Parallel
 import scala.concurrent.duration.*
 import cats.effect.{Async, Concurrent}
 import cats.Monad
 import cats.syntax.bifunctor.*
 import cats.syntax.functor.*
-import io.leisuremeta.chain.lmscan.agent.entity.{NftTxEntity, BlockEntity, TxEntity, AccountEntity, BlockSavedLog, BlockStateEntity, TxStateEntity}
+import io.leisuremeta.chain.lmscan.agent.entity.*
 import io.leisuremeta.chain.lmscan.agent.model.*
 import java.nio.file.Paths
 import scala.util.Try
 import java.nio.file.Files
 import scala.jdk.CollectionConverters.*
 import cats.syntax.traverse.toTraverseOps
-import io.leisuremeta.chain.lmscan.agent.service.{BlockService, NftService, StateService}
+import io.leisuremeta.chain.lmscan.agent.service.*
 import java.sql.Timestamp
 import java.time.Instant
 import io.leisuremeta.chain.lmscan.agent.entity.NftFile
@@ -44,7 +44,6 @@ import cats.implicits.*
 import java.sql.SQLException
 
 import io.getquill.Insert
-
 
 import io.leisuremeta.chain.api.model.Block
 import io.leisuremeta.chain.api.model.Signed
@@ -408,7 +407,6 @@ object LmscanBatchMain extends IOApp:
                         EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: UpdateAccount => {
-                        // updateTransaction[F, AccountEntity](genUpdateAccountQuery(AccountEntity.from(tx)))
                         EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: AddPublicKeySummaries => {
@@ -560,12 +558,51 @@ object LmscanBatchMain extends IOApp:
         Seq.empty
   }
 
+  def summaryLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
+
+
+    def loop(backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
+      for 
+        coinMarket <- ExternalApiService.getLmPrice(backend)  // coinMarket response
+        // lmPrice: Option[USD] = if cm.status.error_code == 0 then Some(cm.data.quote)
+        // else scribe.error(s"coin market api returned response error (code: ${cm.status.error_code}, message: ${cm.status.error_message} )"); None
+
+        lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
+        
+        _ <- (coinMarket, lastSavedBlockOpt) match { 
+          case (Some(data), Some(lastSavedBlock)) => 
+            val lmPrice = data.quote
+            for 
+              // lastSavedBlock <- lastSavedBlockOpt
+              txCountInLatest24h <- TxService.countInLatest24h[F]
+              totalAccountCnt <- AccountService.totalCount[F]
+              _ <- upsertTransaction[F, SummaryEntity](
+                query[SummaryEntity].insert(
+                  _.lmPrice -> lift(lmPrice.price),
+                  _.blockNumber -> lift(lastSavedBlock.number),
+                  _.txCountsIn24Hour -> lift(txCountInLatest24h),
+                  _.totalAccounts -> lift(totalAccountCnt),
+                )
+              )
+            yield ()
+          case _ => EitherT.pure(())
+        }
+      yield ()
+    
+    loop(backend)
+
+
   def run(args: List[String]): IO[ExitCode] =
     ArmeriaCatsBackend
       .resource[IO](SttpBackendOptions.Default)
       .use { backend =>
         val program = for
-          _ <- blockCheckLoop(backend)
+          // _ <- blockCheckLoop(backend)
+
+          _ <- List(
+            blockCheckLoop(backend), 
+            summaryLoop(backend)
+          ).parSequence
         yield ()
         program.value
     }

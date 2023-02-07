@@ -19,10 +19,6 @@ object BlockRepository extends CommonQuery:
       }
     optionQuery(detailQuery(lift(hash)))
 
-  // def insert[F[_]: Async](block: Block): EitherT[F, String, Long] =
-  //   println("11111")
-  //   insertTransaction(block)
-
   def getLastSavedBlock[F[_]: Async]: EitherT[F, String, Option[BlockSavedLog]] =
     inline def latestQuery =
       quote { 
