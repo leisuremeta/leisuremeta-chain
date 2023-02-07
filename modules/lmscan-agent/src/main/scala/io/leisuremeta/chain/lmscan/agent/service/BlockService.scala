@@ -22,3 +22,5 @@ object BlockService:
     EitherT[F, String, Option[BlockSavedLog]] =
     BlockRepository.getLastSavedBlock
 
+  // def countBlockNumber[F[_]: Async]: EitherT[F, String, Option[Long]]
+  //   BlockRepository.getL
