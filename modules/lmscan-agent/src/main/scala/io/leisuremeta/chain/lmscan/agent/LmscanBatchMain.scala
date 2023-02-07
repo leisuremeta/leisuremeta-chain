@@ -392,11 +392,16 @@ object LmscanBatchMain extends IOApp:
                       }
                       
                       case tx: MintFungibleToken => {
+                        var sum = 0l;
                         tx.outputs.toList.traverse { case (account, amount) =>
+                          sum = sum + amount.toBigInt.longValue
                           updateTransaction[F, AccountEntity](
                             query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
                           )
                         }
+                        updateTransaction[F, AccountEntity](
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
+                        )
                         EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
                       }
                       case tx: TransferFungibleToken => {
@@ -503,7 +508,7 @@ object LmscanBatchMain extends IOApp:
                         }
                       }
 
-                  s = txEntityOpt match  
+                  _ = txEntityOpt match  
                     case Some(value) => upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)))
                     case None => None
 
