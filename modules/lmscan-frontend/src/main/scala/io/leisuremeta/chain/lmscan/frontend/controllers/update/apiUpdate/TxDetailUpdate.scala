@@ -15,9 +15,15 @@ object TxDetailUpdate:
         Cmd.None,
       )
     case TxDetailMsg.Update(data) =>
+      log("TxDetailMsg.Update(data)")
       (
         model.copy(txDetailData = Some(data)),
         Cmd.None,
       )
-    case TxDetailMsg.GetError(_) =>
-      log((model, Cmd.None))
+    case TxDetailMsg.GetError(msg) =>
+      log(msg)
+      (model, Cmd.None)
+
+    case TxDetailMsg.GetErrorHandle(msg) =>
+      log(msg)
+      (model, OnBlockDetailMsg.getBlockDetail(model.searchValue))

@@ -8,11 +8,10 @@ import Log.log
 
 object Page:
   // 해시 자릿수에 따른 페이지 렌더링
-  val accountDetail: Int     = 40
-  val nftDetail: Int         = 25
-  val transactionDetail: Int = 64
-  val blockDetail: Int       = 64
-  val custom: Int            = 1
+  val accountDetail: Int = 40
+  val nftDetail: Int     = 25
+  val handle_64: Int     = 64
+  val custom: Int        = 1
 
 object SearchUpdate:
   def update(model: Model): InputMsg => (Model, Cmd[IO, Msg]) =
@@ -36,7 +35,7 @@ object SearchUpdate:
             OnNftDetailMsg.getNftDetail(hash),
           )
 
-        case Page.transactionDetail =>
+        case Page.handle_64 =>
           (
             model.copy(
               searchValue = "",

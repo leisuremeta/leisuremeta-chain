@@ -29,9 +29,10 @@ enum TxMsg extends Msg:
   case GetError(error: String)  extends TxMsg
 
 enum TxDetailMsg extends Msg:
-  case Patch(hash: String)     extends TxDetailMsg
-  case Update(result: String)  extends TxDetailMsg
-  case GetError(error: String) extends TxDetailMsg
+  case Patch(hash: String)           extends TxDetailMsg
+  case Update(result: String)        extends TxDetailMsg
+  case GetError(error: String)       extends TxDetailMsg
+  case GetErrorHandle(error: String) extends TxDetailMsg
 
 enum BlockMsg extends Msg:
   case Refresh                     extends BlockMsg
@@ -51,7 +52,7 @@ enum NftDetailMsg extends Msg:
 enum AccountDetailMsg extends Msg:
   case Patch(hash: String)     extends AccountDetailMsg
   case Update(result: String)  extends AccountDetailMsg
-  case GetError(error: String) extends AccountDetailMsg  
+  case GetError(error: String) extends AccountDetailMsg
 
 enum PageMoveMsg extends Msg:
   case Prev                 extends PageMoveMsg

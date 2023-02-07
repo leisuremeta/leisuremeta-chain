@@ -7,7 +7,7 @@ import tyrian.*
 import tyrian.http.*
 import io.circe.syntax.*
 
-object UnderTxDetailMsg:
+object UnderHandleTxDetailMsg:
   private val onResponse: Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
 
@@ -15,7 +15,9 @@ object UnderTxDetailMsg:
 
     parseResult match
       case Left(parsingError) =>
-        TxDetailMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
+        TxDetailMsg.GetErrorHandle(
+          s"msg : Transaction hash 가 검색되지 않습니다. block hash 로 검색합니다.",
+        )
       case Right(json) => {
         TxDetailMsg.Update(response.body)
       }
@@ -25,8 +27,8 @@ object UnderTxDetailMsg:
   def fromHttpResponse: Decoder[Msg] =
     Decoder[Msg](onResponse, onError)
 
-object OnTxDetailMsg:
+object OnHandleTxDetailMsg:
   def getTxDetail(hash: String): Cmd[IO, Msg] =
     val url =
-      s"http://localhost:8081/tx/${hash + 1}/detail"
+      s"http://localhost:8081/tx/${hash}/detail"
     Http.send(Request.get(url), UnderTxDetailMsg.fromHttpResponse)
