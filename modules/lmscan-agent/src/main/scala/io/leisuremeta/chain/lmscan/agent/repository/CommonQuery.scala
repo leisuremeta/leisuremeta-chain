@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.{global as ec}
 import io.getquill.Query
 import java.time.Instant
 
-trait CommonQuery:
+object CommonQuery:
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
   import ctx.{*, given}
 
@@ -29,6 +29,7 @@ trait CommonQuery:
       Async[F].recover {
         scribe.info("dd")
         for
+          _ <- Async[F].delay(scribe.info("sdfsdf"))
           given ExecutionContext <- Async[F].executionContext
           detail <- Async[F]
             .fromFuture(Async[F].delay {

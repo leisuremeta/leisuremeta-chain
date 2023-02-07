@@ -6,8 +6,9 @@ import cats.effect.kernel.Async
 import io.getquill.Query
 import io.getquill.*
 import cats.data.EitherT
+import CommonQuery.*
 
-object StateRepository extends CommonQuery:
+object StateRepository:
 
   import ctx.{*, given}
 
