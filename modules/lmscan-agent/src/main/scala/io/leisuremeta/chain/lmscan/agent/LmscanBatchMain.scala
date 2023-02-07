@@ -523,14 +523,13 @@ object LmscanBatchMain extends IOApp:
     // isEqual  match
     //   case true =>
       //     .insert(_.id -> 1, _.sku -> 10)
-    def saveLastSavedBlockLog[F[_]: Async](blockJson: (Block, String)): EitherT[F, String, Long] =
-      val (block, json) = blockJson
+    def saveLastSavedBlockLog[F[_]: Async](block: Block): EitherT[F, String, Long] =
       upsertTransaction[F, BlockSavedLog](
         query[BlockSavedLog]
           .insert(
             _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
             _.hash -> lift(block.toHash.toUInt256Bytes.toBytes.toHex),
-            _.json -> lift(json),
+            _.json -> lift(block.asJson.spaces2),
             _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
             _.createdAt -> lift(java.time.Instant.now().getEpochSecond()),
           )
@@ -556,7 +555,7 @@ object LmscanBatchMain extends IOApp:
 
             currLastSavedBlock <- buildSavedStateLoop[F](backend)
 
-            _ <- saveLastSavedBlockLog[F]((currLastSavedBlock, currLastSavedBlock.asJson.spaces2))
+            _ <- saveLastSavedBlockLog[F]((currLastSavedBlock))
             
             _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
             _ <- EitherT.right(Async[F].sleep(10000.millis))
