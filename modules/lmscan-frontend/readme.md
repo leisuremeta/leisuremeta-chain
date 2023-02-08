@@ -104,6 +104,10 @@ case :: 12101
 #### 서치, 클릭 통합
 
 ```md
+# 파이프라인
+
+[prevPage , searchvalue-store ] => [*prevPage ]
+
 # 처리순서
 
 - 클릭 => 서치 => 완료

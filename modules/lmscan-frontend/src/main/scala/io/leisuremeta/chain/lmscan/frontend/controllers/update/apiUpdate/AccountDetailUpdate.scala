@@ -18,7 +18,7 @@ object AccountDetailUpdate:
       (
         model.copy(
           accountDetailData = Some(data),
-          curPage = NavMsg.AccountDetail(model.searchValue),
+          curPage = PageName.AccountDetail(model.searchValueStore),
           searchValue = "",
         ),
         Cmd.None,
