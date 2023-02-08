@@ -10,7 +10,7 @@ object Board:
 
 object BoardView:
   def view(model: Model): Html[Msg] =
-    val data: ApiData = ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData(0,0.0,0,0,0,0))
+    val data: ApiData = ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData)
       
     div(`class` := "board-area")(
       div(`class` := "board-list x")(
@@ -19,7 +19,12 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
-            div()(data.lmPrice.toString() + " USDT"),
+            div()(
+              (data.lmPrice match {
+                case Some(value) => value.toString()
+                case None => "-"
+              }) + " USDT"
+            ),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -27,7 +32,12 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Block_Number),
-            div()(data.blockNumber.toString()),
+            div()(
+              (data.blockNumber match {
+                case Some(value) => value.toString()
+                case None => "-"
+              })            
+            ),
           ),
         ),
       ),
@@ -37,7 +47,12 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Transactions),
-            div()(data.txCountInLatest24h.toString()),
+            div()(
+              (data.txCountInLatest24h match {
+                case Some(value) => value.toString()
+                case None => "-"
+              })                 
+            ),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -45,7 +60,12 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Accounts),
-            div()(data.totalAccounts.toString()),
+            div()(
+              (data.totalAccounts match {
+                case Some(value) => value.toString()
+                case None => "-"
+              })                     
+            ),
           ),
         ),
       ),

@@ -3,12 +3,12 @@ import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.parser.*
 
 case class ApiData(
-    id: Int,
-    lmPrice: Double,
-    blockNumber: Long,
-    txCountInLatest24h: Long,
-    totalAccounts: Long,
-    createdAt: Long,
+    id: Option[Int] = None,
+    lmPrice: Option[Double] = None,
+    blockNumber: Option[Long] = None,
+    txCountInLatest24h: Option[Long] = None,
+    totalAccounts: Option[Long] = None,
+    createdAt: Option[Long] = None,
 )
 
 object ApiParser:
