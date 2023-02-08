@@ -13,8 +13,12 @@ object TxDetailTable:
       .getOrElse(div())
 
   // TODO :: zip 말고 더 좋은 방법?
-  val input = (data: List[String]) =>
-    data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }
+  val input = (data: List[String], isModal: Boolean) =>
+    isModal match {
+      case true => data.zipWithIndex.map { ((input, i) => genInputForModal(input, i + 1)) }  
+      case false => data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }  
+    }
+      
 
   val output = (data: List[Transfer]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput(output, i + 1) }
@@ -30,6 +34,12 @@ object TxDetailTable:
         )(data),
       ),
     )
+
+  val genInputForModal = (data: String, i: Any) =>
+    div(`class` := "row")(
+      div(`class` := "cell type-detail-body")(i.toString()),
+      div(`class` := "cell type-detail-body")(data),
+    )    
 
   val genOutput = (data: Transfer, i: Any) =>
     div(`class` := "row")(
@@ -114,7 +124,7 @@ object TxDetailTable:
                 case false => div()              
               }
             )
-              :: input(data.inputHashs.slice(0, 5)),
+              :: input(data.inputHashs.slice(0, 5), false),
           ),
         ),
       ),
@@ -159,7 +169,7 @@ object TxDetailTable:
       div(
         `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_table")}",        
       )(
-        div(`class` := "type-TableDetail table-container ")(
+        div(`class` := "type-TableDetail table-container txDetailModalTable")(
           div(`class` := "table w-[100%]")(
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Input"),
@@ -168,7 +178,7 @@ object TxDetailTable:
                 span(onClick(ToggleMsg.ClickTxDetailInput))("Close")
               ),
             )
-              :: input(data.inputHashs),
+              :: input(data.inputHashs, true),
           ),
         ),
       ),                
