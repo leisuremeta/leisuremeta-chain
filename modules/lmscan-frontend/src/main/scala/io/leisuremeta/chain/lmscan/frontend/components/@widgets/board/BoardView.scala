@@ -19,12 +19,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
-            div()(
-              (data.lmPrice match {
-                case Some(value) => value.toString()
-                case None => "-"
-              }) + " USDT"
-            ),
+            div()(CommonFunc.getFieldValue(data.lmPrice) + " USDT"),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -32,12 +27,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Block_Number),
-            div()(
-              (data.blockNumber match {
-                case Some(value) => value.toString()
-                case None => "-"
-              })            
-            ),
+            div()(CommonFunc.getFieldValue(data.blockNumber)),
           ),
         ),
       ),
@@ -47,12 +37,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Transactions),
-            div()(
-              (data.txCountInLatest24h match {
-                case Some(value) => value.toString()
-                case None => "-"
-              })                 
-            ),
+            div()(CommonFunc.getFieldValue(data.txCountInLatest24h)),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -60,12 +45,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Accounts),
-            div()(
-              (data.totalAccounts match {
-                case Some(value) => value.toString()
-                case None => "-"
-              })                     
-            ),
+            div()(CommonFunc.getFieldValue(data.totalAccounts)),
           ),
         ),
       ),
