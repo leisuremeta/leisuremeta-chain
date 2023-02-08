@@ -27,6 +27,7 @@ object Init:
         page,
         page,
         "",
+        "",
         toggle,
         toggleTxDetailInput,
         tx_CurrentPage,

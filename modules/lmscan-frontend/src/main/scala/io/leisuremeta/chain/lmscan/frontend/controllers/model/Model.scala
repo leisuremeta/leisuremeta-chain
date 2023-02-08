@@ -10,6 +10,7 @@ final case class Model(
 
     // input search string
     searchValue: String,
+    searchValueStore: String,
 
     // transaction detail toggle
     toggle: Boolean,

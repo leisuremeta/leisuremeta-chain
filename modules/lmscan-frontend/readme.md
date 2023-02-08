@@ -108,10 +108,10 @@ case :: 12101
 
 - 클릭 => 서치 => 완료
 
-== 0. 전처리 ( prevPage )
+== 0. 전처리 ( prevPage , search value store 변경 )
 == 1. data-update ( data )
 == 2. page-update ( curPage )
-== 3. 후처리 ( search value )
+== 3. 후처리 ( search value 초기화 , search store 초기화 )
 
 # 변경될 변수
 
@@ -123,4 +123,15 @@ case :: 12101
 
 - 트랜잭션 디테일 클릭 => 트랜잭션 디테일 or nopage
 - 트랜잭션 디테일 서치 => 트랜잭션 디테일 or nopage
+
+# 페이징
+
+- 대시보드, 블록, 트랜잭션 ... 일반 문자열 클릭
+- 해시값을 클릭
+- 해시값을 검색
+
+# TODO
+
+1. 트랜잭션 디테일 검색, 클릭 했을때
+   0,1,2,3 의 프로세스를 거쳐서 페이지 전환되도록 만들기
 ```

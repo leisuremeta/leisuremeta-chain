@@ -5,6 +5,9 @@ import Log.log
 
 object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
+    // page handle
+    case pageMsg: PageMsg => PageUpdate.update(model)(pageMsg)
+
     // component handle
     case navMsg: NavMsg           => NavUpdate.update(model)(navMsg)
     case inputMsg: InputMsg       => SearchUpdate.update(model)(inputMsg)
@@ -21,6 +24,6 @@ object Update:
     case nftDetailMsg: NftDetailMsg =>
       NftDetailUpdate.update(model)(nftDetailMsg)
     case accountDetailMsg: AccountDetailMsg =>
-      AccountDetailUpdate.update(model)(accountDetailMsg)  
+      AccountDetailUpdate.update(model)(accountDetailMsg)
 
     // case dashboardMsg: DashboardMsg => Board.update(model)(dashboardMsg)

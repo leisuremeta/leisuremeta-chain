@@ -4,6 +4,12 @@ import io.circe.Json
 
 sealed trait Msg
 
+enum PageMsg extends Msg:
+  case PreProcess(search: String) extends PageMsg
+  case DataProcess                extends PageMsg
+  case PageUpdateProcess          extends PageMsg
+  case PostProcess                extends PageMsg
+
 enum NavMsg extends Msg:
   case DashBoard, Blocks, Transactions, NoPage
   case TransactionDetail(hash: String) extends NavMsg
