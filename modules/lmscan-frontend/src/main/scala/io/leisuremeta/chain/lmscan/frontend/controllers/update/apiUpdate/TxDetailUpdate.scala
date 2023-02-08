@@ -16,7 +16,11 @@ object TxDetailUpdate:
       )
     case TxDetailMsg.Update(data) =>
       (
-        model.copy(txDetailData = Some(data)),
+        model.copy(
+          txDetailData = Some(data),
+          curPage = NavMsg.TransactionDetail(model.searchValue),
+          searchValue = "",
+        ),
         Cmd.None,
       )
     case TxDetailMsg.GetError(msg) =>

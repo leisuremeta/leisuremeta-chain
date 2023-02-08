@@ -100,3 +100,27 @@ case :: 12101
 - account_hash => account details (transaction history)
 - nft_hash => nft details
 ```
+
+#### 서치, 클릭 통합
+
+```md
+# 처리순서
+
+- 클릭 => 서치 => 완료
+
+== 0. 전처리 ( prevPage )
+== 1. data-update ( data )
+== 2. page-update ( curPage )
+== 3. 후처리 ( search value )
+
+# 변경될 변수
+
+- searchValue => 초기화
+- prev , curpage
+- data
+
+# 테스트
+
+- 트랜잭션 디테일 클릭 => 트랜잭션 디테일 or nopage
+- 트랜잭션 디테일 서치 => 트랜잭션 디테일 or nopage
+```

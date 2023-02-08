@@ -48,7 +48,7 @@ object NavUpdate:
       log(
         (
           model.copy(
-            curPage = NavMsg.TransactionDetail(hash),
+            searchValue = hash,
           ),
           OnTxDetailMsg.getTxDetail(hash),
         ),
