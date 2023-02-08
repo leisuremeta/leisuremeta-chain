@@ -14,8 +14,12 @@ object NavUpdate:
             curPage = NavMsg.DashBoard,
             tx_CurrentPage = 1,
             tx_list_Search = 1.toString(),
+            block_CurrentPage = 1,
+            block_list_Search = 1.toString(),
           ),
-          Cmd.Batch(OnApiMsg.getSummaryData) ++ Cmd.Batch(OnTxMsg.getTxList(1.toString()))
+          Cmd.Batch(OnApiMsg.getSummaryData) ++ 
+          Cmd.Batch(OnTxMsg.getTxList(1.toString())) ++ 
+          Cmd.Batch(OnBlockMsg.getBlockList(1.toString()))
         ),
       )
     case NavMsg.Blocks =>
