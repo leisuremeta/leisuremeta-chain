@@ -103,12 +103,16 @@ object TxDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Input"),
               div(`class` := "cell type-detail-body font-bold")("Transaction Hash"),
-              div(`class` := s"type-2 pt-16px")(
-                span(
-                  `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_button")} ",
-                  onClick(ToggleMsg.ClickTxDetailInput),
-                )("More"),
-              ),
+              data.inputHashs.length > 5 match {
+                case true => 
+                  div(`class` := s"type-2 pt-16px")(
+                    span(
+                      `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_button")} ",
+                      onClick(ToggleMsg.ClickTxDetailInput),
+                    )("More"),
+                  )  
+                case false => div()              
+              }
             )
               :: input(data.inputHashs.slice(0, 5)),
           ),
