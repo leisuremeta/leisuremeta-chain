@@ -13,6 +13,7 @@ final case class Model(
 
     // transaction detail toggle
     toggle: Boolean,
+    toggleTxDetailInput: Boolean,
 
     // page move
     tx_CurrentPage: Int,

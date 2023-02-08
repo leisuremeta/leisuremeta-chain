@@ -9,3 +9,6 @@ object State:
         .toString() == state.toString()}"
   def toggle = (model: Model, state: Msg, id: String) =>
     s"state ${state.toString()} ${id} ${model.toggle}"
+
+  def toggleTxDetailInput = (model: Model, state: Msg, id: String) =>
+    s"state ${state.toString()} ${id} ${model.toggleTxDetailInput}"

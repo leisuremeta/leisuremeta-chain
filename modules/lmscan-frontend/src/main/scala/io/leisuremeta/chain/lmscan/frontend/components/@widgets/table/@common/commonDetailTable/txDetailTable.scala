@@ -102,11 +102,15 @@ object TxDetailTable:
           div(`class` := "table w-[100%]")(
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Input"),
-              div(`class` := "cell type-detail-body font-bold")(
-                "Transaction Hash",
+              div(`class` := "cell type-detail-body font-bold")("Transaction Hash"),
+              div(`class` := s"type-2 pt-16px")(
+                span(
+                  `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_button")} ",
+                  onClick(ToggleMsg.ClickTxDetailInput),
+                )("More"),
               ),
             )
-              :: input(Log.log(data.inputHashs)),
+              :: input(data.inputHashs.slice(0, 5)),
           ),
         ),
       ),
@@ -147,4 +151,22 @@ object TxDetailTable:
           `class` := s"${State.toggle(model, ToggleMsg.Click, "_textarea")}",
         )(s"${TxDetailParser.txDetailEncoder(data)}"),
       ),
+
+      div(
+        `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_table")}",        
+      )(
+        div(`class` := "type-TableDetail table-container ")(
+          div(`class` := "table w-[100%]")(
+            div(`class` := "row")(
+              div(`class` := "cell type-detail-head")("Input"),
+              div(`class` := "cell type-detail-body font-bold")("Transaction Hash"),
+              div(`class` := s"type-2 pt-16px")(
+                span(onClick(ToggleMsg.ClickTxDetailInput))("Close")
+              ),
+            )
+              :: input(data.inputHashs),
+          ),
+        ),
+      ),                
+
     )

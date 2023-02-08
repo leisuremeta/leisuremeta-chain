@@ -13,6 +13,7 @@ enum NavMsg extends Msg:
 
 enum ToggleMsg extends Msg:
   case Click
+  case ClickTxDetailInput
 
 enum InputMsg extends Msg:
   case Get(value: String) extends InputMsg

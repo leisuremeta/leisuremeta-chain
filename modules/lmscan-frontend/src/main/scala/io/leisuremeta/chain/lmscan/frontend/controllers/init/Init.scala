@@ -5,6 +5,7 @@ import cats.effect.IO
 object Init:
   val page              = NavMsg.DashBoard
   val toggle            = true
+  val toggleTxDetailInput = true
   val tx_CurrentPage    = 1
   val tx_TotalPage      = 1
   val block_CurrentPage = 1
@@ -25,6 +26,7 @@ object Init:
         page,
         "",
         toggle,
+        toggleTxDetailInput,
         tx_CurrentPage,
         tx_TotalPage,
         block_CurrentPage,

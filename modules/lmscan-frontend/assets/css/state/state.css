@@ -7,7 +7,7 @@
 .state.Click._textarea.true{
     display: none;
 }
-.state.Click._button.false{
+.state.Click._button.false, .state.ClickTxDetailInput._button.false{
     background-color: rgba(7, 21, 19, 0.892);
     padding: 5px 15px;
     text-align: center;
@@ -16,4 +16,17 @@
     border-radius: 7px;
     color: white;
     font-weight: bold;
+}
+
+.state.ClickTxDetailInput._table.true{
+    display: none;
+}
+.state.ClickTxDetailInput._table.false{
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);    
+    width: 70%;
+    height: 70%;    
 }
