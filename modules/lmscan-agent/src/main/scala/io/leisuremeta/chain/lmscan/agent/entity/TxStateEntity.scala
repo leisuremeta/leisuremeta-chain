@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.agent.entity
 
 final case class TxStateEntity(
-  id: Long,
+  hash: String,
   eventTime: Long,
   json: String,
   blockHash: String,

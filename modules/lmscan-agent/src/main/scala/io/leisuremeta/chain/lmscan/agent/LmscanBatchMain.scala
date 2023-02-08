@@ -71,13 +71,18 @@ import io.leisuremeta.chain.lib.crypto.Hash
 import io.getquill.SchemaMeta
 
 
+
 object LmscanBatchMain extends IOApp:
-  
+
+  inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
+  inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")    
+
   val baseUri = "http://test.chain.leisuremeta.io"
 
   // for excluding auto-generated column named 'id'
   // given StateEntityInsertMeta = insertMeta[StateEntity](_.id)  
 
+  
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
   import ctx.{*, given}
 
@@ -199,6 +204,8 @@ object LmscanBatchMain extends IOApp:
       uri"$baseUri/status"
     }
   
+  var testCount = 0;
+
   def blockCheckLoop[F[_]: Async](
     backend: SttpBackend[F, Any],
   ): EitherT[F, String, Unit] = 
@@ -223,36 +230,49 @@ object LmscanBatchMain extends IOApp:
 
       def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
         inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
+        inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
+        testCount = testCount+1
+        
         for
           result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
           (block, blockJson) = result1
-          _ <- upsertTransaction[F, BlockStateEntity](query[BlockStateEntity].insert(
+          blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
+          blockstate <- upsertTransaction[F, BlockStateEntity](query[BlockStateEntity].insert(
               _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
+              _.number -> lift(block.header.number.toBigInt.longValue),
+              _.hash -> lift(blockHash),
               _.json -> lift(blockJson),
               _.isBuild -> lift(false)
-            ))
+            ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
+          _ <- EitherT.right(Async[F].delay(scribe.info(s"blockstate upsertTransaction: $blockstate")))
           
           txs <- block.transactionHashes.toList.traverse { 
-            (txHash: Hash.Value[Signed.Tx]) =>
-              for
-                result <- getTransaciton[F](backend)(txHash.toUInt256Bytes.toBytes.toHex)
-                _ = result.map { 
-                  case (txResult, txJson) => 
-                    upsertTransaction[F, TxStateEntity](
-                      query[TxStateEntity].insert(
-                        _.eventTime -> lift(txResult.signedTx.value.createdAt.getEpochSecond()),
-                        _.blockHash -> lift(block.toHash.toUInt256Bytes.toBytes.toHex),
-                        _.json -> lift(txJson),
-                        _.isBuild -> lift(false)
-                      ))
-                }
+            (hash: Hash.Value[Signed.Tx]) => getTransaciton[F](backend)(hash.toUInt256Bytes.toBytes.toHex)}
+          _ <- txs.traverse {
+            case Some((txResult, txJson)) => 
+              for 
+                _ <- upsertTransaction[F, TxStateEntity](
+                  query[TxStateEntity].insert(
+                    _.hash -> lift(txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex),
+                    _.eventTime -> lift(txResult.signedTx.value.createdAt.getEpochSecond()),
+                    _.blockHash -> lift(blockHash),
+                    _.json -> lift(txJson),
+                    _.isBuild -> lift(false)
+                    ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
+                 _ <- EitherT.right(Async[F].delay(scribe.info(s"txJson: $txJson")))
               yield ()
-            }
+
+            case _ => EitherT.leftT(s"there is no exist transaction")  
+          }
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
-          result2 <- loop(backend)(nextBlockOpt, lastSavedBlockHash)
+          
+          result2 <- if testCount < 10 then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
         yield result2
         
-      loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}
+      loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}.recover((errMsg: String) => {
+        println("saveDiffStateLoop is ended"); 
+        None
+      })
       
     def isEqual(prevLastSavedBlockHash: String, parentHashOfCurrLastSavedBlock: String): IO[Boolean] = 
       IO.blocking { prevLastSavedBlockHash == parentHashOfCurrLastSavedBlock }
@@ -260,20 +280,26 @@ object LmscanBatchMain extends IOApp:
     // isEqual  match
     //   case true =>
     def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Block] = 
+      
       for 
         blockStates <- StateService.getBlockStatesByNotBuildedOrderByEventTimeAsc[F]
+        // _ <- EitherT.right(Async[F].delay(scribe.info(s"getBlockStatesByNotBuildedOrderByEventTimeAsc: ${blockStates}")))
+
         blockWithJsonEither = blockStates.map(b => decode[Block](b.json))
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"aaaaa")))
         _ <-  blockWithJsonEither.traverse[EitherT[F, String, *], Unit] { blockEither => 
           for 
             block: Block <- EitherT.fromEither[F](blockEither).leftMap{ e => e.getMessage() }
+            // _ <- EitherT.right(Async[F].delay(scribe.info(s"block: ${block}")))
             blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
             txStates <- StateService.getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F](blockHash)
             txWithResults <- txStates.traverse { txState => EitherT.fromEither[F](decode[TransactionWithResult](txState.json)).leftMap{ e => e.getMessage() } }
             _ <- (txWithResults zip txStates.map(_.json)).traverse[EitherT[F, String, *], Unit] {
               case (txResult, txJson) =>
+                scribe.info(s"(txResult, txJson): $txResult, $txJson")
                 val txHash = txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex
                 val fromAccount = txResult.signedTx.sig.account.utf8.value
-                val result: EitherT[F, String, Option[TxEntity]] =  for 
+                val result: EitherT[F, String, Option[TxEntity]] = for 
                   txEntityOpt: Option[TxEntity] <- txResult.signedTx.value match 
                     case tokenTx: Transaction.TokenTx => tokenTx match 
                       case nft: DefineToken => {
@@ -486,9 +512,9 @@ object LmscanBatchMain extends IOApp:
             _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
             _.hash -> lift(block.toHash.toUInt256Bytes.toBytes.toHex),
             _.json -> lift(block.asJson.spaces2),
-            _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
+            _.number -> lift(block.header.number.toBigInt.longValue),
             _.createdAt -> lift(java.time.Instant.now().getEpochSecond()),
-          )
+          ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash)
         )
 
     //   case false =>
@@ -511,6 +537,8 @@ object LmscanBatchMain extends IOApp:
             _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
 
             lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
+
+            _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
 
             currLastSavedBlock <- buildSavedStateLoop[F](backend)
 

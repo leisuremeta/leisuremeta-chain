@@ -13,12 +13,14 @@ object StateRepository:
   import ctx.{*, given}
 
   def getBlockStatesByNotBuildedOrderByEventTimeAsc[F[_]: Async]: EitherT[F, String, Seq[BlockStateEntity]] =
+    inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
     inline def q =
       quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.eventTime)(Ord.asc) }
     seqQuery(q)
 
   def getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
+    inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
     inline def q =
-      quote { query[TxStateEntity].filter(!_.isBuild).sortBy(t => t.eventTime)(Ord.asc) }
+      quote { query[TxStateEntity].filter(b => (b.blockHash == lift(blockHash) && !b.isBuild)).sortBy(t => t.eventTime)(Ord.asc) }
     seqQuery(q)
 
