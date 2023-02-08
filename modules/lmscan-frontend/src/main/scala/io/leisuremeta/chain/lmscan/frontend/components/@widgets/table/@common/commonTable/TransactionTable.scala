@@ -31,6 +31,7 @@ object Row2:
     div(`class` := "cell")(span()("Token Type")),
     div(`class` := "cell")(span()("Value")),
   )
+
   val headForDashboard = div(`class` := "row table-head")(
     div(`class` := "cell")(span()("Tx Hash")), // hash
     div(`class` := "cell")(span()("Age")), // createdAt
@@ -65,6 +66,50 @@ object Row2:
           ),
         ),
       )
+
+  def genBodyForAccountDetail = (payload: List[Tx]) =>
+    payload
+      .zipWithIndex
+      .map { case (each: Tx, index: Int) =>
+        val temp = index % 2 == 0
+        div(`class` := "row table-body")(
+          div(`class` := "cell type-3")(
+            span(
+              onClick(NavMsg.TransactionDetail(each.hash)),
+            )(each.hash.take(10) + "..."),
+          ),
+          div(`class` := "cell")(span()(each.blockNumber.toString())),
+          div(`class` := "cell")(span()(yyyy_mm_dd_time(each.createdAt))),
+          div(`class` := "cell type-3")(
+            span(
+              onClick(NavMsg.AccountDetail(each.signer)),
+            )(each.signer.take(10) + "..."),
+          ),
+          div(`class` := "cell")(span()(each.txType)),
+          div(`class` := "cell")(span()(each.tokenType)),
+          div(
+            `class` := s"cell ${isEqGet[String](each.tokenType, "NFT", "type-3")}",
+          )(
+            span(
+              temp match {
+                case true =>  List(
+                                onClick(NavMsg.Transactions), 
+                                style(Style("background-color"->"white", "padding"->"5px", "border"->"1px solid green", "border-radius"->"5px", "margin-right"->"5px"))
+                              )
+                case false => List(
+                                onClick(NavMsg.Transactions), 
+                                style(Style("background-color"->"rgba(171, 242, 0, 0.5)", "padding"->"5px", "border"->"1px solid green", "border-radius"->"5px", "margin-right"->"5px"))
+                              )
+              }
+
+            )(each.hash.take(5)),
+            span(onClick(NavMsg.NftDetail(each.value)))(
+              each.value.take(10) + "...",
+            ),
+          ),
+        )
+      }
+
   def genBodyForDashboard = (payload: List[Tx]) =>
     payload
       .map(each =>
@@ -141,7 +186,7 @@ object Row2:
           case NavMsg.AccountDetail(_) =>
             div(`class` := "table-container")(
               div(`class` := "table w-[100%]")(
-                Row2.head :: Row2.genBody(payload),
+                Row2.head :: Row2.genBodyForAccountDetail(payload),
               ),
             )
           case NavMsg.DashBoard =>
