@@ -15,7 +15,7 @@ object NavUpdate:
             tx_CurrentPage = 1,
             tx_list_Search = 1.toString(),
           ),
-          OnTxMsg.getTxList(1.toString()),
+          Cmd.Batch(OnApiMsg.getSummaryData) ++ Cmd.Batch(OnTxMsg.getTxList(1.toString()))
         ),
       )
     case NavMsg.Blocks =>

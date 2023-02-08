@@ -20,8 +20,7 @@ enum InputMsg extends Msg:
   case Patch              extends InputMsg
 
 enum ApiMsg extends Msg:
-  case Refresh                   extends ApiMsg
-  case GetNewGif(result: String) extends ApiMsg
+  case Update(result: String)    extends ApiMsg
   case GetError(error: String)   extends ApiMsg
 
 enum TxMsg extends Msg:

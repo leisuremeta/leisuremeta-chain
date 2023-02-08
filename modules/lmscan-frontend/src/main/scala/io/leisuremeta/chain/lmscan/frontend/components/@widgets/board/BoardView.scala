@@ -8,14 +8,10 @@ object Board:
   val Transactions = "24h Transactions"
   val Accounts     = "Total Accounts"
 
-  // TODO :: api data 로 변경 필요
-  val LM_Price_value     = "0.394 USDT"
-  val Block_Number_value = "12312123"
-  val Transactions_value = "3,572,245"
-  val Accounts_value     = "194,142,552"
-
 object BoardView:
   def view(model: Model): Html[Msg] =
+    val data: ApiData = ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData(0,0.0,0,0,0,0))
+      
     div(`class` := "board-area")(
       div(`class` := "board-list x")(
         div(`class` := "board-container xy-center")(
@@ -23,7 +19,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
-            div()(Board.LM_Price_value),
+            div()(data.lmPrice.toString() + " USDT"),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -31,7 +27,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Block_Number),
-            div()(Board.Block_Number_value),
+            div()(data.blockNumber.toString()),
           ),
         ),
       ),
@@ -41,7 +37,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Transactions),
-            div()(Board.Transactions_value),
+            div()(data.txCountInLatest24h.toString()),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -49,7 +45,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Accounts),
-            div()(Board.Accounts_value),
+            div()(data.totalAccounts.toString()),
           ),
         ),
       ),

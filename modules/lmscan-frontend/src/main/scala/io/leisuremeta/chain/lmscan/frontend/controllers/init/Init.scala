@@ -14,6 +14,8 @@ object Init:
   val tx_list_Search    = "1"
 
   // TODO :: could be list
+  val apiCmd: Cmd.Batch[IO, Msg] =
+    Cmd.Batch(OnApiMsg.getSummaryData)
   val txCmd: Cmd.Batch[IO, Msg] =
     Cmd.Batch(OnTxMsg.getTxList(tx_CurrentPage.toString()))
   val blockCmd: Cmd.Batch[IO, Msg] =
@@ -34,5 +36,5 @@ object Init:
         block_list_Search,
         tx_list_Search,
       ),
-      txCmd ++ blockCmd,
+      apiCmd ++ txCmd ++ blockCmd,
     )

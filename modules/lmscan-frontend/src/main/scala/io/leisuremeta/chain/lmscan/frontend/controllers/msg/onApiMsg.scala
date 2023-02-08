@@ -5,29 +5,18 @@ import io.circe.parser.*
 import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
+import scala.scalajs.js
 
 object UnderApiMsg:
   private val onResponse: Response => Msg = response =>
-    val json = Log.log(response.body)
-
-    val parsed = parse(json) match
-      case Right(r) => Right(r)
-      case Left(l)  => Left(l.message)
-
-    val deserialised =
-      parsed.flatMap { json =>
-        json.hcursor
-          // .downField("data")
-          .get[String]("message")
-          .toOption
-          .toRight("wrong json format")
+    import io.circe.*, io.circe.generic.semiauto.*
+    val parseResult: Either[ParsingFailure, Json] = parse(response.body)
+    parseResult match
+      case Left(parsingError) =>
+        ApiMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
+      case Right(json) => {
+        ApiMsg.Update(response.body)
       }
-
-    Log.log(deserialised)
-
-    deserialised match
-      case Left(e)  => ApiMsg.GetError(e)
-      case Right(r) => ApiMsg.GetNewGif(r)
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
 
@@ -35,9 +24,9 @@ object UnderApiMsg:
     Decoder[Msg](onResponse, onError)
 
 object OnApiMsg:
+  def getSummaryData: Cmd[IO, Msg] =
+    val host = js.Dynamic.global.process.env.BACKEND_URL
+    val port = js.Dynamic.global.process.env.BACKEND_PORT
 
-  def getRandomGif(topic: String): Cmd[IO, Msg] =
-    Log.log(s"getRandomGif $topic")
-    val url =
-      s"https://dog.ceo/api/breeds/image/$topic"
+    val url = s"http://${host}:${port}/summary/main"
     Http.send(Request.get(url), UnderApiMsg.fromHttpResponse)
