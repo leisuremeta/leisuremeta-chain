@@ -310,6 +310,7 @@ object LmscanBatchMain extends IOApp:
                         val txEntity: EitherT[F, String, Option[TxEntity]] = get[F, NftMetaInfo](backend)(url).flatMap {
                           // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
                           case metaInfo: NftMetaInfo =>
+                            println(s"metaInfo: ${metaInfo}")
                             upsertTransaction[F, NftTxEntity](
                               query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                             )
