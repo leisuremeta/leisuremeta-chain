@@ -2,7 +2,8 @@ package io.leisuremeta.chain.lmscan.agent.entity
 
 
 final case class BlockStateEntity(
-  id: Long,
+  hash: String,
+  number: Long,
   eventTime: Long,
   json: String,
   isBuild: Boolean, // default: false
