@@ -6,6 +6,7 @@ import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
 import io.circe.syntax.*
+import scala.scalajs.js
 
 object UnderBlockDetailMsg:
   private val onResponse: Response => Msg = response =>
@@ -25,7 +26,9 @@ object UnderBlockDetailMsg:
 
 object OnBlockDetailMsg:
   def getBlockDetail(hash: String): Cmd[IO, Msg] =
+    val host = js.Dynamic.global.process.env.BACKEND_URL
+    val port = js.Dynamic.global.process.env.BACKEND_PORT
+
     // TODO :: url 관리 컴파일타임에 url 가져오기
-    val url =
-      s"http://localhost:8081/block/$hash/detail"
+    val url = s"http://${host}:${port}/block/$hash/detail"
     Http.send(Request.get(url), UnderBlockDetailMsg.fromHttpResponse)

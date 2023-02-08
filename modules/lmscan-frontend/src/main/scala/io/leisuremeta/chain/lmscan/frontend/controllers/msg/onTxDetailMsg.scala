@@ -6,6 +6,7 @@ import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
 import io.circe.syntax.*
+import scala.scalajs.js
 
 object UnderTxDetailMsg:
   private val onResponse: Response => Msg = response =>
@@ -28,6 +29,8 @@ object UnderTxDetailMsg:
 
 object OnTxDetailMsg:
   def getTxDetail(hash: String): Cmd[IO, Msg] =
-    val url =
-      s"http://localhost:8081/tx/${hash}/detail"
+    val host = js.Dynamic.global.process.env.BACKEND_URL
+    val port = js.Dynamic.global.process.env.BACKEND_PORT
+
+    val url = s"http://${host}:${port}/tx/$hash/detail"
     Http.send(Request.get(url), UnderTxDetailMsg.fromHttpResponse)

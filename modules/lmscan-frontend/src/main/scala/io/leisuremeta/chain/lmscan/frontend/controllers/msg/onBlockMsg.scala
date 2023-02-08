@@ -6,6 +6,7 @@ import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
 import io.circe.syntax.*
+import scala.scalajs.js
 
 object UnderBlockMsg:
   private val onResponse: Response => Msg = response =>
@@ -25,6 +26,8 @@ object UnderBlockMsg:
 
 object OnBlockMsg:
   def getBlockList(page: String): Cmd[IO, Msg] =
-    val url =
-      s"http://localhost:8081/block/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
+    val host = js.Dynamic.global.process.env.BACKEND_URL
+    val port = js.Dynamic.global.process.env.BACKEND_PORT
+
+    val url = s"http://${host}:${port}/block/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
     Http.send(Request.get(url), UnderBlockMsg.fromHttpResponse)

@@ -6,6 +6,7 @@ import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
 import io.circe.syntax.*
+import scala.scalajs.js
 
 object UnderNftDetailMsg:
   private val onResponse: Response => Msg = response =>
@@ -30,6 +31,8 @@ object UnderNftDetailMsg:
 
 object OnNftDetailMsg:
   def getNftDetail(hash: String): Cmd[IO, Msg] =
-    val url =
-      s"http://localhost:8081/nft/${hash}/detail"
+    val host = js.Dynamic.global.process.env.BACKEND_URL
+    val port = js.Dynamic.global.process.env.BACKEND_PORT
+
+    val url = s"http://${host}:${port}/nft/${hash}/detail"
     Http.send(Request.get(url), UnderNftDetailMsg.fromHttpResponse)
