@@ -48,7 +48,7 @@ object Row2:
               onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
             )(CommonFunc.getOptionValue(each.hash, "-").toString().take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.blockNumber.toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.blockNumber, "-").toString())),
           div(`class` := "cell")(span()(yyyy_mm_dd_time(CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int]))),
           div(`class` := "cell type-3")(
             span(
@@ -78,7 +78,7 @@ object Row2:
               onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
             )(CommonFunc.getOptionValue(each.hash, "-").toString().take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.blockNumber.toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.blockNumber, "-").toString())),
           div(`class` := "cell")(span()(yyyy_mm_dd_time(CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int]))),
           div(`class` := "cell type-3")(
             span(

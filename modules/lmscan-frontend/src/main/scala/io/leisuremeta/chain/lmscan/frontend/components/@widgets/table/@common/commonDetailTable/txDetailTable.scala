@@ -48,7 +48,7 @@ object TxDetailTable:
         )(CommonFunc.getOptionValue(data.toAddress, "-").toString()),
       ),
       div(`class` := "cell type-detail-body")(
-        data.value.toString(),
+        CommonFunc.getOptionValue(data.value, "-").toString(),
       ),
     )
   val genOutput_NFT = (data: Transfer, i: Any) =>
