@@ -4,36 +4,35 @@ import io.circe.syntax.*
 import io.circe.parser.*
 
 case class NftDetail(
-    nftFile: NftFile,
-    activities: List[NftActivities],
+    nftFile: Option[NftFile] = None,
+    activities: Option[List[NftActivities]] = None,
 )
 
 case class NftFile(
-    tokenId: String,
-    tokenDefId: String,
-    collectionName: String,
-    nftName: String,
-    nftUri: String,
-    creatorDescription: String,
-    dataUrl: String,
-    rarity: String,
-    creator: String,
-    eventTime: Int,
-    createdAt: Int,
-    owner: String,
+    tokenId: Option[String] = None,
+    tokenDefId: Option[String] = None,
+    collectionName: Option[String] = None,
+    nftName: Option[String] = None,
+    nftUri: Option[String] = None,
+    creatorDescription: Option[String] = None,
+    dataUrl: Option[String] = None,
+    rarity: Option[String] = None,
+    creator: Option[String] = None,
+    eventTime: Option[Int] = None,
+    createdAt: Option[Int] = None,
+    owner: Option[String] = None,
 )
 
 case class NftActivities(
-    txHash: String,
-    action: String,
-    fromAddr: String,
-    toAddr: String,
-    createdAt: Int,
+    txHash: Option[String] = None,
+    action: Option[String] = None,
+    fromAddr: Option[String] = None,
+    toAddr: Option[String] = None,
+    createdAt: Option[Int] = None,
 )
 
 object NftDetailParser:
-  given nftFileDecoder: Decoder[NftFile] = deriveDecoder[NftFile]
-  given nftActivitiesDecoder: Decoder[NftActivities] =
-    deriveDecoder[NftActivities]
-  given txDetailDecoder: Decoder[NftDetail] = deriveDecoder[NftDetail]
-  def decodeParser(body: String)            = decode[NftDetail](body)
+    given nftFileDecoder: Decoder[NftFile] = deriveDecoder[NftFile]
+    given nftActivitiesDecoder: Decoder[NftActivities] = deriveDecoder[NftActivities]
+    given txDetailDecoder: Decoder[NftDetail] = deriveDecoder[NftDetail]
+    def decodeParser(body: String)            = decode[NftDetail](body)

@@ -4,12 +4,12 @@ import io.circe.syntax.*
 import io.circe.parser.*
 
 case class BlockDetail(
-    hash: String,
-    parentHash: String,
-    number: Int,
-    timestamp: Int,
-    txCount: Int,
-    txs: List[Tx],
+    hash: Option[String] = None,
+    parentHash: Option[String] = None,
+    number: Option[Int] = None,
+    timestamp: Option[Int] = None,
+    txCount: Option[Int] = None,
+    txs: Option[List[Tx]] = None,
 )
 
 object BlockDetailParser:

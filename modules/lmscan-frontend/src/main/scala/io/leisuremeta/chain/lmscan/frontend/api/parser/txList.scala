@@ -3,15 +3,19 @@ import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import io.circe.parser.*
 
-case class TxList(totalCount: Int, totalPages: Int, payload: List[Tx])
+case class TxList(
+  totalCount: Option[Int] = None, 
+  totalPages: Option[Int] = None, 
+  payload: Option[List[Tx]] = None, 
+)
 case class Tx(
-    hash: String,
-    blockNumber: Int,
-    createdAt: Int,
-    txType: String,
-    tokenType: String,
-    signer: String,
-    value: String,
+    hash: Option[String] = None, 
+    blockNumber: Option[Int] = None, 
+    createdAt: Option[Int] = None, 
+    txType: Option[String] = None, 
+    tokenType: Option[String] = None, 
+    signer: Option[String] = None, 
+    value: Option[String] = None, 
 )
 
 object TxParser:

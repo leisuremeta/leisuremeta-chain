@@ -17,7 +17,7 @@ object BlockUpdate:
       // TODO :: more simple code
       BlockParser
         .decodeParser(r)
-        .map(data => updated_block_TotalPage = data.totalPages)
+        .map(data => updated_block_TotalPage = CommonFunc.getOptionValue(data.totalPages, 1).asInstanceOf[Int])
 
       (
         model.copy(

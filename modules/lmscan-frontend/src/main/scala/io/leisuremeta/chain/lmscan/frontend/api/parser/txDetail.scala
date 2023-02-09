@@ -4,25 +4,25 @@ import io.circe.syntax.*
 import io.circe.parser.*
 
 case class TxDetail(
-    hash: String,
-    createdAt: Int,
-    signer: String,
-    txType: String,
-    tokenType: String,
-    inputHashs: List[String],
-    transferHist: List[Transfer],
-    json: String,
+    hash: Option[String] = None,
+    createdAt: Option[Int] = None,
+    signer: Option[String] = None,
+    txType: Option[String] = None,
+    tokenType: Option[String] = None,
+    inputHashs: Option[List[String]] = None,
+    transferHist: Option[List[Transfer]] = None,
+    json: Option[String] = None,
 )
 
 case class Transfer(
-    toAddress: String,
-    value: Double,
+    toAddress: Option[String] = None,
+    value: Option[Double] = None,
 )
 
 object TxDetailParser:
-  given transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
-  given txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
-  def decodeParser(body: String)           = decode[TxDetail](body)
+    given transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
+    given txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
+    def decodeParser(body: String)           = decode[TxDetail](body)
 
-  given transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
-  given txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]
+    given transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
+    given txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]

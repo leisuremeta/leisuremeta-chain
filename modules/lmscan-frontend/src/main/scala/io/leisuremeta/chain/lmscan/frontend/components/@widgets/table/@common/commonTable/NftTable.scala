@@ -33,13 +33,13 @@ object Row3:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.TransactionDetail(each.txHash)),
-            )(each.txHash.take(10) + "..."),
+              onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.txHash, "-").toString())),
+            )(CommonFunc.getOptionValue(each.txHash, "-").toString().take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.createdAt.toString())),
-          div(`class` := "cell")(span()(each.action)),
-          div(`class` := "cell")(span()(each.fromAddr)),
-          div(`class` := "cell")(span()(each.toAddr)),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.createdAt, "-").toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.action, "-").toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.fromAddr, "-").toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.toAddr, "-").toString())),
         ),
       )
 
@@ -56,12 +56,10 @@ object Row3:
         )
 
   val table = (model: Model) =>
-    NftDetailParser
-      .decodeParser(model.nftDetailData.get)
-      .map(data => Row3.genTable(data.activities, model))
-      .getOrElse(div())
+    val data: NftDetail = NftDetailParser.decodeParser(model.nftDetailData.get).getOrElse(new NftDetail)      
+    val activities = CommonFunc.getOptionValue(data.activities, List()).asInstanceOf[List[NftActivities]]
+    Row3.genTable(activities, model)
 
 object NftTable:
   def view(model: Model): Html[Msg] =
-    // div()("asdasd")
     Row3.table(model)

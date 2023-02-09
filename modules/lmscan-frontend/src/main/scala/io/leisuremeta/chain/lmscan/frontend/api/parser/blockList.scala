@@ -3,13 +3,17 @@ import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import io.circe.parser.*
 
-case class BlockList(totalCount: Int, totalPages: Int, payload: List[Block])
+case class BlockList(
+  totalCount: Option[Int] = None,
+  totalPages: Option[Int] = None,
+  payload: Option[List[Block]] = None,
+)
 
 case class Block(
-    number: Int,
-    hash: String,
-    createdAt: Int,
-    txCount: Int,
+    number: Option[Int] = None,
+    hash: Option[String] = None,
+    createdAt: Option[Int] = None,
+    txCount: Option[Int] = None,
 )
 
 object BlockParser:

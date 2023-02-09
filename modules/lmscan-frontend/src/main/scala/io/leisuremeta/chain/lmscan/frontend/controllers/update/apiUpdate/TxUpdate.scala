@@ -17,7 +17,7 @@ object TxUpdate:
       // TODO :: more simple code
       TxParser
         .decodeParser(r)
-        .map(data => updated_tx_TotalPage = data.totalPages)
+        .map(data => updated_tx_TotalPage = CommonFunc.getOptionValue(data.totalPages, 1).asInstanceOf[Int])
 
       (
         model.copy(txListData = Some(r), tx_TotalPage = updated_tx_TotalPage),

@@ -45,23 +45,23 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.TransactionDetail(each.hash)),
-            )(each.hash.take(10) + "..."),
+              onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
+            )(CommonFunc.getOptionValue(each.hash, "-").toString().take(10) + "..."),
           ),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
-          div(`class` := "cell")(span()(yyyy_mm_dd_time(each.createdAt))),
+          div(`class` := "cell")(span()(yyyy_mm_dd_time(CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int]))),
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.AccountDetail(each.signer)),
-            )(each.signer.take(10) + "..."),
+              onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(each.signer, "-").toString())),
+            )(CommonFunc.getOptionValue(each.signer, "-").toString().take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.txType)),
-          div(`class` := "cell")(span()(each.tokenType)),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.txType, "-").toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.tokenType, "-").toString())),
           div(
-            `class` := s"cell ${isEqGet[String](each.tokenType, "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](CommonFunc.getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
-            span(onClick(NavMsg.NftDetail(each.value)))(
-              each.value.take(10) + "...",
+            span(onClick(NavMsg.NftDetail(CommonFunc.getOptionValue(each.value, "-").toString())))(
+              CommonFunc.getOptionValue(each.value, "-").toString().take(10) + "...",
             ),
           ),
         ),
@@ -75,20 +75,20 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.TransactionDetail(each.hash)),
-            )(each.hash.take(10) + "..."),
+              onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
+            )(CommonFunc.getOptionValue(each.hash, "-").toString().take(10) + "..."),
           ),
           div(`class` := "cell")(span()(each.blockNumber.toString())),
-          div(`class` := "cell")(span()(yyyy_mm_dd_time(each.createdAt))),
+          div(`class` := "cell")(span()(yyyy_mm_dd_time(CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int]))),
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.AccountDetail(each.signer)),
-            )(each.signer.take(10) + "..."),
+              onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(each.signer, "-").toString())),
+            )(CommonFunc.getOptionValue(each.signer, "-").toString().take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.txType)),
-          div(`class` := "cell")(span()(each.tokenType)),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.txType, "-").toString())),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.tokenType, "-").toString())),
           div(
-            `class` := s"cell ${isEqGet[String](each.tokenType, "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](CommonFunc.getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
             span(
               temp match {
@@ -102,9 +102,9 @@ object Row2:
                               )
               }
 
-            )(each.hash.take(5)),
-            span(onClick(NavMsg.NftDetail(each.value)))(
-              each.value.take(10) + "...",
+            )(CommonFunc.getOptionValue(each.hash, "-").toString().take(5)),
+            span(onClick(NavMsg.NftDetail(CommonFunc.getOptionValue(each.value, "-").toString())))(
+              CommonFunc.getOptionValue(each.value, "-").toString().take(10) + "...",
             ),
           ),
         )
@@ -116,20 +116,21 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.TransactionDetail(each.hash)),
-            )(each.hash.take(10) + "..."),
+              onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
+            )(CommonFunc.getOptionValue(each.hash, "-").toString().take(10) + "..."),
           ),
           div(`class` := "cell")(
-            span()(timeAgo(each.createdAt)),
+            span()(timeAgo(CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int])),
           ),
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.AccountDetail(each.signer)),
-            )(each.signer.take(10) + "..."),
+              onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(each.signer, "-").toString())),
+            )(CommonFunc.getOptionValue(each.signer, "-").toString().take(10) + "..."),
           ),
-          div(`class` := "cell")(span()(each.txType)),
+          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.txType, "-").toString())),
         ),
       )
+
   val search = (model: Model) =>
     div(
       `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
@@ -206,22 +207,19 @@ object Row2:
             )
 
   val txList_txtable = (model: Model) =>
-    TxParser
-      .decodeParser(model.txListData.get)
-      .map(data => Row2.genTable(data.payload, model))
-      .getOrElse(div())
+    val data: TxList = TxParser.decodeParser(model.txListData.get).getOrElse(new TxList)
+    val payload = CommonFunc.getOptionValue(data.payload, List()).asInstanceOf[List[Tx]]      
+    Row2.genTable(payload, model)
 
   val account_txtable = (model: Model) =>
-    AccountDetailParser
-      .decodeParser(model.accountDetailData.get)
-      .map(data => Row2.genTable(data.txHistory, model))
-      .getOrElse(div())
+    val data: AccountDetail = AccountDetailParser.decodeParser(model.accountDetailData.get).getOrElse(new AccountDetail)
+    val txHistory = CommonFunc.getOptionValue(data.txHistory, List()).asInstanceOf[List[Tx]]      
+    Row2.genTable(txHistory, model)
 
   val blockDetail_txtable = (model: Model) =>
-    BlockDetailParser
-      .decodeParser(model.blockDetailData.get)
-      .map(data => Row2.genTable(data.txs, model))
-      .getOrElse(div())
+    val data: BlockDetail = BlockDetailParser.decodeParser(model.blockDetailData.get).getOrElse(new BlockDetail)      
+    val txs = CommonFunc.getOptionValue(data.txs, List()).asInstanceOf[List[Tx]]
+    Row2.genTable(txs, model)
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =

@@ -19,7 +19,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
-            div()(CommonFunc.getFieldValue(data.lmPrice) + " USDT"),
+            div()(CommonFunc.getOptionValue(data.lmPrice, "-").toString() + " USDT"),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -27,7 +27,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Block_Number),
-            div()(CommonFunc.getFieldValue(data.blockNumber)),
+            div()(CommonFunc.getOptionValue(data.blockNumber, "-").toString()),
           ),
         ),
       ),
@@ -37,7 +37,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Transactions),
-            div()(CommonFunc.getFieldValue(data.txCountInLatest24h)),
+            div()(CommonFunc.getOptionValue(data.txCountInLatest24h, "-").toString()),
           ),
         ),
         div(`class` := "board-container xy-center")(
@@ -45,7 +45,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Accounts),
-            div()(CommonFunc.getFieldValue(data.totalAccounts)),
+            div()(CommonFunc.getOptionValue(data.totalAccounts, "-").toString()),
           ),
         ),
       ),
