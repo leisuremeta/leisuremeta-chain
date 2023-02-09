@@ -13,7 +13,7 @@ object ApiUpdate:
       (
         model.copy(apiData = Some(r)),
         Cmd.None,
-      )      
+      )
     case ApiMsg.GetError(_) =>
       log("ApiMsg.GetError")
       log((model, Cmd.None))
