@@ -7,13 +7,13 @@ final case class Tx(
     txType: String, // col_name : type
     tokenType: String,
     fromAddr: String,
-    toAddr: Seq[String],
+    toAddr: Option[Seq[String]],
     blockHash: String,
     blockNumber: Long,
     eventTime: Long,
     createdAt: Long,
-    inputHashs: Seq[String],
-    outputVals: Seq[String],
+    inputHashs: Option[Seq[String]],
+    outputVals: Option[Seq[String]],
     json: String,
     // amount: Double,
 )
