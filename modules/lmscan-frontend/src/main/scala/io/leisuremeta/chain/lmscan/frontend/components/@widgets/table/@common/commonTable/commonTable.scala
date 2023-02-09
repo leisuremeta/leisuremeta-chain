@@ -59,6 +59,7 @@ object Tables:
             NftTable.view(model),
           ),
         )
+      case _ => div()
 
 object CommonTableView:
   def view(model: Model): Html[Msg] =

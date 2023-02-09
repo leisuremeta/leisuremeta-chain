@@ -21,6 +21,7 @@ object Pages:
         AccountView.view(model)
       case PageName.NftDetail(_) =>
         NftView.view(model)
+      case _ => div()
 
 object PagesView:
   def view(model: Model): Html[Msg] =

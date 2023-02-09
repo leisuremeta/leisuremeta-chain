@@ -24,10 +24,10 @@ object UnderCommonDataProcess:
     Decoder[Msg](onResponse, onError)
 
 object CommonDataProcess:
-  def getData(search: String): Cmd[IO, Msg] =
+  def getData(search: PageName): Cmd[IO, Msg] =
     val page = CustomMap.getPage(search)
 
     val url =
-      s"http://localhost:8081/tx/list?pageNo=${(search.toInt - 1).toString()}&sizePerRequest=10"
+      s"http://localhost:8081/tx/list?pageNo=${(search.toString().toInt - 1).toString()}&sizePerRequest=10"
 
     Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)

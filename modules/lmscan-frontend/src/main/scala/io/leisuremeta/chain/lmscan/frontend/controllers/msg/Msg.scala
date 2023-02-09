@@ -5,11 +5,11 @@ import io.circe.Json
 sealed trait Msg
 
 enum PageMsg extends Msg:
-  case PreUpdate(search: String) extends PageMsg
+  case PreUpdate(search: PageName) extends PageMsg
   // case DataUpdateProcess(search: String)      extends PageMsg
-  case DataUpdate(data: String, page: String) extends PageMsg
-  case PageUpdate                             extends PageMsg
-  case PostUpdate                             extends PageMsg
+  case DataUpdate extends PageMsg
+  case PageUpdate extends PageMsg
+  case PostUpdate extends PageMsg
 
 enum ToggleMsg extends Msg:
   case Click

@@ -62,15 +62,15 @@ object NavView:
       )(
         button(
           `class` := s"${isCurPageisDashBoard(model) || isPrevPageisDashBoard(model)}",
-          // onClick(PageName.DashBoard),
+          onClick(PageMsg.PreUpdate(PageName.DashBoard)),
         )(PageName.DashBoard.toString()),
         button(
           `class` := s"${isCurPageisBlock(model) || isPrevPageisBlock(model)}",
-          // onClick(PageName.Blocks),
+          onClick(PageMsg.PreUpdate(PageName.Blocks)),
         )(PageName.Blocks.toString()),
         button(
           `class` := s"${isCurPageisTransaction(model) || isPrevPageisTransaction(model)}",
-          // onClick(PageName.Transactions),
+          onClick(PageMsg.PreUpdate(PageName.Transactions)),
         )(PageName.Transactions.toString()),
       ),
     )

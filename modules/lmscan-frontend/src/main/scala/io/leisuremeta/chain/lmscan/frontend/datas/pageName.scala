@@ -9,26 +9,25 @@ enum PageName:
   case Page64                          extends PageName
   case None                            extends PageName
 
-// object PageNumber:
-//   // 해시 자릿수에 따른 페이지 렌더링
-//   val accountDetail: Int = 40
-//   val nftDetail: Int     = 25
-//   val handle_64: Int     = 64
-
 object CustomMap:
   val PageMap = Map(
-    40 -> PageName.AccountDetail,
-    25 -> PageName.NftDetail,
-    64 -> PageName.Page64,
+    "40" -> PageName.AccountDetail,
+    25   -> PageName.NftDetail,
+    64   -> PageName.Page64,
   )
 
-  def getPage(search: String) =
+  def getPage(search: PageName): PageName =
     search match
-      case PageName.Blocks => PageName.Blocks
-      //   List(40, 25, 64).contains(num) match
-      // case true  => PageMap(num)
-      // case false => PageName.None
+      case PageName.DashBoard    => search
+      case PageName.Blocks       => search
+      case PageName.Transactions => search
+      case _ =>
+        search.toString().length() match
+          case 40 => PageName.AccountDetail(search.toString())
+          case 25 => PageName.NftDetail(search.toString())
+          case 64 => PageName.Page64
+          case _  => PageName.None
 
-  def getUrl(page: Int) = List(40, 25, 64).contains(num) match
-    case true  => PageMap(num)
+  def getUrl(page: Int) = List(40, 25, 64).contains(page) match
+    case true  => PageMap(page)
     case false => PageName.None

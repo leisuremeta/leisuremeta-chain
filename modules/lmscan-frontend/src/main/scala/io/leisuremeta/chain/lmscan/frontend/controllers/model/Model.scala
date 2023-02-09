@@ -10,7 +10,6 @@ final case class Model(
 
     // input search string
     searchValue: String,
-    searchValueStore: String,
 
     // transaction detail toggle
     toggle: Boolean,
@@ -34,4 +33,10 @@ final case class Model(
     blockDetailData: Option[String] = Some(""),
     nftDetailData: Option[String] = Some(""),
     accountDetailData: Option[String] = Some(""),
+
+    // store
+    searchValueStore: String = "",
+    pageNameStore: PageName = PageName.DashBoard,
+    urlStore: String = "",
+    curDataStore: Option[String] = Some(""),
 )
