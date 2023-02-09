@@ -3,12 +3,16 @@ package io.leisuremeta.chain.lmscan.agent.model
 
 final case class LmPrice(
   status: Status,
-  data: Data,
+  data: Id,
 )
 
 final case class Status(
   error_code: Int,
-  error_message: String,
+  error_message: Option[String],
+)
+
+final case class Id(
+  `21315`: Data
 )
 
 final case class Data(
@@ -16,10 +20,14 @@ final case class Data(
   name: String,
   symbol: String,
   last_updated: String,
-  quote: USD,
+  quote: Currency,
 )
 
-final case class USD(
+final case class Currency(
+  `USD`: USDCu
+)
+
+final case class USDCu(
   price: Double,
   last_updated: String,
 )

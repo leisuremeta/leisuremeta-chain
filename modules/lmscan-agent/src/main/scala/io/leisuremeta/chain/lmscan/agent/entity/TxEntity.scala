@@ -1,14 +1,11 @@
 package io.leisuremeta.chain.lmscan.agent.entity
 
-
-
 import java.time.Instant
 import io.leisuremeta.chain.api.model.Transaction.AccountTx.*
 import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
 import io.leisuremeta.chain.api.model.Block
 import io.leisuremeta.chain.api.model.Transaction.GroupTx.*
 import io.leisuremeta.chain.api.model.Transaction.RewardTx.*
-
 
 
 final case class TxEntity(
@@ -287,13 +284,13 @@ object TxEntity:
       txType = "Token",
       tokenType = "LM",
       fromAddr = fromAccount,
-      toAddr = Some(Seq(account)),
+      toAddr = Some(Seq(fromAccount)),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
       eventTime = tx.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond,
       inputHashs = Some(tx.inputs.map(_.toUInt256Bytes.toBytes.toHex).toSeq),
-      outputVals = Some(Seq(account + "/" + tx.amount.toBigInt.toString())),
+      outputVals = Some(Seq(fromAccount + "/" + tx.amount.toBigInt.toString())),
       json = txJson,
     )
 
