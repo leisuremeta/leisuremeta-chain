@@ -9,7 +9,7 @@ object StateService:
   def getBlockStatesByNotBuildedOrderByEventTimeAsc[F[_]: Async]: EitherT[F, String, Seq[BlockStateEntity]] =
     StateRepository.getBlockStatesByNotBuildedOrderByEventTimeAsc
 
-  def getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
-    StateRepository.getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc(blockHash)
+  def getTxStatesByBlockOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
+    StateRepository.getTxStatesByBlockOrderByEventTimeAsc(blockHash)
 
 

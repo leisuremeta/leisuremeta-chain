@@ -247,17 +247,17 @@ object LmscanBatchMain extends IOApp:
           _ <- EitherT.right(Async[F].delay(scribe.info(s"blockstate upsertTransaction: $blockstate")))
           
           txs <- block.transactionHashes.toList.traverse { 
-            (hash: Hash.Value[Signed.Tx]) => getTransaciton[F](backend)(hash.toUInt256Bytes.toBytes.toHex)}
+            (hash: Hash.Value[Signed.Tx]) => getTransaciton[F](backend)(hash.toUInt256Bytes.toBytes.toHex) }
+
           _ <- txs.traverse {
             case Some((txResult, txJson)) => 
               for 
                 _ <- upsertTransaction[F, TxStateEntity](
                   query[TxStateEntity].insert(
-                    _.hash -> lift(txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex),
-                    _.eventTime -> lift(txResult.signedTx.value.createdAt.getEpochSecond()),
-                    _.blockHash -> lift(blockHash),
-                    _.json -> lift(txJson),
-                    _.isBuild -> lift(false)
+                      _.hash -> lift(txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex),
+                      _.eventTime -> lift(txResult.signedTx.value.createdAt.getEpochSecond()),
+                      _.blockHash -> lift(blockHash),
+                      _.json -> lift(txJson),
                     ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
                  _ <- EitherT.right(Async[F].delay(scribe.info(s"txJson: $txJson")))
               yield ()
@@ -267,6 +267,7 @@ object LmscanBatchMain extends IOApp:
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
           
           result2 <- if testCount < 10 then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
+          testCount = 0
         yield result2
         
       loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}.recover((errMsg: String) => {
@@ -280,7 +281,8 @@ object LmscanBatchMain extends IOApp:
     // isEqual  match
     //   case true =>
     def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Block] = 
-      
+      inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")  
+      inline given SchemaMeta[AccountEntity] = schemaMeta[AccountEntity]("account")  
       for 
         blockStates <- StateService.getBlockStatesByNotBuildedOrderByEventTimeAsc[F]
         // _ <- EitherT.right(Async[F].delay(scribe.info(s"getBlockStatesByNotBuildedOrderByEventTimeAsc: ${blockStates}")))
@@ -292,7 +294,7 @@ object LmscanBatchMain extends IOApp:
             block: Block <- EitherT.fromEither[F](blockEither).leftMap{ e => e.getMessage() }
             // _ <- EitherT.right(Async[F].delay(scribe.info(s"block: ${block}")))
             blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
-            txStates <- StateService.getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F](blockHash)
+            txStates <- StateService.getTxStatesByBlockOrderByEventTimeAsc[F](blockHash)
             txWithResults <- txStates.traverse { txState => EitherT.fromEither[F](decode[TransactionWithResult](txState.json)).leftMap{ e => e.getMessage() } }
             _ <- (txWithResults zip txStates.map(_.json)).traverse[EitherT[F, String, *], Unit] {
               case (txResult, txJson) =>
@@ -303,7 +305,7 @@ object LmscanBatchMain extends IOApp:
                   txEntityOpt: Option[TxEntity] <- txResult.signedTx.value match 
                     case tokenTx: Transaction.TokenTx => tokenTx match 
                       case nft: DefineToken => {
-                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                       }
                       case nft: MintNFT => {
                         val url = Uri.unsafeParse(nft.dataUrl.value)
@@ -312,7 +314,7 @@ object LmscanBatchMain extends IOApp:
                           case metaInfo: NftMetaInfo =>
                             println(s"metaInfo: ${metaInfo}")
                             upsertTransaction[F, NftTxEntity](
-                              query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                              query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                             )
                             upsertTransaction[F, NftFile](quote {
                               query[NftFile]
@@ -332,18 +334,18 @@ object LmscanBatchMain extends IOApp:
                                 )))
                                 .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
                             })
-                            EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                            EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                         }
                         txEntity.recover{(msg: String) => scribe.info(s"get error"); None}
                       }  
                       case nft: TransferNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
                         updateTransaction[F, NftFile](
                           query[NftFile].filter(n => n.tokenId == lift(nft.tokenId.utf8.value)).update(_.owner -> lift(nft.output.utf8.value))
                         )
-                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                       }
                       case nft: BurnNFT => {
                         val txHash = nft.input.toUInt256Bytes.toHex
@@ -354,9 +356,9 @@ object LmscanBatchMain extends IOApp:
                           yield nftEntityInDb.map {
                             prevNftEntity => 
                               upsertTransaction[F, NftTxEntity](
-                                query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, prevNftEntity.tokenId, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                                query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, prevNftEntity.tokenId, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                               )
-                              TxEntity.from(txHash, nft, prevNftEntity.tokenId, block, blockHash, txJson)
+                              TxEntity.from(txHash, nft, prevNftEntity.tokenId, block, blockHash, txJson, fromAccount)
                           }
                         newTxEntity.recover{(msg: String) =>
                           scribe.info(s"previous nft by txHash: ${txHash} entity doesn't exist in db")
@@ -365,15 +367,15 @@ object LmscanBatchMain extends IOApp:
                       }
                       case nft: EntrustNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
-                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                       }
                       case nft: DisposeEntrustedNFT => {
                         upsertTransaction[F, NftTxEntity](
-                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
+                          query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                         )
-                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                       }
                       
                       case tx: MintFungibleToken => {
@@ -387,7 +389,7 @@ object LmscanBatchMain extends IOApp:
                         updateTransaction[F, AccountEntity](
                           query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
                         )
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: TransferFungibleToken => {
                         var sum = 0l;
@@ -409,7 +411,7 @@ object LmscanBatchMain extends IOApp:
                         updateTransaction[F, AccountEntity](
                           query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(tx.amount.toBigInt.longValue)))
                         )
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson,  fromAccount)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: DisposeEntrustedFungibleToken => {
                         var sum = 0l;
@@ -435,30 +437,30 @@ object LmscanBatchMain extends IOApp:
                         upsertTransaction[F, AccountEntity](
                           query[AccountEntity].insertValue(lift(AccountEntity.from(tx))).onConflictUpdate(_.address)((t, e) => t.address -> e.address)
                         )
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: UpdateAccount => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: AddPublicKeySummaries => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                     case groupTx: Transaction.GroupTx => groupTx match
                       case tx: CreateGroup => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: AddAccounts => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                     case rewardTx: Transaction.RewardTx => rewardTx match
                       case tx: RegisterDao => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: UpdateDao => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: RecordActivity => {
-                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson)))
+                        EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       }
                       case tx: OfferReward => {
                         var sum = 0l;
