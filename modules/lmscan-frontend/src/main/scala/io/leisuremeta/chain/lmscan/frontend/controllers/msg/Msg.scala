@@ -4,18 +4,12 @@ import io.circe.Json
 
 sealed trait Msg
 
-// enum PageMsg extends Msg:
-//   case PreProcess(search: String)              extends PageMsg
-//   case DataProcess(data: String, page: String) extends PageMsg
-//   case PageUpdateProcess                       extends PageMsg
-//   case PostProcess                             extends PageMsg
-
-// enum NavMsg extends Msg:
-//   case DashBoard, Blocks, Transactions, NoPage
-//   case TransactionDetail(hash: String) extends NavMsg
-//   case BlockDetail(hash: String)       extends NavMsg
-//   case NftDetail(hash: String)         extends NavMsg
-//   case AccountDetail(hash: String)     extends NavMsg
+enum PageMsg extends Msg:
+  case PreUpdate(search: String) extends PageMsg
+  // case DataUpdateProcess(search: String)      extends PageMsg
+  case DataUpdate(data: String, page: String) extends PageMsg
+  case PageUpdate                             extends PageMsg
+  case PostUpdate                             extends PageMsg
 
 enum ToggleMsg extends Msg:
   case Click

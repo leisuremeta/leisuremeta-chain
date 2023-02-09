@@ -6,7 +6,7 @@ import Log.log
 object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
     // page handle
-    // case pageMsg: PageMsg => PageUpdate.update(model)(pageMsg)
+    case pageMsg: PageMsg => PageUpdate.update(model)(pageMsg)
 
     // component handle
     // case navMsg: NavMsg           => NavUpdate.update(model)(navMsg)

@@ -23,9 +23,14 @@
 // //   def fromHttpResponse: Decoder[Msg] =
 // //     Decoder[Msg](onResponse, onError)
 
-// // object OnPreProcess:
-// //   def effect(s: String) = Log.log(s)
-// // //   def parseSearch(search: String): Cmd[IO, Msg] =
-// // //     val url =
-// // //       s"http://localhost:8081/tx/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
-// //   Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)
+// object OnPreUpdate:
+//   def dataUpdateProcess(str: String): Cmd[IO, Msg] = (
+//     model.copy(prevPage = model.curPage, searchValueStore = search),
+//     // Cmd.Emit(PageMsg.ataUpdateProcess),
+//     OnPreUpdate.dataUpdateProcess(search),
+//   )
+//   def effect(s: String)              = Log.log(s)
+//   def parseSearch(search: String): Cmd[IO, Msg] =
+//     val url =
+//       s"http://localhost:8081/tx/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
+//   Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)
