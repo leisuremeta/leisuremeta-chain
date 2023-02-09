@@ -1,14 +1,14 @@
 package io.leisuremeta.chain.lib
 package crypto
 
+import java.math.BigInteger
 import java.security.{KeyPairGenerator, SecureRandom, Security}
 import java.security.spec.ECGenParameterSpec
-import java.math.BigInteger
 import java.util.Arrays
 
 import cats.Eq
-import cats.syntax.eq.given
 import cats.syntax.either.given
+import cats.syntax.eq.given
 
 import eu.timepit.refined.refineV
 import org.bouncycastle.asn1.x9.{X9ECParameters, X9IntegerConverter}
@@ -25,12 +25,12 @@ import org.bouncycastle.jcajce.provider.asymmetric.ec.{
 }
 import org.bouncycastle.jcajce.provider.digest.Keccak
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
 import org.bouncycastle.math.ec.{
   ECAlgorithms,
   ECPoint,
   FixedPointCombMultiplier,
 }
+import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve
 import shapeless3.typeable.syntax.typeable.cast
 
 import datatype.{UInt256, UInt256BigInt}

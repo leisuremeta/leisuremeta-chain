@@ -24,10 +24,10 @@ final case class Data(
 )
 
 final case class Currency(
-  `USD`: USDCu
+  `USD`: USDCurrency
 )
 
-final case class USDCu(
+final case class USDCurrency(
   price: Double,
   last_updated: String,
 )
