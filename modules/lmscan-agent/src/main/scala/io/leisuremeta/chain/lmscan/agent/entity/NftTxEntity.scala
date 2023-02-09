@@ -8,69 +8,67 @@ import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintNFT
 final case class NftTxEntity(
     tokenId: String,
     txHash: String,
-    // rarity: Option[String],
-    // owner: String,
     action: String,
-    fromAddr: Option[String],
+    fromAddr: String,
     toAddr: Option[String],
     eventTime: Long,
     createdAt: Long,
 )
 
 object NftTxEntity:
-  inline def from(nft: MintNFT, txHash: String) =
+  inline def from(nft: MintNFT, txHash: String, fromAccount: String) =
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
       txHash = txHash,
-      action = "TransferNFT",
-      fromAddr = None,
+      action = "MintNFT",
+      fromAddr = fromAccount,
       toAddr = Some(nft.output.utf8.value),
       eventTime = nft.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: TransferNFT, txHash: String) =
+  def from(nft: TransferNFT, txHash: String, fromAccount: String) =
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
       txHash = txHash,
       action = "TransferNFT",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = Some(nft.output.utf8.value),
       eventTime = nft.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: BurnNFT, tokenId: String, txHash: String) =
+  def from(nft: BurnNFT, tokenId: String, txHash: String, fromAccount: String) =
     NftTxEntity(
       tokenId = tokenId,
       txHash = txHash,
       action = "BurnNFT",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       eventTime = nft.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: EntrustNFT, txHash: String) =
+  def from(nft: EntrustNFT, txHash: String, fromAccount: String) =
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
       txHash = txHash,
       action = "EntrustNFT",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = Some(nft.to.utf8.value),
       eventTime = nft.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond(),
     )
 
-  def from(nft: DisposeEntrustedNFT, txHash: String) =
+  def from(nft: DisposeEntrustedNFT, txHash: String, fromAccount: String) =
     val toAccountOpt = nft.output match 
-        case Some(value) => Some(value.utf8.value)
-        case None =>  None
+      case Some(value) => Some(value.utf8.value)
+      case None =>  None
     NftTxEntity(
       tokenId = nft.tokenId.utf8.value,
       txHash = txHash,
       action = "DisposeEntrustedNFT",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = toAccountOpt,
       eventTime = nft.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond(),

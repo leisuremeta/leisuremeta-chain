@@ -5,5 +5,4 @@ final case class TxStateEntity(
   eventTime: Long,
   json: String,
   blockHash: String,
-  isBuild: Boolean, // default: false
 )

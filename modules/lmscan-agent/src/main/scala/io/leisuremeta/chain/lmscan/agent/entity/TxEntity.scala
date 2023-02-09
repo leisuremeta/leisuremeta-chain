@@ -15,7 +15,7 @@ final case class TxEntity(
   hash: String,
   txType: String, // col_name : type
   tokenType: String,
-  fromAddr: Option[String],
+  fromAddr: String,
   toAddr: Option[Seq[String]],
   blockHash: String,
   blockNumber: Long,
@@ -27,12 +27,12 @@ final case class TxEntity(
 ) 
 
 object TxEntity:
-  def from(txHash: String, nft: DefineToken, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, nft: DefineToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Token",
       tokenType = nft.definitionId.utf8.value,
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -43,12 +43,12 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, nft: MintNFT, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, nft: MintNFT, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       txHash,
       "Token",
       "NFT",
-      None,
+      fromAccount,
       Some(Seq(nft.output.utf8.value)),
       blockHash,
       block.header.number.toBigInt.longValue,
@@ -59,12 +59,12 @@ object TxEntity:
       txJson,
   )
 
-  def from(txHash: String, nft: TransferNFT, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, nft: TransferNFT, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       txHash,
       "Token",
       "NFT",
-      None,
+      fromAccount,
       Some(Seq(nft.output.utf8.value)),
       blockHash,
       block.header.number.toBigInt.longValue,
@@ -75,12 +75,12 @@ object TxEntity:
       txJson,
     )
 
-  def from(txHash: String, nft: BurnNFT, tokenId: String, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, nft: BurnNFT, tokenId: String, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       txHash,
       "Token",
       "NFT",
-      None,
+      fromAccount,
       None,
       blockHash,
       block.header.number.toBigInt.longValue,
@@ -91,12 +91,12 @@ object TxEntity:
       txJson,
     )
 
-  def from(txHash: String, nft: EntrustNFT, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, nft: EntrustNFT, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Token",
       tokenType = "NFT",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = Some(Seq(nft.to.utf8.value)),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -107,7 +107,7 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, nft: DisposeEntrustedNFT, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, nft: DisposeEntrustedNFT, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     val toAccount = nft.output match 
         case Some(value) => value.utf8.value
         case None =>  ""
@@ -119,7 +119,7 @@ object TxEntity:
       hash = txHash,
       txType = "Token",
       tokenType = "NFT",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = toAccountOpt,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -131,13 +131,13 @@ object TxEntity:
     )
   
   
-  def from(txHash: String, tx: CreateAccount, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: CreateAccount, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     val toAccount = tx.account.utf8.value
     TxEntity(
       hash = txHash,
       txType = "Account",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -148,13 +148,13 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: UpdateAccount, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: UpdateAccount, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     val toAccount = tx.account.utf8.value
     TxEntity(
       hash = txHash,
       txType = "Account",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -165,13 +165,13 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: AddPublicKeySummaries, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: AddPublicKeySummaries, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     val toAccount = tx.account.utf8.value
     TxEntity(
       hash = txHash,
       txType = "Account",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -182,13 +182,13 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: CreateGroup, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: CreateGroup, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
 
     TxEntity(
       hash = txHash,
       txType = "Group",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -199,12 +199,12 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: AddAccounts, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: AddAccounts, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Group",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -215,12 +215,12 @@ object TxEntity:
       json = txJson,
     )
   
-  def from(txHash: String, tx: RegisterDao, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: RegisterDao, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Reward",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -233,12 +233,12 @@ object TxEntity:
    
 
   
-  def from(txHash: String, tx: UpdateDao, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: UpdateDao, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Reward",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -249,12 +249,12 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: RecordActivity, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: RecordActivity, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Reward",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -265,12 +265,12 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: MintFungibleToken, block: Block, blockHash: String, txJson: String): TxEntity =
+  def from(txHash: String, tx: MintFungibleToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = None,
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -281,12 +281,12 @@ object TxEntity:
       json = txJson,
     )
 
-  def from(txHash: String, tx: BurnFungibleToken, block: Block, blockHash: String, txJson: String, account: String): TxEntity =
+  def from(txHash: String, tx: BurnFungibleToken, block: Block, blockHash: String, txJson: String, fromAccount: String): TxEntity =
     TxEntity(
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = None,
+      fromAddr = fromAccount,
       toAddr = Some(Seq(account)),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -306,7 +306,7 @@ object TxEntity:
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = Some(fromAccount),
+      fromAddr = fromAccount,
       toAddr = Some(toAccounts),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -322,7 +322,7 @@ object TxEntity:
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = Some(fromAccount),
+      fromAddr = fromAccount,
       toAddr = Some(Seq(tx.to.utf8.value)),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -342,7 +342,7 @@ object TxEntity:
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = Some(fromAccount),
+      fromAddr = fromAccount,
       toAddr = Some(toAccounts),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -365,7 +365,7 @@ object TxEntity:
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = Some(fromAccount),
+      fromAddr = fromAccount,
       toAddr = Some(toAccounts),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
@@ -387,7 +387,7 @@ object TxEntity:
       hash = txHash,
       txType = "Token",
       tokenType = "LM",
-      fromAddr = Some(fromAccount),
+      fromAddr = fromAccount,
       toAddr = Some(toAccounts),
       blockHash = blockHash,
       blockNumber = block.header.number.toBigInt.longValue,
