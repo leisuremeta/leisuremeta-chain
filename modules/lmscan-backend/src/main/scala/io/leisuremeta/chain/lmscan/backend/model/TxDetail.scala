@@ -6,8 +6,8 @@ final case class TxDetail(
     signer: String,
     txType: String,
     tokenType: String,
-    inputHashs: Seq[String],
-    transferHist: Seq[TransferHist],
+    inputHashs: Option[Seq[String]],
+    transferHist: Option[Seq[TransferHist]],
     json: String,
 )
 

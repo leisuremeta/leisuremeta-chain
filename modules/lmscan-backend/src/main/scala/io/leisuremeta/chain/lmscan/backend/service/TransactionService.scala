@@ -31,6 +31,17 @@ object TransactionService:
     for
       trx <- TransactionRepository.get(hash)
       detail = trx.map { tx =>
+        val outputValsOpt: Option[Seq[TransferHist]] = tx.outputVals match 
+          case Some(outputValSeq) => 
+            Some(outputValSeq.map {
+              (outputVal: String) =>
+                val items = outputVal.split("/")
+                TransferHist(
+                  items(0),
+                  items(1),
+                )
+            })
+          case None => None
         TxDetail(
           tx.hash,
           tx.createdAt,
@@ -38,13 +49,7 @@ object TransactionService:
           tx.txType,
           tx.tokenType,
           tx.inputHashs,
-          tx.outputVals.map { (ftv: String) =>
-            val items = ftv.split("/")
-            TransferHist(
-              items(0),
-              items(1),
-            )
-          },
+          outputValsOpt,
           tx.json,
         )
       }
@@ -96,8 +101,8 @@ object TransactionService:
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     println(s"555")
     txs.map { tx =>
-      val latestOutVal = tx.outputVals.headOption match
-        case Some(str) => str.split("/")
+      val latestOutVal = tx.outputVals match 
+        case Some(seq) => seq.map(_.split("/")).headOption.getOrElse(Array[String]("", ""))
         case None      => Array[String]("", "")
       TxInfo(
         tx.hash,
