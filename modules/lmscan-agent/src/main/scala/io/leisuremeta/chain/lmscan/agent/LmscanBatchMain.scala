@@ -458,10 +458,13 @@ object LmscanBatchMain extends IOApp:
                       
                   _ <- txEntityOpt match  
                     case Some(value) => {
-                      upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-                      upsertTransaction[F, BlockEntity](
-                        quote { query[BlockEntity].insertValue(lift(BlockEntity.from(block, blockHash))).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash) })
-                      updateTransaction[F, BlockStateEntity](quote { query[BlockStateEntity].filter(b => b.hash == lift(blockHash)).update(_.isBuild -> lift(true)) })
+                      for 
+                        _ <- EitherT.right(Async[F].delay(scribe.info(s"update block transaction")))
+                        _ <- upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
+                        _ <- upsertTransaction[F, BlockEntity](
+                          quote { query[BlockEntity].insertValue(lift(BlockEntity.from(block, blockHash))).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash) })
+                        _ <- updateTransaction[F, BlockStateEntity](quote { query[BlockStateEntity].filter(b => b.hash == lift(blockHash)).update(_.isBuild -> lift(true)) })
+                      yield ()
                     }
                     case None => EitherT.pure[F, String](0L)
                 yield txEntityOpt
@@ -508,9 +511,9 @@ object LmscanBatchMain extends IOApp:
             }
             _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
 
-            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
+            // lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
 
-            _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
+            // _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
 
             currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
 
