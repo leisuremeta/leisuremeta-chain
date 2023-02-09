@@ -262,7 +262,7 @@ object LmscanBatchMain extends IOApp:
     
     // isEqual  match
     //   case true =>
-    def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Block] = 
+    def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Option[Block]] = 
       inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")  
       inline given SchemaMeta[AccountEntity] = schemaMeta[AccountEntity]("account")  
       inline given SchemaMeta[BlockEntity] = schemaMeta[BlockEntity]("block")  
@@ -471,7 +471,8 @@ object LmscanBatchMain extends IOApp:
           yield ()
         }
         blockWithJson <- blockWithJsonEither.traverse{ EitherT.fromEither(_) }.leftMap(e => e.getMessage())
-      yield blockWithJson.last
+      yield if blockWithJson.isEmpty then None else Some(blockWithJson.last)
+
 
     // isEqual  match
     //   case true =>
@@ -511,9 +512,12 @@ object LmscanBatchMain extends IOApp:
 
             _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
 
-            currLastSavedBlock <- buildSavedStateLoop[F](backend)
+            currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
 
-            _ <- saveLastSavedBlockLog[F]((currLastSavedBlock))
+            _ <- currLastSavedBlockOpt match
+              case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
+              case None => EitherT.pure(0L)
+
           yield ()
         }
             
