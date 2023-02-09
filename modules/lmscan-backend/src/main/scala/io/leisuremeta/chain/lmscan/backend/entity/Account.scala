@@ -4,5 +4,6 @@ final case class Account(
     address: String,
     balance: Double,
     amount: Double,
+    eventTime: Long,
     createdAt: Long,
 )
