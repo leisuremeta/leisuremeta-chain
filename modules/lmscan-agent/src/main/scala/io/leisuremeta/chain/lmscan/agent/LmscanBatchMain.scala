@@ -609,7 +609,7 @@ object LmscanBatchMain extends IOApp:
         
         _ <- (coinMarket, lastSavedBlockOpt) match { 
           case (Some(data), Some(lastSavedBlock)) => 
-            val lmPrice = data.quote
+            val lmPrice = data.quote.USD
             for 
               txCountInLatest24h <- TxService.countInLatest24h[F]
               totalAccountCnt <- AccountService.totalCount[F]
@@ -639,8 +639,8 @@ object LmscanBatchMain extends IOApp:
           // _ <- Async[IO].racePair(blockCheckLoop(backend))
           
           _ <- List(
-            blockCheckLoop(backend), 
-            // summaryLoop(backend)
+            // blockCheckLoop(backend), 
+            summaryLoop(backend)
           ).parSequence
         yield ()
         program.value
