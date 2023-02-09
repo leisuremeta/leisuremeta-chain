@@ -18,9 +18,9 @@ object StateRepository:
       quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.eventTime)(Ord.asc) }
     seqQuery(q)
 
-  def getTxStatesByBlockAndNotBuildedOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
+  def getTxStatesByBlockOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
     inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
     inline def q =
-      quote { query[TxStateEntity].filter(b => (b.blockHash == lift(blockHash) && !b.isBuild)).sortBy(t => t.eventTime)(Ord.asc) }
+      quote { query[TxStateEntity].filter(b => (b.blockHash == lift(blockHash))).sortBy(t => t.eventTime)(Ord.asc) }
     seqQuery(q)
 
