@@ -5,8 +5,8 @@ import io.circe.Json
 // import cats.effect.IO
 final case class Model(
     // nav move
-    prevPage: NavMsg,
-    curPage: NavMsg,
+    prevPage: PageName,
+    curPage: PageName,
 
     // input search string
     searchValue: String,

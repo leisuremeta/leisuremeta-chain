@@ -11,14 +11,18 @@ import Log.*
 object Row:
   def title = (model: Model) =>
     div(
-      `class` := s"${State.curPage(model, NavMsg.DashBoard: Msg, "_table-title")} table-title ",
+      `class` := s"${State.curPage(model, PageName.DashBoard, "_table-title")} table-title ",
     )(
       div(
         `class` := s"type-1",
       )(span()("Latest Blocks")),
       div(
         `class` := s"type-2",
-      )(span(onClick(NavMsg.Blocks))("More")),
+      )(
+        span(
+          // onClick(PageName.Blocks)
+        )("More"),
+      ),
     )
 
   val head = div(`class` := "row table-head")(
@@ -33,13 +37,32 @@ object Row:
       .map(each =>
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
-            span(onClick(NavMsg.BlockDetail(CommonFunc.getOptionValue(each.hash, "-").toString())))(
-              CommonFunc.getOptionValue(each.hash, "-").toString().take(10) + "...",
+            span(
+              // onClick(
+              //   NavMsg.BlockDetail(
+              //     CommonFunc.getOptionValue(each.hash, "-").toString(),
+              //   ),
+              // ),
+            )(
+              CommonFunc
+                .getOptionValue(each.hash, "-")
+                .toString()
+                .take(10) + "...",
             ),
           ),
-          div(`class` := "cell")(span()(timeAgo(CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int]))),
-          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.number, "-").toString())),
-          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.txCount, "-").toString())),
+          div(`class` := "cell")(
+            span()(
+              timeAgo(
+                CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+              ),
+            ),
+          ),
+          div(`class` := "cell")(
+            span()(CommonFunc.getOptionValue(each.number, "-").toString()),
+          ),
+          div(`class` := "cell")(
+            span()(CommonFunc.getOptionValue(each.txCount, "-").toString()),
+          ),
         ),
       )
 
@@ -49,13 +72,15 @@ object Row:
     )
 
   val table = (model: Model) =>
-    val data: BlockList = BlockParser.decodeParser(model.blockListData.get).getOrElse(new BlockList)      
-    val payload = CommonFunc.getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
-    Row.genTable(payload)      
+    val data: BlockList =
+      BlockParser.decodeParser(model.blockListData.get).getOrElse(new BlockList)
+    val payload =
+      CommonFunc.getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
+    Row.genTable(payload)
 
   val search = (model: Model) =>
     div(
-      `class` := s"${State.curPage(model, NavMsg.DashBoard, "_search")} table-search xy-center ",
+      `class` := s"${State.curPage(model, PageName.DashBoard, "_search")} table-search xy-center ",
     )(
       div(`class` := "xy-center")(
         div(
@@ -76,11 +101,11 @@ object Row:
         div(`class` := "type-plain-text")(model.block_TotalPage.toString()),
         div(
           `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
-          onClick(PageMoveMsg.Next),
+          // onClick(PageMoveMsg.Next),
         )(">"),
         div(
           `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
-          onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
+          // onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
         )(">>"),
       ),
     )

@@ -6,7 +6,7 @@ object Tables:
   def render(model: Model): Html[Msg] =
     model.curPage match
 
-      case NavMsg.DashBoard =>
+      case PageName.DashBoard =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             BlockTable.view(model),
@@ -14,7 +14,7 @@ object Tables:
           ),
         )
 
-      case NavMsg.Blocks =>
+      case PageName.Blocks =>
         div(`class` := "table-area")(
           div(`class` := "font-40px pt-16px font-block-detail")(
             "Blocks",
@@ -24,14 +24,14 @@ object Tables:
           ),
         )
 
-      case NavMsg.BlockDetail(_) =>
+      case PageName.BlockDetail(_) =>
         div(`class` := "table-area ")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             TransactionTable.view(model),
           ),
         )
 
-      case NavMsg.Transactions =>
+      case PageName.Transactions =>
         div(`class` := "table-area")(
           div(`class` := "font-40px pt-16px font-block-detail")(
             "Transactions",
@@ -41,19 +41,19 @@ object Tables:
           ),
         )
 
-      case NavMsg.TransactionDetail(_) =>
+      case PageName.TransactionDetail(_) =>
         TransactionDetailView.view(model)
 
-      case NavMsg.NoPage =>
+      case PageName.NoPage =>
         NoPageView.view(model)
 
-      case NavMsg.AccountDetail(_) =>
+      case PageName.AccountDetail(_) =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             TransactionTable.view(model),
           ),
         )
-      case NavMsg.NftDetail(_) =>
+      case PageName.NftDetail(_) =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(
             NftTable.view(model),

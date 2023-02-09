@@ -24,4 +24,4 @@ object TxUpdate:
         Cmd.None,
       )
     case TxMsg.GetError(_) =>
-      (model.copy(curPage = NavMsg.NoPage), Cmd.None)
+      (model.copy(curPage = PageName.NoPage), Cmd.None)

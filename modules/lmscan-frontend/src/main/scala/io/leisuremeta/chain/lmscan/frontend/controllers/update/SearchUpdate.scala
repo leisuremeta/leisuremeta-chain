@@ -51,7 +51,7 @@ object SearchUpdate:
               (
                 model.copy(
                   searchValue = "",
-                  curPage = NavMsg.DashBoard,
+                  curPage = PageName.DashBoard,
                   prevPage = model.curPage,
                 ),
                 Cmd.None,
@@ -60,7 +60,7 @@ object SearchUpdate:
               (
                 model.copy(
                   searchValue = "",
-                  curPage = NavMsg.Blocks,
+                  curPage = PageName.Blocks,
                   prevPage = model.curPage,
                 ),
                 Cmd.None,
@@ -69,7 +69,7 @@ object SearchUpdate:
               (
                 model.copy(
                   searchValue = "",
-                  curPage = NavMsg.Transactions,
+                  curPage = PageName.Transactions,
                   prevPage = model.curPage,
                 ),
                 Cmd.None,
@@ -78,11 +78,11 @@ object SearchUpdate:
               (
                 model.copy(
                   searchValue = "",
-                  curPage = NavMsg.NoPage,
+                  curPage = PageName.NoPage,
                   prevPage = model.curPage match
                     // noPage 일때는, 이전페이지를 변경하지 않는다.
-                    case NavMsg.NoPage => model.prevPage
-                    case _             => model.curPage,
+                    case PageName.NoPage => model.prevPage
+                    case _               => model.curPage,
                 ),
                 Cmd.None,
               )
@@ -90,11 +90,11 @@ object SearchUpdate:
           (
             model.copy(
               searchValue = "",
-              curPage = NavMsg.NoPage,
+              curPage = PageName.NoPage,
               prevPage = model.curPage match
                 // noPage 일때는, 이전페이지를 변경하지 않는다.
-                case NavMsg.NoPage => model.prevPage
-                case _             => model.curPage,
+                case PageName.NoPage => model.prevPage
+                case _               => model.curPage,
             ),
             Cmd.None,
           )

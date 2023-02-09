@@ -33,13 +33,26 @@ object Row3:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.txHash, "-").toString())),
-            )(CommonFunc.getOptionValue(each.txHash, "-").toString().take(10) + "..."),
+              // onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.txHash, "-").toString())),
+            )(
+              CommonFunc
+                .getOptionValue(each.txHash, "-")
+                .toString()
+                .take(10) + "...",
+            ),
           ),
-          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.createdAt, "-").toString())),
-          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.action, "-").toString())),
-          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.fromAddr, "-").toString())),
-          div(`class` := "cell")(span()(CommonFunc.getOptionValue(each.toAddr, "-").toString())),
+          div(`class` := "cell")(
+            span()(CommonFunc.getOptionValue(each.createdAt, "-").toString()),
+          ),
+          div(`class` := "cell")(
+            span()(CommonFunc.getOptionValue(each.action, "-").toString()),
+          ),
+          div(`class` := "cell")(
+            span()(CommonFunc.getOptionValue(each.fromAddr, "-").toString()),
+          ),
+          div(`class` := "cell")(
+            span()(CommonFunc.getOptionValue(each.toAddr, "-").toString()),
+          ),
         ),
       )
 
@@ -56,8 +69,12 @@ object Row3:
         )
 
   val table = (model: Model) =>
-    val data: NftDetail = NftDetailParser.decodeParser(model.nftDetailData.get).getOrElse(new NftDetail)      
-    val activities = CommonFunc.getOptionValue(data.activities, List()).asInstanceOf[List[NftActivities]]
+    val data: NftDetail = NftDetailParser
+      .decodeParser(model.nftDetailData.get)
+      .getOrElse(new NftDetail)
+    val activities = CommonFunc
+      .getOptionValue(data.activities, List())
+      .asInstanceOf[List[NftActivities]]
     Row3.genTable(activities, model)
 
 object NftTable:

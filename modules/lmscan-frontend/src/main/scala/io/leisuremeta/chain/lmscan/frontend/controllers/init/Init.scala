@@ -3,7 +3,7 @@ import tyrian.*
 import cats.effect.IO
 
 object Init:
-  val page              = NavMsg.DashBoard
+  val page              = PageName.DashBoard
   val toggle            = true
   val toggleTxDetailInput = true
   val tx_CurrentPage    = 1

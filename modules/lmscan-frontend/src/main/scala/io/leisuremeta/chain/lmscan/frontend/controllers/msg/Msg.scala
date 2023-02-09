@@ -2,27 +2,20 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import io.circe.Json
 
-enum PageName:
-  case DashBoard, Blocks, Transactions, NoPage
-  case TransactionDetail(hash: String) extends PageName
-  case BlockDetail(hash: String)       extends PageName
-  case NftDetail(hash: String)         extends PageName
-  case AccountDetail(hash: String)     extends PageName
-
 sealed trait Msg
 
-enum PageMsg extends Msg:
-  case PreProcess(search: String)              extends PageMsg
-  case DataProcess(data: String, page: String) extends PageMsg
-  case PageUpdateProcess                       extends PageMsg
-  case PostProcess                             extends PageMsg
+// enum PageMsg extends Msg:
+//   case PreProcess(search: String)              extends PageMsg
+//   case DataProcess(data: String, page: String) extends PageMsg
+//   case PageUpdateProcess                       extends PageMsg
+//   case PostProcess                             extends PageMsg
 
-enum NavMsg extends Msg:
-  case DashBoard, Blocks, Transactions, NoPage
-  case TransactionDetail(hash: String) extends NavMsg
-  case BlockDetail(hash: String)       extends NavMsg
-  case NftDetail(hash: String)         extends NavMsg
-  case AccountDetail(hash: String)     extends NavMsg
+// enum NavMsg extends Msg:
+//   case DashBoard, Blocks, Transactions, NoPage
+//   case TransactionDetail(hash: String) extends NavMsg
+//   case BlockDetail(hash: String)       extends NavMsg
+//   case NftDetail(hash: String)         extends NavMsg
+//   case AccountDetail(hash: String)     extends NavMsg
 
 enum ToggleMsg extends Msg:
   case Click

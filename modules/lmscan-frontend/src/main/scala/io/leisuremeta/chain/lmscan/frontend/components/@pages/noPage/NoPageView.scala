@@ -13,9 +13,9 @@ object NoPageView:
         div(`class` := "cell type-button")(
           span(
             `class` := "font-20px",
-            onClick({
-              model.prevPage
-            }),
+            // onClick({
+            //   model.prevPage
+            // }),
           )(
             "Back to Previous Page",
           ),

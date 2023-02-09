@@ -18,14 +18,14 @@ object TxDetailUpdate:
       (
         model.copy(
           txDetailData = Some(data),
-          curPage = NavMsg.TransactionDetail(model.searchValue),
+          curPage = PageName.TransactionDetail(model.searchValue),
           searchValue = "",
         ),
         Cmd.None,
       )
     case TxDetailMsg.GetError(msg) =>
       log(msg)
-      (model.copy(curPage = NavMsg.NoPage), Cmd.None)
+      (model.copy(curPage = PageName.NoPage), Cmd.None)
 
     case TxDetailMsg.Get_64Handle_ToBlockDetail(msg) =>
       log(msg)
@@ -37,7 +37,7 @@ object TxDetailUpdate:
       (
         model.copy(
           txDetailData = Some(data),
-          curPage = NavMsg.TransactionDetail(model.searchValue),
+          curPage = PageName.TransactionDetail(model.searchValue),
           searchValue = "",
         ),
         Cmd.None,

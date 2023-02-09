@@ -7,20 +7,20 @@ import tyrian.*
 
 object NavView:
   val DashBoardPageList = List(
-    NavMsg.DashBoard.toString(),
+    PageName.DashBoard.toString(),
   )
 
   val BlockPageList =
     List(
-      NavMsg.Blocks.toString(),
-      NavMsg.BlockDetail.toString(),
+      PageName.Blocks.toString(),
+      PageName.BlockDetail.toString(),
     )
 
   val TransactionPageList = List(
-    NavMsg.Transactions.toString(),
-    NavMsg.TransactionDetail.toString(),
-    NavMsg.AccountDetail.toString(),
-    NavMsg.NftDetail.toString(),
+    PageName.Transactions.toString(),
+    PageName.TransactionDetail.toString(),
+    PageName.AccountDetail.toString(),
+    PageName.NftDetail.toString(),
   )
 
   def isCurPageisDashBoard = (model: Model) =>
@@ -37,19 +37,19 @@ object NavView:
       .contains(model.curPage.toString().take(5)) // TODO :: A
 
   def isPrevPageisDashBoard = (model: Model) =>
-    model.curPage == NavMsg.NoPage && DashBoardPageList.contains(
+    model.curPage == PageName.NoPage && DashBoardPageList.contains(
       model.prevPage.toString(),
     )
 
   def isPrevPageisBlock = (model: Model) =>
-    model.curPage == NavMsg.NoPage && BlockPageList
+    model.curPage == PageName.NoPage && BlockPageList
       .reduce((a, b) => a + b)
       .contains(
         model.prevPage.toString().take(5), // TODO :: A
       )
 
   def isPrevPageisTransaction = (model: Model) =>
-    model.curPage == NavMsg.NoPage && TransactionPageList
+    model.curPage == PageName.NoPage && TransactionPageList
       .reduce((a, b) => a + b)
       .contains(
         model.prevPage.toString().take(5), // TODO :: A
@@ -62,15 +62,15 @@ object NavView:
       )(
         button(
           `class` := s"${isCurPageisDashBoard(model) || isPrevPageisDashBoard(model)}",
-          onClick(NavMsg.DashBoard),
-        )(NavMsg.DashBoard.toString()),
+          // onClick(PageName.DashBoard),
+        )(PageName.DashBoard.toString()),
         button(
           `class` := s"${isCurPageisBlock(model) || isPrevPageisBlock(model)}",
-          onClick(NavMsg.Blocks),
-        )(NavMsg.Blocks.toString()),
+          // onClick(PageName.Blocks),
+        )(PageName.Blocks.toString()),
         button(
           `class` := s"${isCurPageisTransaction(model) || isPrevPageisTransaction(model)}",
-          onClick(NavMsg.Transactions),
-        )(NavMsg.Transactions.toString()),
+          // onClick(PageName.Transactions),
+        )(PageName.Transactions.toString()),
       ),
     )

@@ -7,13 +7,13 @@ import _root_.io.circe.Decoder.state
 object DetailTables:
   def render(model: Model): Html[Msg] =
     model.curPage match
-      case NavMsg.BlockDetail(_) =>
+      case PageName.BlockDetail(_) =>
         BlockDetailTable.view(model)
-      case NavMsg.TransactionDetail(_) =>
+      case PageName.TransactionDetail(_) =>
         TxDetailTable.view(model)
-      case NavMsg.AccountDetail(_) =>
+      case PageName.AccountDetail(_) =>
         AccountDetailTable.view(model)
-      case NavMsg.NftDetail(_) =>
+      case PageName.NftDetail(_) =>
         NftDetailTable.view(model)
 
       case _ =>

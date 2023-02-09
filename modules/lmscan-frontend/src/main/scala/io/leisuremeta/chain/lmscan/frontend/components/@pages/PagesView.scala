@@ -5,21 +5,21 @@ import tyrian.*
 object Pages:
   def render(model: Model): Html[Msg] =
     model.curPage match
-      case NavMsg.DashBoard =>
+      case PageName.DashBoard =>
         DashboardView.view(model)
-      case NavMsg.Blocks =>
+      case PageName.Blocks =>
         BlocksView.view(model)
-      case NavMsg.BlockDetail(_) =>
+      case PageName.BlockDetail(_) =>
         BlockDetailView.view(model)
-      case NavMsg.Transactions =>
+      case PageName.Transactions =>
         TransactionsView.view(model)
-      case NavMsg.TransactionDetail(_) =>
+      case PageName.TransactionDetail(_) =>
         TransactionDetailView.view(model)
-      case NavMsg.NoPage =>
+      case PageName.NoPage =>
         NoPageView.view(model)
-      case NavMsg.AccountDetail(_) =>
+      case PageName.AccountDetail(_) =>
         AccountView.view(model)
-      case NavMsg.NftDetail(_) =>
+      case PageName.NftDetail(_) =>
         NftView.view(model)
 
 object PagesView:

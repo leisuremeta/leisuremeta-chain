@@ -18,10 +18,10 @@ object BlockDetailUpdate:
       (
         model.copy(
           blockDetailData = Some(data),
-          curPage = NavMsg.BlockDetail(model.searchValue),
+          curPage = PageName.BlockDetail(model.searchValue),
           searchValue = "",
         ),
         Cmd.None,
       )
     case BlockDetailMsg.GetError(_) =>
-      (model.copy(curPage = NavMsg.NoPage, searchValue = ""), Cmd.None)
+      (model.copy(curPage = PageName.NoPage, searchValue = ""), Cmd.None)

@@ -18,11 +18,11 @@ object NftDetailUpdate:
       (
         model.copy(
           nftDetailData = Some(data),
-          curPage = NavMsg.NftDetail(model.searchValue),
+          curPage = PageName.NftDetail(model.searchValue),
           searchValue = "",
         ),
         Cmd.None,
       )
     case NftDetailMsg.GetError(msg) =>
       log(msg)
-      (model.copy(curPage = NavMsg.NoPage, searchValue = ""), Cmd.None)
+      (model.copy(curPage = PageName.NoPage, searchValue = ""), Cmd.None)

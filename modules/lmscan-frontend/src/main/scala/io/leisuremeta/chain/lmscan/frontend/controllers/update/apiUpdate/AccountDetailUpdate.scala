@@ -24,4 +24,4 @@ object AccountDetailUpdate:
         Cmd.None,
       )
     case AccountDetailMsg.GetError(_) =>
-      (model.copy(curPage = NavMsg.NoPage, searchValue = ""), Cmd.None)
+      (model.copy(curPage = PageName.NoPage, searchValue = ""), Cmd.None)
