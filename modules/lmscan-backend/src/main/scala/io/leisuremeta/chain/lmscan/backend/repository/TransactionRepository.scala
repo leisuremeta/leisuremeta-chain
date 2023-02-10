@@ -84,8 +84,7 @@ object TransactionRepository extends CommonQuery:
 
         query[Tx]
           .filter(t =>
-            // t.toAddr.contains(lift(addr)
-            t.fromAddr == lift(addr) || (!t.toAddr.isEmpty && t.toAddr.contains(lift(addr))) ,
+            t.fromAddr == lift(addr) || t.toAddr.contains(lift(addr)),
           )
           .sortBy(t => t.eventTime)(Ord.desc)
           .drop(offset)

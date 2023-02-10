@@ -5,8 +5,8 @@ import io.leisuremeta.chain.lmscan.backend.model.TxInfo
 
 final case class AccountDetail(
     address: String,
-    balance: Long,
-    value: Long,
+    balance: BigInt,
+    value: BigInt,
     txHistory: Seq[TxInfo],
 ):
   def this(acc: Account, txHist: Seq[TxInfo]) =
