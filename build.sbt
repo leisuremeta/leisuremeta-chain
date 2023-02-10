@@ -18,7 +18,7 @@ val V = new {
 
   val okhttp3LoggingInterceptor = "4.10.0"
 
-  val web3J = "5.0.0"
+  val web3J = "4.9.6"
 
   val scribe          = "3.10.5"
   val hedgehog        = "0.10.1"
@@ -70,6 +70,7 @@ val Dependencies = new {
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
       "org.web3j"    % "core"         % V.web3J,
+      "org.web3j"    % "contracts"    % V.web3J,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
       "com.github.jasync-sql" % "jasync-mysql" % V.jasync,
     ),

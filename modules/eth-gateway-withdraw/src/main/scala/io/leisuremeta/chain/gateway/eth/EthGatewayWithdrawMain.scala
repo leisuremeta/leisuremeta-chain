@@ -3,31 +3,35 @@ package gateway.eth
 
 import java.math.BigInteger
 import java.nio.file.{Files, Paths, StandardOpenOption}
-import java.util.{Arrays, ArrayList, Collections}
 import java.time.Instant
-import scala.jdk.OptionConverters.*
+import java.util.{ArrayList, Arrays, Collections}
+
 import scala.concurrent.duration.*
+import scala.jdk.OptionConverters.*
 import scala.util.Try
 
+import cats.data.OptionT
 import cats.effect.{ExitCode, IO, IOApp, Resource}
-import cats.syntax.applicativeError.*
 import cats.syntax.eq.*
 import cats.syntax.traverse.*
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.Encoder
-import io.circe.syntax.given
 import io.circe.generic.auto.*
 import io.circe.parser.decode
+import io.circe.syntax.given
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.web3j.abi.{FunctionEncoder, TypeReference}
 import org.web3j.abi.datatypes.{Address, Function, Type}
 import org.web3j.abi.datatypes.generated.Uint256
+import org.web3j.contracts.eip721.generated.ERC721
 import org.web3j.crypto.{Credentials, RawTransaction, TransactionEncoder}
 import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.DefaultBlockParameterName
-import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.protocol.http.HttpService
-import org.web3j.utils.Numeric
+import org.web3j.tx.RawTransactionManager
+import org.web3j.tx.gas.{DefaultGasProvider, StaticGasProvider}
+import org.web3j.tx.response.PollingTransactionReceiptProcessor
 import sttp.client3.*
 import sttp.model.{MediaType, StatusCode}
 
@@ -38,9 +42,6 @@ import lib.datatype.*
 import api.model.*
 import api.model.api_model.{AccountInfo, BalanceInfo, NftBalanceInfo}
 import api.model.token.*
-import api.model.TransactionWithResult.ops.*
-import okhttp3.logging.HttpLoggingInterceptor
-import okhttp3.OkHttpClient
 
 object EthGatewayWithdrawMain extends IOApp:
 
@@ -84,168 +85,32 @@ object EthGatewayWithdrawMain extends IOApp:
 
     val client = OkHttpClient
       .Builder()
-      //     .addInterceptor(interceptor)
+      .addInterceptor(interceptor)
       .build()
 
     IO(Web3j.build(new HttpService(url, client)))
   }(web3j => IO(web3j.shutdown()))
-
-  def logSentWithdrawal(
-      withdrawals: Seq[(Account, BigNat, Signed.TxHash)],
-  ): IO[Unit] = IO.blocking {
-    val path = Paths.get("sent-withdrawals.logs")
-    val jsons =
-      withdrawals.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
-    Files.write(
-      path,
-      jsons.getBytes,
-      StandardOpenOption.CREATE,
-      StandardOpenOption.WRITE,
-      StandardOpenOption.APPEND,
-    )
-  }
-
-  def getLatestTransactionCount(web3j: Web3j, address: String): IO[BigInt] =
-    IO.fromCompletableFuture(IO {
-      web3j
-        .ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
-        .sendAsync
-    }).map(_.getTransactionCount)
-      .map(BigInt(_))
-
-  def getTransactionReceipt(
-      web3j: Web3j,
-      txHash: String,
-  ): IO[Option[TransactionReceipt]] =
-    IO.fromCompletableFuture(IO {
-      web3j
-        .ethGetTransactionReceipt(txHash)
-        .sendAsync
-    }).map(_.getTransactionReceipt)
-      .map(_.toScala)
-
-  def transferToken(
-      web3j: Web3j,
-      ethChainId: Int,
-      privateKey: String,
-      contractAddress: String,
-      toAddress: String,
-      amount: BigInt,
-  ): IO[TransactionReceipt] =
-
-    scribe.info(
-      s"transferToken: $contractAddress, $toAddress, $amount",
-    )
-
-    val TX_END_CHECK_DURATION = 20000
-    val TX_END_CHECK_RETRY    = 9
-
-    val credential = Credentials.create(privateKey)
-
-    val params = new ArrayList[Type[?]]()
-    params.add(new Address(toAddress))
-    params.add(new Uint256(amount.bigInteger))
-
-    val returnTypes = Collections.emptyList[TypeReference[?]]()
-
-    val function = new Function(
-      "transfer",
-      params,
-      returnTypes,
-    )
-
-    val txData = FunctionEncoder.encode(function)
-
-    scribe.debug(s"txData: $txData")
-
-    def ethSendTransaction(lastTxCount: BigInt, gasPrice: BigInt): IO[String] =
-      val tx = RawTransaction.createTransaction(
-        (lastTxCount + 1).bigInteger,
-        gasPrice.bigInteger,
-        BigInt(1000000).bigInteger,
-        credential.getAddress,
-        txData,
-      )
-      val signedTx = TransactionEncoder.signMessage(tx, ethChainId, credential)
-      val txHexString = Numeric.toHexString(signedTx)
-
-      IO.fromCompletableFuture(IO {
-        web3j.ethSendRawTransaction(txHexString).sendAsync
-      }).map(_.getTransactionHash)
-
-    def waitAndGetTransactionReceipt(
-        txHash: String,
-        count: Int,
-    ): IO[Option[TransactionReceipt]] =
-      for
-        _ <- IO.sleep(TX_END_CHECK_DURATION.millis)
-        ethReceiptOption <- IO.fromCompletableFuture(IO {
-          web3j.ethGetTransactionReceipt(txHash).sendAsync
-        })
-        receiptOption = ethReceiptOption.getTransactionReceipt.toScala
-        receiptOption1 <-
-          if receiptOption.isDefined then IO.pure(receiptOption)
-          else if count > TX_END_CHECK_RETRY then IO.pure(None)
-          else waitAndGetTransactionReceipt(txHash, count + 1)
-      yield receiptOption1
-
-    case class EthTransactionContext(gasPrice: BigInt, txHash: String)
-
-    def loop(
-        originalContext: Option[EthTransactionContext],
-    ): IO[TransactionReceipt] = for
-      lastTxCount     <- getLatestTransactionCount(web3j, contractAddress)
-      currentGasPrice <- getGasPrice(web3j)
-      contexEither <- originalContext match
-        case None =>
-          for
-            txHash           <- ethSendTransaction(lastTxCount, currentGasPrice)
-            ethReceiptOption <- waitAndGetTransactionReceipt(txHash, 0)
-          yield ethReceiptOption match
-            case None => Left(EthTransactionContext(currentGasPrice, txHash))
-            case Some(receipt) => Right(receipt)
-        case Some(EthTransactionContext(gasPrice, txHash)) => ???
-      receipt <- contexEither match
-        case Left(context)  => loop(Some(context))
-        case Right(receipt) => IO.pure(receipt)
-    yield receipt
-
-    loop(None)
 
   def submitTx(
       lmAddress: String,
       account: Account,
       keyPair: KeyPair,
       tx: Transaction,
-  ) =
-    val Right(sig) = keyPair.sign(tx): @unchecked
-    val signedTxs  = Seq(Signed(AccountSignature(sig, account), tx))
+  ): IO[Unit] =
+    IO.blocking {
+      val Right(sig) = keyPair.sign(tx): @unchecked
+      val signedTxs  = Seq(Signed(AccountSignature(sig, account), tx))
 
-    scribe.info(s"Sending signed transactions: $signedTxs")
+      scribe.info(s"Sending signed transactions: $signedTxs")
 
-    val response = basicRequest
-      .response(asStringAlways)
-      .post(uri"http://$lmAddress/tx")
-      .body(signedTxs)
-      .send(backend)
+      val response = basicRequest
+        .response(asStringAlways)
+        .post(uri"http://$lmAddress/tx")
+        .body(signedTxs)
+        .send(backend)
 
-    scribe.info(s"Response: $response")
-
-  def findAccountByEthAddress(
-      lmAddress: String,
-      ethAddress: String,
-  ): IO[Option[Account]] = IO {
-    val response = basicRequest
-      .response(asStringAlways)
-      .get(uri"http://$lmAddress/eth/$ethAddress")
-      .send(backend)
-
-    if response.code.isSuccess then
-      Some(Account(Utf8.unsafeFrom(response.body.drop(1).dropRight(1))))
-    else
-      scribe.info(s"Account $ethAddress not found: ${response.body}")
-      None
-  }
+      scribe.info(s"Response: $response")
+    }
 
   def checkLoop(
       web3j: Web3j,
@@ -253,57 +118,30 @@ object EthGatewayWithdrawMain extends IOApp:
       lmAddress: String,
       ethContract: String,
       gatewayEthAddress: String,
+      ethPrivate: String,
       keyPair: KeyPair,
   ): IO[Unit] =
     def run: IO[Unit] = for
       _ <- IO.delay(scribe.info(s"Withdrawal check started"))
-      _ <- checkWithdrawal(
+      _ <- checkNftWithdrawal(
         web3j,
         ethChainId,
         lmAddress,
         ethContract,
         gatewayEthAddress,
+        ethPrivate,
         keyPair,
       )
       _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
-      _ <- IO.sleep(10000.millis)
     yield ()
 
     def loop: IO[Unit] = for
       _ <- run.orElse(IO.unit)
+      _ <- IO.sleep(10000.millis)
       _ <- loop
     yield ()
 
     loop
-
-  def getGasPrice(weg3j: Web3j): IO[BigInt] =
-    IO.fromCompletableFuture(IO(weg3j.ethGasPrice.sendAsync())).map {
-      ethGasPrice => BigInt(ethGasPrice.getGasPrice)
-    }
-
-  def getBalance(
-      lmAddress: String,
-  ): IO[Option[BalanceInfo]] = IO {
-    val lmDef = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-    val response = basicRequest
-      .response(asStringAlways)
-      .get(uri"http://$lmAddress/balance/eth-gateway?movable=all")
-      .send(backend)
-
-    if response.code.isSuccess then
-      decode[Map[TokenDefinitionId, BalanceInfo]](response.body) match
-        case Right(balanceInfoMap) => balanceInfoMap.get(lmDef)
-        case Left(error) =>
-          scribe.error(s"Error decoding balance info: $error")
-          scribe.error(s"response: ${response.body}")
-          None
-    else if response.code.code === StatusCode.NotFound.code then
-      scribe.info(s"balance of account eth-gateway not found: ${response.body}")
-      None
-    else
-      scribe.error(s"Error getting balance: ${response.body}")
-      None
-  }
 
   def getNftBalance(
       lmAddress: String,
@@ -353,87 +191,121 @@ object EthGatewayWithdrawMain extends IOApp:
       None
   }
 
-  def checkWithdrawal(
+  def checkNftWithdrawal(
       web3j: Web3j,
       ethChainId: Int,
       lmAddress: String,
-      ethContract: String,
+      ethNftContract: String,
       gatewayEthAddress: String,
+      ethPrivate: String,
       keyPair: KeyPair,
-  ): IO[Unit] = getBalance(lmAddress).flatMap {
-    case None => IO.delay(scribe.info("No balance to withdraw"))
-    case Some(balanceInfo) =>
-      val networkId      = NetworkId(BigNat.unsafeFromLong(1000L))
-      val lmDef          = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+  ): IO[Unit] = getNftBalance(lmAddress)
+    .flatMap { (balanceMap: Map[TokenId, NftBalanceInfo]) =>
+
       val gatewayAccount = Account(Utf8.unsafeFrom("eth-gateway"))
 
-      val withdrawCandidates = {
-        for
-          unusedTxHashAndTx <- balanceInfo.unused.toList
-          (txHash, tx) = unusedTxHashAndTx
-          createdAt    = tx.signedTx.value.createdAt
-          inputAccount = tx.signedTx.sig.account
-          item <- tx.signedTx.value match
-            case tf: Transaction.TokenTx.TransferFungibleToken
-                if inputAccount != gatewayAccount && tf.tokenDefinitionId === lmDef =>
-              tf.outputs
-                .get(gatewayAccount)
-                .map(amount => (inputAccount, amount))
-                .toSeq
-            case _ => Seq.empty
-        yield (createdAt, txHash, item)
-      }.sortBy(_._1)
-
-      scribe.info(s"withdrawCandidates: $withdrawCandidates")
-
-      if withdrawCandidates.isEmpty then
-        IO.delay(scribe.info("No withdraw candidates"))
-      else
-        for
-          toWithdrawOptionSeq <- withdrawCandidates.traverse {
-            case (createdAt, txHash, (account, amount)) =>
-              getAccountInfo(lmAddress, account).map { accountInfoOption =>
-                for
-                  accountInfo <- accountInfoOption
-                  ethAddress  <- accountInfo.ethAddress
-                yield (createdAt, txHash, account, ethAddress, amount)
-              }
-          }
-          toWithdraw           = toWithdrawOptionSeq.flatten
-          toWithdrawHeadOption = toWithdraw.headOption
-          _ <- IO.delay(scribe.info(s"toWithdraw: $toWithdraw"))
-          _ <- IO.delay(
-            scribe.info(s"toWithdrawHeadOption: $toWithdrawHeadOption"),
-          )
-          _ <- toWithdrawHeadOption match
-            case None => IO.unit
-            case Some((createdAt, txHash, account, ethAddress, amount)) =>
+      balanceMap.toSeq.traverse { case (tokenId, balanceInfo) =>
+        balanceInfo.tx.signedTx.value match
+          case tx: Transaction.TokenTx.TransferNFT
+              if balanceInfo.tx.signedTx.sig.account != gatewayAccount =>
+            {
               for
-                successfulWithdraw <- transferToken(
-                  web3j = web3j,
-                  ethChainId = ethChainId,
-                  privateKey = keyPair.privateKey.toString(16),
-                  contractAddress = ethContract,
-                  toAddress = ethAddress.utf8.value,
-                  amount = amount.toBigInt,
+                info <- OptionT(
+                  getAccountInfo(lmAddress, balanceInfo.tx.signedTx.sig.account),
                 )
-                _ <- IO.delay(scribe.info(s"withdrawal txs are sent"))
-                tx = Transaction.TokenTx.TransferFungibleToken(
-                  networkId = networkId,
+                ethAddress <- OptionT.fromOption[IO](info.ethAddress)
+                _ <- OptionT.liftF {
+                  mintEthNft(
+                    web3j = web3j,
+                    ethChainId = ethChainId,
+                    ethNftContract = ethNftContract,
+                    gatewayEthAddress = gatewayEthAddress,
+                    ethPrivate = ethPrivate,
+                    keyPair = keyPair,
+                    receiverEthAddress = ethAddress.utf8.value,
+                    tokenId = tokenId,
+                  )
+                }
+                tx1 = tx.copy(
                   createdAt = Instant.now,
-                  tokenDefinitionId = lmDef,
-                  inputs = Set(txHash.toSignedTxHash),
-                  outputs = Map(
-                    gatewayAccount -> amount,
-                  ),
-                  memo = None,
+                  input = balanceInfo.tx.signedTx.toHash,
+                  output = gatewayAccount,
+                  memo =
+                    Some(Utf8.unsafeFrom("gateway balance after withdrawal")),
                 )
-                _ <- IO.delay(submitTx(lmAddress, gatewayAccount, keyPair, tx))
-                _ <- IO.delay(scribe.info(s"withdrawal utxos are removed"))
+                _ <- OptionT.liftF(
+                  submitTx(lmAddress, gatewayAccount, keyPair, tx1),
+                )
               yield ()
-        yield ()
-  }
+            }.value
+          case _ => IO.unit
+      }
+    }
+    .as(())
 
+  def mintEthNft(
+      web3j: Web3j,
+      ethChainId: Int,
+      ethNftContract: String,
+      gatewayEthAddress: String,
+      ethPrivate: String,
+      keyPair: KeyPair,
+      receiverEthAddress: String,
+      tokenId: TokenId,
+  ): IO[Unit] = IO.delay {
+    val credential = Credentials.create(ethPrivate)
+    assert(
+      credential.getAddress() === gatewayEthAddress.toLowerCase(),
+      s"invalid gateway eth address: ${credential.getAddress} vs $gatewayEthAddress",
+    )
+    val gasPrice              = BigInteger.valueOf(50000)
+    val gasLimit              = DefaultGasProvider.GAS_LIMIT
+    val gasProvider           = new StaticGasProvider(gasPrice, gasLimit)
+    val TX_END_CHECK_DURATION = 20000
+    val TX_END_CHECK_RETRY    = 9
+    val receiptProcessor = new PollingTransactionReceiptProcessor(
+      web3j,
+      TX_END_CHECK_DURATION,
+      TX_END_CHECK_RETRY,
+    )
+    val manager =
+      new RawTransactionManager(web3j, credential, ethChainId, receiptProcessor)
+
+    val contract = ERC721.load(ethNftContract, web3j, manager, gasProvider)
+
+    val tokenIdBigInt = BigInt(tokenId.utf8.value)
+
+    val mintParams = new ArrayList[Type[?]]()
+    mintParams.add(new Address(receiverEthAddress))
+    mintParams.add(new Uint256(tokenIdBigInt.bigInteger))
+
+    val returnTypes = Collections.emptyList[TypeReference[?]]()
+
+    val mintTxData = FunctionEncoder.encode {
+      new Function("safeMint", mintParams, returnTypes)
+    }
+
+    val mintRes = manager
+      .sendEIP1559Transaction(
+        ethChainId,
+        BigInteger.valueOf(50000),
+        BigInteger.valueOf(50000),
+        DefaultGasProvider.GAS_LIMIT, // BigInteger.valueOf(50000),
+        ethNftContract,
+        mintTxData,
+        BigInteger.ZERO,
+        false,
+      )
+      .getResult()
+
+    scribe.info("mintRes: " + mintRes)
+
+    scribe.info(
+      s"owner of token id ($tokenId) : " + contract
+        .ownerOf(tokenIdBigInt.bigInteger)
+        .send(),
+    )
+  }
   def run(args: List[String]): IO[ExitCode] =
     for
       conf <- getConfig
@@ -448,6 +320,7 @@ object EthGatewayWithdrawMain extends IOApp:
           lmAddress = gatewayConf.lmAddress,
           ethContract = gatewayConf.ethContract,
           gatewayEthAddress = gatewayConf.gatewayEthAddress,
+          ethPrivate = gatewayConf.ethPrivate,
           keyPair = keyPair,
         )
       }
