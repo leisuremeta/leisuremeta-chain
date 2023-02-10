@@ -7,7 +7,7 @@ final case class Tx(
     txType: String, // col_name : type
     tokenType: String,
     fromAddr: String,
-    toAddr: Option[Seq[String]],
+    toAddr: Seq[String],
     blockHash: String,
     blockNumber: Long,
     eventTime: Long,

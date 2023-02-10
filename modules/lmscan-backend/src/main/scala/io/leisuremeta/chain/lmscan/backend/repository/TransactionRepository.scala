@@ -35,7 +35,7 @@ object TransactionRepository extends CommonQuery:
       query[Tx]
     }
 
-    def pagedQuery =
+    inline def pagedQuery =
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
@@ -75,7 +75,7 @@ object TransactionRepository extends CommonQuery:
       query[Tx]
     }
 
-    def pagedQuery =
+    inline def pagedQuery =
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
@@ -83,8 +83,7 @@ object TransactionRepository extends CommonQuery:
 
         query[Tx]
           .filter(t =>
-            // t.toAddr.contains(lift(addr)
-            t.fromAddr == lift(addr) || (!t.toAddr.isEmpty && t.toAddr.contains(lift(addr))) ,
+            t.fromAddr == lift(addr) || t.toAddr.contains(lift(addr)),
           )
           .sortBy(t => t.eventTime)(Ord.desc)
           .drop(offset)
