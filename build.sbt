@@ -33,7 +33,7 @@ val V = new {
   val elliptic      = "6.5.4"
   val typesElliptic = "6.4.12"
   val pgEmbedded    = "1.0.1"
-  val quill         = "4.5.0"
+  val quill         = "4.6.0"
   val postgres      = "42.5.1"
   val flywayCore = "9.11.0"
 }
@@ -201,6 +201,10 @@ val Dependencies = new {
       "org.typelevel"               %% "cats-effect"           % V.catsEffect,
       "io.getquill"                 %% "quill-jasync-postgres" % V.quill,
       "org.postgresql"               % "postgresql"            % V.postgres,
+    ),
+    excludeDependencies ++= Seq(
+      // "org.scala-lang.modules" % "scala-compiler-2.13",
+      // "org.scala-lang.modules" % "scala-asm",
     ),
   )
 }
@@ -410,7 +414,13 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
   .settings(
     name := "leisuremeta-chain-lmscan-agent",
     assemblyMergeStrategy := {
+      case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*) => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "scala-asm.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "compiler.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>

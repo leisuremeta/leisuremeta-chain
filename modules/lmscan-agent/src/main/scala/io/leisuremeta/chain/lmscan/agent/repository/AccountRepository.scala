@@ -9,6 +9,8 @@ import CommonQuery.*
 
 object AccountRepository:
   import ctx.{*, given}
+  inline given SchemaMeta[AccountEntity] = schemaMeta[AccountEntity]("account")
+
 
   def totalCount[F[_]: Async]: EitherT[F, String, Long] =
     inline def totalQuery = quote {
