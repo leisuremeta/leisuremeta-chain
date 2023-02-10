@@ -21,7 +21,7 @@ object Row2:
         `class` := s"type-2",
       )(
         span(
-          // onClick(PageName.Transactions)
+          onClick(PageMsg.PreUpdate(PageName.Transactions)),
         )("More"),
       ),
     )
@@ -49,7 +49,13 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              // onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.TransactionDetail(
+                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.hash, "-")
@@ -69,7 +75,18 @@ object Row2:
           ),
           div(`class` := "cell type-3")(
             span(
-              // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(each.signer, "-").toString())),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.AccountDetail(
+                    CommonFunc
+                      .getOptionValue(
+                        Some(each.signer),
+                        "-",
+                      )
+                      .toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.signer, "-")
@@ -87,7 +104,13 @@ object Row2:
             `class` := s"cell ${isEqGet[String](CommonFunc.getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
             span(
-              // onClick(NavMsg.NftDetail(CommonFunc.getOptionValue(each.value, "-").toString()))
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.NftDetail(
+                    CommonFunc.getOptionValue(each.value, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.value, "-")
@@ -105,7 +128,13 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              // onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.TransactionDetail(
+                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.hash, "-")
@@ -125,7 +154,18 @@ object Row2:
           ),
           div(`class` := "cell type-3")(
             span(
-              // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(each.signer, "-").toString())),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.AccountDetail(
+                    CommonFunc
+                      .getOptionValue(
+                        Some(each.signer),
+                        "-",
+                      )
+                      .toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.signer, "-")
@@ -172,7 +212,13 @@ object Row2:
                   ),
             )(CommonFunc.getOptionValue(each.hash, "-").toString().take(5)),
             span(
-              // onClick(NavMsg.NftDetail(CommonFunc.getOptionValue(each.value, "-").toString()))
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.NftDetail(
+                    CommonFunc.getOptionValue(each.value, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.value, "-")
@@ -189,7 +235,13 @@ object Row2:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              // onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.hash, "-").toString())),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.TransactionDetail(
+                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.hash, "-")
@@ -206,11 +258,20 @@ object Row2:
           ),
           div(`class` := "cell type-3")(
             span(
-              // onClick(
-              //   NavMsg.AccountDetail(
-              //     CommonFunc.getOptionValue(each.signer, "-").toString(),
-              //   ),
-              // ),
+              onClick(
+                PageMsg.PreUpdate(
+                  log(
+                    PageName.AccountDetail(
+                      CommonFunc
+                        .getOptionValue(
+                          each.signer,
+                          "-",
+                        )
+                        .toString(),
+                    ),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.signer, "-")
@@ -231,11 +292,11 @@ object Row2:
       div(`class` := "xy-center")(
         div(
           `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
-          // onClick(PageMoveMsg.Patch("1")),
+          onClick(PageMoveMsg.Patch("1")),
         )("<<"),
         div(
           `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
-          // onClick(PageMoveMsg.Prev),
+          onClick(PageMoveMsg.Prev),
         )("<"),
         div(`class` := "type-plain-text")("Page"),
         input(
@@ -261,13 +322,14 @@ object Row2:
       case true =>
         model.curPage match
           case PageName.BlockDetail(_) => div()
+          // case PageName.AccountDetail(_) => div()
           case _ =>
             div(`class` := "table-container")(
               Row2.title(model),
               div(`class` := "table w-[100%]")(
                 Row2.head :: Row2.genBody(payload),
               ),
-              Row2.search(model),
+              // Row2.search(model),
             )
       case _ =>
         model.curPage match

@@ -6,6 +6,7 @@ import _root_.io.circe.Decoder.state
 
 object NftDetailTable:
   val view = (model: Model) =>
+    // TODO :: 다시보기
     val data: NftDetail = NftDetailParser
       .decodeParser(model.nftDetailData.get)
       .getOrElse(new NftDetail)
@@ -51,11 +52,18 @@ object NftDetailTable:
                     div(`class` := "cell type-3 type-detail-body")(
                       span(
                         // onClick(NavMsg.AccountDetail(data.nftFile.owner)), TODO:: 실데이터 받을때 이거로 변경
-                        // onClick(
-                        //   NavMsg.AccountDetail(
-                        //     "26A463A0ED56A4A97D673A47C254728409C7B002",
-                        //   ),
-                        // ),
+                        onClick(
+                          PageMsg.PreUpdate(
+                            PageName.AccountDetail(
+                              CommonFunc
+                                .getOptionValue(
+                                  nftFile.owner, // TODO :: option 처리
+                                  None,
+                                )
+                                .toString(),
+                            ),
+                          ),
+                        ),
                       )(
                         CommonFunc.getOptionValue(nftFile.owner, "-").toString(),
                       ),

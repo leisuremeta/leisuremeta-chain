@@ -31,6 +31,14 @@ object TxDetailTable:
       div(`class` := "cell type-3 type-detail-body")(
         span(
           // onClick(PageName.TransactionDetail(data)),
+          onClick(
+            PageMsg.PreUpdate(
+              PageName.TransactionDetail(
+                // TODO :: 이렇게 하는게 맞는지 검증
+                CommonFunc.getOptionValue(Some(data), "-").toString(),
+              ),
+            ),
+          ),
         )(data),
       ),
     )
@@ -47,6 +55,18 @@ object TxDetailTable:
       div(`class` := "cell type-3 type-detail-body")(
         span(
           // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(data.toAddress, "-").toString())),
+          onClick(
+            PageMsg.PreUpdate(
+              PageName.AccountDetail(
+                CommonFunc
+                  .getOptionValue(
+                    Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                    "-",
+                  )
+                  .toString(),
+              ),
+            ),
+          ),
         )(CommonFunc.getOptionValue(data.toAddress, "-").toString()),
       ),
       div(`class` := "cell type-detail-body")(
@@ -59,14 +79,38 @@ object TxDetailTable:
       div(`class` := "cell type-3 type-detail-body")(
         span(
           // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(data.toAddress, "-").toString())),
+          onClick(
+            PageMsg.PreUpdate(
+              PageName.AccountDetail(
+                CommonFunc
+                  .getOptionValue(
+                    Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                    "-",
+                  )
+                  .toString(),
+              ),
+            ),
+          ),
         )(CommonFunc.getOptionValue(data.toAddress, "-").toString()),
       ),
-      div(`class` := "cell type-3 type-detail-body")(
-        span(
-          // onClick(NavMsg.NftDetail(data.value.toString())), // TODO :: 실데이터 받을때 이걸로 변경
-          // onClick(NavMsg.NftDetail("2022122110000930000002558")),
-        )(CommonFunc.getOptionValue(data.value, "-").toString()),
-      ),
+      // 두개 중복되는거 같아서 하나 지움
+      // div(`class` := "cell type-3 type-detail-body")(
+      //   span(
+      //     // onClick(NavMsg.NftDetail(data.value.toString())), // TODO :: 실데이터 받을때 이걸로 변경
+      //     onClick(
+      //       PageMsg.PreUpdate(
+      //         PageName.AccountDetail(
+      //           CommonFunc
+      //             .getOptionValue(
+      //               Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+      //               "-",
+      //             )
+      //             .toString(),
+      //         ),
+      //       ),
+      //     ),
+      //   )(CommonFunc.getOptionValue(data.value, "-").toString()),
+      // ),
     )
 
   val genView = (model: Model, data: TxDetail) =>
@@ -99,7 +143,18 @@ object TxDetailTable:
                 `class` := "cell type-3 type-detail-body",
               )(
                 span(
-                  // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(data.signer, "-").toString())),
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageName.AccountDetail(
+                        CommonFunc
+                          .getOptionValue(
+                            Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                            "-",
+                          )
+                          .toString(),
+                      ),
+                    ),
+                  ),
                 )(CommonFunc.getOptionValue(data.signer, "-").toString()),
               ),
             ),

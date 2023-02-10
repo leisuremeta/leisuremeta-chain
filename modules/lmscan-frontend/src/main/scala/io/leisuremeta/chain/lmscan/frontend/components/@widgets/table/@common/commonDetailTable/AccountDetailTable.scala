@@ -7,7 +7,9 @@ import scala.compiletime.ops.any
 
 object AccountDetailTable:
   val view = (model: Model) =>
-    val data: AccountDetail = AccountDetailParser.decodeParser(model.accountDetailData.get).getOrElse(new AccountDetail)      
+    val data: AccountDetail = AccountDetailParser
+      .decodeParser(model.accountDetailData.get)
+      .getOrElse(new AccountDetail)
     genView(model, data)
 
   val genView = (model: Model, data: AccountDetail) =>
@@ -17,17 +19,23 @@ object AccountDetailTable:
           div(`class` := "table w-[100%] ")(
             div(`class` := "row")(
               div(`class` := "cell type-detail-head ")("Account"),
-              div(`class` := "cell type-detail-body ")(CommonFunc.getOptionValue(data.address, "-").toString()),
+              div(`class` := "cell type-detail-body ")(
+                CommonFunc.getOptionValue(data.address, "-").toString(),
+              ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Balance"),
-              div(`class` := "cell type-detail-body")(CommonFunc.getOptionValue(data.balance, "-").toString() + "LM"),
+              div(`class` := "cell type-detail-body")(
+                CommonFunc.getOptionValue(data.balance, "-").toString() + "LM",
+              ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Value"),
-              div(`class` := "cell type-detail-body")("$" + CommonFunc.getOptionValue(data.value, "-").toString()),
+              div(`class` := "cell type-detail-body")(
+                "$" + CommonFunc.getOptionValue(data.value, "-").toString(),
+              ),
             ),
           ),
         ),
       ),
-    )    
+    )

@@ -18,7 +18,10 @@ object PageMoveUpdate:
               tx_CurrentPage = updated,
               tx_list_Search = updated.toString(),
             ),
-            OnTxMsg.getTxList(updated.toString()),
+            OnDataProcess.getData(
+              PageName.Transactions,
+              ApiPayload(page = updated.toString()),
+            ),
           )
         case "Blocks" =>
           val updated = model.block_CurrentPage + 1
@@ -27,7 +30,10 @@ object PageMoveUpdate:
               block_CurrentPage = model.block_CurrentPage + 1,
               block_list_Search = s"${model.block_CurrentPage + 1}",
             ),
-            OnBlockMsg.getBlockList(updated.toString()),
+            OnDataProcess.getData(
+              PageName.Blocks,
+              ApiPayload(page = updated.toString()),
+            ),
           )
         case _ => (model, Cmd.None)
 
@@ -40,7 +46,10 @@ object PageMoveUpdate:
               tx_CurrentPage = updated,
               tx_list_Search = updated.toString(),
             ),
-            OnTxMsg.getTxList(updated.toString()),
+            OnDataProcess.getData(
+              PageName.Transactions,
+              ApiPayload(page = updated.toString()),
+            ),
           )
         case "Blocks" =>
           val updated = model.block_CurrentPage - 1
@@ -49,7 +58,10 @@ object PageMoveUpdate:
               block_CurrentPage = model.block_CurrentPage - 1,
               block_list_Search = s"${model.block_CurrentPage - 1}",
             ),
-            OnBlockMsg.getBlockList(updated.toString()),
+            OnDataProcess.getData(
+              PageName.Blocks,
+              ApiPayload(page = updated.toString()),
+            ),
           )
         case _ => (model, Cmd.None)
 
@@ -87,7 +99,10 @@ object PageMoveUpdate:
               tx_CurrentPage = res,
               tx_list_Search = res.toString(),
             ),
-            OnTxMsg.getTxList(res.toString()),
+            OnDataProcess.getData(
+              PageName.Transactions,
+              ApiPayload(page = res.toString()),
+            ),
           )
         case "Blocks" =>
           val str = value match
@@ -106,7 +121,10 @@ object PageMoveUpdate:
               block_CurrentPage = res,
               block_list_Search = res.toString(),
             ),
-            Cmd.None,
+            OnDataProcess.getData(
+              PageName.Blocks,
+              ApiPayload(page = res.toString()),
+            ),
           )
 
         case _ => (model, Cmd.None)

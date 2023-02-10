@@ -18,15 +18,26 @@ object CustomMap:
 
   def getPage(search: PageName): PageName =
     search match
-      case PageName.DashBoard    => search
-      case PageName.Blocks       => search
-      case PageName.Transactions => search
+      case PageName.DashBoard            => search
+      case PageName.Blocks               => search
+      case PageName.Transactions         => search
+      case PageName.BlockDetail(_)       => search
+      case PageName.AccountDetail(_)     => search
+      case PageName.TransactionDetail(_) => search
+      case PageName.NftDetail(_)         => search
       case _ =>
         search.toString().length() match
           case 40 => PageName.AccountDetail(search.toString())
           case 25 => PageName.NftDetail(search.toString())
           case 64 => PageName.Page64
           case _  => PageName.None
+
+  def getPageString(search: String): PageName =
+    search.toString().length() match
+      case 40 => PageName.AccountDetail(search.toString())
+      case 25 => PageName.NftDetail(search.toString())
+      case 64 => PageName.Page64
+      case _  => PageName.None
 
   def getUrl(page: Int) = List(40, 25, 64).contains(page) match
     case true  => PageMap(page)

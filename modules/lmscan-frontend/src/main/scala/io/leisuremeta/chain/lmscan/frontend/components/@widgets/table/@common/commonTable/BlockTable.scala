@@ -20,7 +20,7 @@ object Row:
         `class` := s"type-2",
       )(
         span(
-          // onClick(PageName.Blocks)
+          onClick(PageMsg.PreUpdate(PageName.Blocks)),
         )("More"),
       ),
     )
@@ -38,11 +38,13 @@ object Row:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              // onClick(
-              //   NavMsg.BlockDetail(
-              //     CommonFunc.getOptionValue(each.hash, "-").toString(),
-              //   ),
-              // ),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.BlockDetail(
+                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.hash, "-")
@@ -101,11 +103,11 @@ object Row:
         div(`class` := "type-plain-text")(model.block_TotalPage.toString()),
         div(
           `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
-          // onClick(PageMoveMsg.Next),
+          onClick(PageMoveMsg.Next),
         )(">"),
         div(
           `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
-          // onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
+          onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
         )(">>"),
       ),
     )

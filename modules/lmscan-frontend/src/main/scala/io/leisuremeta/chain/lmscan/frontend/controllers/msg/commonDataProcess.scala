@@ -13,24 +13,30 @@ case class ApiPayload(page: String)
 
 object UnderDataProcess:
 
-  private val onResponse: Response => Msg = response =>
+  private def onResponse(page: PageName): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
       case Left(parsingError) =>
         PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
       case Right(json) => {
-        PageMsg.DataUpdate(response.body)
+        page match
+          case PageName.AccountDetail(_) =>
+            Log.log(s"${page}: ${response.body}")
+          case _ => ""
+
+        PageMsg.DataUpdate(response.body, page)
       }
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
 
-  def fromHttpResponse: Decoder[Msg] =
-    Decoder[Msg](onResponse, onError)
+  def fromHttpResponse(page: PageName): Decoder[Msg] =
+    Decoder[Msg](onResponse(page), onError)
 
 object OnDataProcess:
   val host = js.Dynamic.global.process.env.BACKEND_URL
   val port = js.Dynamic.global.process.env.BACKEND_PORT
+  val base = s"http://${host}:${port}"
 
   def getData(
       pageName: PageName,
@@ -39,10 +45,20 @@ object OnDataProcess:
 
     val url = pageName match
       case PageName.DashBoard =>
-        s"http://${host}:${port}/summary/main"
+        s"${base}/summary/main"
       case PageName.Transactions =>
-        s"http://${host}:${port}/tx/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
+        s"${base}/tx/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
+      case PageName.Blocks =>
+        s"${base}/block/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
+      case PageName.BlockDetail(hash) =>
+        s"${base}/block/$hash/detail"
+      case PageName.TransactionDetail(hash) =>
+        s"${base}/tx/$hash/detail"
+      case PageName.AccountDetail(hash) =>
+        s"${base}/account/$hash/detail"
+      case PageName.NftDetail(hash) =>
+        s"${base}/nft/$hash/detail"
 
-      case _ => s"http://${host}:${port}/summary/main"
+      case _ => s"${base}/summary/main"
 
-    Http.send(Request.get(url), UnderDataProcess.fromHttpResponse)
+    Http.send(Request.get(url), UnderDataProcess.fromHttpResponse(pageName))

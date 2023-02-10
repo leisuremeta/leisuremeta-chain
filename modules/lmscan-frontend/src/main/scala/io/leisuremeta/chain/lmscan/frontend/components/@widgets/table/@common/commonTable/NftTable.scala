@@ -33,7 +33,14 @@ object Row3:
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              // onClick(NavMsg.TransactionDetail(CommonFunc.getOptionValue(each.txHash, "-").toString())),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.TransactionDetail(
+                    // TODO :: 이렇게 하는게 맞는지 검증
+                    CommonFunc.getOptionValue(Some(data), "-").toString(),
+                  ),
+                ),
+              ),
             )(
               CommonFunc
                 .getOptionValue(each.txHash, "-")

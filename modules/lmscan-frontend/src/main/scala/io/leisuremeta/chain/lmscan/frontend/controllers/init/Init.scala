@@ -16,6 +16,7 @@ object Init:
   // TODO :: could be list
   val apiCmd: Cmd.Batch[IO, Msg] =
     Cmd.Batch(OnDataProcess.getData(PageName.DashBoard))
+
   val txCmd: Cmd.Batch[IO, Msg] =
     Cmd.Batch(
       OnDataProcess.getData(
@@ -23,9 +24,14 @@ object Init:
         ApiPayload(page = tx_CurrentPage.toString()),
       ),
     )
+
   val blockCmd: Cmd.Batch[IO, Msg] =
-    // Cmd.Batch(OnBlockMsg.getBlockList(block_CurrentPage.toString()))
-    Cmd.Batch(OnDataProcess.getData(PageName.DashBoard))
+    Cmd.Batch(
+      OnDataProcess.getData(
+        PageName.Blocks,
+        ApiPayload(page = block_CurrentPage.toString()),
+      ),
+    )
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (

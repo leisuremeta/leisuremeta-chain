@@ -32,7 +32,8 @@ case class NftActivities(
 )
 
 object NftDetailParser:
-    given nftFileDecoder: Decoder[NftFile] = deriveDecoder[NftFile]
-    given nftActivitiesDecoder: Decoder[NftActivities] = deriveDecoder[NftActivities]
-    given txDetailDecoder: Decoder[NftDetail] = deriveDecoder[NftDetail]
-    def decodeParser(body: String)            = decode[NftDetail](body)
+  given nftFileDecoder: Decoder[NftFile] = deriveDecoder[NftFile]
+  given nftActivitiesDecoder: Decoder[NftActivities] =
+    deriveDecoder[NftActivities]
+  given txDetailDecoder: Decoder[NftDetail] = deriveDecoder[NftDetail]
+  def decodeParser(body: String)            = decode[NftDetail](body)
