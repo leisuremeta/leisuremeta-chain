@@ -457,7 +457,7 @@ object LmscanBatchMain extends IOApp:
                           case _ => EitherT.pure(None)
                       
                   _ <- txEntityOpt match  
-                    case Some(value) => {
+                    case Some(value) => 
                       for 
                         _ <- EitherT.right(Async[F].delay(scribe.info(s"update block transaction")))
                         _ <- upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
@@ -465,7 +465,6 @@ object LmscanBatchMain extends IOApp:
                           quote { query[BlockEntity].insertValue(lift(BlockEntity.from(block, blockHash))).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash) })
                         _ <- updateTransaction[F, BlockStateEntity](quote { query[BlockStateEntity].filter(b => b.hash == lift(blockHash)).update(_.isBuild -> lift(true)) })
                       yield ()
-                    }
                     case None => EitherT.pure[F, String](0L)
                 yield txEntityOpt
                 result.as(())
@@ -511,8 +510,8 @@ object LmscanBatchMain extends IOApp:
             }
             _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
 
-            // lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
-            // _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
+            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
+            _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
 
             currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
 
