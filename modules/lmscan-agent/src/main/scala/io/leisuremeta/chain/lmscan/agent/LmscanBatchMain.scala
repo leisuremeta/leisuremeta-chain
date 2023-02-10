@@ -354,12 +354,12 @@ object LmscanBatchMain extends IOApp:
                         ).as(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                       
                       case tx: MintFungibleToken => 
-                        var sum = 0l;
+                        var sum: BigDecimal = 0;
                         for 
                           _ <- tx.outputs.toList.traverse { case (account, amount) =>
                             sum = sum + amount.toBigInt.longValue
                             updateTransaction[F, AccountEntity](
-                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(BigDecimal(amount.toBigInt))))
                             )
                           }
                           _ <- updateTransaction[F, AccountEntity](
@@ -372,29 +372,29 @@ object LmscanBatchMain extends IOApp:
                           _ <- tx.outputs.toList.traverse { case (account, amount) =>
                             sum = sum + amount.toBigInt.longValue
                             updateTransaction[F, AccountEntity](
-                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(BigDecimal(amount.toBigInt))))
                             )
                           }
                           _ <- updateTransaction[F, AccountEntity](
-                            query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(sum)))
+                            query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(BigDecimal(sum))))
                           )
                         yield Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount))
                       case tx: EntrustFungibleToken => 
                         for 
                           _ <- updateTransaction[F, AccountEntity](
-                            query[AccountEntity].filter(a => a.address == lift(tx.to.utf8.value)).update(a => a.balance -> (a.balance + lift(tx.amount.toBigInt.longValue)))
+                            query[AccountEntity].filter(a => a.address == lift(tx.to.utf8.value)).update(a => a.balance -> (a.balance + lift(BigDecimal(tx.amount.toBigInt))))
                           )
                           _ <- updateTransaction[F, AccountEntity](
-                            query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(tx.amount.toBigInt.longValue)))
+                            query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(BigDecimal(tx.amount.toBigInt))))
                           )
                         yield Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount))
                       case tx: DisposeEntrustedFungibleToken => 
-                        var sum = 0l;
+                        var sum: BigDecimal = 0;
                         for 
                           _ <- tx.outputs.toList.traverse { case (account, amount) =>
                             sum = sum + amount.toBigInt.longValue
                             updateTransaction[F, AccountEntity](
-                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(BigDecimal(amount.toBigInt))))
                             )
                           }
                           _ <- updateTransaction[F, AccountEntity](
@@ -403,7 +403,7 @@ object LmscanBatchMain extends IOApp:
                         yield Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount))
                       case tx: BurnFungibleToken => 
                         updateTransaction[F, AccountEntity](
-                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(tx.amount.toBigInt.longValue)))
+                          query[AccountEntity].filter(a => a.address == lift(fromAccount)).update(a => a.balance -> (a.balance - lift(BigDecimal(tx.amount.toBigInt))))
                         ).as(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                     case accountTx: Transaction.AccountTx => accountTx match
                       case tx: CreateAccount => 
@@ -427,12 +427,12 @@ object LmscanBatchMain extends IOApp:
                       case tx: RecordActivity => 
                         EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                       case tx: OfferReward => 
-                        var sum = 0l
+                        var sum: BigDecimal = 0;
                         for 
                           _ <- tx.outputs.toList.traverse { case (account, amount) =>
                             sum = sum + amount.toBigInt.longValue
                             updateTransaction[F, AccountEntity](
-                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                              query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(BigDecimal(amount.toBigInt))))
                             )
                           }
                           _ <- updateTransaction[F, AccountEntity](
@@ -442,12 +442,12 @@ object LmscanBatchMain extends IOApp:
                       case tx: ExecuteReward => 
                         txResult.result.getOrElse(EitherT.pure(None)) match 
                           case rewardRes: ExecuteRewardResult => 
-                            var sum = 0l
+                            var sum: BigDecimal = 0;
                             for 
                               _ <- rewardRes.outputs.toList.traverse { case (account, amount) =>
                                 sum = sum + amount.toBigInt.longValue
                                 updateTransaction[F, AccountEntity](
-                                  query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(amount.toBigInt.longValue)))
+                                  query[AccountEntity].filter(a => a.address == lift(account.utf8.value)).update(a => a.balance -> (a.balance + lift(BigDecimal(amount.toBigInt))))
                                 )
                               }
                               _ <- updateTransaction[F, AccountEntity](
@@ -511,9 +511,8 @@ object LmscanBatchMain extends IOApp:
             }
             _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
 
-            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
-
-            _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
+            // lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
+            // _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
 
             currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
 
