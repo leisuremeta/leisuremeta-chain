@@ -19,11 +19,27 @@ object PageUpdate:
           pageNameStore = getPage(search),
           urlStore = search.toString(),
         ), {
-          List(PageName.DashBoard, PageName.Blocks, PageName.Transactions)
-            .contains(getPage(search)) match
-            case true => // 단순 버튼 => 즉시 페이지 변경
+          getPage(search) match
+            case PageName.DashBoard =>
+              Cmd.Batch(
+                OnDataProcess.getData(
+                  PageName.Transactions,
+                  ApiPayload(page = "1"),
+                ),
+                OnDataProcess.getData(
+                  PageName.Blocks,
+                  ApiPayload(page = "1"),
+                ),
+                Cmd.Emit(PageMsg.PageUpdate),
+              )
+
+            case PageName.Blocks =>
               Cmd.Emit(PageMsg.PageUpdate)
-            case false => // api 데이터 호출 => 데이터 프로세스 먼저 실행 후 페이지 변경
+
+            case PageName.Transactions =>
+              Cmd.Emit(PageMsg.PageUpdate)
+
+            case _ =>
               OnDataProcess.getData(
                 search,
               )

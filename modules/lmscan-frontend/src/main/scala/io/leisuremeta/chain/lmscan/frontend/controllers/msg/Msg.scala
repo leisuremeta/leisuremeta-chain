@@ -29,6 +29,7 @@ enum PageMoveMsg extends Msg:
   case Get(value: String)   extends PageMoveMsg
   case Patch(value: String) extends PageMoveMsg
 
+// No more use ========================================================
 // enum TxMsg extends Msg:
 //   case Refresh                  extends TxMsg
 //   case GetNewTx(result: String) extends TxMsg
