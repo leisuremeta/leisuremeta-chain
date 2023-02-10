@@ -60,7 +60,7 @@ object TxDetailTable:
             PageMsg.PreUpdate(
               PageName.AccountDetail(
                 getOptionValue(
-                  Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                  data.toAddress,
                   "-",
                 )
                   .toString(),
@@ -83,7 +83,7 @@ object TxDetailTable:
             PageMsg.PreUpdate(
               PageName.AccountDetail(
                 getOptionValue(
-                  Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                  data.toAddress,
                   "-",
                 )
                   .toString(),
@@ -144,7 +144,7 @@ object TxDetailTable:
                     PageMsg.PreUpdate(
                       PageName.AccountDetail(
                         getOptionValue(
-                          Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                          data.signer,
                           "-",
                         )
                           .toString(),

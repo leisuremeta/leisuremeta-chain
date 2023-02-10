@@ -20,11 +20,21 @@ object NftDetailTable:
     div(`class` := "table-area")(
       div(id := "oop-table-blocks", `class` := "table-list x")(
         div(`class` := "x gap-32px")(
-          video(`class` := "nft-image p-10px", autoPlay, loop)(
-            source(
-              src := s"${getOptionValue(nftFile.nftUri, "-").toString()}",
-            ),
-          ),
+          {
+            getOptionValue(nftFile.nftUri, "-").toString().contains("mov") match
+              case true => // mov 포맷
+                video(`class` := "nft-image p-10px", autoPlay, loop)(
+                  source(
+                    src := s"${getOptionValue(nftFile.nftUri, "-").toString()}",
+                  ),
+                )
+
+              case _ => // 비디오 포맷
+                img(
+                  `class` := "nft-image p-10px",
+                  src := s"${getOptionValue(nftFile.nftUri, "-").toString()}",
+                )
+          },
           div(`class` := "y-start gap-10px w-[100%] ")(
             div()(
               getOptionValue(nftFile.collectionName, "-")

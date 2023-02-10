@@ -37,15 +37,14 @@ object Row3:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
-                    // TODO :: 이렇게 하는게 맞는지 검증
-                    getOptionValue(Some(data), "-").toString(),
+                    getOptionValue(each.txHash, "-").toString(),
                   ),
                 ),
               ),
             )(
               getOptionValue(each.txHash, "-")
-                .toString()
-                .take(10) + "...",
+                .toString(),
+                // .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(

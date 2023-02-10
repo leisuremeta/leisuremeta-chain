@@ -88,8 +88,8 @@ object Row2:
               ),
             )(
               getOptionValue(each.signer, "-")
-                .toString()
-                .take(10) + "...",
+                .toString(),
+                // .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
@@ -111,8 +111,8 @@ object Row2:
               ),
             )(
               getOptionValue(each.value, "-")
-                .toString()
-                .take(10) + "...",
+                .toString(),
+                // .take(10) + "...",
             ),
           ),
         ),
@@ -154,7 +154,7 @@ object Row2:
                 PageMsg.PreUpdate(
                   PageName.AccountDetail(
                     getOptionValue(
-                      Some(each.signer),
+                      each.signer,
                       "-",
                     )
                       .toString(),
@@ -215,8 +215,8 @@ object Row2:
               ),
             )(
               getOptionValue(each.value, "-")
-                .toString()
-                .take(10) + "...",
+                .toString(),
+                // .take(10) + "...",
             ),
           ),
         )
