@@ -6,16 +6,20 @@
 // import tyrian.*
 // import tyrian.http.*
 // import io.circe.syntax.*
+// import scala.scalajs.js
 
-// object UnderTxMsg:
+// object UnderTxDetailMsg:
 //   private val onResponse: Response => Msg = response =>
 //     import io.circe.*, io.circe.generic.semiauto.*
+
 //     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
+//     Log.log("parseResult??")
+//     Log.log(parseResult)
 //     parseResult match
 //       case Left(parsingError) =>
-//         TxMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
+//         TxDetailMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
 //       case Right(json) => {
-//         TxMsg.GetNewTx(response.body)
+//         TxDetailMsg.Update(response.body)
 //       }
 
 //   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
@@ -23,8 +27,10 @@
 //   def fromHttpResponse: Decoder[Msg] =
 //     Decoder[Msg](onResponse, onError)
 
-// object OnTxMsg:
-//   def getTxList(page: String): Cmd[IO, Msg] =
-//     val url =
-//       s"http://localhost:8081/tx/list?pageNo=${(page.toInt - 1).toString()}&sizePerRequest=10"
-//     Http.send(Request.get(url), UnderTxMsg.fromHttpResponse)
+// object OnTxDetailMsg:
+//   def getTxDetail(hash: String): Cmd[IO, Msg] =
+//     val host = js.Dynamic.global.process.env.BACKEND_URL
+//     val port = js.Dynamic.global.process.env.BACKEND_PORT
+
+//     val url = s"http://${host}:${port}/tx/$hash/detail"
+//     Http.send(Request.get(url), UnderTxDetailMsg.fromHttpResponse)

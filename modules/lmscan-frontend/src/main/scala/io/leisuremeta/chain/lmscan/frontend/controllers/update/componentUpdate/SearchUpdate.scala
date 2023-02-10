@@ -10,8 +10,6 @@ object SearchUpdate:
       (model.copy(searchValue = s), Cmd.None)
 
     case InputMsg.Patch =>
-      val hash = model.searchValue
-
       (
         model,
         Cmd.emit(PageMsg.PreUpdate(CustomMap.getPageString(model.searchValue))),
