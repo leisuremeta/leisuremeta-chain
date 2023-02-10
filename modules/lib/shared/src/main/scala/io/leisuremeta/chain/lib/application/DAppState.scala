@@ -73,13 +73,15 @@ object DAppState:
       def remove(k: K): StateT[ETFS, MerkleTrieState, Boolean] =
         MerkleTrie.remove[F]((nameBytes ++ k.toBytes).bits)
       def from(
-          bytes: ByteVector,
+          prefixBytes: ByteVector,
       ): StateT[ETFS, MerkleTrieState, Stream[ETFS, (K, V)]] =
+        val prefixBits = (nameBytes ++ prefixBytes).bits
         MerkleTrie
-          .from((nameBytes ++ bytes).bits)
+          .from(prefixBits)
           .map { binaryStream =>
-            binaryStream.flatMap { case (kBits, vBytes) =>
-              Stream.eval {
+            binaryStream
+              .takeWhile(_._1.startsWith(prefixBits))
+              .evalMap { case (kBits, vBytes) =>
                 EitherT
                   .fromEither {
                     for
@@ -89,5 +91,5 @@ object DAppState:
                   }
                   .leftMap(_.msg)
               }
-            }
           }
+
