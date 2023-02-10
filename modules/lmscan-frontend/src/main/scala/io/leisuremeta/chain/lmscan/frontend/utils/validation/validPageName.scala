@@ -9,7 +9,7 @@ enum PageName:
   case Page64(hash: String)            extends PageName
   case None                            extends PageName
 
-object CustomMap:
+object ValidPageName:
   def getPage(search: PageName): PageName =
     search match
       case PageName.DashBoard            => search

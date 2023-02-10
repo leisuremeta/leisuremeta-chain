@@ -5,6 +5,7 @@ import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, isEqGet}
+import ValidOutputData.*
 
 import Log.*
 
@@ -37,28 +38,27 @@ object Row3:
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
                     // TODO :: 이렇게 하는게 맞는지 검증
-                    CommonFunc.getOptionValue(Some(data), "-").toString(),
+                    getOptionValue(Some(data), "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.txHash, "-")
+              getOptionValue(each.txHash, "-")
                 .toString()
                 .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.createdAt, "-").toString()),
+            span()(getOptionValue(each.createdAt, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.action, "-").toString()),
+            span()(getOptionValue(each.action, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.fromAddr, "-").toString()),
+            span()(getOptionValue(each.fromAddr, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.toAddr, "-").toString()),
+            span()(getOptionValue(each.toAddr, "-").toString()),
           ),
         ),
       )
@@ -79,8 +79,7 @@ object Row3:
     val data: NftDetail = NftDetailParser
       .decodeParser(model.nftDetailData.get)
       .getOrElse(new NftDetail)
-    val activities = CommonFunc
-      .getOptionValue(data.activities, List())
+    val activities = getOptionValue(data.activities, List())
       .asInstanceOf[List[NftActivities]]
     Row3.genTable(activities, model)
 

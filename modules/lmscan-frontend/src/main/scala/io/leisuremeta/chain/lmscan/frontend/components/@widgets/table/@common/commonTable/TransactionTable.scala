@@ -5,6 +5,7 @@ import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
+import ValidOutputData.*
 
 import Log.*
 
@@ -52,24 +53,23 @@ object Row2:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
-                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                    getOptionValue(each.hash, "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.hash, "-")
+              getOptionValue(each.hash, "-")
                 .toString()
                 .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.blockNumber, "-").toString()),
+            span()(getOptionValue(each.blockNumber, "-").toString()),
           ),
           div(`class` := "cell")(
             span()(
               yyyy_mm_dd_time(
-                CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
               ),
             ),
           ),
@@ -78,42 +78,39 @@ object Row2:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.AccountDetail(
-                    CommonFunc
-                      .getOptionValue(
-                        Some(each.signer),
-                        "-",
-                      )
+                    getOptionValue(
+                      Some(each.signer),
+                      "-",
+                    )
                       .toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.signer, "-")
+              getOptionValue(each.signer, "-")
                 .toString()
                 .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.txType, "-").toString()),
+            span()(getOptionValue(each.txType, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.tokenType, "-").toString()),
+            span()(getOptionValue(each.tokenType, "-").toString()),
           ),
           div(
-            `class` := s"cell ${isEqGet[String](CommonFunc.getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
             span(
               onClick(
                 PageMsg.PreUpdate(
                   PageName.NftDetail(
-                    CommonFunc.getOptionValue(each.value, "-").toString(),
+                    getOptionValue(each.value, "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.value, "-")
+              getOptionValue(each.value, "-")
                 .toString()
                 .take(10) + "...",
             ),
@@ -131,24 +128,23 @@ object Row2:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
-                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                    getOptionValue(each.hash, "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.hash, "-")
+              getOptionValue(each.hash, "-")
                 .toString()
                 .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.blockNumber, "-").toString()),
+            span()(getOptionValue(each.blockNumber, "-").toString()),
           ),
           div(`class` := "cell")(
             span()(
               yyyy_mm_dd_time(
-                CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
               ),
             ),
           ),
@@ -157,30 +153,28 @@ object Row2:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.AccountDetail(
-                    CommonFunc
-                      .getOptionValue(
-                        Some(each.signer),
-                        "-",
-                      )
+                    getOptionValue(
+                      Some(each.signer),
+                      "-",
+                    )
                       .toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.signer, "-")
+              getOptionValue(each.signer, "-")
                 .toString()
                 .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.txType, "-").toString()),
+            span()(getOptionValue(each.txType, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.tokenType, "-").toString()),
+            span()(getOptionValue(each.tokenType, "-").toString()),
           ),
           div(
-            `class` := s"cell ${isEqGet[String](CommonFunc.getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
             span(
               temp match
@@ -210,18 +204,17 @@ object Row2:
                       ),
                     ),
                   ),
-            )(CommonFunc.getOptionValue(each.hash, "-").toString().take(5)),
+            )(getOptionValue(each.hash, "-").toString().take(5)),
             span(
               onClick(
                 PageMsg.PreUpdate(
                   PageName.NftDetail(
-                    CommonFunc.getOptionValue(each.value, "-").toString(),
+                    getOptionValue(each.value, "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.value, "-")
+              getOptionValue(each.value, "-")
                 .toString()
                 .take(10) + "...",
             ),
@@ -238,13 +231,12 @@ object Row2:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
-                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                    getOptionValue(each.hash, "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.hash, "-")
+              getOptionValue(each.hash, "-")
                 .toString()
                 .take(10) + "...",
             ),
@@ -252,7 +244,7 @@ object Row2:
           div(`class` := "cell")(
             span()(
               timeAgo(
-                CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
               ),
             ),
           ),
@@ -262,25 +254,23 @@ object Row2:
                 PageMsg.PreUpdate(
                   log(
                     PageName.AccountDetail(
-                      CommonFunc
-                        .getOptionValue(
-                          each.signer,
-                          "-",
-                        )
+                      getOptionValue(
+                        each.signer,
+                        "-",
+                      )
                         .toString(),
                     ),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.signer, "-")
+              getOptionValue(each.signer, "-")
                 .toString()
                 .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.txType, "-").toString()),
+            span()(getOptionValue(each.txType, "-").toString()),
           ),
         ),
       )
@@ -365,7 +355,7 @@ object Row2:
     val data: TxList =
       TxParser.decodeParser(model.txListData.get).getOrElse(new TxList)
     val payload =
-      CommonFunc.getOptionValue(data.payload, List()).asInstanceOf[List[Tx]]
+      getOptionValue(data.payload, List()).asInstanceOf[List[Tx]]
     Row2.genTable(payload, model)
 
   val account_txtable = (model: Model) =>
@@ -373,14 +363,14 @@ object Row2:
       .decodeParser(model.accountDetailData.get)
       .getOrElse(new AccountDetail)
     val txHistory =
-      CommonFunc.getOptionValue(data.txHistory, List()).asInstanceOf[List[Tx]]
+      getOptionValue(data.txHistory, List()).asInstanceOf[List[Tx]]
     Row2.genTable(txHistory, model)
 
   val blockDetail_txtable = (model: Model) =>
     val data: BlockDetail = BlockDetailParser
       .decodeParser(model.blockDetailData.get)
       .getOrElse(new BlockDetail)
-    val txs = CommonFunc.getOptionValue(data.txs, List()).asInstanceOf[List[Tx]]
+    val txs = getOptionValue(data.txs, List()).asInstanceOf[List[Tx]]
     Row2.genTable(txs, model)
 
 object TransactionTable:

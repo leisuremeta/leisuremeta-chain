@@ -5,6 +5,7 @@ import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, timeAgo}
+import ValidOutputData.*
 
 import Log.*
 
@@ -41,13 +42,12 @@ object Row:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.BlockDetail(
-                    CommonFunc.getOptionValue(each.hash, "-").toString(),
+                    getOptionValue(each.hash, "-").toString(),
                   ),
                 ),
               ),
             )(
-              CommonFunc
-                .getOptionValue(each.hash, "-")
+              getOptionValue(each.hash, "-")
                 .toString()
                 .take(10) + "...",
             ),
@@ -55,15 +55,15 @@ object Row:
           div(`class` := "cell")(
             span()(
               timeAgo(
-                CommonFunc.getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
               ),
             ),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.number, "-").toString()),
+            span()(getOptionValue(each.number, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(CommonFunc.getOptionValue(each.txCount, "-").toString()),
+            span()(getOptionValue(each.txCount, "-").toString()),
           ),
         ),
       )
@@ -77,7 +77,7 @@ object Row:
     val data: BlockList =
       BlockParser.decodeParser(model.blockListData.get).getOrElse(new BlockList)
     val payload =
-      CommonFunc.getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
+      getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
     Row.genTable(payload)
 
   val search = (model: Model) =>

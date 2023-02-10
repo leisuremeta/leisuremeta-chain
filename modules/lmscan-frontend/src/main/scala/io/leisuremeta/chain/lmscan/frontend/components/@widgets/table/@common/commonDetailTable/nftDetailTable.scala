@@ -3,6 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
+import ValidOutputData.*
 
 object NftDetailTable:
   val view = (model: Model) =>
@@ -14,22 +15,20 @@ object NftDetailTable:
 
   val genView = (model: Model, data: NftDetail) =>
     val nftFile =
-      CommonFunc.getOptionValue(data.nftFile, new NftFile).asInstanceOf[NftFile]
+      getOptionValue(data.nftFile, new NftFile).asInstanceOf[NftFile]
 
     div(`class` := "table-area")(
       div(id := "oop-table-blocks", `class` := "table-list x")(
         div(`class` := "x gap-32px")(
           video(`class` := "nft-image p-10px", autoPlay, loop)(
             source(
-              src := s"${CommonFunc.getOptionValue(nftFile.nftUri, "-").toString()}",
+              src := s"${getOptionValue(nftFile.nftUri, "-").toString()}",
             ),
           ),
           div(`class` := "y-start gap-10px w-[100%] ")(
             div()(
-              CommonFunc
-                .getOptionValue(nftFile.collectionName, "-")
-                .toString() + CommonFunc
-                .getOptionValue(nftFile.nftName, "-")
+              getOptionValue(nftFile.collectionName, "-")
+                .toString() + getOptionValue(nftFile.nftName, "-")
                 .toString(),
             ),
             div(`class` := "x")(
@@ -38,13 +37,13 @@ object NftDetailTable:
                   div(`class` := "row")(
                     div(`class` := "cell type-detail-head ")("Token ID"),
                     div(`class` := "cell type-detail-body ")(
-                      CommonFunc.getOptionValue(nftFile.tokenId, "-").toString(),
+                      getOptionValue(nftFile.tokenId, "-").toString(),
                     ),
                   ),
                   div(`class` := "row")(
                     div(`class` := "cell type-detail-head")("Rarity"),
                     div(`class` := "cell type-detail-body")(
-                      CommonFunc.getOptionValue(nftFile.rarity, "-").toString(),
+                      getOptionValue(nftFile.rarity, "-").toString(),
                     ),
                   ),
                   div(`class` := "row")(
@@ -55,17 +54,16 @@ object NftDetailTable:
                         onClick(
                           PageMsg.PreUpdate(
                             PageName.AccountDetail(
-                              CommonFunc
-                                .getOptionValue(
-                                  nftFile.owner, // TODO :: option 처리
-                                  None,
-                                )
+                              getOptionValue(
+                                nftFile.owner, // TODO :: option 처리
+                                None,
+                              )
                                 .toString(),
                             ),
                           ),
                         ),
                       )(
-                        CommonFunc.getOptionValue(nftFile.owner, "-").toString(),
+                        getOptionValue(nftFile.owner, "-").toString(),
                       ),
                     ),
                   ),

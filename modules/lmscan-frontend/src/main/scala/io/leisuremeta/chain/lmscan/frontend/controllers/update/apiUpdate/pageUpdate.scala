@@ -4,7 +4,8 @@ import cats.effect.IO
 import tyrian.Html.*
 import tyrian.*
 import Log.log
-import CustomMap.*
+import ValidPageName.*
+import ValidOutputData.*
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -63,8 +64,8 @@ object PageUpdate:
           TxParser
             .decodeParser(data)
             .map(data =>
-              updated_tx_TotalPage =
-                CommonFunc.getOptionValue(data.totalPages, 1).asInstanceOf[Int],
+              updated_tx_TotalPage = getOptionValue(data.totalPages, 1)
+                .asInstanceOf[Int],
             )
 
           (
@@ -84,7 +85,7 @@ object PageUpdate:
             .decodeParser(data)
             .map(data =>
               updated_block_TotalPage =
-                CommonFunc.getOptionValue(data.totalPages, 1).asInstanceOf[Int],
+                getOptionValue(data.totalPages, 1).asInstanceOf[Int],
             )
 
           (

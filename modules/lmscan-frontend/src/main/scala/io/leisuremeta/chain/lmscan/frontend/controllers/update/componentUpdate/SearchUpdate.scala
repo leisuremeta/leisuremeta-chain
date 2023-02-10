@@ -12,5 +12,7 @@ object SearchUpdate:
     case InputMsg.Patch =>
       (
         model,
-        Cmd.emit(PageMsg.PreUpdate(CustomMap.getPageString(model.searchValue))),
+        Cmd.emit(
+          PageMsg.PreUpdate(ValidPageName.getPageString(model.searchValue)),
+        ),
       )

@@ -4,6 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
+import ValidOutputData.*
 
 object AccountDetailTable:
   val view = (model: Model) =>
@@ -20,19 +21,19 @@ object AccountDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head ")("Account"),
               div(`class` := "cell type-detail-body ")(
-                CommonFunc.getOptionValue(data.address, "-").toString(),
+                getOptionValue(data.address, "-").toString(),
               ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Balance"),
               div(`class` := "cell type-detail-body")(
-                CommonFunc.getOptionValue(data.balance, "-").toString() + "LM",
+                getOptionValue(data.balance, "-").toString() + "LM",
               ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Value"),
               div(`class` := "cell type-detail-body")(
-                "$" + CommonFunc.getOptionValue(data.value, "-").toString(),
+                "$" + getOptionValue(data.value, "-").toString(),
               ),
             ),
           ),

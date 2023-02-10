@@ -4,6 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import Dom.*
+import ValidOutputData.*
 
 object TxDetailTable:
   val view = (model: Model) =>
@@ -35,7 +36,7 @@ object TxDetailTable:
             PageMsg.PreUpdate(
               PageName.TransactionDetail(
                 // TODO :: 이렇게 하는게 맞는지 검증
-                CommonFunc.getOptionValue(Some(data), "-").toString(),
+                getOptionValue(Some(data), "-").toString(),
               ),
             ),
           ),
@@ -54,23 +55,22 @@ object TxDetailTable:
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(data.toAddress, "-").toString())),
+          // onClick(NavMsg.AccountDetail(getOptionValue(data.toAddress, "-").toString())),
           onClick(
             PageMsg.PreUpdate(
               PageName.AccountDetail(
-                CommonFunc
-                  .getOptionValue(
-                    Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
-                    "-",
-                  )
+                getOptionValue(
+                  Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                  "-",
+                )
                   .toString(),
               ),
             ),
           ),
-        )(CommonFunc.getOptionValue(data.toAddress, "-").toString()),
+        )(getOptionValue(data.toAddress, "-").toString()),
       ),
       div(`class` := "cell type-detail-body")(
-        CommonFunc.getOptionValue(data.value, "-").toString(),
+        getOptionValue(data.value, "-").toString(),
       ),
     )
   val genOutput_NFT = (data: Transfer, i: Any) =>
@@ -78,20 +78,19 @@ object TxDetailTable:
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          // onClick(NavMsg.AccountDetail(CommonFunc.getOptionValue(data.toAddress, "-").toString())),
+          // onClick(NavMsg.AccountDetail(getOptionValue(data.toAddress, "-").toString())),
           onClick(
             PageMsg.PreUpdate(
               PageName.AccountDetail(
-                CommonFunc
-                  .getOptionValue(
-                    Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
-                    "-",
-                  )
+                getOptionValue(
+                  Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                  "-",
+                )
                   .toString(),
               ),
             ),
           ),
-        )(CommonFunc.getOptionValue(data.toAddress, "-").toString()),
+        )(getOptionValue(data.toAddress, "-").toString()),
       ),
       // 두개 중복되는거 같아서 하나 지움
       // div(`class` := "cell type-3 type-detail-body")(
@@ -109,16 +108,14 @@ object TxDetailTable:
       //         ),
       //       ),
       //     ),
-      //   )(CommonFunc.getOptionValue(data.value, "-").toString()),
+      //   )(getOptionValue(data.value, "-").toString()),
       // ),
     )
 
   val genView = (model: Model, data: TxDetail) =>
-    val transferHist = CommonFunc
-      .getOptionValue(data.transferHist, List())
+    val transferHist = getOptionValue(data.transferHist, List())
       .asInstanceOf[List[Transfer]]
-    val inputHashs = CommonFunc
-      .getOptionValue(data.inputHashs, List())
+    val inputHashs = getOptionValue(data.inputHashs, List())
       .asInstanceOf[List[String]]
 
     div(`class` := "y-start gap-10px w-[100%] ")(
@@ -128,13 +125,13 @@ object TxDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head ")("Transaction Hash"),
               div(`class` := "cell type-detail-body ")(
-                CommonFunc.getOptionValue(data.hash, "-").toString(),
+                getOptionValue(data.hash, "-").toString(),
               ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Created At"),
               div(`class` := "cell type-detail-body")(
-                CommonFunc.getOptionValue(data.createdAt, "-").toString(),
+                getOptionValue(data.createdAt, "-").toString(),
               ),
             ),
             div(`class` := "row")(
@@ -146,28 +143,27 @@ object TxDetailTable:
                   onClick(
                     PageMsg.PreUpdate(
                       PageName.AccountDetail(
-                        CommonFunc
-                          .getOptionValue(
-                            Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
-                            "-",
-                          )
+                        getOptionValue(
+                          Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
+                          "-",
+                        )
                           .toString(),
                       ),
                     ),
                   ),
-                )(CommonFunc.getOptionValue(data.signer, "-").toString()),
+                )(getOptionValue(data.signer, "-").toString()),
               ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Type"),
               div(`class` := "cell type-detail-body")(
-                CommonFunc.getOptionValue(data.txType, "-").toString(),
+                getOptionValue(data.txType, "-").toString(),
               ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Token Type"),
               div(`class` := "cell type-detail-body")(
-                CommonFunc.getOptionValue(data.tokenType, "-").toString(),
+                getOptionValue(data.tokenType, "-").toString(),
               ),
             ),
           ),
@@ -204,14 +200,14 @@ object TxDetailTable:
                 "To",
               ),
               div(`class` := "cell type-detail-body font-bold")(
-                s"${CommonFunc.getOptionValue(data.tokenType, "-").toString() == "NFT" match
+                s"${getOptionValue(data.tokenType, "-").toString() == "NFT" match
                     case true  => "Token ID"
                     case false => "Value"
                   }",
               ),
             )
               :: {
-                CommonFunc.getOptionValue(data.tokenType, "-").toString() match
+                getOptionValue(data.tokenType, "-").toString() match
                   case "NFT" => output_NFT(transferHist)
                   case _     => output(transferHist)
               },
