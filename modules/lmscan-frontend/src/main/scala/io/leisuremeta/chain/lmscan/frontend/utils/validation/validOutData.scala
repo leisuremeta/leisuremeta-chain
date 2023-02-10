@@ -5,3 +5,5 @@ object ValidOutputData:
     field match
       case Some(value) => value
       case None        => default
+
+  def vData = () => ""

@@ -79,7 +79,7 @@ object Row2:
                 PageMsg.PreUpdate(
                   PageName.AccountDetail(
                     getOptionValue(
-                      Some(each.signer),
+                      each.signer,
                       "-",
                     )
                       .toString(),
