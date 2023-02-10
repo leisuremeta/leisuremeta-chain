@@ -3,7 +3,7 @@ package io.leisuremeta.chain.lmscan.agent.model
 
 final case class LmPrice(
   status: Status,
-  data: Id,
+  data: Map[String, Data],
 )
 
 final case class Status(
@@ -11,9 +11,9 @@ final case class Status(
   error_message: Option[String],
 )
 
-final case class Id(
-  `21315`: Data
-)
+// final case class Id(
+//   `21315`: Data
+// )
 
 final case class Data(
   id: Long,
