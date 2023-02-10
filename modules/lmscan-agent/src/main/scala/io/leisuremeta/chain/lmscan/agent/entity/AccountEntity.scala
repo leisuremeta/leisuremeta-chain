@@ -6,8 +6,8 @@ import java.time.Instant
 
 final case class AccountEntity(
     address: String,
-    balance: Long,
-    amount: Long,
+    balance: BigDecimal,
+    amount: BigDecimal,
     eventTime: Long,
     createdAt: Long,
 ) 
