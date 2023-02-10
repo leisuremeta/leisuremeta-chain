@@ -9,7 +9,7 @@ enum PageMsg extends Msg:
   case DataUpdate(data: String, page: PageName) extends PageMsg
   case PageUpdate                               extends PageMsg
   case PostUpdate                               extends PageMsg
-  case GetError(msg: String)                    extends PageMsg
+  case GetError(msg: String, page: PageName)    extends PageMsg
 
 enum ToggleMsg extends Msg:
   case Click

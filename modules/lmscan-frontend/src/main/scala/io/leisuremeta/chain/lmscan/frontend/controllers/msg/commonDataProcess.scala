@@ -18,7 +18,7 @@ object UnderDataProcess:
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
       case Left(parsingError) =>
-        PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}")
+        PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
       case Right(json) => {
         page match
           case PageName.AccountDetail(_) =>
@@ -45,20 +45,22 @@ object OnDataProcess:
 
     val url = pageName match
       case PageName.DashBoard =>
-        s"${base}/summary/main"
+        s"$base/summary/main"
       case PageName.Transactions =>
-        s"${base}/tx/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
+        s"$base/tx/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
       case PageName.Blocks =>
-        s"${base}/block/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
+        s"$base/block/list?pageNo=${(payload.page.toInt - 1).toString()}&sizePerRequest=10"
       case PageName.BlockDetail(hash) =>
-        s"${base}/block/$hash/detail"
+        s"$base/block/$hash/detail"
       case PageName.TransactionDetail(hash) =>
-        s"${base}/tx/$hash/detail"
+        s"$base/tx/$hash/detail"
       case PageName.AccountDetail(hash) =>
-        s"${base}/account/$hash/detail"
+        s"$base/account/$hash/detail"
       case PageName.NftDetail(hash) =>
-        s"${base}/nft/$hash/detail"
+        s"$base/nft/$hash/detail"
+      case PageName.Page64(hash) =>
+        s"$base/tx/$hash/detail"
 
-      case _ => s"${base}/summary/main"
+      case _ => s"$base/summary/main"
 
     Http.send(Request.get(url), UnderDataProcess.fromHttpResponse(pageName))

@@ -105,8 +105,8 @@ object PageUpdate:
           )
         case _ =>
           (
-            model.copy(curPage = page),
-            Cmd.emit(PageMsg.GetError("페이지를 찾을수 없다..")),
+            model,
+            Cmd.emit(PageMsg.GetError("페이지를 찾을수 없다..", page)),
           )
 
     // #page update
@@ -116,12 +116,19 @@ object PageUpdate:
         Cmd.emit(PageMsg.PostUpdate),
       )
 
-    case PageMsg.GetError(msg) =>
-      Log.log(msg)
-      (
-        model.copy(curPage = PageName.NoPage),
-        Cmd.emit(PageMsg.PostUpdate),
-      )
+    case PageMsg.GetError(msg, page) =>
+      page match
+        case PageName.Page64(hash) =>
+          Log.log(s"트랙잭션 먼저 검색 후 실패시 블록 디테일로 검색한다")
+          (
+            model,
+            Cmd.emit(PageMsg.PreUpdate(PageName.BlockDetail(hash))),
+          )
+        case _ =>
+          (
+            model.copy(curPage = PageName.NoPage),
+            Cmd.emit(PageMsg.PostUpdate),
+          )
 
     case PageMsg.PostUpdate =>
       (
