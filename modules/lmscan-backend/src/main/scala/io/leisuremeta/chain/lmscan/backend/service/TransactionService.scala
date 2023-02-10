@@ -17,6 +17,7 @@ import cats.effect.Async
 import io.leisuremeta.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
+import cats.effect.kernel.Async
 
 object TransactionService:
 
@@ -96,7 +97,8 @@ object TransactionService:
       case (Some(accountAddr), None) =>
         getPageByAccount[F](accountAddr, pageInfo)
       case (_, _) =>
-        throw new RuntimeException("검색 파라미터를 하나만 입력해주세요.")
+        EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
+
 
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     println(s"555")
