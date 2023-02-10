@@ -11,7 +11,10 @@ object PageUpdate:
     case PageMsg.PreUpdate(search: PageName) =>
       (
         model.copy(
-          prevPage = model.curPage,
+          prevPage = model.curPage match
+            case PageName.NoPage => model.prevPage
+            case _               => model.curPage
+          ,
           searchValueStore = search.toString(),
           pageNameStore = getPage(search),
           urlStore = search.toString(),
