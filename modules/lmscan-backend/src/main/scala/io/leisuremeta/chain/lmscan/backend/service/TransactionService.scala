@@ -18,6 +18,7 @@ import io.leisuremeta.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
+import io.leisuremeta.chain.lmscan.backend.model.TxInfo
 
 object TransactionService:
 
@@ -72,7 +73,7 @@ object TransactionService:
   ): EitherT[F, String, PageResponse[TxInfo]] =
     for
       page <- TransactionRepository.getPageByAccount(address, pageNavInfo)
-      txInfo = convertToInfo(page.payload)
+      txInfo = convertToInfoForAccount(page.payload, address)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
   def getPageByBlock[F[_]: Async](
@@ -99,7 +100,6 @@ object TransactionService:
       case (_, _) =>
         EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
 
-
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     println(s"555")
     txs.map { tx =>
@@ -113,6 +113,25 @@ object TransactionService:
         tx.txType,
         tx.tokenType,
         tx.fromAddr,
+        None,
+        latestOutValOpt,
+      )
+    }
+
+  def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
+    println(s"555")
+    txs.map { tx =>
+      val latestOutValOpt = tx.outputVals match 
+        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case None      => None
+      TxInfo(
+        tx.hash,
+        tx.blockNumber,
+        tx.eventTime,
+        tx.txType,
+        tx.tokenType,
+        tx.fromAddr,
+        Some(if tx.fromAddr == address then "Out" else "In"),
         latestOutValOpt,
       )
     }
