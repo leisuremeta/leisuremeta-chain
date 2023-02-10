@@ -22,7 +22,7 @@ object BoardView:
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
             div()(
-              getOptionValue(data.lmPrice, "-").toString() + " USDT",
+              getOptionValue(data.lmPrice, "-").toString().take(6) + " USDT",
             ),
           ),
         ),

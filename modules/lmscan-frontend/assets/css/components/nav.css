@@ -39,7 +39,8 @@ nav #playnomm {
     width: 100%;
     height: 55px;
     display: flex;
-    justify-content: center;
+    padding-left: 55px;
+    justify-content: left;
     align-items: center;
     font-size: larger;
 

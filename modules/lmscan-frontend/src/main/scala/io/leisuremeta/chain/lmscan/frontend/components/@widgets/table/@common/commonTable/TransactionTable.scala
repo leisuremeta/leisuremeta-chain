@@ -44,6 +44,7 @@ object Row2:
     div(`class` := "cell")(span()("Type")), // txType
   )
 
+  // #tx-main
   def genBody = (payload: List[Tx]) =>
     payload
       .map(each =>
@@ -87,6 +88,7 @@ object Row2:
                 ),
               ),
             )(
+              // TODO:FIX ...
               getOptionValue(each.signer, "-")
                 .toString(),
                 // .take(10) + "...",
@@ -110,9 +112,8 @@ object Row2:
                 ),
               ),
             )(
-              getOptionValue(each.value, "-")
-                .toString(),
-                // .take(10) + "...",
+              vData(each.value, V.TxValue),
+              // .take(10) + "...",
             ),
           ),
         ),
@@ -162,9 +163,10 @@ object Row2:
                 ),
               ),
             )(
+              // TODO:FIX ... 붙여야할거같은데
               getOptionValue(each.signer, "-")
                 .toString()
-                .take(10) + "...",
+                .take(10),
             ),
           ),
           div(`class` := "cell")(
@@ -176,35 +178,35 @@ object Row2:
           div(
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
-            span(
-              temp match
-                case true =>
-                  List(
-                    // onClick(NavMsg.Transactions),
-                    style(
-                      Style(
-                        "background-color" -> "white",
-                        "padding"          -> "5px",
-                        "border"           -> "1px solid green",
-                        "border-radius"    -> "5px",
-                        "margin-right"     -> "5px",
-                      ),
-                    ),
-                  )
-                case false =>
-                  List(
-                    // onClick(NavMsg.Transactions),
-                    style(
-                      Style(
-                        "background-color" -> "rgba(171, 242, 0, 0.5)",
-                        "padding"          -> "5px",
-                        "border"           -> "1px solid green",
-                        "border-radius"    -> "5px",
-                        "margin-right"     -> "5px",
-                      ),
-                    ),
-                  ),
-            )(getOptionValue(each.hash, "-").toString().take(5)),
+            // span(
+            //   temp match
+            //     case true =>
+            //       List(
+            //         // onClick(NavMsg.Transactions),
+            //         style(
+            //           Style(
+            //             "background-color" -> "white",
+            //             "padding"          -> "5px",
+            //             "border"           -> "1px solid green",
+            //             "border-radius"    -> "5px",
+            //             "margin-right"     -> "5px",
+            //           ),
+            //         ),
+            //       )
+            //     case false =>
+            //       List(
+            //         // onClick(NavMsg.Transactions),
+            //         style(
+            //           Style(
+            //             "background-color" -> "rgba(171, 242, 0, 0.5)",
+            //             "padding"          -> "5px",
+            //             "border"           -> "1px solid green",
+            //             "border-radius"    -> "5px",
+            //             "margin-right"     -> "5px",
+            //           ),
+            //         ),
+            //       ),
+            // )(getOptionValue(each.hash, "-").toString().take(5)),
             span(
               onClick(
                 PageMsg.PreUpdate(
@@ -214,9 +216,10 @@ object Row2:
                 ),
               ),
             )(
+              // TODO:fix-  ... 처리
               getOptionValue(each.value, "-")
-                .toString(),
-                // .take(10) + "...",
+                .toString()
+                .take(10),
             ),
           ),
         )
@@ -248,6 +251,7 @@ object Row2:
               ),
             ),
           ),
+          // type3
           div(`class` := "cell type-3")(
             span(
               onClick(
@@ -266,7 +270,7 @@ object Row2:
             )(
               getOptionValue(each.signer, "-")
                 .toString()
-                .take(10) + "...",
+                .take(10),
             ),
           ),
           div(`class` := "cell")(
