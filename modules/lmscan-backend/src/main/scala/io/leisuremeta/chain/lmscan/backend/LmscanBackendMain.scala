@@ -205,7 +205,7 @@ object BackendMain extends IOApp:
           .toService(explorerEndpoints[F])
         val server = Server.builder
           .annotatedService(tapirService)
-          .http(8081)
+          .http(8080)
           .maxRequestLength(128 * 1024 * 1024)
           .requestTimeout(java.time.Duration.ofSeconds(30))
           .service(tapirService)

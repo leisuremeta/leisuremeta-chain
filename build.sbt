@@ -392,7 +392,13 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
   .settings(
     name := "leisuremeta-chain-lmscan-backend",
     assemblyMergeStrategy := {
+      case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*) => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "scala-asm.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "compiler.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>
