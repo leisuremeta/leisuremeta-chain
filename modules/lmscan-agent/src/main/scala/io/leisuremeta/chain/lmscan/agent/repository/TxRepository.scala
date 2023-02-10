@@ -24,6 +24,7 @@ object TxRepository:
   import ctx.{*, given}
 
   def countInLatest24h[F[_]: Async]: EitherT[F, String, Long] =
+    inline given SchemaMeta[TxEntity] = schemaMeta[TxEntity]("tx")
     val before24Hours = Instant.now().minus(1, ChronoUnit.DAYS).getEpochSecond()
     inline def latestQuery = quote {
       query[TxEntity].filter(t => t.eventTime >= lift(before24Hours))

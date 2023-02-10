@@ -4,6 +4,7 @@ final case class SummaryEntity(
   id: Long,
   lmPrice: Double,
   blockNumber: Long,
-  txCountsIn24Hour: Long,
+  txCountInLatest24h: Long, //tx_count_in_latest24h
   totalAccounts: Long,
+  createdAt: Long,
 )

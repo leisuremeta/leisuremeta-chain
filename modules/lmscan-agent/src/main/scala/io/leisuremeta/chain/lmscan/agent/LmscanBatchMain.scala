@@ -573,6 +573,8 @@ object LmscanBatchMain extends IOApp:
   }
 
   def summaryLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
+    inline given SchemaMeta[SummaryEntity] = schemaMeta[SummaryEntity]("summary")
+    
     def loop(backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
       for 
         _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop start")))
@@ -590,8 +592,9 @@ object LmscanBatchMain extends IOApp:
                 query[SummaryEntity].insert(
                   _.lmPrice -> lift(lmPrice.price),
                   _.blockNumber -> lift(lastSavedBlock.number),
-                  _.txCountsIn24Hour -> lift(txCountInLatest24h),
+                  _.txCountInLatest24h -> lift(txCountInLatest24h),
                   _.totalAccounts -> lift(totalAccountCnt),
+                  _.createdAt -> lift(Instant.now().getEpochSecond())
                 )
               )
             yield ()
@@ -599,6 +602,8 @@ object LmscanBatchMain extends IOApp:
         }
         _ <- EitherT.right(Async[F].sleep(10000.millis))
         _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop finished")))
+        
+        _ <- loop(backend)
       yield ()
     
     loop(backend)
@@ -629,7 +634,6 @@ object LmscanBatchMain extends IOApp:
       .build()
 
     ArmeriaCatsBackend
-      // .resource[IO](SttpBackendOptions.Default)
       .resourceUsingClient[IO](webClient(SttpBackendOptions.Default))
       .use { backend =>
         val program = for
@@ -637,9 +641,10 @@ object LmscanBatchMain extends IOApp:
           
           _ <- List(
             blockCheckLoop(backend), 
-            // summaryLoop(backend)
+            summaryLoop(backend)
           ).parSequence
         yield ()
         program.value
     }
     .as(ExitCode.Success)
+// tx_count_in_latest24h

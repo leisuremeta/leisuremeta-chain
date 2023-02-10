@@ -28,7 +28,7 @@ object ExternalApiService:
       _ <- EitherT.pure(scribe.info(s"coinMarket: $res"))
       result <- if res.status.error_code == 0 then 
         scribe.info(s"getLmPrice response: $res")
-        EitherT.pure(Some(res.data.`21315`))
+        EitherT.pure(Some(res.data("20315")))
       else {
         scribe.error(s"coin market api returned response error (code: ${res.status.error_code}, message: ${res.status.error_message} )"); 
         EitherT.pure(None)
