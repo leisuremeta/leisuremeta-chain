@@ -217,9 +217,7 @@ object Row2:
               ),
             )(
               // TODO:fix-  ... 처리
-              getOptionValue(each.value, "-")
-                .toString()
-                .take(10),
+              vData(each.value, V.TxValue),
             ),
           ),
         )

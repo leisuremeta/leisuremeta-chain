@@ -38,9 +38,10 @@ object UnderDataProcess:
     Decoder[Msg](onResponse(page), onError)
 
 object OnDataProcess:
-  val host = js.Dynamic.global.process.env.BACKEND_URL
-  val port = js.Dynamic.global.process.env.BACKEND_PORT
-  val base = s"http://${host}:${port}"
+  // val host = js.Dynamic.global.process.env.BACKEND_URL
+  // val port = js.Dynamic.global.process.env.BACKEND_PORT
+
+  var base = js.Dynamic.global.process.env.BASE_API_URL
 
   def getData(
       pageName: PageName,
