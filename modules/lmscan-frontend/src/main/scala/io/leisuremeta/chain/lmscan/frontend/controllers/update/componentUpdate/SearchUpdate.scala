@@ -10,6 +10,8 @@ object SearchUpdate:
       (model.copy(searchValue = s), Cmd.None)
 
     case InputMsg.Patch =>
+      Log.log("으악")
+      Log.log(ValidPageName.getPageString(model.searchValue))
       (
         model,
         Cmd.emit(

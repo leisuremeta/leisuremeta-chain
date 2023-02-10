@@ -25,7 +25,11 @@ object UnderDataProcess:
             Log.log(s"${page}: ${response.body}")
           case _ => ""
 
-        PageMsg.DataUpdate(response.body, page)
+        page match
+          case PageName.Page64(hash) =>
+            PageMsg.DataUpdate(response.body, PageName.TransactionDetail(hash))
+          case _ => PageMsg.DataUpdate(response.body, page)
+
       }
 
   private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
@@ -59,6 +63,7 @@ object OnDataProcess:
       case PageName.NftDetail(hash) =>
         s"$base/nft/$hash/detail"
       case PageName.Page64(hash) =>
+        Log.log(s"여기로 검색? $base/tx/$hash/detail")
         s"$base/tx/$hash/detail"
 
       case _ => s"$base/summary/main"

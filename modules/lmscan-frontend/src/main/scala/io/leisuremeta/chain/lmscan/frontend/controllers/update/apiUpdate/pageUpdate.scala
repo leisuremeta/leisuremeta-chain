@@ -120,9 +120,11 @@ object PageUpdate:
           (
             model.copy(
               txDetailData = Some(data),
+              pageNameStore = page,
             ),
             Cmd.emit(PageMsg.PageUpdate),
           )
+
         case _ =>
           (
             model,
