@@ -158,7 +158,7 @@ object TxEntity:
       eventTime = tx.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond,
       inputHashs = None,
-      outputVals = Some(Seq(toAccount+"/"+0)),
+      outputVals = None,
       json = txJson,
     )
 
@@ -175,7 +175,7 @@ object TxEntity:
       eventTime = tx.createdAt.getEpochSecond(),
       createdAt = Instant.now().getEpochSecond,
       inputHashs = None,
-      outputVals = Some(Seq(toAccount+"/"+0)),
+      outputVals = None,
       json = txJson,
     )
 
