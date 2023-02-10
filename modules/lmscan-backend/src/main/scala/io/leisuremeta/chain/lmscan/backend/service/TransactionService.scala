@@ -103,9 +103,9 @@ object TransactionService:
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     println(s"555")
     txs.map { tx =>
-      val latestOutVal = tx.outputVals match 
-        case Some(seq) => seq.map(_.split("/")).headOption.getOrElse(Array[String]("", ""))
-        case None      => Array[String]("", "")
+      val latestOutValOpt = tx.outputVals match 
+        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case None      => None
       TxInfo(
         tx.hash,
         tx.blockNumber,
@@ -113,6 +113,6 @@ object TransactionService:
         tx.txType,
         tx.tokenType,
         tx.fromAddr,
-        latestOutVal(1),
+        latestOutValOpt,
       )
     }

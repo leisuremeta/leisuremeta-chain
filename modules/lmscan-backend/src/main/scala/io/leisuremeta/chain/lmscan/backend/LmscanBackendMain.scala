@@ -69,7 +69,6 @@ object BackendMain extends IOApp:
         .getDetail(hash)
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
-
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
       result.value

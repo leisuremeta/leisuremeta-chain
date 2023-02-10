@@ -7,5 +7,5 @@ final case class TxInfo(
     txType: String,
     tokenType: String,
     signer: String,
-    value: String,
+    value: Option[String],
 )
