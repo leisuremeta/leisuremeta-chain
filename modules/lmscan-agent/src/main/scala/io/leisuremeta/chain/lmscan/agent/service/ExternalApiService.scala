@@ -40,7 +40,7 @@ object ExternalApiService:
   )(uri: Uri): EitherT[F, String, A] =
     EitherT {
       basicRequest
-        .header("X-CMC_PRO_API_KEY", "b78d5940-b63d-4d90-99fc-58f65be72fa0", replaceExisting = true)
+        .header("X-CMC_PRO_API_KEY", "aa17895d-2df9-4bf6-bb32-2943cd775c5d", replaceExisting = true)
         .get(uri)
         .send(backend)
         .map { response =>

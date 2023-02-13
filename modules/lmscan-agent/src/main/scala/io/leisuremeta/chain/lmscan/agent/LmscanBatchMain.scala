@@ -57,7 +57,8 @@ object LmscanBatchMain extends IOApp:
   inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")    
   inline given SchemaMeta[TxEntity] = schemaMeta[TxEntity]("tx")
 
-  val baseUri = "http://test.chain.leisuremeta.io"
+  // val baseUri = "http://test.chain.leisuremeta.io"
+  val baseUri = "http://lmc.leisuremeta.io"
 
   // for excluding auto-generated column named 'id'
   // given StateEntityInsertMeta = insertMeta[StateEntity](_.id)  
