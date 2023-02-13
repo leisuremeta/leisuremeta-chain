@@ -36,21 +36,16 @@ object Row:
   def genBody = (payload: List[Block]) =>
     payload
       .map(each =>
-        log("each")
-        log(each)
         div(`class` := "row table-body")(
-          div(`class` := "cell type-3")(
+          div(
+            `class` := "cell",
+          )(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.BlockDetail(
-                    getOptionValue(each.hash, "-").toString(),
-                  ),
-                ),
-              ),
+              `class` := "pt-10",
             )(
               getOptionValue(each.number, "-")
-                .toString(),
+                .toString()
+                .take(10),
             ),
           ),
           div(`class` := "cell")(
@@ -60,8 +55,16 @@ object Row:
               ),
             ),
           ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.hash, "-").toString().take(10) + "..."),
+          div(`class` := "cell type-3")(
+            span(
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.BlockDetail(
+                    getOptionValue(each.hash, "-").toString(),
+                  ),
+                ),
+              ),
+            )(getOptionValue(each.hash, "-").toString().take(10) + "..."),
           ),
           div(`class` := "cell")(
             span()(getOptionValue(each.txCount, "-").toString()),
