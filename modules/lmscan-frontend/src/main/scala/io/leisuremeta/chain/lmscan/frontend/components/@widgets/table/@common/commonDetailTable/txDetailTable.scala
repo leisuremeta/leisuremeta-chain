@@ -131,7 +131,9 @@ object TxDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Created At"),
               div(`class` := "cell type-detail-body")(
-                getOptionValue(data.createdAt, "-").toString(),
+                yyyy_mm_dd_time(
+                  getOptionValue(data.createdAt, 0).asInstanceOf[Int],
+                ),
               ),
             ),
             div(`class` := "row")(

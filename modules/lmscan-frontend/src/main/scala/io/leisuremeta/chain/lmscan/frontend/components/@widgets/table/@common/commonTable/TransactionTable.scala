@@ -69,7 +69,7 @@ object Row2:
           ),
           div(`class` := "cell")(
             span()(
-              yyyy_mm_dd_time(
+              timeAgo(
                 getOptionValue(each.createdAt, 0).asInstanceOf[Int],
               ),
             ),
@@ -144,7 +144,7 @@ object Row2:
           ),
           div(`class` := "cell")(
             span()(
-              yyyy_mm_dd_time(
+              timeAgo(
                 getOptionValue(each.createdAt, 0).asInstanceOf[Int],
               ),
             ),

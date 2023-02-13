@@ -4,6 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import ValidOutputData.*
+import Dom.{_hidden, timeAgo}
 
 object BlockDetailTable:
   val view = (model: Model) =>
@@ -24,7 +25,9 @@ object BlockDetailTable:
         div(`class` := "row")(
           div(`class` := "cell type-detail-head")("Timestamp"),
           div(`class` := "cell type-detail-body")(
-            getOptionValue(data.timestamp, "-").toString(),
+            Dom.yyyy_mm_dd_time(
+              getOptionValue(data.timestamp, 0).asInstanceOf[Int],
+            ),
           ),
         ),
         div(`class` := "row")(
