@@ -14,6 +14,8 @@ object AccountDetailTable:
     genView(model, data)
 
   val genView = (model: Model, data: AccountDetail) =>
+    val balance = getOptionValue(data.balance, 0.0).asInstanceOf[Double] / Math.pow(10, 18).toDouble
+    // val value   = Math.floor( getOptionValue(data.value, 0.0).asInstanceOf[Double] / Math.pow(10, 18).toDouble * 10000 ) / 10000
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
         div(`class` := "type-TableDetail  table-container")(
@@ -27,7 +29,7 @@ object AccountDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Balance"),
               div(`class` := "cell type-detail-body")(
-                getOptionValue(data.balance, "-").toString() + "LM",
+                balance.toString() + "LM",
               ),
             ),
             div(`class` := "row")(
