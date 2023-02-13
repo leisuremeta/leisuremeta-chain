@@ -48,6 +48,7 @@ object Row2:
   def genBody = (payload: List[Tx]) =>
     payload
       .map(each =>
+        val signer = getOptionValue(each.signer, "-").toString()
         val tokenType = getOptionValue(each.tokenType, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
@@ -89,9 +90,13 @@ object Row2:
                 ),
               ),
             )(
+              signer.length match {
+                case 40 => signer.take(10) + "+..."
+                case _ => signer
+              }              
               // TODO:FIX ...
-              getOptionValue(each.signer, "-")
-                .toString(),
+              // getOptionValue(each.signer, "-")
+              //   .toString(),
                 // .take(10) + "...",
             ),
           ),
@@ -237,6 +242,7 @@ object Row2:
   def genBodyForDashboard = (payload: List[Tx]) =>
     payload
       .map(each =>
+        val signer = getOptionValue(each.signer, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
@@ -280,9 +286,10 @@ object Row2:
                 ),
               ),
             )(
-              getOptionValue(each.signer, "-")
-                .toString()
-                .take(10),
+              signer.length match {
+                case 40 => signer.take(10) + "+..."
+                case _ => signer
+              }
             ),
           ),
           div(`class` := "cell")(
