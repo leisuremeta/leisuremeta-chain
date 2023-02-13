@@ -184,8 +184,6 @@ object LmscanBatchMain extends IOApp:
       uri"$baseUri/status"
     }
   
-  var testCount = 0;
-
   def blockCheckLoop[F[_]: Async](
     backend: SttpBackend[F, Any],
   ): EitherT[F, String, Unit] = 
@@ -211,7 +209,6 @@ object LmscanBatchMain extends IOApp:
       def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block, String)]] =
         inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
         inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
-        testCount = testCount+1
         
         for
           result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
@@ -246,10 +243,8 @@ object LmscanBatchMain extends IOApp:
           }
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
           
-
           result2 <- if blockHash != lastSavedBlockHash then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
           // result2 <- if testCount < 10 then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
-          testCount = 0
         yield result2
         
       loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}.recover((errMsg: String) => {
@@ -524,7 +519,7 @@ object LmscanBatchMain extends IOApp:
             
 
         _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
-        _ <- EitherT.right(Async[F].sleep(5000.millis))
+        _ <- EitherT.right(Async[F].sleep(10000.millis))
         _ <- loop[F](backend)
       yield ()
 
@@ -600,7 +595,7 @@ object LmscanBatchMain extends IOApp:
             yield ()
           case _ => EitherT.pure(())
         }
-        _ <- EitherT.right(Async[F].sleep(10000.millis))
+        _ <- EitherT.right(Async[F].sleep(100000.millis))
         _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop finished")))
         
         _ <- loop(backend)
