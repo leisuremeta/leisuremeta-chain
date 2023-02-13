@@ -26,9 +26,11 @@ object Dom:
 
   def timeAgo(timestamp: Double) =
 
-    val now     = Math.floor((Date.now() + 9 * 60 * 60 * 1000) / 1000)
+    val now = Math.floor(Date.now() / 1000) + 9 * 60 * 60 * 1000
+
     val from    = timestamp
     val timeGap = (now - from) / 1000
+    // Log.log(s"Date.now() : ${Date.now()} from: ${from} ")
 
     val times = List(
       ((timeGap / 31536000).toInt.toString(), " year ago"),
