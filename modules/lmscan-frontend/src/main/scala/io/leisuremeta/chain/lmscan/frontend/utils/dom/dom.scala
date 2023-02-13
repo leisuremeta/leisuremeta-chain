@@ -1,6 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 import org.scalajs.dom.window
-import scala.scalajs.js.{Date}
+import scala.scalajs.js.{Date, Math}
 import scala.concurrent.duration.*
 
 object Dom:
@@ -25,7 +25,8 @@ object Dom:
   //  1673939878 =>  1970-01-20 08:58:59
 
   def timeAgo(timestamp: Double) =
-    val now     = Date.now()
+
+    val now     = Math.floor((Date.now() + 9 * 60 * 60 * 1000) / 1000)
     val from    = timestamp
     val timeGap = (now - from) / 1000
 

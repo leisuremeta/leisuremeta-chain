@@ -242,13 +242,16 @@ object Row2:
                 .take(10) + "...",
             ),
           ),
-          div(`class` := "cell")(
+          div(`class` := "cell")({
+            Log.log(s"each.createdAt ${each.createdAt}")
             span()(
-              timeAgo(
-                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
-              ),
-            ),
-          ),
+              {
+                timeAgo(
+                  getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                )
+              },
+            )
+          }),
           // type3
           div(`class` := "cell type-3")(
             span(
