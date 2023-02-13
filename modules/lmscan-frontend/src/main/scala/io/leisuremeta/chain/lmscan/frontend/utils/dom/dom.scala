@@ -16,7 +16,7 @@ object Dom:
     if (a == b) then s"$c" else s"$d"
 
   def yyyy_mm_dd_time(timestamp: Int) =
-    new Date(timestamp)
+    new Date(timestamp.toDouble * 1000)
       .toISOString()
       .slice(0, 19)
       .replace("T", " ")
