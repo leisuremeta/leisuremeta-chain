@@ -48,6 +48,7 @@ object Row2:
   def genBody = (payload: List[Tx]) =>
     payload
       .map(each =>
+        val tokenType = getOptionValue(each.tokenType, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
@@ -104,13 +105,17 @@ object Row2:
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.NftDetail(
-                    getOptionValue(each.value, "-").toString(),
-                  ),
-                ),
-              ),
+              tokenType match {
+                case "NFT" => 
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageName.NftDetail(
+                        getOptionValue(each.value, "-").toString(),
+                      ),
+                    ),
+                  )                
+                case _ => EmptyAttribute
+              }
             )(
               vData(each.value, V.TxValue),
               // .take(10) + "...",
@@ -120,9 +125,10 @@ object Row2:
       )
 
   def genBodyForAccountDetail = (payload: List[Tx]) =>
-    payload.zipWithIndex
-      .map { case (each: Tx, index: Int) =>
-        val temp = index % 2 == 0
+    payload
+      .map(each =>
+        val inOut = getOptionValue(each.inOut, "").toString()
+        val tokenType = getOptionValue(each.tokenType, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
@@ -178,50 +184,55 @@ object Row2:
           div(
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
-            // span(
-            //   temp match
-            //     case true =>
-            //       List(
-            //         // onClick(NavMsg.Transactions),
-            //         style(
-            //           Style(
-            //             "background-color" -> "white",
-            //             "padding"          -> "5px",
-            //             "border"           -> "1px solid green",
-            //             "border-radius"    -> "5px",
-            //             "margin-right"     -> "5px",
-            //           ),
-            //         ),
-            //       )
-            //     case false =>
-            //       List(
-            //         // onClick(NavMsg.Transactions),
-            //         style(
-            //           Style(
-            //             "background-color" -> "rgba(171, 242, 0, 0.5)",
-            //             "padding"          -> "5px",
-            //             "border"           -> "1px solid green",
-            //             "border-radius"    -> "5px",
-            //             "margin-right"     -> "5px",
-            //           ),
-            //         ),
-            //       ),
-            // )(getOptionValue(each.hash, "-").toString().take(5)),
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.NftDetail(
-                    getOptionValue(each.value, "-").toString(),
-                  ),
-                ),
-              ),
+              inOut match
+                case "In" =>
+                  List(
+                    // onClick(NavMsg.Transactions),
+                    style(
+                      Style(
+                        "background-color" -> "white",
+                        "padding"          -> "5px",
+                        "border"           -> "1px solid green",
+                        "border-radius"    -> "5px",
+                        "margin-right"     -> "5px",
+                      ),
+                    ),
+                  )
+                case "Out" =>
+                  List(
+                    // onClick(NavMsg.Transactions),
+                    style(
+                      Style(
+                        "background-color" -> "rgba(171, 242, 0, 0.5)",
+                        "padding"          -> "5px",
+                        "border"           -> "1px solid green",
+                        "border-radius"    -> "5px",
+                        "margin-right"     -> "5px",
+                      ),
+                    ),
+                  ),              
+            )(inOut),
+            span(
+              tokenType match {
+                case "NFT" => 
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageName.NftDetail(
+                        getOptionValue(each.value, "-").toString(),
+                      ),
+                    ),
+                  )                
+                case _ => EmptyAttribute
+              }
             )(
               // TODO:fix-  ... 처리
               vData(each.value, V.TxValue),
             ),
           ),
         )
-      }
+      // }
+      )
 
   def genBodyForDashboard = (payload: List[Tx]) =>
     payload

@@ -15,7 +15,7 @@ case class Tx(
     txType: Option[String] = None,
     tokenType: Option[String] = None,
     signer: Option[String] = None,
-    // inOut: Option[String] = None,
+    inOut: Option[String] = None,
     value: Option[String] = None,
 )
 
