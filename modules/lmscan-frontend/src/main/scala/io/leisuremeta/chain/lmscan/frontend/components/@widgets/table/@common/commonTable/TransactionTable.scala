@@ -48,7 +48,7 @@ object Row2:
   def genBody = (payload: List[Tx]) =>
     payload
       .map(each =>
-        val signer = getOptionValue(each.signer, "-").toString()
+        val signer    = getOptionValue(each.signer, "-").toString()
         val tokenType = getOptionValue(each.tokenType, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
@@ -90,14 +90,13 @@ object Row2:
                 ),
               ),
             )(
-              signer.length match {
-                case 40 => signer.take(10) + "+..."
-                case _ => signer
-              }              
+              signer.length match
+                case 40 => signer.take(10) + "..."
+                case _  => signer,
               // TODO:FIX ...
               // getOptionValue(each.signer, "-")
               //   .toString(),
-                // .take(10) + "...",
+              // .take(10) + "...",
             ),
           ),
           div(`class` := "cell")(
@@ -110,17 +109,16 @@ object Row2:
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
             span(
-              tokenType match {
-                case "NFT" => 
+              tokenType match
+                case "NFT" =>
                   onClick(
                     PageMsg.PreUpdate(
                       PageName.NftDetail(
                         getOptionValue(each.value, "-").toString(),
                       ),
                     ),
-                  )                
-                case _ => EmptyAttribute
-              }
+                  )
+                case _ => EmptyAttribute,
             )(
               vData(each.value, V.TxValue),
               // .take(10) + "...",
@@ -132,7 +130,7 @@ object Row2:
   def genBodyForAccountDetail = (payload: List[Tx]) =>
     payload
       .map(each =>
-        val inOut = getOptionValue(each.inOut, "").toString()
+        val inOut     = getOptionValue(each.inOut, "").toString()
         val tokenType = getOptionValue(each.tokenType, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
@@ -216,26 +214,25 @@ object Row2:
                         "margin-right"     -> "5px",
                       ),
                     ),
-                  ),              
+                  ),
             )(inOut),
             span(
-              tokenType match {
-                case "NFT" => 
+              tokenType match
+                case "NFT" =>
                   onClick(
                     PageMsg.PreUpdate(
                       PageName.NftDetail(
                         getOptionValue(each.value, "-").toString(),
                       ),
                     ),
-                  )                
-                case _ => EmptyAttribute
-              }
+                  )
+                case _ => EmptyAttribute,
             )(
               // TODO:fix-  ... 처리
               vData(each.value, V.TxValue),
             ),
           ),
-        )
+        ),
       // }
       )
 
@@ -286,10 +283,9 @@ object Row2:
                 ),
               ),
             )(
-              signer.length match {
-                case 40 => signer.take(10) + "+..."
-                case _ => signer
-              }
+              signer.length match
+                case 40 => signer.take(10) + "..."
+                case _  => signer,
             ),
           ),
           div(`class` := "cell")(
