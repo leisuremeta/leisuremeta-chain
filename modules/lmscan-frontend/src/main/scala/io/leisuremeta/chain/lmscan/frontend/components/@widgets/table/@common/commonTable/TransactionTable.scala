@@ -132,6 +132,7 @@ object Row2:
       .map(each =>
         val inOut     = getOptionValue(each.inOut, "").toString()
         val tokenType = getOptionValue(each.tokenType, "-").toString()
+        val signer    = getOptionValue(each.signer, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
@@ -173,9 +174,11 @@ object Row2:
               ),
             )(
               // TODO:FIX ... 붙여야할거같은데
-              getOptionValue(each.signer, "-")
-                .toString()
-                .take(10),
+              (
+                signer.length match
+                  case 40 => signer.take(10) + "..."
+                  case _  => signer,
+              ),
             ),
           ),
           div(`class` := "cell")(
