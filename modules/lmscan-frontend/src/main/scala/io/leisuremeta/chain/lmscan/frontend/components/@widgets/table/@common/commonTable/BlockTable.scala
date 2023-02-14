@@ -38,10 +38,16 @@ object Row:
       .map(each =>
         div(`class` := "row table-body")(
           div(
-            `class` := "cell",
+            `class` := "cell type-3",
           )(
             span(
-              `class` := "pt-10",
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.BlockDetail(
+                    getOptionValue(each.hash, "-").toString(),
+                  ),
+                ),
+              ),
             )(
               getOptionValue(each.number, "-")
                 .toString()
