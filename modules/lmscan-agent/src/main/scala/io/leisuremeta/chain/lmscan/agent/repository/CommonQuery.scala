@@ -41,10 +41,10 @@ object CommonQuery:
           Right(detail.headOption)
       } {
         case e: SQLException =>
-          scribe.info("5555555")
+          scribe.info("5555555: " + e.getMessage())
           Left(s"sql exception occured: " + e.getMessage())
         case e: Exception => 
-          scribe.info("666666")
+          scribe.info("6666666: " + e.getMessage())
           Left(e.getMessage())
       }
     }
