@@ -21,18 +21,18 @@ object NftDetailTable:
       div(id := "oop-table-blocks", `class` := "table-list x")(
         div(`class` := "x gap-32px")(
           {
-            getOptionValue(nftFile.nftUri, "-").toString().contains("mov") match
-              case true => // mov 포맷
-                video(`class` := "nft-image p-10px", autoPlay, loop)(
-                  source(
-                    src := s"${getOptionValue(nftFile.nftUri, "-").toString()}",
-                  ),
-                )
-
-              case _ => // 비디오 포맷
+            getOptionValue(nftFile.nftUri, "-").toString().contains("img") match
+              case true => // 이미지 포맷
                 img(
                   `class` := "nft-image p-10px",
                   src := s"${getOptionValue(nftFile.nftUri, "-").toString()}",
+                )
+
+              case _ => // 비디오 포맷
+                video(`class` := "nft-image p-10px", autoPlay, loop)(
+                  source(
+                    src := s"https://d2t5puzz68k49j.cloudfront.net/release/collections/BPS_S.Younghoon/NFT_ITEM/DE8BB88B-48FB-4488-88BE-7F49894727AA.mp4",
+                  ),
                 )
           },
           div(`class` := "y-start gap-10px w-[100%] ")(
