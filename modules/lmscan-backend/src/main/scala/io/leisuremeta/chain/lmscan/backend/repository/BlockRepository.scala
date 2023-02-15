@@ -29,7 +29,7 @@ object BlockRepository extends CommonQuery:
         val sizePerRequest = pageNavInfo.sizePerRequest
 
         query[Block]
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .sortBy(t => t.number)(Ord.desc)
           .drop(offset)
           .take(sizePerRequest)
       }
