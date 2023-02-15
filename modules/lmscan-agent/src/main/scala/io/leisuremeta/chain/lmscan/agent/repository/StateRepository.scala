@@ -12,11 +12,22 @@ object StateRepository:
 
   import ctx.{*, given}
 
-  def getBlockStatesByNotBuildedOrderByEventTimeAsc[F[_]: Async]: EitherT[F, String, Seq[BlockStateEntity]] =
+  def getBlockStatesByNotBuildedOrderByNumberAsc[F[_]: Async]: EitherT[F, String, Seq[BlockStateEntity]] =
     inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
     inline def q =
-      quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.eventTime)(Ord.asc) }
+      quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.number)(Ord.asc) }
     seqQuery(q)
+
+  def getBlockStateByNotBuildedOrderByNumberAsc[F[_]: Async]: EitherT[F, String, Option[BlockStateEntity]] =
+    inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
+    inline def q =
+      quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.number)(Ord.asc).take(1) }
+    seqQuery(q).map(_.headOption)
+
+  def getBlockStateByNotBuildedOrderByNumberAscLimit[F[_]: Async](limit: Int): EitherT[F, String, Option[BlockStateEntity]] =
+    inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
+    inline def q = quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.number)(Ord.asc).take(limit) }
+    seqQuery(q).map(_.headOption)
 
   def getTxStatesByBlockOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
     inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
