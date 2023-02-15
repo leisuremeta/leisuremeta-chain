@@ -22,7 +22,7 @@ object BlockRepository:
 
   def getLastSavedBlock[F[_]: Async]: EitherT[F, String, Option[BlockSavedLog]] =
     println("getLastSavedBlock")
-    inline def latestQuery = quote { query[BlockSavedLog].sortBy(t => t.eventTime)(Ord.desc).take(1) }
+    inline def latestQuery = quote { query[BlockSavedLog].sortBy(t => t.number)(Ord.desc).take(1) }
     optionQuery[F, BlockSavedLog](latestQuery)
   
   /*

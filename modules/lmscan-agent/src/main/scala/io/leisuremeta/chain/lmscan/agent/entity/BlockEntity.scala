@@ -1,7 +1,9 @@
-package io.leisuremeta.chain.lmscan.agent.entity
+package io.leisuremeta.chain.lmscan.agent
+package entity
 
-import io.leisuremeta.chain.api.model.Block
+
 import java.time.Instant
+import model.Block0
 // import lib.crypto.Hash.ops.*
 // import lib.crypto.Sign.ops.*
 
@@ -16,7 +18,7 @@ final case class BlockEntity(
 )
 
 object BlockEntity:
-  def from(block: Block, blockHash: String): BlockEntity =
+  def from(block: Block0, blockHash: String): BlockEntity =
     BlockEntity (
       hash = blockHash,
       number = block.header.number.toBigInt.longValue,
