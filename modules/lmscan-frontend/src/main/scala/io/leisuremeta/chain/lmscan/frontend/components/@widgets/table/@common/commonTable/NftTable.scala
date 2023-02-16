@@ -1,5 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
-
+import Dom.*
 import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
@@ -31,7 +31,12 @@ object Row3:
   def genBody = (payload: List[NftActivities]) =>
     payload
       .map(each =>
-        div(`class` := "row table-body")(
+        val from = getOptionValue(each.fromAddr, "-").toString()
+        val to   = getOptionValue(each.toAddr, "-").toString()
+
+        div(
+          `class` := "row table-body",
+        )(
           div(`class` := "cell type-3")(
             span(
               onClick(
@@ -48,16 +53,63 @@ object Row3:
             ),
           ),
           div(`class` := "cell")(
-            span()(getOptionValue(each.createdAt, "-").toString()),
+            span()(
+              yyyy_mm_dd_time(
+                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+              ),
+            ),
           ),
           div(`class` := "cell")(
             span()(getOptionValue(each.action, "-").toString()),
           ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.fromAddr, "-").toString()),
+          div(`class` := "cell type-3")(
+            span(
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.AccountDetail(
+                    getOptionValue(
+                      each.fromAddr,
+                      "-",
+                    )
+                      .toString(),
+                  ),
+                ),
+              ),
+            )(
+              from.length match
+                case 40 => from.take(10) + "..."
+                case _ =>
+                  from == "playnomm" match
+                    case true =>
+                      "010cd45939f064fd82403754bada713e5a9563a1".take(
+                        10,
+                      ) + "..."
+                    case false => from,
+            ),
           ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.toAddr, "-").toString()),
+          div(`class` := "cell type-3")(
+            span(
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.AccountDetail(
+                    getOptionValue(
+                      each.toAddr,
+                      "-",
+                    )
+                      .toString(),
+                  ),
+                ),
+              ),
+            )(to.length match
+              case 40 => to.take(10) + "..."
+              case _ =>
+                to == "playnomm" match
+                  case true =>
+                    "010cd45939f064fd82403754bada713e5a9563a1".take(
+                      10,
+                    ) + "..."
+                  case false => to,
+            ),
           ),
         ),
       )
