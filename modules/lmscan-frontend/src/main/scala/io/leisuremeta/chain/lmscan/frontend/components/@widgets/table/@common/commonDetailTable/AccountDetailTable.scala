@@ -5,6 +5,7 @@ import tyrian.*
 import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
 import ValidOutputData.*
+import java.math.RoundingMode
 
 object AccountDetailTable:
   val view = (model: Model) =>
@@ -21,7 +22,17 @@ object AccountDetailTable:
     ) / 10000
     val balance = getOptionValue(data.balance, 0.0)
       .asInstanceOf[Double] / Math.pow(10, 18).toDouble
-    val value = Math.floor((lmPrice * balance) * 10000) / 10000
+    val value = (lmPrice * balance)
+    // val value   = Math.floor((lmPrice * balance) * 10000) / 10000
+
+    val formatter = java.text.NumberFormat.getNumberInstance()
+    formatter.setRoundingMode(RoundingMode.FLOOR)
+
+    formatter.setMaximumFractionDigits(18)
+    val formattedBalance = formatter.format(balance)
+
+    formatter.setMaximumFractionDigits(4)
+    val formattedValue = formatter.format(value)
 
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
@@ -47,13 +58,13 @@ object AccountDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Balance"),
               div(`class` := "cell type-detail-body")(
-                balance.toString() + "LM",
+                formattedBalance.toString() + " LM",
               ),
             ),
             div(`class` := "row")(
               div(`class` := "cell type-detail-head")("Value"),
               div(`class` := "cell type-detail-body")(
-                "$" + value.toString(),
+                "$ " + formattedValue.toString(),
               ),
             ),
           ),
