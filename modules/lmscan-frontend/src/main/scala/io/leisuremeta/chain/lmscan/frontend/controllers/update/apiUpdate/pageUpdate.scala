@@ -12,7 +12,8 @@ import org.scalajs.dom.window
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     case PageMsg.PreUpdate(search: PageName, pushHistory: Boolean) =>
-      if (pushHistory == true) window.history.pushState(search.toString(), null, null)
+      if pushHistory == true then
+        window.history.pushState(search.toString(), null, null)
       (
         model.copy(
           prevPage = model.curPage match
@@ -62,6 +63,7 @@ object PageUpdate:
           log("case PageName.Transactions =>")
           // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
           var updated_tx_TotalPage = 1
+          var latestBlock          = 1
 
           // TODO :: more simple code
           TxParser
@@ -73,6 +75,7 @@ object PageUpdate:
 
           (
             model.copy(
+              latestBlock = "1",
               txListData = Some(data),
               tx_TotalPage = updated_tx_TotalPage,
             ),
@@ -150,14 +153,14 @@ object PageUpdate:
             Cmd.emit(PageMsg.PreUpdate(PageName.BlockDetail(hash))),
           )
         case _ =>
-          page match 
-            case PageName.DashBoard => 
+          page match
+            case PageName.DashBoard =>
               Log.log(page.toString() + " -> " + msg)
               (
                 model,
-                Cmd.None
+                Cmd.None,
               )
-            case _ => 
+            case _ =>
               Log.log(page.toString() + " -> " + msg)
               (
                 model.copy(curPage = PageName.NoPage),

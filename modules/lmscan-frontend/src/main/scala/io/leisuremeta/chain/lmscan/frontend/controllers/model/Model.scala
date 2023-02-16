@@ -39,4 +39,7 @@ final case class Model(
     pageNameStore: PageName = PageName.DashBoard,
     urlStore: String = "",
     curDataStore: Option[String] = Some(""),
+
+    // block
+    latestBlock: String = "1",
 )

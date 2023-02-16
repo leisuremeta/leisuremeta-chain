@@ -31,7 +31,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Block_Number),
-            div()(getOptionValue(data.blockNumber, "-").toString()),
+            div()(model.latestBlock),
           ),
         ),
       ),
