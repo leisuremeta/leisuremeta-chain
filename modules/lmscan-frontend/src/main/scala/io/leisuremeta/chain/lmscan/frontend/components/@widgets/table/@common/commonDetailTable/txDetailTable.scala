@@ -153,7 +153,19 @@ object TxDetailTable:
                       ),
                     ),
                   ),
-                )(getOptionValue(data.signer, "-").toString()),
+                )(getOptionValue(data.signer, "-").toString().length match
+                  case 40 =>
+                    getOptionValue(data.signer, "-")
+                      .toString()
+                      .take(10) + "..."
+                  case _ =>
+                    getOptionValue(data.signer, "-")
+                      .toString() == "playnomm" match
+                      case true =>
+                        "010cd45939f064fd82403754bada713e5a9563a1"
+                      case false =>
+                        getOptionValue(data.signer, "-").toString(),
+                ),
               ),
             ),
             div(`class` := "row")(

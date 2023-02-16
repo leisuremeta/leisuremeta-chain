@@ -30,7 +30,18 @@ object AccountDetailTable:
             div(`class` := "row")(
               div(`class` := "cell type-detail-head ")("Account"),
               div(`class` := "cell type-detail-body ")(
-                getOptionValue(data.address, "-").toString(),
+                getOptionValue(data.address, "-").toString().length match
+                  case 40 =>
+                    getOptionValue(data.address, "-")
+                      .toString()
+                      .take(10) + "..."
+                  case _ =>
+                    getOptionValue(data.address, "-")
+                      .toString() == "playnomm" match
+                      case true =>
+                        "010cd45939f064fd82403754bada713e5a9563a1"
+                      case false =>
+                        getOptionValue(data.address, "-").toString(),
               ),
             ),
             div(`class` := "row")(
