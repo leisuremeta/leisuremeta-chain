@@ -8,17 +8,21 @@ import ValidOutputData.*
 
 object AccountDetailTable:
   val view = (model: Model) =>
+    val apiData: ApiData =
+      ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData)
     val data: AccountDetail = AccountDetailParser
       .decodeParser(model.accountDetailData.get)
       .getOrElse(new AccountDetail)
-    genView(model, data)
+    genView(model, data, apiData)
 
-  val genView = (model: Model, data: AccountDetail) =>
+  val genView = (model: Model, data: AccountDetail, apiData: ApiData) =>
+    val lmPrice = Math.floor(
+      getOptionValue(apiData.lmPrice, 0.0).asInstanceOf[Double] * 10000,
+    ) / 10000
     val balance = getOptionValue(data.balance, 0.0)
       .asInstanceOf[Double] / Math.pow(10, 18).toDouble
-    val value = Math.floor(
-      getOptionValue(data.balance, 0.0).asInstanceOf[Double] * 10000,
-    ) / 10000
+    val value = Math.floor((lmPrice * balance) * 10000) / 10000
+
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
         div(`class` := "type-TableDetail  table-container")(
