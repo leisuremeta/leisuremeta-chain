@@ -476,7 +476,7 @@ object LmscanBatchMain extends IOApp:
         yield ()
 
       def loop(lastSavedBlockOption: Option[Block0]): EitherT[F, String, Option[Block0]] =
-        StateService.getBlockStateByNotBuildedOrderByNumberAscLimit[F].flatMap {
+        StateService.getBlockStateByNotBuildedOrderByNumberAsc[F].flatMap {
           case None => EitherT.pure(lastSavedBlockOption)
           case Some(blockState) =>
             val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
@@ -596,7 +596,8 @@ object LmscanBatchMain extends IOApp:
         _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop start")))
         coinMarket <- ExternalApiService.getLmPrice(backend)  // coinMarket response
 
-        lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
+        // lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
+        lastSavedBlockOpt <- BlockService.getLastBuildedBlock[F]
         
         _ <- (coinMarket, lastSavedBlockOpt) match { 
           case (Some(data), Some(lastSavedBlock)) => 
@@ -657,7 +658,7 @@ object LmscanBatchMain extends IOApp:
           
           _ <- List(
             blockCheckLoop(backend), 
-            // summaryLoop(backend)
+            summaryLoop(backend)
           ).parSequence
         yield ()
         program.value
