@@ -5,6 +5,7 @@ import tyrian.*
 import _root_.io.circe.Decoder.state
 import Dom.*
 import ValidOutputData.*
+import java.math.RoundingMode
 
 object TxDetailTable:
   val view = (model: Model) =>
@@ -51,6 +52,11 @@ object TxDetailTable:
     )
 
   val genOutput = (data: Transfer, i: Any) =>
+    val formatter = java.text.NumberFormat.getNumberInstance()
+    formatter.setRoundingMode(RoundingMode.FLOOR)
+    formatter.setMaximumFractionDigits(4)
+    val value = formatter.format( getOptionValue(data.value, "-").toString() )
+
     div(`class` := "row")(
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
@@ -70,7 +76,7 @@ object TxDetailTable:
         )(getOptionValue(data.toAddress, "-").toString()),
       ),
       div(`class` := "cell type-detail-body")(
-        getOptionValue(data.value, "-").toString(),
+        value
       ),
     )
   val genOutput_NFT = (data: Transfer, i: Any) =>
