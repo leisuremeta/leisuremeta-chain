@@ -204,35 +204,40 @@ object Row2:
           div(
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
-            span(
-              inOut match
-                case "In" =>
-                  List(
-                    // onClick(NavMsg.Transactions),
-                    style(
-                      Style(
-                        "background-color" -> "white",
-                        "padding"          -> "5px",
-                        "border"           -> "1px solid green",
-                        "border-radius"    -> "5px",
-                        "margin-right"     -> "5px",
-                      ),
-                    ),
-                  )
-                case "Out" =>
-                  List(
-                    // onClick(NavMsg.Transactions),
-                    style(
-                      Style(
-                        "background-color" -> "rgba(171, 242, 0, 0.5)",
-                        "padding"          -> "5px",
-                        "border"           -> "1px solid green",
-                        "border-radius"    -> "5px",
-                        "margin-right"     -> "5px",
-                      ),
-                    ),
-                  ),
-            )(inOut),
+            {
+              vData(each.value, V.TxValue) == "-" match
+                case true => span()
+                case false =>
+                  span(
+                    inOut match
+                      case "In" =>
+                        List(
+                          // onClick(NavMsg.Transactions),
+                          style(
+                            Style(
+                              "background-color" -> "white",
+                              "padding"          -> "5px",
+                              "border"           -> "1px solid green",
+                              "border-radius"    -> "5px",
+                              "margin-right"     -> "5px",
+                            ),
+                          ),
+                        )
+                      case "Out" =>
+                        List(
+                          // onClick(NavMsg.Transactions),
+                          style(
+                            Style(
+                              "background-color" -> "rgba(171, 242, 0, 0.5)",
+                              "padding"          -> "5px",
+                              "border"           -> "1px solid green",
+                              "border-radius"    -> "5px",
+                              "margin-right"     -> "5px",
+                            ),
+                          ),
+                        ),
+                  )(inOut)
+            },
             span(
               tokenType match
                 case "NFT" =>
