@@ -7,9 +7,12 @@ import Log.log
 import ValidPageName.*
 import ValidOutputData.*
 
+import org.scalajs.dom.window
+
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
-    case PageMsg.PreUpdate(search: PageName) =>
+    case PageMsg.PreUpdate(search: PageName, pushHistory: Boolean) =>
+      if (pushHistory == true) window.history.pushState(search.toString(), null, null)
       (
         model.copy(
           prevPage = model.curPage match
@@ -147,10 +150,19 @@ object PageUpdate:
             Cmd.emit(PageMsg.PreUpdate(PageName.BlockDetail(hash))),
           )
         case _ =>
-          (
-            model.copy(curPage = PageName.NoPage),
-            Cmd.emit(PageMsg.PostUpdate),
-          )
+          page match 
+            case PageName.DashBoard => 
+              Log.log(page.toString() + " -> " + msg)
+              (
+                model,
+                Cmd.None
+              )
+            case _ => 
+              Log.log(page.toString() + " -> " + msg)
+              (
+                model.copy(curPage = PageName.NoPage),
+                Cmd.emit(PageMsg.PostUpdate),
+              )
 
     case PageMsg.PostUpdate =>
       (

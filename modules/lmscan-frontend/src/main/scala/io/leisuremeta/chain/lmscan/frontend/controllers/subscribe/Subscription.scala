@@ -1,6 +1,8 @@
 package io.leisuremeta.chain.lmscan.frontend
 import cats.effect.IO
+import org.scalajs.dom.window
 import org.scalajs.dom.KeyboardEvent
+import org.scalajs.dom.PopStateEvent
 import tyrian.*
 import Log.*
 
@@ -42,4 +44,9 @@ object Subscriptions:
               case _ =>
                 None
           },
+      Sub.fromEvent("popstate", window){e =>
+          val state = e.asInstanceOf[PopStateEvent].state
+          val page: PageName = ValidPageName.getPageFromStr(state.toString)
+          Some(PageMsg.PreUpdate(page, false))
+      },      
     )
