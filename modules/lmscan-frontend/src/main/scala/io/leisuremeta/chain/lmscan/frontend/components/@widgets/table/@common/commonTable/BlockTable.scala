@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
-import Dom.{_hidden, timeAgo}
+import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 import ValidOutputData.*
 
 import Log.*
@@ -36,6 +36,8 @@ object Row:
   def genBody = (payload: List[Block]) =>
     payload
       .map(each =>
+        val hash = getOptionValue(each.hash, "-").toString()
+        val createdAt = getOptionValue(each.createdAt, 0).asInstanceOf[Int]
         div(`class` := "row table-body")(
           div(
             `class` := "cell type-3",
@@ -44,7 +46,7 @@ object Row:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.BlockDetail(
-                    getOptionValue(each.hash, "-").toString(),
+                    hash,
                   ),
                 ),
               ),
@@ -55,22 +57,27 @@ object Row:
             ),
           ),
           div(`class` := "cell")(
-            span()(
+            span(
+              dataAttr("tooltip-text", yyyy_mm_dd_time(createdAt))
+            )(
               timeAgo(
-                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                createdAt,
               ),
             ),
           ),
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.BlockDetail(
-                    getOptionValue(each.hash, "-").toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    PageName.BlockDetail(
+                      hash,
+                    ),
                   ),
                 ),
-              ),
-            )(getOptionValue(each.hash, "-").toString().take(10) + "..."),
+                dataAttr("tooltip-text", hash)
+              )
+            )(hash.take(10) + "..."),
           ),
           div(`class` := "cell")(
             span()(getOptionValue(each.txCount, "-").toString()),

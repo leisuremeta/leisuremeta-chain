@@ -48,46 +48,48 @@ object Row2:
   def genBody = (payload: List[Tx]) =>
     payload
       .map(each =>
+        val hash      = getOptionValue(each.hash, "-").toString()
+        val createdAt = getOptionValue(each.createdAt, 0).asInstanceOf[Int]
         val signer    = getOptionValue(each.signer, "-").toString()
         val tokenType = getOptionValue(each.tokenType, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.TransactionDetail(
-                    getOptionValue(each.hash, "-").toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    PageName.TransactionDetail(
+                      hash,
+                    ),
                   ),
                 ),
+                dataAttr("tooltip-text", hash),
               ),
-            )(
-              getOptionValue(each.hash, "-")
-                .toString()
-                .take(10) + "...",
-            ),
+            )(hash.take(10) + "..."),
           ),
           div(`class` := "cell")(
             span()(getOptionValue(each.blockNumber, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(
+            span(
+              dataAttr("tooltip-text", yyyy_mm_dd_time(createdAt)),
+            )(
               timeAgo(
-                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                createdAt,
               ),
             ),
           ),
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.AccountDetail(
-                    getOptionValue(
-                      each.signer,
-                      "-",
-                    )
-                      .toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    PageName.AccountDetail(signer),
                   ),
                 ),
+                signer.length match
+                  case 40 => dataAttr("tooltip-text", signer)
+                  case _  => EmptyAttribute,
               ),
             )(
               signer.length match
@@ -109,10 +111,10 @@ object Row2:
           //   span()(getOptionValue(each.txType, "-").toString()),
           // ),
           // div(`class` := "cell")(
-          //   span()(getOptionValue(each.tokenType, "-").toString()),
+          //   span()(tokenType),
           // ),
           div(
-            `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](tokenType, "NFT", "type-3")}",
           )(
             span(
               tokenType match
@@ -138,47 +140,49 @@ object Row2:
   def genBodyForAccountDetail = (payload: List[Tx]) =>
     payload
       .map(each =>
+        val hash      = getOptionValue(each.hash, "-").toString()
+        val createdAt = getOptionValue(each.createdAt, 0).asInstanceOf[Int]
         val inOut     = getOptionValue(each.inOut, "").toString()
         val tokenType = getOptionValue(each.tokenType, "-").toString()
         val signer    = getOptionValue(each.signer, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.TransactionDetail(
-                    getOptionValue(each.hash, "-").toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    PageName.TransactionDetail(
+                      hash,
+                    ),
                   ),
                 ),
+                dataAttr("tooltip-text", hash),
               ),
-            )(
-              getOptionValue(each.hash, "-")
-                .toString()
-                .take(10) + "...",
-            ),
+            )(hash.take(10) + "..."),
           ),
           div(`class` := "cell")(
             span()(getOptionValue(each.blockNumber, "-").toString()),
           ),
           div(`class` := "cell")(
-            span()(
+            span(
+              dataAttr("tooltip-text", yyyy_mm_dd_time(createdAt)),
+            )(
               timeAgo(
-                getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                createdAt,
               ),
             ),
           ),
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.AccountDetail(
-                    getOptionValue(
-                      each.signer,
-                      "-",
-                    )
-                      .toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    PageName.AccountDetail(signer),
                   ),
                 ),
+                signer.length match
+                  case 40 => dataAttr("tooltip-text", signer)
+                  case _  => EmptyAttribute,
               ),
             )(
               // TODO:FIX ... 붙여야할거같은데
@@ -199,10 +203,10 @@ object Row2:
           //   span()(getOptionValue(each.txType, "-").toString()),
           // ),
           // div(`class` := "cell")(
-          //   span()(getOptionValue(each.tokenType, "-").toString()),
+          //   span()(tokenType),
           // ),
           div(
-            `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](tokenType, "NFT", "type-3")}",
           )(
             {
               vData(each.value, V.TxValue) == "-" match
@@ -263,28 +267,34 @@ object Row2:
   def genBodyForDashboard = (payload: List[Tx]) =>
     payload
       .map(each =>
-        val signer = getOptionValue(each.signer, "-").toString()
+        val hash      = getOptionValue(each.hash, "-").toString()
+        val createdAt = getOptionValue(each.createdAt, 0).asInstanceOf[Int]
+        val signer    = getOptionValue(each.signer, "-").toString()
         div(`class` := "row table-body")(
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.TransactionDetail(
-                    getOptionValue(each.hash, "-").toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    PageName.TransactionDetail(
+                      hash,
+                    ),
                   ),
                 ),
+                dataAttr("tooltip-text", hash),
               ),
             )(
-              getOptionValue(each.hash, "-")
-                .toString()
-                .take(10) + "...",
+              hash.take(10) + "...",
             ),
           ),
           div(`class` := "cell")({
-            span()(
+            // Log.log(s"each.createdAt ${each.createdAt}")
+            span(
+              dataAttr("tooltip-text", yyyy_mm_dd_time(createdAt)),
+            )(
               {
                 timeAgo(
-                  getOptionValue(each.createdAt, 0).asInstanceOf[Int],
+                  createdAt,
                 )
               },
             )
@@ -292,18 +302,17 @@ object Row2:
           // type3
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  log(
-                    PageName.AccountDetail(
-                      getOptionValue(
-                        each.signer,
-                        "-",
-                      )
-                        .toString(),
+              List(
+                onClick(
+                  PageMsg.PreUpdate(
+                    log(
+                      PageName.AccountDetail(signer),
                     ),
                   ),
                 ),
+                signer.length match
+                  case 40 => dataAttr("tooltip-text", signer)
+                  case _  => EmptyAttribute,
               ),
             )(
               signer.length match
