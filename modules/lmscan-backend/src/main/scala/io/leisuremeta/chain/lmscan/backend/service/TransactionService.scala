@@ -46,7 +46,7 @@ object TransactionService:
           case None => None
         TxDetail(
           tx.hash,
-          tx.createdAt,
+          tx.eventTime,
           tx.fromAddr,
           tx.txType,
           tx.tokenType,
@@ -101,7 +101,6 @@ object TransactionService:
         EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
 
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
-    println(s"555")
     txs.map { tx =>
       val latestOutValOpt = tx.outputVals match 
         case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
@@ -119,7 +118,6 @@ object TransactionService:
     }
 
   def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
-    println(s"555")
     txs.map { tx =>
       val latestOutValOpt = tx.outputVals match 
         case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
