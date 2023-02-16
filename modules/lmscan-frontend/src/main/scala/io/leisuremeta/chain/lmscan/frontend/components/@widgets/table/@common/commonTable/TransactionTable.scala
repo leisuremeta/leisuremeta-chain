@@ -120,8 +120,10 @@ object Row2:
                   )
                 case _ => EmptyAttribute,
             )(
-              vData(each.value, V.TxValue),
-              // .take(10) + "...",
+              tokenType match
+                case "NFT" =>
+                  getOptionValue(each.value, "-").toString()
+                case _ => vData(each.value, V.TxValue),
             ),
           ),
         ),
@@ -231,8 +233,10 @@ object Row2:
                   )
                 case _ => EmptyAttribute,
             )(
-              // TODO:fix-  ... 처리
-              vData(each.value, V.TxValue),
+              tokenType match
+                case "NFT" =>
+                  getOptionValue(each.value, "-").toString()
+                case _ => vData(each.value, V.TxValue),
             ),
           ),
         ),
