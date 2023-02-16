@@ -32,8 +32,8 @@ object Row2:
     div(`class` := "cell")(span()("Block")), // blockNumber
     div(`class` := "cell")(span()("Age")), // createdAt
     div(`class` := "cell")(span()("Signer")), // signer
-    div(`class` := "cell")(span()("Type")), // txType
-    div(`class` := "cell")(span()("Token Type")),
+    // div(`class` := "cell")(span()("Type")), // txType
+    // div(`class` := "cell")(span()("Token Type")),
     div(`class` := "cell")(span()("Value")),
   )
 
@@ -41,7 +41,7 @@ object Row2:
     div(`class` := "cell")(span()("Tx Hash")), // hash
     div(`class` := "cell")(span()("Age")), // createdAt
     div(`class` := "cell")(span()("Signer")), // signer
-    div(`class` := "cell")(span()("Type")), // txType
+    // div(`class` := "cell")(span()("Type")), // txType
   )
 
   // #tx-main
@@ -92,19 +92,25 @@ object Row2:
             )(
               signer.length match
                 case 40 => signer.take(10) + "..."
-                case _  => signer,
+                case _ =>
+                  signer == "playnomm" match
+                    case true =>
+                      "010cd45939f064fd82403754bada713e5a9563a1".take(
+                        10,
+                      ) + "..."
+                    case false => signer,
               // TODO:FIX ...
               // getOptionValue(each.signer, "-")
               //   .toString(),
               // .take(10) + "...",
             ),
           ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.txType, "-").toString()),
-          ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.tokenType, "-").toString()),
-          ),
+          // div(`class` := "cell")(
+          //   span()(getOptionValue(each.txType, "-").toString()),
+          // ),
+          // div(`class` := "cell")(
+          //   span()(getOptionValue(each.tokenType, "-").toString()),
+          // ),
           div(
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
@@ -179,16 +185,22 @@ object Row2:
               (
                 signer.length match
                   case 40 => signer.take(10) + "..."
-                  case _  => signer,
+                  case _ =>
+                    signer == "playnomm" match
+                      case true =>
+                        "010cd45939f064fd82403754bada713e5a9563a1".take(
+                          10,
+                        ) + "..."
+                      case false => signer,
               ),
             ),
           ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.txType, "-").toString()),
-          ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.tokenType, "-").toString()),
-          ),
+          // div(`class` := "cell")(
+          //   span()(getOptionValue(each.txType, "-").toString()),
+          // ),
+          // div(`class` := "cell")(
+          //   span()(getOptionValue(each.tokenType, "-").toString()),
+          // ),
           div(
             `class` := s"cell ${isEqGet[String](getOptionValue(each.tokenType, "-").toString(), "NFT", "type-3")}",
           )(
@@ -264,7 +276,6 @@ object Row2:
             ),
           ),
           div(`class` := "cell")({
-            Log.log(s"each.createdAt ${each.createdAt}")
             span()(
               {
                 timeAgo(
@@ -292,12 +303,18 @@ object Row2:
             )(
               signer.length match
                 case 40 => signer.take(10) + "..."
-                case _  => signer,
+                case _ =>
+                  signer == "playnomm" match
+                    case true =>
+                      "010cd45939f064fd82403754bada713e5a9563a1".take(
+                        10,
+                      ) + "..."
+                    case false => signer,
             ),
           ),
-          div(`class` := "cell")(
-            span()(getOptionValue(each.txType, "-").toString()),
-          ),
+          // div(`class` := "cell")(
+          //   span()(getOptionValue(each.txType, "-").toString()),
+          // ),
         ),
       )
 

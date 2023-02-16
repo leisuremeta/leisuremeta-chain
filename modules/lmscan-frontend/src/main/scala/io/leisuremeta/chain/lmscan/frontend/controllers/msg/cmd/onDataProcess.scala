@@ -28,7 +28,7 @@ object UnderDataProcess:
         page match
           case PageName.Page64(hash) =>
             PageMsg.DataUpdate(response.body, PageName.TransactionDetail(hash))
-          case _ => PageMsg.DataUpdate(response.body, page)
+          case _ => PageMsg.DataUpdate(Log.log(response.body), page)
 
       }
 

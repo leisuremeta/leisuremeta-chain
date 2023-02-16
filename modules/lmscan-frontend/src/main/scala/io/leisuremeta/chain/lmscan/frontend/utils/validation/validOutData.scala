@@ -21,7 +21,7 @@ object ValidOutputData:
               .asInstanceOf[String]
               .toDouble / Math.pow(10, 18).toDouble),
           )
-        val sosu         = Log.log(res.takeRight(5))
+        val sosu         = res.takeRight(5)
         val decimal      = res.replace(sosu, "")
         val commaDecimal = String.format("%,d", decimal.toDouble)
 
