@@ -1,38 +1,59 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
+import ValidOutputData.*
 
 object Board:
-  val LM_Price     = "LM Price = 0.394 USDT"
-  val Block_Number = "Block Number 21,872,421"
-  val Transactions = "24h Transactions 3,572,245"
-  val Accounts     = "Total Accounts 194,142,552"
+  val LM_Price     = "LM PRICE"
+  val Block_Number = "BLOCK NUMBER"
+  val Transactions = "24 TRANSACTIONS"
+  val Accounts     = "TOTAL ACCOUNTS"
 
 object BoardView:
   def view(model: Model): Html[Msg] =
+    val data: ApiData =
+      ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData)
+
     div(`class` := "board-area")(
       div(`class` := "board-list x")(
         div(`class` := "board-container xy-center")(
           div(
-            `class` := "board-text xy-center",
-          )(Board.LM_Price),
+            `class` := "board-text y-center gap-10px",
+          )(
+            div(`class` := "font-16px color-grey")(Board.LM_Price),
+            div()(
+              getOptionValue(data.lmPrice, "-").toString().take(6) + " USDT",
+            ),
+          ),
         ),
         div(`class` := "board-container xy-center")(
           div(
-            `class` := "board-text xy-center",
-          )(Board.Block_Number),
+            `class` := "board-text y-center gap-10px",
+          )(
+            div(`class` := "font-16px color-grey")(Board.Block_Number),
+            div()(model.latestBlockNumber),
+          ),
         ),
       ),
       div(`class` := "board-list x")(
         div(`class` := "board-container xy-center")(
           div(
-            `class` := "board-text xy-center",
-          )(Board.Transactions),
+            `class` := "board-text y-center gap-10px",
+          )(
+            div(`class` := "font-16px color-grey")(Board.Transactions),
+            div()(
+              // getOptionValue(data.txCountInLatest24h, "-").toString(),
+              "242971",
+            ),
+          ),
         ),
         div(`class` := "board-container xy-center")(
           div(
-            `class` := "board-text xy-center",
-          )(Board.Accounts),
+            `class` := "board-text y-center gap-10px",
+          )(
+            div(`class` := "font-16px color-grey")(Board.Accounts),
+            div()(getOptionValue(data.totalAccounts, "-").toString()),
+          ),
         ),
       ),
     )

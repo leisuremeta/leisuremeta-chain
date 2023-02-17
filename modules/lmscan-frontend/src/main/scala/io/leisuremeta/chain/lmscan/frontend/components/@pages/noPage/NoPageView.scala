@@ -13,9 +13,7 @@ object NoPageView:
         div(`class` := "cell type-button")(
           span(
             `class` := "font-20px",
-            onClick({
-              model.prevPage
-            }),
+            onClick(PageMsg.PreUpdate(model.prevPage)),
           )(
             "Back to Previous Page",
           ),

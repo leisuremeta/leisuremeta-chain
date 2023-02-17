@@ -1,4 +1,5 @@
-/* display */
+
+/* flex , display */
 .x {
     display: flex;
 }
@@ -22,12 +23,30 @@
 
 .y-start {
     display: flex;
-    align-items: flex-start
+    flex-direction: column 
+
 }
 
 .y-center {
     display: flex;
+    flex-direction: column ;
     align-items: center;
+}
+
+/* flex , gap */
+.gap-10px {
+    gap: 10px;
+}
+.gap-20px {
+    gap: 20px;
+}
+
+.gap-16px {
+    gap: 16px;
+}
+
+.gap-32px {
+    gap: 32px;
 }
 
 /* height */
@@ -48,6 +67,11 @@
 }
 
 /* padding */
+
+.p-10px {
+    padding: 10px;
+}
+
 .p-12px {
     padding: 12px;
 }
@@ -106,10 +130,30 @@
 }
 
 /* font */
+.font-12px{
+    font-size: 12px !important;
+}
+
+.font-16px{
+    font-size: 16px !important;
+}
+
 .font-20px{
     font-size: 20px !important;
 }
 
 .font-40px{
     font-size: 40px !important;
+}
+
+.font-bold{
+    font-weight: 700;
+}
+
+.color-grey{
+    color: grey;
+}
+
+.hidden{
+    display: none !important;
 }

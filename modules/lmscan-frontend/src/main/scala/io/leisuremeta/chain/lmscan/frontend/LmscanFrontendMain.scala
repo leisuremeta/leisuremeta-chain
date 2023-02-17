@@ -5,5 +5,5 @@ import scala.scalajs.js.annotation.*
 @JSExportTopLevel("LmScan")
 object LmscanFrontendMain:
   @JSExportTopLevel("launchApp")
-  def launchApp(url: String, port: String): Unit =
+  def launchApp(url: String): Unit =
     LmscanFrontendApp.launch("app-container")

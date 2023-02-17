@@ -99,4 +99,11 @@
 
  .type-detail-head {
     width: 250px;
+    font-weight: 700;
+ }
+
+ .nft-image{
+    width: 60%;
+    height: 400px;
+    background-color: white;
  }
