@@ -11,6 +11,7 @@ import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.model.AccountDetail
 import io.leisuremeta.chain.lmscan.backend.model.NftDetail
 import io.leisuremeta.chain.lmscan.backend.model.{TxDetail, TxInfo, BlockInfo, BlockDetail}
+import io.leisuremeta.chain.lmscan.backend.entity.Summary
 
 import io.circe.*
 
@@ -60,15 +61,11 @@ object ExploreApi:
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
-<<<<<<< HEAD
     .in(
       query[Option[String]]("accountAddr")
         .and(query[Option[String]]("blockHash")),
     )
     .out(jsonBody[PageResponse[TxInfo]])
-=======
-    .out(jsonBody[PageResponse[Tx]])
->>>>>>> bd0e94c (gitignore locall)
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxDetailEndPoint = baseEndpoint.get
@@ -83,11 +80,7 @@ object ExploreApi:
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
-<<<<<<< HEAD
     .out(jsonBody[PageResponse[BlockInfo]])
-=======
-    .out(jsonBody[PageResponse[Block]])
->>>>>>> bd0e94c (gitignore locall)
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockDetailEndPoint = baseEndpoint.get
@@ -97,7 +90,7 @@ object ExploreApi:
     .out(jsonBody[Option[BlockDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getAccountDetail = baseEndpoint.get
+  val getAccountDetailEndPoint = baseEndpoint.get
     .in("account")
     .in(path[String]("accountAddr")) // account_address
     .in("detail")
@@ -105,21 +98,18 @@ object ExploreApi:
 <<<<<<< HEAD
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getNftDetail = baseEndpoint.get
+  val getNftDetailEndPoint = baseEndpoint.get
     .in("nft")
     .in(path[String]("tokenId")) // token_id
     .in("detail")
     .out(jsonBody[Option[NftDetail]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getSummaryMainEndPoint = baseEndpoint.get
+    .in("summary")
+    .in("main")
+    .out(jsonBody[Option[Summary]])
+
   // @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  // val getSearchDetail = baseEndpoint.get
+  // val getSearchTargetType = baseEndpoint.get
   //   .in("search")
-  //   .in(path[String]("target")) // targetValue
-  //   .in("detail")
-  //   .out(jsonBody[Option[Object]])
-=======
-// object Test extends App:
-//   import io.circe.syntax.*
-//   val intsJson = List(1, 2, 3).asJson
-//   println(intsJson)
->>>>>>> bd0e94c (gitignore locall)
