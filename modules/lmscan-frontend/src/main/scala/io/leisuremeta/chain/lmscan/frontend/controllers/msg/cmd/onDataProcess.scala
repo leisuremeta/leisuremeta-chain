@@ -22,6 +22,7 @@ object UnderDataProcess:
       case Left(parsingError) =>
         PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
       case Right(json) => {
+        dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
         page match
           case PageName.AccountDetail(_) =>
             Log.log(s"${page}: ${response.body}")
@@ -35,11 +36,12 @@ object UnderDataProcess:
       }
 
   private val onError: HttpError => Msg = e => {
+    dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
     ApiMsg.GetError(e.toString)
   }
 
   def fromHttpResponse(page: PageName): Decoder[Msg] =
-    dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
+    // dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
     Decoder[Msg](onResponse(page), onError)
 
 object OnDataProcess:
