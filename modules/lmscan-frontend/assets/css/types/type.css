@@ -101,8 +101,12 @@
     padding: 5px;
 }
 
-._search .margin-right, .type-plain-text .margin-right {
+._search .margin-right {
     margin-right: 5px;
+}
+
+._search .text-center {
+    text-align: center;
 }
 
  .type-detail-head {
