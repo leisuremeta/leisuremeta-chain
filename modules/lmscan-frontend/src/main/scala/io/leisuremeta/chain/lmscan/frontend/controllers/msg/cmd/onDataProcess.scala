@@ -8,6 +8,8 @@ import tyrian.http.*
 import io.circe.syntax.*
 import scala.scalajs.js
 import Dom.*
+import org.scalajs.dom
+import org.scalajs.dom.HTMLElement
 
 case class ApiPayload(page: String)
 
@@ -32,9 +34,12 @@ object UnderDataProcess:
 
       }
 
-  private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
+  private val onError: HttpError => Msg = e => {
+    ApiMsg.GetError(e.toString)
+  }
 
   def fromHttpResponse(page: PageName): Decoder[Msg] =
+    dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
     Decoder[Msg](onResponse(page), onError)
 
 object OnDataProcess:
@@ -47,6 +52,7 @@ object OnDataProcess:
       pageName: PageName,
       payload: ApiPayload = ApiPayload("1"),
   ): Cmd[IO, Msg] =
+    dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "block"
 
     val url = pageName match
       case PageName.DashBoard =>
