@@ -476,7 +476,17 @@ object LmscanBatchMain extends IOApp:
         yield ()
 
       def loop(lastSavedBlockOption: Option[Block0]): EitherT[F, String, Option[Block0]] =
-        StateService.getBlockStateByNotBuildedOrderByNumberAsc[F].flatMap {
+        // StateService.getBlockStateByNotBuildedOrderByNumberAsc[F].flatMap {
+        //   case None => EitherT.pure(lastSavedBlockOption)
+        //   case Some(blockState) =>
+        //     val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
+        //     for 
+        //       _ <- insertBlockTx(decoded)
+        //       block1 <- EitherT.fromEither(decoded.leftMap(_.getMessage()))
+        //       lastBlock <- loop(None)
+        //     yield lastBlock
+        // }
+        StateService.getBlockStateByNotBuildedOrderByNumberAscLimit[F](limit).toList.parSequence {
           case None => EitherT.pure(lastSavedBlockOption)
           case Some(blockState) =>
             val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
@@ -520,7 +530,8 @@ object LmscanBatchMain extends IOApp:
           for
             _ <- EitherT.right(Async[F].delay(scribe.info(s"start ss")))
             // TODO: read sequentially saved last block
-            prevLastBlockHash: String <- getLastSavedBlock[F].map {
+            // prevLastBlockHash: String <- getLastSavedBlock[F].map {
+            prevLastBlockHash: String <- BlockService.getLastBuildedBlock[F].map {
               case Some(lastBlock) => lastBlock.hash
               case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
             }
