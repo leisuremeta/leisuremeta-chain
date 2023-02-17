@@ -77,14 +77,21 @@ object Row3:
               ),
             )(
               from.length match
-                case 40 => from.take(10) + "..."
+                case 40 =>
+                  from
+                    .take(10) + "..."
                 case _ =>
-                  from == "playnomm" match
-                    case true =>
+                  from.toString() match
+                    case "playnomm" =>
                       "010cd45939f064fd82403754bada713e5a9563a1".take(
                         10,
                       ) + "..."
-                    case false => from,
+                    case "eth-gateway" =>
+                      "ca79f6fb199218fa681b8f441fefaac2e9a3ead3".take(
+                        10,
+                      ) + "..."
+                    case _ =>
+                      from,
             ),
           ),
           div(`class` := "cell type-3")(
@@ -100,15 +107,23 @@ object Row3:
                   ),
                 ),
               ),
-            )(to.length match
-              case 40 => to.take(10) + "..."
-              case _ =>
-                to == "playnomm" match
-                  case true =>
-                    "010cd45939f064fd82403754bada713e5a9563a1".take(
-                      10,
-                    ) + "..."
-                  case false => to,
+            )(
+              to.length match
+                case 40 =>
+                  to
+                    .take(10) + "..."
+                case _ =>
+                  to.toString() match
+                    case "playnomm" =>
+                      "010cd45939f064fd82403754bada713e5a9563a1".take(
+                        10,
+                      ) + "..."
+                    case "eth-gateway" =>
+                      "ca79f6fb199218fa681b8f441fefaac2e9a3ead3".take(
+                        10,
+                      ) + "..."
+                    case _ =>
+                      to,
             ),
           ),
         ),

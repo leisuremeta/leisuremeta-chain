@@ -48,10 +48,12 @@ object AccountDetailTable:
                       .take(10) + "..."
                   case _ =>
                     getOptionValue(data.address, "-")
-                      .toString() == "playnomm" match
-                      case true =>
+                      .toString() match
+                      case "playnomm" =>
                         "010cd45939f064fd82403754bada713e5a9563a1"
-                      case false =>
+                      case "eth-gateway" =>
+                        "ca79f6fb199218fa681b8f441fefaac2e9a3ead3"
+                      case _ =>
                         getOptionValue(data.address, "-").toString(),
               ),
             ),

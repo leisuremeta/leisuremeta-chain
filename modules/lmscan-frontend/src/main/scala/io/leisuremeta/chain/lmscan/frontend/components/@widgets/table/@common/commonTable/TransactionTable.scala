@@ -93,14 +93,21 @@ object Row2:
               ),
             )(
               signer.length match
-                case 40 => signer.take(10) + "..."
+                case 40 =>
+                  signer
+                    .take(10) + "..."
                 case _ =>
-                  signer == "playnomm" match
-                    case true =>
+                  signer.toString() match
+                    case "playnomm" =>
                       "010cd45939f064fd82403754bada713e5a9563a1".take(
                         10,
                       ) + "..."
-                    case false => signer,
+                    case "eth-gateway" =>
+                      "ca79f6fb199218fa681b8f441fefaac2e9a3ead3".take(
+                        10,
+                      ) + "..."
+                    case _ =>
+                      signer,
               // TODO:FIX ...
               // getOptionValue(each.signer, "-")
               //   .toString(),
@@ -188,14 +195,21 @@ object Row2:
               // TODO:FIX ... 붙여야할거같은데
               (
                 signer.length match
-                  case 40 => signer.take(10) + "..."
+                  case 40 =>
+                    signer
+                      .take(10) + "..."
                   case _ =>
-                    signer == "playnomm" match
-                      case true =>
+                    signer.toString() match
+                      case "playnomm" =>
                         "010cd45939f064fd82403754bada713e5a9563a1".take(
                           10,
                         ) + "..."
-                      case false => signer,
+                      case "eth-gateway" =>
+                        "ca79f6fb199218fa681b8f441fefaac2e9a3ead3".take(
+                          10,
+                        ) + "..."
+                      case _ =>
+                        signer,
               ),
             ),
           ),
@@ -316,14 +330,21 @@ object Row2:
               ),
             )(
               signer.length match
-                case 40 => signer.take(10) + "..."
+                case 40 =>
+                  signer
+                    .take(10) + "..."
                 case _ =>
-                  signer == "playnomm" match
-                    case true =>
+                  signer.toString() match
+                    case "playnomm" =>
                       "010cd45939f064fd82403754bada713e5a9563a1".take(
                         10,
                       ) + "..."
-                    case false => signer,
+                    case "eth-gateway" =>
+                      "ca79f6fb199218fa681b8f441fefaac2e9a3ead3".take(
+                        10,
+                      ) + "..."
+                    case _ =>
+                      signer,
             ),
           ),
           // div(`class` := "cell")(

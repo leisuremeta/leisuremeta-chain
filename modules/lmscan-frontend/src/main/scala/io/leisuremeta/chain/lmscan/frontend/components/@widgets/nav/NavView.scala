@@ -63,7 +63,7 @@ object NavView:
         button(
           `class` := s"${isCurPageisDashBoard(model) || isPrevPageisDashBoard(model)}",
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
-        )(PageName.DashBoard.toString()),
+        )("Dashboard"),
         button(
           `class` := s"${isCurPageisBlock(model) || isPrevPageisBlock(model)}",
           onClick(PageMsg.PreUpdate(PageName.Blocks)),

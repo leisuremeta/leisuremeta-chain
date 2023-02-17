@@ -53,9 +53,13 @@ object NftDetailTable:
                   div(`class` := "row")(
                     div(`class` := "cell type-detail-head")("Rarity"),
                     div(`class` := "cell type-detail-body")(
-                      getOptionValue(nftFile.rarity, "-") == "NRML" match
-                        case true => "Normal"
-                        case false =>
+                      getOptionValue(nftFile.rarity, "-") match
+                        case "NRML" => "Normal"
+                        case "LGDY" => "Legendary"
+                        case "UNIQ" => "Unique"
+                        case "EPIC" => "Epic"
+                        case "RARE" => "Rare"
+                        case _ =>
                           getOptionValue(nftFile.rarity, "-").toString(),
                     ),
                   ),
