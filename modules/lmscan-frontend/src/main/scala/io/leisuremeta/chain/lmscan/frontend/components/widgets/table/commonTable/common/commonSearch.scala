@@ -63,6 +63,17 @@ object Search:
             case false =>
               onClick(PageMoveMsg.Patch(totalPage.toString())),
         )(">>"),
+        div(
+          style(Style("margin-left" -> "10px")),
+        )(
+          input(
+            onInput(s => PageMoveMsg.Get(s)),
+            value := s"${model.block_list_Search}",
+            `class` := "type-search xy-center DOM-page1 margin-right text-center",
+          ),
+          div(`class` := "type-plain-text margin-right")("of"),
+          div(`class` := "type-plain-text margin-right")(totalPage.toString()),
+        ),
       ),
     )
     // div(
@@ -152,6 +163,17 @@ object Search:
             case false =>
               onClick(PageMoveMsg.Patch(totalPage.toString())),
         )(">>"),
+        div(
+          style(Style("margin-left" -> "10px")),
+        )(
+          input(
+            onInput(s => PageMoveMsg.Get(s)),
+            value := s"${model.tx_list_Search}",
+            `class` := "type-search xy-center DOM-page1 margin-right text-center",
+          ),
+          div(`class` := "type-plain-text margin-right")("of"),
+          div(`class` := "type-plain-text margin-right")(totalPage.toString()),
+        ),
       ),
     )
 
