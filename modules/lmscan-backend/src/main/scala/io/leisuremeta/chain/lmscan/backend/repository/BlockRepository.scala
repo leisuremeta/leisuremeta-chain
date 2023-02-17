@@ -29,7 +29,7 @@ object BlockRepository extends CommonQuery:
         val sizePerRequest = pageNavInfo.sizePerRequest
 
         query[Block]
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .sortBy(t => t.number)(Ord.desc)
           .drop(offset)
           .take(sizePerRequest)
       }
@@ -52,3 +52,12 @@ object BlockRepository extends CommonQuery:
         query[Block].filter(b => b.hash == hash).take(1)
       }
     optionQuery(detailQuery(lift(hash)))
+
+  def getByNumber[F[_]: Async](
+      number: Long
+  ): EitherT[F, String, Option[Block]] =
+    inline def detailQuery =
+      quote { (number: Long) =>
+        query[Block].filter(b => b.number == number).take(1)
+      }
+    optionQuery(detailQuery(lift(number)))

@@ -1,3 +1,4 @@
+import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
   val Scala      = "3.2.1"
   val ScalaGroup = "3.2"
@@ -32,9 +33,8 @@ val V = new {
   val elliptic      = "6.5.4"
   val typesElliptic = "6.4.12"
   val pgEmbedded    = "1.0.1"
-  val quill         = "4.5.0"
+  val quill         = "4.6.0"
   val postgres      = "42.5.1"
-
   val flywayCore = "9.11.0"
 }
 
@@ -189,6 +189,25 @@ val Dependencies = new {
       "com.opentable.components" % "otj-pg-embedded"       % V.pgEmbedded,
     ),
   )
+
+  lazy val lmscanAgent = Seq(
+    libraryDependencies ++= Seq(
+      "com.outr"    %% "scribe-slf4j" % V.scribe,
+      "com.typesafe" % "config"       % V.typesafeConfig,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "io.circe"                      %% "circe-generic"        % V.circe,
+      "io.circe"                      %% "circe-parser"         % V.circe,
+      "io.circe"                      %% "circe-refined"        % V.circe,
+      "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
+      "org.typelevel"               %% "cats-effect"           % V.catsEffect,
+      "io.getquill"                 %% "quill-jasync-postgres" % V.quill,
+      "org.postgresql"               % "postgresql"            % V.postgres,
+    ),
+    excludeDependencies ++= Seq(
+      // "org.scala-lang.modules" % "scala-compiler-2.13",
+      // "org.scala-lang.modules" % "scala-asm",
+    ),
+  )
 }
 
 ThisBuild / organization := "org.leisuremeta"
@@ -210,6 +229,7 @@ lazy val root = (project in file("."))
     lmscanCommon.js,
     lmscanFrontend,
     lmscanBackend,
+    lmscanAgent,
   )
 
 lazy val node = (project in file("modules/node"))
@@ -372,7 +392,13 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
   .settings(
     name := "leisuremeta-chain-lmscan-backend",
     assemblyMergeStrategy := {
+      case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*) => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "scala-asm.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "compiler.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>
@@ -388,3 +414,27 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
     flywayLocations ++= Settings.flywaySettings.locations,
   )
   .dependsOn(lmscanCommon.jvm)
+
+lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
+  .settings(Dependencies.lmscanAgent)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-lmscan-agent",
+    assemblyMergeStrategy := {
+      case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*) => MergeStrategy.first
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "scala-asm.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "compiler.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
+  )
+  .dependsOn(api.jvm)
+  
+

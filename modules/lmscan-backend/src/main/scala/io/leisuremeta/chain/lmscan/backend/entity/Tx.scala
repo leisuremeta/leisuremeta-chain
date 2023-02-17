@@ -12,8 +12,8 @@ final case class Tx(
     blockNumber: Long,
     eventTime: Long,
     createdAt: Long,
-    inputHashs: Seq[String],
-    outputVals: Seq[String],
+    inputHashs: Option[Seq[String]],
+    outputVals: Option[Seq[String]],
     json: String,
     // amount: Double,
 )

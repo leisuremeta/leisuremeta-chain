@@ -17,6 +17,8 @@ import cats.effect.Async
 import io.leisuremeta.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
+import cats.effect.kernel.Async
+import io.leisuremeta.chain.lmscan.backend.model.TxInfo
 
 object TransactionService:
 
@@ -31,20 +33,25 @@ object TransactionService:
     for
       trx <- TransactionRepository.get(hash)
       detail = trx.map { tx =>
+        val outputValsOpt: Option[Seq[TransferHist]] = tx.outputVals match 
+          case Some(outputValSeq) => 
+            Some(outputValSeq.map {
+              (outputVal: String) =>
+                val items = outputVal.split("/")
+                TransferHist(
+                  items(0),
+                  items(1),
+                )
+            })
+          case None => None
         TxDetail(
           tx.hash,
-          tx.createdAt,
+          tx.eventTime,
           tx.fromAddr,
           tx.txType,
           tx.tokenType,
           tx.inputHashs,
-          tx.outputVals.map { (ftv: String) =>
-            val items = ftv.split("/")
-            TransferHist(
-              items(0),
-              items(1),
-            )
-          },
+          outputValsOpt,
           tx.json,
         )
       }
@@ -66,7 +73,7 @@ object TransactionService:
   ): EitherT[F, String, PageResponse[TxInfo]] =
     for
       page <- TransactionRepository.getPageByAccount(address, pageNavInfo)
-      txInfo = convertToInfo(page.payload)
+      txInfo = convertToInfoForAccount(page.payload, address)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
   def getPageByBlock[F[_]: Async](
@@ -91,14 +98,13 @@ object TransactionService:
       case (Some(accountAddr), None) =>
         getPageByAccount[F](accountAddr, pageInfo)
       case (_, _) =>
-        throw new RuntimeException("검색 파라미터를 하나만 입력해주세요.")
+        EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
 
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
-    println(s"555")
     txs.map { tx =>
-      val latestOutVal = tx.outputVals.headOption match
-        case Some(str) => str.split("/")
-        case None      => Array[String]("", "")
+      val latestOutValOpt = tx.outputVals match 
+        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case None      => None
       TxInfo(
         tx.hash,
         tx.blockNumber,
@@ -106,6 +112,24 @@ object TransactionService:
         tx.txType,
         tx.tokenType,
         tx.fromAddr,
-        latestOutVal(1),
+        None,
+        latestOutValOpt,
+      )
+    }
+
+  def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
+    txs.map { tx =>
+      val latestOutValOpt = tx.outputVals match 
+        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case None      => None
+      TxInfo(
+        tx.hash,
+        tx.blockNumber,
+        tx.eventTime,
+        tx.txType,
+        tx.tokenType,
+        tx.fromAddr,
+        Some(if tx.fromAddr == address then "Out" else "In"),
+        latestOutValOpt,
       )
     }

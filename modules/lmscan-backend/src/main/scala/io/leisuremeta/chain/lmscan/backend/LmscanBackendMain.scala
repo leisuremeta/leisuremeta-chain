@@ -69,7 +69,6 @@ object BackendMain extends IOApp:
         .getDetail(hash)
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
-
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
       result.value
@@ -114,7 +113,7 @@ object BackendMain extends IOApp:
   //   }
 
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getAccountDetail.serverLogic { (address: String) =>
+    ExploreApi.getAccountDetailEndPoint.serverLogic { (address: String) =>
       scribe.info(s"accountDetail request address: $address")
       val result = AccountService
         .get(address)
@@ -126,10 +125,38 @@ object BackendMain extends IOApp:
     }
 
   def nftDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getNftDetail.serverLogic { (tokenId: String) =>
+    ExploreApi.getNftDetailEndPoint.serverLogic { (tokenId: String) =>
       scribe.info(s"nftDetail request tokenId: $tokenId")
       val result = NftService
         .getNftDetail(tokenId)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
+  
+  // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
+  //     scribe.info(s"search type request target: $target")  
+  //     val len = target.length()
+
+  //     val targetType = len match 
+  //       case 40 => for a <- AccountService.get(target) yield if a.nonEmpty then Some("account")   // account
+  //       case 25 => for n <-NftService.getNftDetail(target) yield if n.nonEmpty then Some("nft")   // token
+  //       case 64 => {
+  //         for t <- TransactionService.get(target) yield if t.nonEmpty then Some("transaction")    // transaction
+  //         else for b <- BlockService.get(target) yield if b.nonEmpty then Some("blockByHash")     // blcokByHash
+  //       }
+  //       case _  => if (target.forall(Character.isDigit)) then
+  //                   for b <- BlockService.getByNumber(target.toLong) yield if b.nonEmpty then Some("blockByNumber")
+  //   }
+
+  def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
+      scribe.info(s"summary request")
+      val result = SummaryService
+        .get
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
@@ -145,6 +172,8 @@ object BackendMain extends IOApp:
       blockDetail[F],
       accountDetail[F],
       nftDetail[F],
+      // searchTargetType[F],
+      summaryMain[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
