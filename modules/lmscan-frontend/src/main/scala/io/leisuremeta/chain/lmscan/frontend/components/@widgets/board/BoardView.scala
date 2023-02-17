@@ -4,10 +4,10 @@ import tyrian.*
 import ValidOutputData.*
 
 object Board:
-  val LM_Price     = "LM Price"
-  val Block_Number = "Block Number"
-  val Transactions = "24h Transactions"
-  val Accounts     = "Total Accounts"
+  val LM_Price     = "LM PRICE"
+  val Block_Number = "BLOCK NUMBER"
+  val Transactions = "24 TRANSACTIONS"
+  val Accounts     = "TOTAL ACCOUNTS"
 
 object BoardView:
   def view(model: Model): Html[Msg] =

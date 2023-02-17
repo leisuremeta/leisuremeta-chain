@@ -45,7 +45,7 @@ object AccountDetailTable:
                   case 40 =>
                     getOptionValue(data.address, "-")
                       .toString()
-                      .take(10) + "..."
+
                   case _ =>
                     getOptionValue(data.address, "-")
                       .toString() match
