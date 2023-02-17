@@ -16,7 +16,8 @@ case class TxDetail(
 
 case class Transfer(
     toAddress: Option[String] = None,
-    value: Option[Double] = None,
+    // value: Option[Double] = None,
+    value: Option[String] = None,
 )
 
 object TxDetailParser:
