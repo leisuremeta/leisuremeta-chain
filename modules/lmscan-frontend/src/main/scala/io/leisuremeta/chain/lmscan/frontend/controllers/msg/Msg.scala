@@ -24,10 +24,10 @@ enum ApiMsg extends Msg:
   case GetError(error: String) extends ApiMsg
 
 enum PageMoveMsg extends Msg:
-  case Prev                 extends PageMoveMsg
-  case Next                 extends PageMoveMsg
-  case Get(value: String)   extends PageMoveMsg
-  case Patch(value: String) extends PageMoveMsg
+  case Prev                   extends PageMoveMsg
+  case Next                   extends PageMoveMsg
+  case Get(value: String)     extends PageMoveMsg
+  case Patch(value: String)   extends PageMoveMsg
 
 // No more use ========================================================
 // enum TxMsg extends Msg:

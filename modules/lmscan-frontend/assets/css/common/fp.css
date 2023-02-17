@@ -157,3 +157,9 @@
 .hidden{
     display: none !important;
 }
+
+.selectedPage {
+    background-color: rgba(171, 242, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 10px;
+}

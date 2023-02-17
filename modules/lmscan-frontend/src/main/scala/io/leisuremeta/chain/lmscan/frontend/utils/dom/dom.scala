@@ -10,6 +10,8 @@ object Dom:
 
   def _hidden[A](a: A, b: A) = if (a == b) then "hidden" else ""
 
+  def _selectedPage[A](a: A, b: A) = if (a == b) then "selectedPage" else ""
+
   def isEqGet[A](a: A, b: A, c: Any) = if (a == b) then s"$c" else ""
 
   def isEqGetElse[A](a: A, b: A, c: Any, d: Any) =

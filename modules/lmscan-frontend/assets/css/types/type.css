@@ -96,6 +96,9 @@
  ._search .type-search:hover {
     color: rgb(65, 137, 65);
  }
+._search .type-text-btn > span{
+    padding: 5px;
+}
 
  .type-detail-head {
     width: 250px;

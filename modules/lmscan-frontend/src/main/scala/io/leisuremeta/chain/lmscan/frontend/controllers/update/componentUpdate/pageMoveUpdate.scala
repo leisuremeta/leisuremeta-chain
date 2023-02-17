@@ -7,12 +7,13 @@ import tyrian.*
 import Log.log
 
 object PageMoveUpdate:
-  def update(model: Model): PageMoveMsg => (Model, Cmd[IO, Msg]) =
+  val pageMoveCnt = 10
 
+  def update(model: Model): PageMoveMsg => (Model, Cmd[IO, Msg]) =
     case PageMoveMsg.Next =>
       model.curPage.toString() match
         case "Transactions" =>
-          val updated = model.tx_CurrentPage + 1
+          val updated = model.tx_CurrentPage + pageMoveCnt
           (
             model.copy(
               tx_CurrentPage = updated,
@@ -24,11 +25,11 @@ object PageMoveUpdate:
             ),
           )
         case "Blocks" =>
-          val updated = model.block_CurrentPage + 1
+          val updated = model.block_CurrentPage + pageMoveCnt
           (
             model.copy(
-              block_CurrentPage = model.block_CurrentPage + 1,
-              block_list_Search = s"${model.block_CurrentPage + 1}",
+              block_CurrentPage = updated,
+              block_list_Search = updated.toString(),
             ),
             OnDataProcess.getData(
               PageName.Blocks,
@@ -40,7 +41,7 @@ object PageMoveUpdate:
     case PageMoveMsg.Prev =>
       model.curPage.toString() match
         case "Transactions" =>
-          val updated = model.tx_CurrentPage - 1
+          val updated = model.tx_CurrentPage - pageMoveCnt
           (
             model.copy(
               tx_CurrentPage = updated,
@@ -52,11 +53,11 @@ object PageMoveUpdate:
             ),
           )
         case "Blocks" =>
-          val updated = model.block_CurrentPage - 1
+          val updated = model.block_CurrentPage - pageMoveCnt
           (
             model.copy(
-              block_CurrentPage = model.block_CurrentPage - 1,
-              block_list_Search = s"${model.block_CurrentPage - 1}",
+              block_CurrentPage = updated,
+              block_list_Search = updated.toString(),
             ),
             OnDataProcess.getData(
               PageName.Blocks,
