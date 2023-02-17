@@ -7,4 +7,5 @@ import io.leisuremeta.chain.lmscan.agent.repository.TxRepository
 object TxService:
   def countInLatest24h[F[_]: Async]: EitherT[F, String, Long] =
     TxRepository.countInLatest24h[F]
-    
+  def txDataSize[F[_]: Async]: EitherT[F, String, Option[Long]] =
+    TxRepository.txDataSize[F]

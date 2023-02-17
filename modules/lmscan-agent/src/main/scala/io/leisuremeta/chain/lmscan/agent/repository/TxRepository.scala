@@ -31,6 +31,9 @@ object TxRepository:
     }
     countQuery(latestQuery)
 
+  def txDataSize[F[_]: Async]: EitherT[F, String, Option[Long]] =
+    inline def sizeQuery = quote { sql"""select sum(pg_column_size('json')) from tx_state""".as[Query[Long]] }
+    optionQuery[F, BlockStateEntity](sizeQuery)
 
 
 //   def run(args: List[String]): IO[cats.effect.ExitCode] =

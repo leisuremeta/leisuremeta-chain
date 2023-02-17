@@ -598,12 +598,14 @@ object LmscanBatchMain extends IOApp:
 
         // lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
         lastSavedBlockOpt <- BlockService.getLastBuildedBlock[F]
-        
+        blockDataSize <- BlockService.blockDataSize[F]
+        txDataSize <- TxService.txDataSize[F]
         _ <- (coinMarket, lastSavedBlockOpt) match { 
           case (Some(data), Some(lastSavedBlock)) => 
             val lmPrice = data.quote.USD
             for 
-              txCountInLatest24h <- TxService.countInLatest24h[F]
+              
+              // txCountInLatest24h <- TxService.countInLatest24h[F]
               totalAccountCnt <- AccountService.totalCount[F]
               _ <- upsertTransaction[F, SummaryEntity](
                 query[SummaryEntity].insert(
