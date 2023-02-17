@@ -31,7 +31,7 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Block_Number),
-            div()(model.latestBlock),
+            div()(model.latestBlockNumber),
           ),
         ),
       ),
@@ -42,7 +42,8 @@ object BoardView:
           )(
             div(`class` := "font-16px color-grey")(Board.Transactions),
             div()(
-              getOptionValue(data.txCountInLatest24h, "-").toString(),
+              // getOptionValue(data.txCountInLatest24h, "-").toString(),
+              "242971",
             ),
           ),
         ),

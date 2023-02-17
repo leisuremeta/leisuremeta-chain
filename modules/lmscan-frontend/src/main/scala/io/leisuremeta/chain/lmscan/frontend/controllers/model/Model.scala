@@ -41,5 +41,5 @@ final case class Model(
     curDataStore: Option[String] = Some(""),
 
     // block
-    latestBlock: String = "1",
+    latestBlockNumber: String = "1",
 )

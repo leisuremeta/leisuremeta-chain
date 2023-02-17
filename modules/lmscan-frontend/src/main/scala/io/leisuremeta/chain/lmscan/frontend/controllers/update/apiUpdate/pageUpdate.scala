@@ -63,7 +63,6 @@ object PageUpdate:
           log("case PageName.Transactions =>")
           // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
           var updated_tx_TotalPage = 1
-          var latestBlock          = 1
 
           // TODO :: more simple code
           TxParser
@@ -75,29 +74,37 @@ object PageUpdate:
 
           (
             model.copy(
-              latestBlock = "1",
               txListData = Some(data),
               tx_TotalPage = updated_tx_TotalPage,
             ),
             Cmd.None,
           )
+
         case PageName.Blocks =>
           log("case PageName.Blocks =>")
           // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
-          var updated_block_TotalPage = 1
+          var updated_block_TotalPage      = 1
+          var latestBlockList: List[Block] = List(new Block)
+          var latestBlockNumber: Int       = 1
 
           // TODO :: more simple code
           BlockParser
             .decodeParser(data)
             .map(data =>
               updated_block_TotalPage =
-                getOptionValue(data.totalPages, 1).asInstanceOf[Int],
+                getOptionValue(data.totalPages, 1).asInstanceOf[Int]
+              latestBlockList = getOptionValue(data.payload, List[Block])
+                .asInstanceOf[List[Block]],
             )
+
+          latestBlockNumber =
+            getOptionValue(latestBlockList(0).number, 1).asInstanceOf[Int]
 
           (
             model.copy(
               blockListData = Some(data),
               block_TotalPage = updated_block_TotalPage,
+              latestBlockNumber = latestBlockNumber.toString(),
             ),
             Cmd.None,
           )
