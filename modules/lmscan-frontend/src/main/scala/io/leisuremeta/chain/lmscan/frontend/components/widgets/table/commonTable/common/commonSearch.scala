@@ -11,10 +11,10 @@ object Search:
     val totalPage = model.block_TotalPage
 
     val btnFistPage = curPage match
-      case x if (x == 1 || x == 2)     => 1
-      case x if (x == totalPage)       => (totalPage - 5)
-      case x if (x == (totalPage - 1)) => (totalPage - 4)
-      case x                           => (curPage - 2)
+      case x if (x == 1 || x == 2)                         => 1
+      case x if (x == totalPage) || (x == (totalPage - 1)) => (totalPage - 4)
+      case x                                               => (curPage - 2)
+
     val btnLastPage = btnFistPage + 5
 
     div(
@@ -111,10 +111,10 @@ object Search:
     val totalPage = model.tx_TotalPage
 
     val btnFistPage = curPage match
-      case x if (x == 1 || x == 2)     => 1
-      case x if (x == totalPage)       => (totalPage - 5)
-      case x if (x == (totalPage - 1)) => (totalPage - 4)
-      case x                           => (curPage - 2)
+      case x if (x == 1 || x == 2)                         => 1
+      case x if (x == totalPage) || (x == (totalPage - 1)) => (totalPage - 4)
+      case x                                               => (curPage - 2)
+
     val btnLastPage = btnFistPage + 5
 
     div(
