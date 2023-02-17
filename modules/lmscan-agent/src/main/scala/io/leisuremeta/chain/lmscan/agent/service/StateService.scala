@@ -12,7 +12,7 @@ object StateService:
   def getBlockStateByNotBuildedOrderByNumberAsc[F[_]: Async]: EitherT[F, String, Option[BlockStateEntity]] =
     StateRepository.getBlockStateByNotBuildedOrderByNumberAsc
 
-  def getBlockStateByNotBuildedOrderByNumberAscLimit[F[_]: Async](limit: Int): EitherT[F, String, Option[BlockStateEntity]] =
+  def getBlockStateByNotBuildedOrderByNumberAscLimit[F[_]: Async](limit: Int): EitherT[F, String, Seq[BlockStateEntity]] =
     StateRepository.getBlockStateByNotBuildedOrderByNumberAscLimit(limit)
 
   def getTxStatesByBlockOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =

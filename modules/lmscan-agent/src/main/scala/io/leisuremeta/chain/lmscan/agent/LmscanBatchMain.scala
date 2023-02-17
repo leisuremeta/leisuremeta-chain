@@ -66,6 +66,7 @@ object LmscanBatchMain extends IOApp:
   import ctx.{*, given}
 
   val limit = 10;
+  var isFirst = true;
 
   inline def upsertTransaction[F[_]: Async, T](
       inline query: Insert[T]
@@ -486,16 +487,21 @@ object LmscanBatchMain extends IOApp:
         //       lastBlock <- loop(None)
         //     yield lastBlock
         // }
-        StateService.getBlockStateByNotBuildedOrderByNumberAscLimit[F](limit).toList.parSequence {
-          case None => EitherT.pure(lastSavedBlockOption)
-          case Some(blockState) =>
-            val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
-            for 
-              _ <- insertBlockTx(decoded)
-              block1 <- EitherT.fromEither(decoded.leftMap(_.getMessage()))
-              lastBlock <- loop(None)
-            yield lastBlock
-        }
+        for
+          blockStates <- StateService.getBlockStateByNotBuildedOrderByNumberAscLimit[F](limit)
+          
+          _ <- blockStates.parTraverse {
+            (blockState: BlockStateEntity) =>
+              val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
+              for 
+                _ <- insertBlockTx(decoded)
+                block1 <- EitherT.fromEither(decoded.leftMap(_.getMessage()))
+                lastBlock <- loop(None)
+              yield lastBlock
+          }
+          _ <- EitherT.right(Async[F].sleep(10000.millis))
+        yield (None)
+
       loop(None)
 
     end buildSavedStateLoop
@@ -524,28 +530,39 @@ object LmscanBatchMain extends IOApp:
         status <- getStatus[F](backend)
         _ <- EitherT.right(Async[F].delay(scribe.info(s"status: ${status}")))
         
-        bestBlock <- getBlock[F](backend)(status.bestHash.toBlockHash)
-        // bestBlock <- getBlock[F](backend)("76b03e95b3db4f2eae07c8ebb28f8d6474357cbd5d8162bfa0be3da6b525bc4e")
-        _ <- bestBlock.fold(EitherT.pure(())) { case (block, json) =>
-          for
-            _ <- EitherT.right(Async[F].delay(scribe.info(s"start ss")))
-            // TODO: read sequentially saved last block
-            // prevLastBlockHash: String <- getLastSavedBlock[F].map {
-            prevLastBlockHash: String <- BlockService.getLastBuildedBlock[F].map {
-              case Some(lastBlock) => lastBlock.hash
-              case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
+        _ <- if (isFirst) {
+          for 
+            bestBlock <- getBlock[F](backend)(status.bestHash.toBlockHash)
+            // bestBlock <- getBlock[F](backend)("76b03e95b3db4f2eae07c8ebb28f8d6474357cbd5d8162bfa0be3da6b525bc4e")
+            _ <- bestBlock.fold(EitherT.pure(())) { case (block, json) =>
+              for
+                _ <- EitherT.right(Async[F].delay(scribe.info(s"start ss")))
+                // TODO: read sequentially saved last block
+                // prevLastBlockHash: String <- getLastSavedBlock[F].map {
+                prevLastBlockHash: String <- BlockService.getLastBuildedBlock[F].map {
+                  case Some(lastBlock) => lastBlock.hash
+                  case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
+                }
+                _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
+
+                lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
+                _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
+
+                currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
+
+                _ <- currLastSavedBlockOpt match
+                  case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
+                  case None => EitherT.pure(0L)
+
+              yield ()
             }
-            _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
-
-            lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
-            _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
-
+          yield ()
+        } else {
+          for         
             currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
-
             _ <- currLastSavedBlockOpt match
               case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
               case None => EitherT.pure(0L)
-
           yield ()
         }
             

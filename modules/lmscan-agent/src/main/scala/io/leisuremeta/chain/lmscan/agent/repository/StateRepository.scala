@@ -24,10 +24,10 @@ object StateRepository:
       quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.number)(Ord.asc).take(1) }
     seqQuery(q).map(_.headOption)
 
-  def getBlockStateByNotBuildedOrderByNumberAscLimit[F[_]: Async](limit: Int): EitherT[F, String, Option[BlockStateEntity]] =
+  def getBlockStateByNotBuildedOrderByNumberAscLimit[F[_]: Async](limit: Int): EitherT[F, String, Seq[BlockStateEntity]] =
     inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
     inline def q = quote { query[BlockStateEntity].filter(!_.isBuild).sortBy(t => t.number)(Ord.asc).take(lift(limit)) }
-    seqQuery(q).map(_.headOption)
+    seqQuery(q)
 
   def getTxStatesByBlockOrderByEventTimeAsc[F[_]: Async](blockHash: String): EitherT[F, String, Seq[TxStateEntity]] =
     inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
