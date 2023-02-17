@@ -22,8 +22,14 @@ object BlockService:
     BlockRepository.getLastSavedBlock
 
   def getLastBuildedBlock[F[_]: Async]:
-    EitherT[F, String, Option[BlockStateEntity]]
+    EitherT[F, String, Option[BlockStateEntity]] =
     BlockRepository.getLastBuildedBlock()
+
+  def blockDataSize[F[_]: Async]:
+    EitherT[F, String, Option[Long]] =
+    BlockRepository.blockDataSize
+
+
 
   // def countBlockNumber[F[_]: Async]: EitherT[F, String, Option[Long]]
   //   BlockRepository.getL
