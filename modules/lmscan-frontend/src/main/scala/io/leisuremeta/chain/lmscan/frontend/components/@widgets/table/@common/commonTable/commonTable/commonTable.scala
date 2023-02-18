@@ -14,7 +14,18 @@ object Table:
         DataProcess.block(model),
       ),
     )
+
   def nft = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.nft :: Body.nft(DataProcess.nft(model)),
     )
+
+  def blockDetail_txtable = (model: Model) =>
+    div(`class` := "table w-[100%]")(
+      Head.tx :: Body.blockDetail_txtable(DataProcess.blockDetail(model)),
+    )
+
+  // def blockDetail_txtable = (model: Model) =>
+  //   div(`class` := "table w-[100%]")(
+  //     Head.tx :: Body.blockDetail_txtable(DataProcess.blockDetail(model)),
+  //   )

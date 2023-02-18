@@ -1,8 +1,11 @@
 package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
+import tyrian.*
+import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
+import io.circe.syntax.*
+import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import ValidOutputData.*
-import Dom.*
 
 object Body:
   def block = (payload: List[Block]) =>
@@ -30,6 +33,21 @@ object Body:
             Cell.PlainStr(v.action),
             Cell.ACCOUNT_HASH(v.fromAddr),
             Cell.ACCOUNT_HASH(v.toAddr),
+          ),
+        ),
+      )
+  def blockDetail_txtable = (payload: List[Tx]) =>
+    payload
+      .map(v =>
+        div(`class` := "row table-body")(
+          gen.cell(
+            Cell.TX_HASH(v.hash),
+            Cell.PlainInt(v.blockNumber),
+            Cell.AGE(v.createdAt),
+            Cell.ACCOUNT_HASH(v.signer),
+            // Cell.PlainStr(v.txType),
+            // Cell.PlainStr(v.tokenType),
+            Cell.Tx_VALUE((v.tokenType, v.value)),
           ),
         ),
       )

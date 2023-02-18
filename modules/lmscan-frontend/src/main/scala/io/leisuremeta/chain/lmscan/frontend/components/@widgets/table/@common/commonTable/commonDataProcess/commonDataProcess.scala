@@ -24,3 +24,10 @@ object DataProcess:
     val payload = getOptionValue(data.activities, List())
       .asInstanceOf[List[NftActivities]]
     payload
+
+  def blockDetail(model: Model) =
+    val data: BlockDetail = BlockDetailParser
+      .decodeParser(model.blockDetailData.get)
+      .getOrElse(new BlockDetail)
+    val payload = getOptionValue(data.txs, List()).asInstanceOf[List[Tx]]
+    payload

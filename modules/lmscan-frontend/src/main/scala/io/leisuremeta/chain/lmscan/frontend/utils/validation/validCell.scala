@@ -1,7 +1,10 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
+import tyrian.*
 import scala.util.matching.Regex
-
+// import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
+// import io.circe.syntax.*
+import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 enum Cell:
   case Head(data: String)                                extends Cell
   case AGE(data: Option[Int])                            extends Cell
@@ -9,6 +12,7 @@ enum Cell:
   case BLOCK_HASH(data: Option[String])                  extends Cell
   case ACCOUNT_HASH(data: Option[String])                extends Cell
   case TX_HASH(data: Option[String])                     extends Cell
+  case Tx_VALUE(data: (Option[String], Option[String]))  extends Cell
   case PlainInt(data: Option[Int])                       extends Cell
   case PlainStr(data: Option[String])                    extends Cell
   case AAA(data: String)                                 extends Cell
@@ -26,6 +30,23 @@ object W:
     getOptionValue(data, 0).asInstanceOf[Int].toString
 
   def hash(data: Option[Any]) = getOptionValue(data, "-").toString()
+
+  def txValue(data: Option[Any]) =
+    val res = String
+      .format(
+        "%.4f",
+        (getOptionValue(data, "0.0")
+          .asInstanceOf[String]
+          .toDouble / Math.pow(10, 18).toDouble),
+      )
+    val sosu         = res.takeRight(5)
+    val decimal      = res.replace(sosu, "")
+    val commaDecimal = String.format("%,d", decimal.toDouble)
+
+    res == "0.0000" match
+      case true =>
+        "-"
+      case false => commaDecimal + sosu
 
   def accountHash(data: Option[String]) =
     plainStr(data).length match
@@ -62,6 +83,28 @@ object gen:
           div(`class` := "cell")(
             span(
             )(W.plainInt(data)),
+          )
+        case Cell.Tx_VALUE(tokeyType, value) =>
+          div(
+            `class` := s"cell ${isEqGet[String](W.plainStr(tokeyType), "NFT", "type-3")}",
+          )(
+            span(
+              W.plainStr(tokeyType) match
+                case "NFT" =>
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageName.NftDetail(
+                        W.plainStr(value),
+                      ),
+                    ),
+                  )
+                case _ => EmptyAttribute,
+            )(
+              W.plainStr(tokeyType) match
+                case "NFT" =>
+                  W.plainStr(value)
+                case _ => W.txValue(value),
+            ),
           )
         case Cell.ACCOUNT_HASH(data) =>
           div(`class` := "cell type-3")(

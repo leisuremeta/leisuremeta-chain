@@ -455,10 +455,22 @@ object TransactionTable:
   def view(model: Model): Html[Msg] =
     model.curPage match
       case PageName.BlockDetail(_) =>
-        Row2.blockDetail_txtable(model)
+        div(`class` := "table-container")(
+          Table.blockDetail_txtable(model),
+        )
 
       case PageName.AccountDetail(_) =>
         Row2.account_txtable(model)
+      // div(`class` := "table-container")(
+      //   Title.block(model),
+      //   Table.block(model),
+      //   Search.search(model),
+      // )
 
       case _ =>
         Row2.txList_txtable(model)
+      // div(`class` := "table-container")(
+      //   Title.block(model),
+      //   Table.block(model),
+      //   Search.search(model),
+      // )
