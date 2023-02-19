@@ -5,7 +5,7 @@ import tyrian.Html.*
 import tyrian.*
 import Log.log
 import ValidPageName.*
-import ValidOutputData.*
+import W.*
 
 import org.scalajs.dom.window
 
@@ -60,7 +60,6 @@ object PageUpdate:
             Cmd.None,
           )
         case PageName.Transactions =>
-          log("case PageName.Transactions =>")
           // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
           var updated_tx_TotalPage = 1
 

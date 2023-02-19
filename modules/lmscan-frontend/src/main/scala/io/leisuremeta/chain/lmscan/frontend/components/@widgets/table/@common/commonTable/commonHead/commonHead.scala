@@ -37,7 +37,7 @@ object Head:
   val tx_dashBoard = div(`class` := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),
-      Cell.Head("Block"),
       Cell.Head("Age"),
+      Cell.Head("Signer"),
     ),
   )

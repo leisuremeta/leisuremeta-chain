@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
-import ValidOutputData.*
+import W.*
 import java.math.RoundingMode
 
 object AccountDetailTable:

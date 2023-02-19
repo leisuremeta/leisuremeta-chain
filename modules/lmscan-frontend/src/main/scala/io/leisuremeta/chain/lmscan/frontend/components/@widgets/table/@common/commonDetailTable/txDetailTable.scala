@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import Dom.*
-import ValidOutputData.*
+import W.*
 import java.math.RoundingMode
 
 object TxDetailTable:
@@ -32,12 +32,10 @@ object TxDetailTable:
       div(`class` := "cell type-detail-body")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          // onClick(PageName.TransactionDetail(data)),
           onClick(
             PageMsg.PreUpdate(
               PageName.TransactionDetail(
-                // TODO :: 이렇게 하는게 맞는지 검증
-                getOptionValue(Some(data), "-").toString(),
+                W.plainStr(Some(data)),
               ),
             ),
           ),
@@ -64,15 +62,10 @@ object TxDetailTable:
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          // onClick(NavMsg.AccountDetail(getOptionValue(data.toAddress, "-").toString())),
           onClick(
             PageMsg.PreUpdate(
               PageName.AccountDetail(
-                getOptionValue(
-                  data.toAddress,
-                  "-",
-                )
-                  .toString(),
+                W.plainStr(data.toAddress),
               ),
             ),
           ),
@@ -87,38 +80,15 @@ object TxDetailTable:
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          // onClick(NavMsg.AccountDetail(getOptionValue(data.toAddress, "-").toString())),
           onClick(
             PageMsg.PreUpdate(
               PageName.AccountDetail(
-                getOptionValue(
-                  data.toAddress,
-                  "-",
-                )
-                  .toString(),
+                W.plainStr(data.toAddress),
               ),
             ),
           ),
         )(getOptionValue(data.toAddress, "-").toString()),
       ),
-      // 두개 중복되는거 같아서 하나 지움
-      // div(`class` := "cell type-3 type-detail-body")(
-      //   span(
-      //     // onClick(NavMsg.NftDetail(data.value.toString())), // TODO :: 실데이터 받을때 이걸로 변경
-      //     onClick(
-      //       PageMsg.PreUpdate(
-      //         PageName.AccountDetail(
-      //           CommonFunc
-      //             .getOptionValue(
-      //               Some("26A463A0ED56A4A97D673A47C254728409C7B002"),
-      //               "-",
-      //             )
-      //             .toString(),
-      //         ),
-      //       ),
-      //     ),
-      //   )(getOptionValue(data.value, "-").toString()),
-      // ),
     )
 
   val genView = (model: Model, data: TxDetail) =>
@@ -154,11 +124,7 @@ object TxDetailTable:
                   onClick(
                     PageMsg.PreUpdate(
                       PageName.AccountDetail(
-                        getOptionValue(
-                          data.signer,
-                          "-",
-                        )
-                          .toString(),
+                        W.plainStr(data.signer),
                       ),
                     ),
                   ),

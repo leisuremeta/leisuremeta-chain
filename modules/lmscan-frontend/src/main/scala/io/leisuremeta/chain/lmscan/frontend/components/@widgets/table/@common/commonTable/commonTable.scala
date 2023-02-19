@@ -5,7 +5,6 @@ import tyrian.*
 object Tables:
   def render(model: Model): Html[Msg] =
     model.curPage match
-
       case PageName.DashBoard =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(

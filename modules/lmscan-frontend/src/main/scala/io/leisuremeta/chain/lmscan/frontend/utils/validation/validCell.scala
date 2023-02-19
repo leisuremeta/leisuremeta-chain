@@ -2,9 +2,8 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import scala.util.matching.Regex
-// import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
-// import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
+
 enum Cell:
   case Head(data: String)                                extends Cell
   case AGE(data: Option[Int])                            extends Cell
@@ -12,67 +11,15 @@ enum Cell:
   case BLOCK_HASH(data: Option[String])                  extends Cell
   case ACCOUNT_HASH(data: Option[String])                extends Cell
   case TX_HASH(data: Option[String])                     extends Cell
+  case TX_HASH10(data: Option[String])                   extends Cell
   case Tx_VALUE(data: (Option[String], Option[String]))  extends Cell
-  case PlainInt(data: Option[Int])                       extends Cell
-  case PlainStr(data: Option[String])                    extends Cell
-  case AAA(data: String)                                 extends Cell
-
-object W:
-  def getOptionValue = (field: Option[Any], default: Any) =>
-    field match
-      case Some(value) => value
-      case None        => default
-
-  def plainStr(data: Option[String]) =
-    getOptionValue(data, "-").toString()
-
-  def plainInt(data: Option[Int]) =
-    getOptionValue(data, 0).asInstanceOf[Int].toString
-
-  def hash(data: Option[Any]) = getOptionValue(data, "-").toString()
-
-  def txValue(data: Option[Any]) =
-    val res = String
-      .format(
-        "%.4f",
-        (getOptionValue(data, "0.0")
-          .asInstanceOf[String]
-          .toDouble / Math.pow(10, 18).toDouble),
-      )
-    val sosu         = res.takeRight(5)
-    val decimal      = res.replace(sosu, "")
-    val commaDecimal = String.format("%,d", decimal.toDouble)
-
-    res == "0.0000" match
-      case true =>
-        "-"
-      case false => commaDecimal + sosu
-
-  def accountHash(data: Option[String]) =
-    plainStr(data).length match
-      case 40 =>
-        plainStr(data)
-          .take(10) + "..."
-      case _ =>
-        plainStr(data).toString() match
-          case "playnomm" =>
-            "010cd45939f064fd82403754bada713e5a9563a1".take(
-              10,
-            ) + "..."
-          case "eth-gateway" =>
-            "ca79f6fb199218fa681b8f441fefaac2e9a3ead3".take(
-              10,
-            ) + "..."
-          case _ =>
-            plainStr(data)
-
-  def hash10(data: Option[Any]) =
-    getOptionValue(data, "-").toString().take(10) + "..."
-
-  def _any(data: Option[Any]) = ""
+  case Tx_VALUE2(data: (Option[String], Option[String], Option[String]))
+      extends Cell
+  case PlainInt(data: Option[Int])    extends Cell
+  case PlainStr(data: Option[String]) extends Cell
+  case AAA(data: String)              extends Cell
 
 object gen:
-
   def cell(cells: Cell*) = cells
     .map(cell =>
       cell match
@@ -88,6 +35,60 @@ object gen:
           div(
             `class` := s"cell ${isEqGet[String](W.plainStr(tokeyType), "NFT", "type-3")}",
           )(
+            span(
+              W.plainStr(tokeyType) match
+                case "NFT" =>
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageName.NftDetail(
+                        W.plainStr(value),
+                      ),
+                    ),
+                  )
+                case _ => EmptyAttribute,
+            )(
+              W.plainStr(tokeyType) match
+                case "NFT" =>
+                  W.plainStr(value)
+                case _ => W.txValue(value),
+            ),
+          )
+        case Cell.Tx_VALUE2(tokeyType, value, inout) =>
+          div(
+            `class` := s"cell ${isEqGet[String](W.plainStr(tokeyType), "NFT", "type-3")}",
+          )(
+            {
+              W.txValue(value) == "-" match
+                case true => span()
+                case false =>
+                  span(
+                    W.plainStr(inout) match
+                      case "In" =>
+                        List(
+                          style(
+                            Style(
+                              "background-color" -> "white",
+                              "padding"          -> "5px",
+                              "border"           -> "1px solid green",
+                              "border-radius"    -> "5px",
+                              "margin-right"     -> "5px",
+                            ),
+                          ),
+                        )
+                      case "Out" =>
+                        List(
+                          style(
+                            Style(
+                              "background-color" -> "rgba(171, 242, 0, 0.5)",
+                              "padding"          -> "5px",
+                              "border"           -> "1px solid green",
+                              "border-radius"    -> "5px",
+                              "margin-right"     -> "5px",
+                            ),
+                          ),
+                        ),
+                  )(W.plainStr(inout))
+            },
             span(
               W.plainStr(tokeyType) match
                 case "NFT" =>
@@ -172,6 +173,21 @@ object gen:
               ),
             )(
               W.plainStr(data),
+            ),
+          )
+        case Cell.TX_HASH10(data) =>
+          div(`class` := "cell type-3")(
+            span(
+              dataAttr("tooltip-text", W.plainStr(data)),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.TransactionDetail(
+                    W.plainStr(data),
+                  ),
+                ),
+              ),
+            )(
+              W.hash10(data),
             ),
           )
 

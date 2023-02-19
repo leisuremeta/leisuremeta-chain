@@ -5,7 +5,7 @@ import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
-import ValidOutputData.*
+import W.*
 
 import Log.*
 
@@ -25,9 +25,24 @@ object DataProcess:
       .asInstanceOf[List[NftActivities]]
     payload
 
-  def blockDetail(model: Model) =
+  def blockDetail_tx(model: Model) =
     val data: BlockDetail = BlockDetailParser
       .decodeParser(model.blockDetailData.get)
       .getOrElse(new BlockDetail)
     val payload = getOptionValue(data.txs, List()).asInstanceOf[List[Tx]]
+    payload
+
+  def acountDetail_tx(model: Model) =
+    val data: AccountDetail = AccountDetailParser
+      .decodeParser(model.accountDetailData.get)
+      .getOrElse(new AccountDetail)
+    val payload =
+      getOptionValue(data.txHistory, List()).asInstanceOf[List[Tx]]
+    payload
+
+  def dashboard_tx(model: Model) =
+    val data: TxList =
+      TxParser.decodeParser(model.txListData.get).getOrElse(new TxList)
+    val payload =
+      getOptionValue(data.payload, List()).asInstanceOf[List[Tx]]
     payload

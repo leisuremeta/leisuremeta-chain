@@ -3,7 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
-import ValidOutputData.*
+import W.*
 import Dom.{_hidden, timeAgo}
 
 object BlockDetailTable:

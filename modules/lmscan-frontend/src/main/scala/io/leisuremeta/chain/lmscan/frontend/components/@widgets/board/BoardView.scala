@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
-import ValidOutputData.*
+import W.*
 
 object Board:
   val LM_Price     = "LM PRICE"

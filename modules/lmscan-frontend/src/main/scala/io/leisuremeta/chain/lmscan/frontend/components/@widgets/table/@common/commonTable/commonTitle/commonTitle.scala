@@ -18,6 +18,21 @@ object Title:
         )("More"),
       ),
     )
+  def tx = (model: Model) =>
+    div(
+      `class` := s"${State.curPage(model, PageName.DashBoard, "_table-title")} table-title ",
+    )(
+      div(
+        `class` := s"type-1",
+      )(span()("Latest transactions")),
+      div(
+        `class` := s"type-2",
+      )(
+        span(
+          onClick(PageMsg.PreUpdate(PageName.Transactions)),
+        )("More"),
+      ),
+    )
 
   // 2022091910000860000000058
   def nft = (model: Model) =>
