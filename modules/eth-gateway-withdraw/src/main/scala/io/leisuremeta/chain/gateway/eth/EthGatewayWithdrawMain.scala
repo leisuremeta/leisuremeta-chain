@@ -7,6 +7,7 @@ import java.time.Instant
 import java.util.{ArrayList, Arrays, Collections}
 
 import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 import scala.util.Try
 
@@ -44,6 +45,9 @@ import api.model.*
 import api.model.TransactionWithResult.ops.*
 import api.model.api_model.{AccountInfo, BalanceInfo, NftBalanceInfo}
 import api.model.token.*
+import org.web3j.protocol.core.DefaultBlockParameterName
+import scala.collection.mutable.ArrayBuffer
+import org.web3j.protocol.core.DefaultBlockParameter
 
 object EthGatewayWithdrawMain extends IOApp:
 
@@ -382,12 +386,23 @@ object EthGatewayWithdrawMain extends IOApp:
       new Function("transfer", mintParams, returnTypes)
     }
 
+    val blockCount: String = BigInt(10).toString(16)
+    val latest: DefaultBlockParameter = DefaultBlockParameterName.LATEST
+    val rewardPercentiles: java.util.List[Double] = ArrayBuffer[Double](0, 25, 50, 75, 100).asJava
+
+    val baseFeePerGas = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, true).send().getBlock().getBaseFeePerGas()
+    println(s"Base Fee Per Gas: ${baseFeePerGas}")
+
+    val maxPriorityFeePerGas = web3j.ethMaxPriorityFeePerGas().send().getMaxPriorityFeePerGas()
+
+    println(maxPriorityFeePerGas)
+
     val mintRes = manager
       .sendEIP1559Transaction(
         ethChainId,
-        BigInteger.valueOf(50000),
-        BigInteger.valueOf(50000),
-        DefaultGasProvider.GAS_LIMIT,
+        BigInteger.valueOf(1_500_000_000L),//maxPriorityFeePerGas,
+        BigInteger.valueOf(200_000_000_000L), //baseFeePerGas
+        BigInteger.valueOf(8_000_000), //gasLimit
         ethLmContract,
         transferTxData,
         BigInteger.ZERO,
@@ -396,6 +411,10 @@ object EthGatewayWithdrawMain extends IOApp:
       .getResult()
 
     scribe.info("mintRes: " + mintRes)
+
+    val receipt = receiptProcessor.waitForTransactionReceipt(mintRes)
+
+    println(s"receipt: ${receipt}")
   }
 
   def mintEthNft(
@@ -443,15 +462,27 @@ object EthGatewayWithdrawMain extends IOApp:
     val mintRes = manager
       .sendEIP1559Transaction(
         ethChainId,
-        BigInteger.valueOf(50000),
-        BigInteger.valueOf(50000),
-        DefaultGasProvider.GAS_LIMIT, // BigInteger.valueOf(50000),
+        BigInteger.valueOf(1_500_000_000L),//maxPriorityFeePerGas,
+        BigInteger.valueOf(200_000_000_000L), //baseFeePerGas
+        BigInteger.valueOf(8_000_000), //gasLimit
         ethNftContract,
         mintTxData,
         BigInteger.ZERO,
         false,
       )
       .getResult()
+//    val mintRes = manager
+//      .sendEIP1559Transaction(
+//        ethChainId,
+//        BigInteger.valueOf(50000),
+//        BigInteger.valueOf(50000),
+//        DefaultGasProvider.GAS_LIMIT, // BigInteger.valueOf(50000),
+//        ethNftContract,
+//        mintTxData,
+//        BigInteger.ZERO,
+//        false,
+//      )
+//      .getResult()
 
     scribe.info("mintRes: " + mintRes)
 
@@ -460,15 +491,28 @@ object EthGatewayWithdrawMain extends IOApp:
         .ownerOf(tokenIdBigInt.bigInteger)
         .send(),
     )
+    val receipt = receiptProcessor.waitForTransactionReceipt(mintRes)
+
+    println(s"receipt: ${receipt}")
   }
   def run(args: List[String]): IO[ExitCode] =
     for
       conf <- getConfig
       gatewayConf = GatewayConf.fromConfig(conf)
       keyPair = CryptoOps.fromPrivate(
-        BigInt(gatewayConf.ethPrivate.drop(2), 16),
+        BigInt(gatewayConf.lmPrivate.drop(2), 16),
       )
       _ <- web3Resource(gatewayConf.ethAddress).use { web3 =>
+//          transferEthLM(
+//            web3j = web3,
+//            ethChainId = gatewayConf.ethChainId,
+//            ethLmContract = gatewayConf.ethContract,
+//            gatewayEthAddress = gatewayConf.gatewayEthAddress,
+//            ethPrivate = gatewayConf.ethPrivate,
+//            keyPair = keyPair,
+//            receiverEthAddress = "0xd84A65512fDc8d3bB98E76a7B8f27Fe411D44E71".toLowerCase(),
+//            amount = BigNat.unsafeFromBigInt(BigInt(10).pow(18)),
+//        )
         checkLoop(
           web3j = web3,
           ethChainId = gatewayConf.ethChainId,
