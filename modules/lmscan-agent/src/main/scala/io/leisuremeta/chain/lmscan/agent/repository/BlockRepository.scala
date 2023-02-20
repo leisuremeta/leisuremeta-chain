@@ -15,8 +15,7 @@ object BlockRepository:
   ): EitherT[F, String, Option[BlockEntity]] =
     inline def detailQuery =
       quote { (hash: String) =>
-        query[BlockEntity].filter(b => b.hash == hash).take(1)
-      }
+        query[BlockEntity].filter(b => b.hash == hash).take(1) }
     optionQuery(detailQuery(lift(hash)))
 
   def getLastSavedBlock[F[_]: Async]: EitherT[F, String, Option[BlockSavedLog]] =

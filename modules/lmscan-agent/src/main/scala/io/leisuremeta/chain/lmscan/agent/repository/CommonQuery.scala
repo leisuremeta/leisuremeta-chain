@@ -23,13 +23,9 @@ object CommonQuery:
   inline def optionQuery[F[_]: Async, T](
       inline query: Query[T],
   ): EitherT[F, String, Option[T]] =
-    scribe.info("2222")
-
     EitherT {
       Async[F].recover {
-        scribe.info("dd")
         for
-          _ <- Async[F].delay(scribe.info("sdfsdf"))
           given ExecutionContext <- Async[F].executionContext
           detail <- Async[F]
             .fromFuture(Async[F].delay {
@@ -41,10 +37,10 @@ object CommonQuery:
           Right(detail.headOption)
       } {
         case e: SQLException =>
-          scribe.info("5555555: " + e.getMessage())
+          scribe.info("SQLException: " + e.getMessage())
           Left(s"sql exception occured: " + e.getMessage())
         case e: Exception => 
-          scribe.info("6666666: " + e.getMessage())
+          scribe.info("Exception: " + e.getMessage())
           Left(e.getMessage())
       }
     }

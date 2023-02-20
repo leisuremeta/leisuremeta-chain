@@ -56,8 +56,8 @@ object LmscanBatchMain extends IOApp:
   inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")    
   inline given SchemaMeta[TxEntity] = schemaMeta[TxEntity]("tx")
 
-  val baseUri = "http://test.chain.leisuremeta.io"
-  // val baseUri = "http://lmc.leisuremeta.io"
+  // val baseUri = "http://test.chain.leisuremeta.io"
+  val baseUri = "http://lmc.leisuremeta.io"
 
   // for excluding auto-generated column named 'id'
   // given StateEntityInsertMeta = insertMeta[StateEntity](_.id)  
@@ -66,13 +66,11 @@ object LmscanBatchMain extends IOApp:
   import ctx.{*, given}
 
   val limit = 10;
-  var isFirst = true;
+  var isSecond = false;
 
   inline def upsertTransaction[F[_]: Async, T](
       inline query: Insert[T]
   ): EitherT[F, String, Long] =
-    
-    scribe.info("222222")
     EitherT {
       Async[F].recover {
         for
@@ -213,7 +211,7 @@ object LmscanBatchMain extends IOApp:
     def saveDiffStateLoop[F[_]: Async](backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block0, String)], lastSavedBlockHash: String)
     : EitherT[F, String, /* lastSavedBlock:*/ Option[Block0]] = 
       
-      def isContinue(currBlockOpt: Option[(Block0, String)], lastSavedBlockHash: String): EitherT[F, String, (Block0, String)] =
+      def isContinue(currBlockOpt: Option[(Block0, String)]): EitherT[F, String, (Block0, String)] =
         currBlockOpt match
           case Some((block, json)) => EitherT.pure((block, json))
           case _ => EitherT.leftT(s"there is no exist next block")
@@ -223,7 +221,7 @@ object LmscanBatchMain extends IOApp:
         inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
         
         for
-          result1 <- isContinue(currBlockOpt, lastSavedBlockHash)
+          result1 <- isContinue(currBlockOpt)
           (block, blockJson) = result1
           blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
           blockstate <- upsertTransaction[F, BlockStateEntity](query[BlockStateEntity].insert(
@@ -277,17 +275,17 @@ object LmscanBatchMain extends IOApp:
       def insertBlockTx(blockEither: Either[io.circe.Error, Block0]): EitherT[F, String, Unit] =
         for 
           block: Block0 <- EitherT.fromEither[F](blockEither).leftMap{ e => e.getMessage() }
-          _ <- EitherT.right(Async[F].delay(scribe.info(s"block: ${block}")))
+          // _ <- EitherT.right(Async[F].delay(scribe.info(s"block: ${block}")))
           blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
           txStates <- StateService.getTxStatesByBlockOrderByEventTimeAsc[F](blockHash)
           
-          _ <- EitherT.right(Async[F].delay(scribe.info(s"block.number: ${block.header.number.toBigInt.longValue}")))
-          _ <- updateTransaction[F, BlockStateEntity](quote { query[BlockStateEntity].filter(b => b.number == lift(block.header.number.toBigInt.longValue)).update(_.isBuild -> lift(true)) })
-
+          // _ <- EitherT.right(Async[F].delay(scribe.info(s"block.number: ${block.header.number.toBigInt.longValue}")))
+          _ <- updateTransaction[F, BlockStateEntity]( quote { query[BlockStateEntity].filter(b => b.number == lift(block.header.number.toBigInt.longValue)).update(_.isBuild -> lift(true)) })
+          _ <- upsertTransaction[F, BlockEntity]( quote { query[BlockEntity].insertValue(lift(BlockEntity.from(block, blockHash))).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash) })
           txWithResults <- txStates.traverse { txState => EitherT.fromEither[F](decode[TransactionWithResult](txState.json)).leftMap{ e => e.getMessage() } }
           _ <- (txWithResults zip txStates.map(_.json)).traverse[EitherT[F, String, *], Unit] {
             case (txResult, txJson) =>
-              scribe.info(s"(txResult, txJson): $txResult, $txJson")
+              scribe.info(s"txJson: $txJson")
               val txHash = txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex
               val fromAccount = txResult.signedTx.sig.account.utf8.value
               val result: EitherT[F, String, Option[TxEntity]] = for 
@@ -300,7 +298,7 @@ object LmscanBatchMain extends IOApp:
                       val txEntity: EitherT[F, String, Option[TxEntity]] = get[F, NftMetaInfo](backend)(url).flatMap {
                         // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
                         case metaInfo: NftMetaInfo =>
-                          println(s"metaInfo: ${metaInfo}")
+                          // println(s"metaInfo: ${metaInfo}")
                           for 
                             _ <- upsertTransaction[F, NftTxEntity](
                               query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
@@ -339,14 +337,13 @@ object LmscanBatchMain extends IOApp:
                       val txHash = nft.input.toUInt256Bytes.toHex
                       val newTxEntity: OptionT[EitherT[F, String, *], TxEntity] = 
                         for 
-                          // TODO: burnNft 트랜잭션에서는 tokenId가 없어서 이전 트랜잭션 데이터들에서 tokenId 값을 가져와야 하는데 조회에 사용할 필드가 없음.
                           prevNftEntity <- OptionT(NftService.getByTxHash[F](txHash))
                           _ <- OptionT.liftF(upsertTransaction[F, NftTxEntity](
                             query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, prevNftEntity.tokenId, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                           ))
                         yield TxEntity.from(txHash, nft, prevNftEntity.tokenId, block, blockHash, txJson, fromAccount)
                       newTxEntity.value.recover{(msg: String) =>
-                        scribe.info(s"previous nft by txHash: ${txHash} entity doesn't exist in db")
+                        scribe.info(s"previous nft by txHash: $txHash entity doesn't exist in db")
                         None
                       }
                     case nft: EntrustNFT => 
@@ -459,15 +456,12 @@ object LmscanBatchMain extends IOApp:
                             )
                           yield Some(TxEntity.from(txHash, tx, rewardRes, block, blockHash, txJson, fromAccount))
                         case _ => EitherT.pure(None)
-                    
-                
+                        
                 _ <- txEntityOpt match  
                   case Some(value) => 
                     for 
-                      _ <- EitherT.right(Async[F].delay(scribe.info(s"update block transaction")))
                       _ <- upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-                      _ <- upsertTransaction[F, BlockEntity](
-                        quote { query[BlockEntity].insertValue(lift(BlockEntity.from(block, blockHash))).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash) })
+                      _ <- EitherT.right(Async[F].delay(scribe.info(s"update tx transaction")))
                     yield ()
                   case None => EitherT.pure[F, String](0L)
               yield txEntityOpt
@@ -490,8 +484,7 @@ object LmscanBatchMain extends IOApp:
         for
           blockStates <- StateService.getBlockStateByNotBuildedOrderByNumberAscLimit[F](limit)
           
-          _ <- blockStates.parTraverse {
-            (blockState: BlockStateEntity) =>
+          _ <- blockStates.traverse { (blockState: BlockStateEntity) =>
               val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
               for 
                 _ <- insertBlockTx(decoded)
@@ -499,7 +492,7 @@ object LmscanBatchMain extends IOApp:
                 lastBlock <- loop(None)
               yield lastBlock
           }
-          _ <- EitherT.right(Async[F].sleep(10000.millis))
+          _ <- EitherT.right(Async[F].sleep(100.milliseconds))
         yield (None)
 
       loop(None)
@@ -530,7 +523,7 @@ object LmscanBatchMain extends IOApp:
         status <- getStatus[F](backend)
         _ <- EitherT.right(Async[F].delay(scribe.info(s"status: ${status}")))
         
-        _ <- if (isFirst) {
+        _ <- if (isSecond) {
           for 
             bestBlock <- getBlock[F](backend)(status.bestHash.toBlockHash)
             // bestBlock <- getBlock[F](backend)("76b03e95b3db4f2eae07c8ebb28f8d6474357cbd5d8162bfa0be3da6b525bc4e")
@@ -558,6 +551,7 @@ object LmscanBatchMain extends IOApp:
             }
           yield ()
         } else {
+          isSecond = true;
           for         
             currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
             _ <- currLastSavedBlockOpt match
@@ -622,12 +616,12 @@ object LmscanBatchMain extends IOApp:
     def loop(backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
       for 
         _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop start")))
-        coinMarket <- ExternalApiService.getLmPrice(backend)  // coinMarket response
-
+        
+        coinMarketOpt <- ExternalApiService.getLmPrice(backend)  // coinMarket response
         // lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
         lastSavedBlockOpt <- BlockService.getLastBuildedBlock[F]
         
-        _ <- (coinMarket, lastSavedBlockOpt) match { 
+        _ <- (coinMarketOpt, lastSavedBlockOpt) match { 
           case (Some(data), Some(lastSavedBlock)) => 
             val lmPrice = data.quote.USD
             for 
@@ -683,10 +677,9 @@ object LmscanBatchMain extends IOApp:
       .use { backend =>
         val program = for
           // _ <- Async[IO].racePair(blockCheckLoop(backend))
-          
           _ <- List(
             blockCheckLoop(backend), 
-            summaryLoop(backend)
+            // summaryLoop(backend)
           ).parSequence
         yield ()
         program.value
