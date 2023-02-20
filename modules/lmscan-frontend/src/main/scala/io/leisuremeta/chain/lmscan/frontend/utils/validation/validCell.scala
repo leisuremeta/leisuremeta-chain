@@ -146,13 +146,6 @@ object gen:
         case Cell.ACCOUNT_HASH_DETAIL(data, css) =>
           div(`class` := s"$css")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  PageName.AccountDetail(
-                    plainStr(data),
-                  ),
-                ),
-              ),
             )(
               accountHash_DETAIL(data),
             ),
