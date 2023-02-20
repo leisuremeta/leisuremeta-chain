@@ -5,7 +5,7 @@ import tyrian.Html.*
 import tyrian.*
 import Log.log
 import ValidPageName.*
-import W.*
+import V.*
 
 import org.scalajs.dom.window
 

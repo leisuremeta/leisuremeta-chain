@@ -1,68 +1,90 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
+import V.*
 import scala.util.matching.Regex
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 
 enum Cell:
-  case Head(data: String)                                extends Cell
-  case AGE(data: Option[Int])                            extends Cell
-  case BLOCK_NUMBER(data: (Option[String], Option[Int])) extends Cell
-  case BLOCK_HASH(data: Option[String])                  extends Cell
-  case ACCOUNT_HASH(data: Option[String])                extends Cell
-  case TX_HASH(data: Option[String])                     extends Cell
-  case TX_HASH10(data: Option[String])                   extends Cell
-  case Tx_VALUE(data: (Option[String], Option[String]))  extends Cell
+  case Image(data: Option[String])                              extends Cell
+  case Head(data: String, css: String = "cell")                 extends Cell
+  case Any(data: String, css: String = "cell")                  extends Cell
+  case AGE(data: Option[Int])                                   extends Cell
+  case DATE(data: Option[Int], css: String = "cell")            extends Cell
+  case BLOCK_NUMBER(data: (Option[String], Option[Int]))        extends Cell
+  case BLOCK_HASH(data: Option[String])                         extends Cell
+  case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
+  case ACCOUNT_HASH_DETAIL(data: Option[String], css: String = "cell")
+      extends Cell
+  case TX_HASH(data: Option[String])                    extends Cell
+  case TX_HASH10(data: Option[String])                  extends Cell
+  case Tx_VALUE(data: (Option[String], Option[String])) extends Cell
   case Tx_VALUE2(data: (Option[String], Option[String], Option[String]))
       extends Cell
-  case PlainInt(data: Option[Int])    extends Cell
-  case PlainStr(data: Option[String]) extends Cell
-  case AAA(data: String)              extends Cell
+  case PlainInt(data: Option[Int]) extends Cell
+  case PlainStr(data: Option[String] | Option[Int], css: String = "cell")
+      extends Cell
+  case AAA(data: String) extends Cell
 
 object gen:
   def cell(cells: Cell*) = cells
     .map(cell =>
       cell match
-        case Cell.Head(data) => div(`class` := "cell")(span()(data))
-        case Cell.PlainStr(data) =>
-          div(`class` := "cell")(span()(W.plainStr(data)))
+        case Cell.Image(nftUri) =>
+          plainStr(nftUri).contains("img") match
+            case true => // 이미지 포맷
+              img(
+                `class` := "nft-image p-10px",
+                src     := s"${getOptionValue(nftUri, "-").toString()}",
+              )
+
+            case _ => // 비디오 포맷
+              video(`class` := "nft-image p-10px", autoPlay, loop)(
+                source(
+                  src := s"https://d2t5puzz68k49j.cloudfront.net/release/collections/BPS_S.Younghoon/NFT_ITEM/DE8BB88B-48FB-4488-88BE-7F49894727AA.mp4",
+                ),
+              )
+        case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
+        case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
+        case Cell.PlainStr(data, css) =>
+          div(`class` := s"$css")(span()(plainStr(data)))
         case Cell.PlainInt(data) =>
           div(`class` := "cell")(
             span(
-            )(W.plainInt(data)),
+            )(plainInt(data)),
           )
         case Cell.Tx_VALUE(tokeyType, value) =>
           div(
-            `class` := s"cell ${isEqGet[String](W.plainStr(tokeyType), "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
           )(
             span(
-              W.plainStr(tokeyType) match
+              plainStr(tokeyType) match
                 case "NFT" =>
                   onClick(
                     PageMsg.PreUpdate(
                       PageName.NftDetail(
-                        W.plainStr(value),
+                        plainStr(value),
                       ),
                     ),
                   )
                 case _ => EmptyAttribute,
             )(
-              W.plainStr(tokeyType) match
+              plainStr(tokeyType) match
                 case "NFT" =>
-                  W.plainStr(value)
-                case _ => W.txValue(value),
+                  plainStr(value)
+                case _ => txValue(value),
             ),
           )
         case Cell.Tx_VALUE2(tokeyType, value, inout) =>
           div(
-            `class` := s"cell ${isEqGet[String](W.plainStr(tokeyType), "NFT", "type-3")}",
+            `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
           )(
             {
-              W.txValue(value) == "-" match
+              txValue(value) == "-" match
                 case true => span()
                 case false =>
                   span(
-                    W.plainStr(inout) match
+                    plainStr(inout) match
                       case "In" =>
                         List(
                           style(
@@ -87,38 +109,52 @@ object gen:
                             ),
                           ),
                         ),
-                  )(W.plainStr(inout))
+                  )(plainStr(inout))
             },
             span(
-              W.plainStr(tokeyType) match
+              plainStr(tokeyType) match
                 case "NFT" =>
                   onClick(
                     PageMsg.PreUpdate(
                       PageName.NftDetail(
-                        W.plainStr(value),
+                        plainStr(value),
                       ),
                     ),
                   )
                 case _ => EmptyAttribute,
             )(
-              W.plainStr(tokeyType) match
+              plainStr(tokeyType) match
                 case "NFT" =>
-                  W.plainStr(value)
-                case _ => W.txValue(value),
+                  plainStr(value)
+                case _ => txValue(value),
             ),
           )
-        case Cell.ACCOUNT_HASH(data) =>
+        case Cell.ACCOUNT_HASH(data, css) =>
           div(`class` := "cell type-3")(
             span(
               onClick(
                 PageMsg.PreUpdate(
                   PageName.AccountDetail(
-                    W.plainStr(data),
+                    plainStr(data),
                   ),
                 ),
               ),
             )(
-              W.accountHash(data),
+              accountHash(data),
+            ),
+          )
+        case Cell.ACCOUNT_HASH_DETAIL(data, css) =>
+          div(`class` := s"$css")(
+            span(
+              onClick(
+                PageMsg.PreUpdate(
+                  PageName.AccountDetail(
+                    plainStr(data),
+                  ),
+                ),
+              ),
+            )(
+              accountHash_DETAIL(data),
             ),
           )
         case Cell.AGE(data) =>
@@ -126,11 +162,21 @@ object gen:
             span(
               dataAttr(
                 "tooltip-text",
-                Dom.yyyy_mm_dd_time(W.plainInt(data).toInt),
+                Dom.yyyy_mm_dd_time(plainInt(data).toInt),
               ),
             )(
               Dom.timeAgo(
-                W.plainInt(data).toInt,
+                plainInt(data).toInt,
+              ),
+            ),
+          )
+
+        case Cell.DATE(data, css) =>
+          div(`class` := s"$css")(
+            span(
+            )(
+              Dom.yyyy_mm_dd_time(
+                plainInt(data).toInt,
               ),
             ),
           )
@@ -141,11 +187,11 @@ object gen:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.BlockDetail(
-                    W.plainStr(hash),
+                    plainStr(hash),
                   ),
                 ),
               ),
-            )(W.plainInt(number)),
+            )(plainInt(number)),
           )
 
         case Cell.BLOCK_HASH(data) =>
@@ -154,12 +200,12 @@ object gen:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.BlockDetail(
-                    W.plainStr(data),
+                    plainStr(data),
                   ),
                 ),
               ),
-              dataAttr("tooltip-text", W.plainStr(data)),
-            )(W.hash10(data)),
+              dataAttr("tooltip-text", plainStr(data)),
+            )(hash10(data)),
           )
         case Cell.TX_HASH(data) =>
           div(`class` := "cell type-3")(
@@ -167,27 +213,27 @@ object gen:
               onClick(
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
-                    W.plainStr(data),
+                    plainStr(data),
                   ),
                 ),
               ),
             )(
-              W.plainStr(data),
+              plainStr(data),
             ),
           )
         case Cell.TX_HASH10(data) =>
           div(`class` := "cell type-3")(
             span(
-              dataAttr("tooltip-text", W.plainStr(data)),
+              dataAttr("tooltip-text", plainStr(data)),
               onClick(
                 PageMsg.PreUpdate(
                   PageName.TransactionDetail(
-                    W.plainStr(data),
+                    plainStr(data),
                   ),
                 ),
               ),
             )(
-              W.hash10(data),
+              hash10(data),
             ),
           )
 

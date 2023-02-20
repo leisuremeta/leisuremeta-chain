@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
-import W.*
+import V.*
 
 object Board:
   val LM_Price     = "LM PRICE"
@@ -22,7 +22,7 @@ object BoardView:
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
             div()(
-              getOptionValue(data.lmPrice, "-").toString().take(6) + " USDT",
+              plainStr(data.lmPrice).toString().take(6) + " USDT",
             ),
           ),
         ),
@@ -52,7 +52,9 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-grey")(Board.Accounts),
-            div()(getOptionValue(data.totalAccounts, "-").toString()),
+            div()(
+              plainStr(data.totalAccounts),
+            ),
           ),
         ),
       ),

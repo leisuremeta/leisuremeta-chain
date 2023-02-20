@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
-import W.*
+import V.*
 import java.math.RoundingMode
 
 object AccountDetailTable:
@@ -39,34 +39,27 @@ object AccountDetailTable:
         div(`class` := "type-TableDetail  table-container")(
           div(`class` := "table w-[100%] ")(
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head ")("Account"),
-              div(`class` := "cell type-detail-body ")(
-                getOptionValue(data.address, "-").toString().length match
-                  case 40 =>
-                    getOptionValue(data.address, "-")
-                      .toString()
-
-                  case _ =>
-                    getOptionValue(data.address, "-")
-                      .toString() match
-                      case "playnomm" =>
-                        "010cd45939f064fd82403754bada713e5a9563a1"
-                      case "eth-gateway" =>
-                        "ca79f6fb199218fa681b8f441fefaac2e9a3ead3"
-                      case _ =>
-                        getOptionValue(data.address, "-").toString(),
+              gen.cell(
+                Cell.Head("Account", "cell type-detail-head"),
+                Cell.PlainStr(data.address, "cell type-detail-body"),
               ),
             ),
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Balance"),
-              div(`class` := "cell type-detail-body")(
-                formattedBalance.toString() + " LM",
+              gen.cell(
+                Cell.Head("Balance", "cell type-detail-head"),
+                Cell.Any(
+                  formattedBalance.toString() + " LM",
+                  "cell type-detail-body",
+                ),
               ),
             ),
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Value"),
-              div(`class` := "cell type-detail-body")(
-                "$ " + formattedValue.toString(),
+              gen.cell(
+                Cell.Head("Value", "cell type-detail-head"),
+                Cell.Any(
+                  "$ " + formattedValue.toString(),
+                  "cell type-detail-body",
+                ),
               ),
             ),
           ),

@@ -5,7 +5,7 @@ import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
-import W.*
+import V.*
 
 import Log.*
 

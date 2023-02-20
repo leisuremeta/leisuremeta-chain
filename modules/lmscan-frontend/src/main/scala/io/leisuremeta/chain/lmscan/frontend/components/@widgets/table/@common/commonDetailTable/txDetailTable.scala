@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import Dom.*
-import W.*
+import V.*
 import java.math.RoundingMode
 
 object TxDetailTable:
@@ -14,7 +14,6 @@ object TxDetailTable:
       .getOrElse(new TxDetail)
     genView(model, data)
 
-  // TODO :: zip 말고 더 좋은 방법?
   val input = (data: List[String], isModal: Boolean) =>
     isModal match
       case true =>
@@ -35,7 +34,7 @@ object TxDetailTable:
           onClick(
             PageMsg.PreUpdate(
               PageName.TransactionDetail(
-                W.plainStr(Some(data)),
+                plainStr(Some(data)),
               ),
             ),
           ),
@@ -65,7 +64,7 @@ object TxDetailTable:
           onClick(
             PageMsg.PreUpdate(
               PageName.AccountDetail(
-                W.plainStr(data.toAddress),
+                plainStr(data.toAddress),
               ),
             ),
           ),
@@ -83,7 +82,7 @@ object TxDetailTable:
           onClick(
             PageMsg.PreUpdate(
               PageName.AccountDetail(
-                W.plainStr(data.toAddress),
+                plainStr(data.toAddress),
               ),
             ),
           ),
@@ -102,59 +101,33 @@ object TxDetailTable:
         div(`class` := "type-TableDetail  table-container")(
           div(`class` := "table w-[100%] ")(
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head ")("Transaction Hash"),
-              div(`class` := "cell type-detail-body ")(
-                getOptionValue(data.hash, "-").toString(),
+              gen.cell(
+                Cell.Head("Transaction Hash", "cell type-detail-head"),
+                Cell.PlainStr(data.hash, "cell type-detail-body"),
               ),
             ),
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Created At"),
-              div(`class` := "cell type-detail-body")(
-                yyyy_mm_dd_time(
-                  getOptionValue(data.createdAt, 0).asInstanceOf[Int],
-                ),
+              gen.cell(
+                Cell.Head("Created At", "cell type-detail-head"),
+                Cell.DATE(data.createdAt, "cell type-detail-body"),
               ),
             ),
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Signer"),
-              div(
-                `class` := "cell type-3 type-detail-body",
-              )(
-                span(
-                  onClick(
-                    PageMsg.PreUpdate(
-                      PageName.AccountDetail(
-                        W.plainStr(data.signer),
-                      ),
-                    ),
-                  ),
-                )(getOptionValue(data.signer, "-").toString().length match
-                  case 40 =>
-                    getOptionValue(data.signer, "-")
-                      .toString()
-                      .take(10) + "..."
-                  case _ =>
-                    getOptionValue(data.signer, "-")
-                      .toString() match
-                      case "playnomm" =>
-                        "010cd45939f064fd82403754bada713e5a9563a1"
-                      case "eth-gateway" =>
-                        "ca79f6fb199218fa681b8f441fefaac2e9a3ead3"
-                      case _ =>
-                        getOptionValue(data.signer, "-").toString(),
-                ),
+              gen.cell(
+                Cell.Head("Signer", "cell type-detail-head"),
+                Cell.ACCOUNT_HASH_DETAIL(data.signer, "cell type-detail-body"),
               ),
             ),
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Type"),
-              div(`class` := "cell type-detail-body")(
-                getOptionValue(data.txType, "-").toString(),
+              gen.cell(
+                Cell.Head("Type", "cell type-detail-head"),
+                Cell.PlainStr(data.txType, "cell type-detail-body"),
               ),
             ),
             div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Token Type"),
-              div(`class` := "cell type-detail-body")(
-                getOptionValue(data.tokenType, "-").toString(),
+              gen.cell(
+                Cell.Head("Token Type", "cell type-detail-head"),
+                Cell.PlainStr(data.tokenType, "cell type-detail-body"),
               ),
             ),
           ),

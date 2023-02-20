@@ -1,11 +1,13 @@
 package io.leisuremeta.chain.lmscan.frontend
-object W:
+object V:
   def getOptionValue = (field: Option[Any], default: Any) =>
     field match
       case Some(value) => value
       case None        => default
 
-  def plainStr(data: Option[String]) =
+  def plainStr(
+      data: Option[String] | Option[Int] | Option[Double] | Option[Long],
+  ) =
     getOptionValue(data, "-").toString()
 
   def plainInt(data: Option[Int]) =
@@ -13,6 +15,16 @@ object W:
 
   def hash10(data: Option[Any]) =
     getOptionValue(data, "-").toString().take(10) + "..."
+
+  def rarity(data: Option[String]) =
+    getOptionValue(data, "-") match
+      case "NRML" => "Normal"
+      case "LGDY" => "Legendary"
+      case "UNIQ" => "Unique"
+      case "EPIC" => "Epic"
+      case "RARE" => "Rare"
+      case _ =>
+        getOptionValue(data, "-").toString()
 
   def txValue(data: Option[String]) =
     val res = String
@@ -42,6 +54,20 @@ object W:
 
           case "eth-gateway" =>
             hash10(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
+
+          case _ =>
+            plainStr(data)
+  def accountHash_DETAIL(data: Option[String]) =
+    plainStr(data).length match
+      case 40 =>
+        plainStr(data)
+      case _ =>
+        plainStr(data).toString() match
+          case "playnomm" =>
+            plainStr(Some("010cd45939f064fd82403754bada713e5a9563a1"))
+
+          case "eth-gateway" =>
+            plainStr(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
 
           case _ =>
             plainStr(data)
