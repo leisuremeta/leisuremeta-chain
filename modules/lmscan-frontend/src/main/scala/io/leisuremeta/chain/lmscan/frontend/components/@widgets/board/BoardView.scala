@@ -22,7 +22,7 @@ object BoardView:
           )(
             div(`class` := "font-16px color-grey")(Board.LM_Price),
             div()(
-              plainStr(data.lmPrice).toString().take(6) + " USDT",
+              plainStr(data.lmPrice).take(6) + " USDT",
             ),
           ),
         ),
