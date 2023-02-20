@@ -54,7 +54,7 @@ object BoardView:
             div(`class` := "font-16px color-grey")(Board.Accounts),
             div()(
               // plainStr(data.totalAccounts),
-              "38445",
+              "39,104",
             ),
           ),
         ),
