@@ -7,5 +7,5 @@ object BlockTable:
     div(`class` := "table-container")(
       Title.block(model),
       Table.block(model),
-      Search.search(model),
+      Search.search_block(model),
     )

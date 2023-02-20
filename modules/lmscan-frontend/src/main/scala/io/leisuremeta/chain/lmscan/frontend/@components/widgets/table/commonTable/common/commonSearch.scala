@@ -4,7 +4,7 @@ import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
 object Search:
-  val search = (model: Model) =>
+  val search_block = (model: Model) =>
     div(
       `class` := s"${State.curPage(model, PageName.DashBoard, "_search")} table-search xy-center ",
     )(
@@ -32,6 +32,37 @@ object Search:
         div(
           `class` := s"type-arrow ${_hidden[Int](model.block_TotalPage, model.block_CurrentPage)}",
           onClick(PageMoveMsg.Patch(model.block_TotalPage.toString())),
+        )(">>"),
+      ),
+    )
+  val search_tx = (model: Model) =>
+    div(
+      `class` := s"${State.curPage(model, PageName.DashBoard, "_search")} table-search xy-center ",
+    )(
+      div(`class` := "xy-center")(
+        div(
+          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Patch("1")),
+        )("<<"),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](1, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Prev),
+        )("<"),
+        div(`class` := "type-plain-text")("Page"),
+        input(
+          onInput(s => PageMoveMsg.Get(s)),
+          value   := s"${model.tx_list_Search}",
+          `class` := "type-search xy-center DOM-page1 ",
+        ),
+        div(`class` := "type-plain-text")("of"),
+        div(`class` := "type-plain-text")(model.tx_TotalPage.toString()),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Next),
+        )(">"),
+        div(
+          `class` := s"type-arrow ${_hidden[Int](model.tx_TotalPage, model.tx_CurrentPage)}",
+          onClick(PageMoveMsg.Patch(model.tx_TotalPage.toString())),
         )(">>"),
       ),
     )

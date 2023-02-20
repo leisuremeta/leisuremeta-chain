@@ -29,6 +29,7 @@ object TransactionTable:
       case PageName.Transactions =>
         div(`class` := "table-container")(
           Table.txList_txtable(model),
+          Search.search_tx(model),
         )
 
       case _ =>
