@@ -41,7 +41,7 @@ object gen:
             case _ => // 비디오 포맷
               video(`class` := "nft-image p-10px", autoPlay, loop)(
                 source(
-                  src := s"https://d2t5puzz68k49j.cloudfront.net/release/collections/BPS_S.Younghoon/NFT_ITEM/DE8BB88B-48FB-4488-88BE-7F49894727AA.mp4",
+                  src := s"${getOptionValue(nftUri, "-").toString()}",
                 ),
               )
         case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
