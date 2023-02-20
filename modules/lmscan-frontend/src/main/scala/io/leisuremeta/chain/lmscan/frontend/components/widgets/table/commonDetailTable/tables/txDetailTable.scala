@@ -178,36 +178,37 @@ object TxDetailTable:
           ),
         ),
       ),
-      div(
-        `class` := s"type-2 pt-16px",
-      )(
-        span(
-          `class` := s"${State.toggle(model, ToggleMsg.Click, "_button")} ",
-          onClick(ToggleMsg.Click),
-        )("More"),
-      ),
-      div(`class` := "pt-12px x-center")(
-        textarea(
-          `id`    := s"transaction-text-area",
-          `class` := s"${State.toggle(model, ToggleMsg.Click, "_textarea")}",
-        )(s"${TxDetailParser.txDetailEncoder(data)}"),
-      ),
-      div(
-        `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_table")}",
-      )(
-        div(`class` := "type-TableDetail table-container txDetailModalTable")(
-          div(`class` := "table w-[100%]")(
-            div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Input"),
-              div(`class` := "cell type-detail-body font-bold")(
-                "Transaction Hash",
-              ),
-              div(`class` := s"type-2 pt-16px")(
-                span(onClick(ToggleMsg.ClickTxDetailInput))("Close"),
-              ),
-            )
-              :: input(inputHashs, true),
-          ),
-        ),
-      ),
+
+      // div(
+      //   `class` := s"type-2 pt-16px",
+      // )(
+      //   span(
+      //     `class` := s"${State.toggle(model, ToggleMsg.Click, "_button")} ",
+      //     onClick(ToggleMsg.Click),
+      //   )("More"),
+      // ),
+      // div(`class` := "pt-12px x-center")(
+      //   textarea(
+      //     `id`    := s"transaction-text-area",
+      //     `class` := s"${State.toggle(model, ToggleMsg.Click, "_textarea")}",
+      //   )(s"${TxDetailParser.txDetailEncoder(data)}"),
+      // ),
+      // div(
+      //   `class` := s"${State.toggleTxDetailInput(model, ToggleMsg.ClickTxDetailInput, "_table")}",
+      // )(
+      //   div(`class` := "type-TableDetail table-container txDetailModalTable")(
+      //     div(`class` := "table w-[100%]")(
+      //       div(`class` := "row")(
+      //         div(`class` := "cell type-detail-head")("Input"),
+      //         div(`class` := "cell type-detail-body font-bold")(
+      //           "Transaction Hash",
+      //         ),
+      //         div(`class` := s"type-2 pt-16px")(
+      //           span(onClick(ToggleMsg.ClickTxDetailInput))("Close"),
+      //         ),
+      //       )
+      //         :: input(inputHashs, true),
+      //     ),
+      //   ),
+      // ),
     )
