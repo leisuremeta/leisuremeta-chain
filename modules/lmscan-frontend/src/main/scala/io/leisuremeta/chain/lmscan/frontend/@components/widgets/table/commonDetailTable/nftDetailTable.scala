@@ -39,7 +39,7 @@ object NftDetailTable:
                     gen.cell(
                       Cell.Head("Rarity", "cell type-detail-head"),
                       Cell
-                        .Any(plainStr(nftFile.rarity), "cell type-detail-body"),
+                        .Any(rarity(nftFile.rarity), "cell type-detail-body"),
                     ),
                   ),
                   div(`class` := "row")(

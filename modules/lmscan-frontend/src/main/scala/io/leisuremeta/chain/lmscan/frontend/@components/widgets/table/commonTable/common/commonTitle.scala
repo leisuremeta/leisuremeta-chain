@@ -34,12 +34,11 @@ object Title:
       ),
     )
 
-  // 2022091910000860000000058
   def nft = (model: Model) =>
     div(
       `class` := s"table-title ",
     )(
       div(
         `class` := s"type-1",
-      )(span()("Item Activity~")),
+      )(span()("Item Activity")),
     )
