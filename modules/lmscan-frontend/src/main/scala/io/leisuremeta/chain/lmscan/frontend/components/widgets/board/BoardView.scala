@@ -6,7 +6,7 @@ import V.*
 object Board:
   val LM_Price     = "LM PRICE"
   val Block_Number = "BLOCK NUMBER"
-  val Transactions = "24 TRANSACTIONS"
+  val Transactions = "24H TRANSACTIONS"
   val Accounts     = "TOTAL ACCOUNTS"
 
 object BoardView:
