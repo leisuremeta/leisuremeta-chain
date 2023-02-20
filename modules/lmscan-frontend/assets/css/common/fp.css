@@ -151,7 +151,7 @@
 }
 
 .color-grey{
-    color: grey;
+    color: grey; 
 }
 
 .hidden{
@@ -159,7 +159,7 @@
 }
 
 .selectedPage {
-    background-color: rgba(171, 242, 0, 0.5);
+    background-color: rgba(201, 239, 205, 0.6);
     border: 1px solid white;
     border-radius: 10px;
 }
