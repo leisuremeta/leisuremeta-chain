@@ -56,8 +56,8 @@ object LmscanBatchMain extends IOApp:
   inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")    
   inline given SchemaMeta[TxEntity] = schemaMeta[TxEntity]("tx")
 
-  // val baseUri = "http://test.chain.leisuremeta.io"
-  val baseUri = "http://lmc.leisuremeta.io"
+  val baseUri = "http://test.chain.leisuremeta.io"
+  // val baseUri = "http://lmc.leisuremeta.io"
 
   // for excluding auto-generated column named 'id'
   // given StateEntityInsertMeta = insertMeta[StateEntity](_.id)  
@@ -66,7 +66,8 @@ object LmscanBatchMain extends IOApp:
   import ctx.{*, given}
 
   val limit = 10;
-  var isSecond = false;
+  // var isSecond = false;
+  var isSecond = true;
 
   inline def upsertTransaction[F[_]: Async, T](
       inline query: Insert[T]
@@ -77,7 +78,7 @@ object LmscanBatchMain extends IOApp:
           given ExecutionContext <- Async[F].executionContext
           ids <- Async[F]
             .fromCompletableFuture(Async[F].delay {
-              scribe.info("333333")
+              // scribe.info("333333")
               ctx.transaction[Long] {
                 for p <- ctx.run(query)
                 yield p
@@ -85,11 +86,11 @@ object LmscanBatchMain extends IOApp:
             })
             .map(Either.right(_))
         yield
-          scribe.info("444444")
+          // scribe.info("444444")
           ids
       } {
         case e: SQLException =>
-          scribe.info("55555")
+          scribe.info("55555: " + e.getMessage())
           Left(s"sql exception occured: " + e.getMessage())
         case e: Exception =>
           scribe.info("66666: " + e.getMessage())
@@ -194,6 +195,8 @@ object LmscanBatchMain extends IOApp:
       uri"$baseUri/status"
     }
   
+
+  var counter = 0;
   def blockCheckLoop[F[_]: Async](
     backend: SttpBackend[F, Any],
   ): EitherT[F, String, Unit] = 
@@ -219,7 +222,7 @@ object LmscanBatchMain extends IOApp:
       def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block0, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block0, String)]] =
         inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
         inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
-        
+        counter = counter + 1
         for
           result1 <- isContinue(currBlockOpt)
           (block, blockJson) = result1
@@ -231,7 +234,7 @@ object LmscanBatchMain extends IOApp:
               _.json -> lift(blockJson),
               _.isBuild -> lift(false)
             ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-          _ <- EitherT.right(Async[F].delay(scribe.info(s"blockstate upsertTransaction: $blockstate")))
+          // _ <- EitherT.right(Async[F].delay(scribe.info(s"blockstate upsertTransaction: $blockstate")))
           
           txs <- block.transactionHashes.toList.traverse { 
             (hash: Hash.Value[Signed.Tx]) => getTransaciton[F](backend)(hash.toUInt256Bytes.toBytes.toHex) }
@@ -246,15 +249,17 @@ object LmscanBatchMain extends IOApp:
                       _.blockHash -> lift(blockHash),
                       _.json -> lift(txJson),
                     ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-                _ <- EitherT.right(Async[F].delay(scribe.info(s"txJson: $txJson")))
+                // _ <- EitherT.right(Async[F].delay(scribe.info(s"txJson: $txJson")))
               yield ()
-
             case _ => EitherT.leftT(s"there is no exist transaction")  
           }
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
           
+          // result2 <- if counter < 25 then loop(backend)(nextBlockOpt, lastSavedBlockHash) else {
+          //   counter = 0
+          //   loop(backend)(None, lastSavedBlockHash)
+          // }
           result2 <- if blockHash != lastSavedBlockHash then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
-          // result2 <- if testCount < 10 then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
         yield result2
         
       loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}.recover((errMsg: String) => {
@@ -285,7 +290,7 @@ object LmscanBatchMain extends IOApp:
           txWithResults <- txStates.traverse { txState => EitherT.fromEither[F](decode[TransactionWithResult](txState.json)).leftMap{ e => e.getMessage() } }
           _ <- (txWithResults zip txStates.map(_.json)).traverse[EitherT[F, String, *], Unit] {
             case (txResult, txJson) =>
-              scribe.info(s"txJson: $txJson")
+              // scribe.info(s"txJson: $txJson")
               val txHash = txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex
               val fromAccount = txResult.signedTx.sig.account.utf8.value
               val result: EitherT[F, String, Option[TxEntity]] = for 
@@ -355,7 +360,7 @@ object LmscanBatchMain extends IOApp:
                         query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
                       ).as(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                     case tx: MintFungibleToken => 
-                      var sum: BigDecimal = 0;
+                      var sum: BigDecimal = 0
                       for 
                         _ <- tx.outputs.toList.traverse { case (account, amount) =>
                           sum = sum + amount.toBigInt.longValue
@@ -368,7 +373,7 @@ object LmscanBatchMain extends IOApp:
                         )
                       yield Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount))
                     case tx: TransferFungibleToken => 
-                      var sum = 0l;
+                      var sum: BigDecimal = 0
                       for 
                         _ <- tx.outputs.toList.traverse { case (account, amount) =>
                           sum = sum + amount.toBigInt.longValue
@@ -390,7 +395,7 @@ object LmscanBatchMain extends IOApp:
                         )
                       yield Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount))
                     case tx: DisposeEntrustedFungibleToken => 
-                      var sum: BigDecimal = 0;
+                      var sum: BigDecimal = 0
                       for 
                         _ <- tx.outputs.toList.traverse { case (account, amount) =>
                           sum = sum + amount.toBigInt.longValue
@@ -428,7 +433,7 @@ object LmscanBatchMain extends IOApp:
                     case tx: RecordActivity => 
                       EitherT.pure(Some(TxEntity.from(txHash, tx, block, blockHash, txJson, fromAccount)))
                     case tx: OfferReward => 
-                      var sum: BigDecimal = 0;
+                      var sum: BigDecimal = 0
                       for 
                         _ <- tx.outputs.toList.traverse { case (account, amount) =>
                           sum = sum + amount.toBigInt.longValue
@@ -443,7 +448,7 @@ object LmscanBatchMain extends IOApp:
                     case tx: ExecuteReward => 
                       txResult.result.getOrElse(EitherT.pure(None)) match 
                         case rewardRes: ExecuteRewardResult => 
-                          var sum: BigDecimal = 0;
+                          var sum: BigDecimal = 0
                           for 
                             _ <- rewardRes.outputs.toList.traverse { case (account, amount) =>
                               sum = sum + amount.toBigInt.longValue
@@ -461,7 +466,7 @@ object LmscanBatchMain extends IOApp:
                   case Some(value) => 
                     for 
                       _ <- upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-                      _ <- EitherT.right(Async[F].delay(scribe.info(s"update tx transaction")))
+                      // _ <- EitherT.right(Async[F].delay(scribe.info(s"update tx transaction")))
                     yield ()
                   case None => EitherT.pure[F, String](0L)
               yield txEntityOpt
@@ -490,7 +495,7 @@ object LmscanBatchMain extends IOApp:
                 _ <- insertBlockTx(decoded)
                 block1 <- EitherT.fromEither(decoded.leftMap(_.getMessage()))
                 lastBlock <- loop(None)
-              yield lastBlock
+              yield block1
           }
           _ <- EitherT.right(Async[F].sleep(100.milliseconds))
         yield (None)
@@ -546,7 +551,7 @@ object LmscanBatchMain extends IOApp:
                 _ <- currLastSavedBlockOpt match
                   case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
                   case None => EitherT.pure(0L)
-
+                  
               yield ()
             }
           yield ()
@@ -559,10 +564,10 @@ object LmscanBatchMain extends IOApp:
               case None => EitherT.pure(0L)
           yield ()
         }
-            
         _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
         _ <- EitherT.right(Async[F].sleep(10000.millis))
         // _ <- EitherT.left(Async[F].delay("강제 종료."))
+
         _ <- loop[F](backend)
       yield ()
 
