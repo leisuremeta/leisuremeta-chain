@@ -28,7 +28,8 @@ object Dom:
 
   def timeAgo(timestamp: Double) =
 
-    val now = Date.now() + 9 * 60 * 60 * 1000
+    val now = Date.now()
+    // + 9 * 60 * 60 * 1000
 
     val from    = timestamp.toDouble * 1000
     val timeGap = (now - from) / 1000
