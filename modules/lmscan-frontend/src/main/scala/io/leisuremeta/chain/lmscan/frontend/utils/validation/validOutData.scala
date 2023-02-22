@@ -1,5 +1,10 @@
 package io.leisuremeta.chain.lmscan.frontend
 object V:
+  def commaNumber = (value: String) =>
+    String.format(
+      "%,d",
+      value.replace("-", "0"),
+    )
   def getOptionValue = (field: Option[Any], default: Any) =>
     field match
       case Some(value) => value

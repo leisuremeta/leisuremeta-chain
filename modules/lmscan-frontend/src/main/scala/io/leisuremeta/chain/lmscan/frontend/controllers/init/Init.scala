@@ -1,8 +1,17 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.*
 import cats.effect.IO
-
+import org.scalajs.dom.window
+import Log.*
 object Init:
+  val location: String = window.location.toString()
+  val location_list    = location.split("/").takeRight(2).toList
+  val action = log(location_list(0) match
+    case "tx"    => s"tx/${location_list(1)}"
+    case "block" => s"block/${location_list(1)}"
+    case _       => "페이지를 찾을수 없습니다",
+  )
+
   val page                = PageName.DashBoard
   val toggle              = true
   val toggleTxDetailInput = true

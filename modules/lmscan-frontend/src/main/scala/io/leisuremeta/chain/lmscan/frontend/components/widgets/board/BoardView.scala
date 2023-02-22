@@ -43,7 +43,17 @@ object BoardView:
             div(`class` := "font-16px color-grey")(Board.Transactions),
             div()(
               // getOptionValue(data.txCountInLatest24h, "-").toString(),
-              "242971",
+              // String.format(
+              //   "%,d",
+              //   getOptionValue(data.txCountInLatest24h, "-").toString().toDouble,
+              // ),
+              plainStr(data.txCountInLatest24h),
+              // V.commaNumber(plainStr(data.txCountInLatest24h)),
+              // String.format(
+              //   "%,d",
+              //   getOptionValue(data.txCountInLatest24h, "-").toString()
+              // ),
+              // "242971",
             ),
           ),
         ),
@@ -53,8 +63,8 @@ object BoardView:
           )(
             div(`class` := "font-16px color-grey")(Board.Accounts),
             div()(
-              // plainStr(data.totalAccounts),
-              "39,104",
+              plainStr(data.totalAccounts),
+              // "39,104",
             ),
           ),
         ),
