@@ -55,6 +55,10 @@ object TxDetailTable:
 
     val value = getOptionValue(data.value, 0.0)
       .asInstanceOf[Double] / Math.pow(10, 18).toDouble
+
+    // val value =
+    //   getOptionValue(data.value, "0.0").toDouble / Math.pow(10, 18).toDouble
+
     val formattedValue = formatter.format(value)
 
     div(`class` := "row")(

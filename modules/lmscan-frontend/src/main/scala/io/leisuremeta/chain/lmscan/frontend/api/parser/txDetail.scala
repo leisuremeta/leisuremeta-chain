@@ -16,14 +16,14 @@ case class TxDetail(
 
 case class Transfer(
     toAddress: Option[String] = None,
-    // value: Option[Double] = None,
-    value: Option[String] = None,
+    value: Option[Double] = None,
+    // value: Option[String] = None,
 )
 
 object TxDetailParser:
-    given transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
-    given txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
-    def decodeParser(body: String)           = decode[TxDetail](body)
+  given transferDecoder: Decoder[Transfer] = deriveDecoder[Transfer]
+  given txDetailDecoder: Decoder[TxDetail] = deriveDecoder[TxDetail]
+  def decodeParser(body: String)           = decode[TxDetail](body)
 
-    given transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
-    given txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]
+  given transferEncoder: Encoder[Transfer] = deriveEncoder[Transfer]
+  given txDetailEncoder: Encoder[TxDetail] = deriveEncoder[TxDetail]
