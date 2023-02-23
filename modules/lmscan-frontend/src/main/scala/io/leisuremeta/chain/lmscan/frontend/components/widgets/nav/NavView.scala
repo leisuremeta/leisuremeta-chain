@@ -56,7 +56,10 @@ object NavView:
       )
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
-      div(id := "playnomm")("playNomm"),
+      div(id := "title")(
+        span(id := "head")("LMC"),
+        span(id := "body")("LEISURE META BLOCK CHAIN"),
+      ),
       div(
         id := "buttons",
       )(

@@ -18,15 +18,26 @@ nav {
     background-color: #222222;
 }
 
-nav #playnomm {
-    width: 100%;
-    height: 150px;
-    cursor: pointer;
+
+
+nav #title #head {
+    height: 50px;
+    padding-top: 30px;
     background-color: #222222;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 30px;
+    font-weight: bold;
+    color: rgb(227, 240, 231);
+}
+
+nav #title #body {
+    background-color: #222222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
     font-weight: bold;
     color: rgb(227, 240, 231);
 }
