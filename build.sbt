@@ -174,18 +174,14 @@ val Dependencies = new {
   lazy val lmscanBackend = Seq(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
-      "org.typelevel"               %% "cats-effect"      % V.catsEffect,
-      "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % V.tapir,
-      "com.softwaremill.sttp.tapir" %% "tapir-core"       % V.tapir,
-      // "io.circe"                      %% "circe-generic"        % V.circe,
-      // "io.circe"                      %% "circe-parser"         % V.circe,
-      // "io.circe"                      %% "circe-refined"        % V.circe,
+      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
+      "com.softwaremill.sttp.tapir"   %% "tapir-core"           % V.tapir,
       "com.outr"                      %% "scribe-slf4j"         % V.scribe,
       "com.outr"                      %% "scribe-cats"          % V.scribe,
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
-      "com.typesafe" % "config"       % V.typesafeConfig,
-      "com.outr"    %% "scribe-slf4j" % V.scribe,
-      // "io.getquill"             %% "quill-jasync-postgres" % V.quill,
+      "com.typesafe"             % "config"          % V.typesafeConfig,
+      "com.outr"                %% "scribe-slf4j"    % V.scribe,
       "org.postgresql"           % "postgresql"      % V.postgres,
       "com.opentable.components" % "otj-pg-embedded" % V.pgEmbedded,
     ),
@@ -341,7 +337,6 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
   }
 
 lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
-  // .crossType(CrossType.Pure)
   .crossType(CrossType.Full)
   .in(file("modules/lmscan-common"))
   .settings(Dependencies.lmscanCommon)

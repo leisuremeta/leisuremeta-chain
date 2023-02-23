@@ -5,6 +5,13 @@ import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 
+// case class AccountDetail(
+//     address: Option[String] = None,
+//     balance: Option[Double] = None,
+//     value: Option[Double] = None,
+//     txHistory: Option[List[Tx]] = None,
+// )
+
 object AccountDetailParser:
   given accountDetailDecoder: Decoder[AccountDetail] =
     deriveDecoder[AccountDetail]

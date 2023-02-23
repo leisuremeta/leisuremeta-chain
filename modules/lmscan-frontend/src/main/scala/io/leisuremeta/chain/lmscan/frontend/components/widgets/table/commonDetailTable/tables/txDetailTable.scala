@@ -6,12 +6,12 @@ import _root_.io.circe.Decoder.state
 import Dom.*
 import V.*
 import java.math.RoundingMode
+import io.leisuremeta.chain.lmscan.common.model.TxDetail
+import io.leisuremeta.chain.lmscan.common.model.TransferHist
 
 object TxDetailTable:
   val view = (model: Model) =>
-    val data: TxDetail = TxDetailParser
-      .decodeParser(model.txDetailData.get)
-      .getOrElse(new TxDetail)
+    val data: TxDetail = TxDetailParser.decodeParser(model.txDetailData.get).getOrElse(new TxDetail)
     genView(model, data)
 
   val input = (data: List[String], isModal: Boolean) =>
@@ -21,9 +21,9 @@ object TxDetailTable:
       case false =>
         data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }
 
-  val output = (data: List[Transfer]) =>
+  val output = (data: List[TransferHist]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput(output, i + 1) }
-  val output_NFT = (data: List[Transfer]) =>
+  val output_NFT = (data: List[TransferHist]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput_NFT(output, i + 1) }
 
   val genInput = (data: String, i: Any) =>
@@ -48,13 +48,12 @@ object TxDetailTable:
       div(`class` := "cell type-detail-body")(data),
     )
 
-  val genOutput = (data: Transfer, i: Any) =>
+  val genOutput = (data: TransferHist, i: Any) =>
     val formatter = java.text.NumberFormat.getNumberInstance()
     formatter.setRoundingMode(RoundingMode.FLOOR)
     formatter.setMaximumFractionDigits(18)
 
-    val value = getOptionValue(data.value, 0.0)
-      .asInstanceOf[Double] / Math.pow(10, 18).toDouble
+    val value = getOptionValue(data.value, 0.0).asInstanceOf[Double] / Math.pow(10, 18).toDouble
 
     // val value =
     //   getOptionValue(data.value, "0.0").toDouble / Math.pow(10, 18).toDouble
@@ -78,7 +77,7 @@ object TxDetailTable:
         formattedValue,
       ),
     )
-  val genOutput_NFT = (data: Transfer, i: Any) =>
+  val genOutput_NFT = (data: TransferHist, i: Any) =>
     div(`class` := "row")(
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
@@ -96,7 +95,7 @@ object TxDetailTable:
 
   val genView = (model: Model, data: TxDetail) =>
     val transferHist = getOptionValue(data.transferHist, List())
-      .asInstanceOf[List[Transfer]]
+      .asInstanceOf[List[TransferHist]]
     val inputHashs = getOptionValue(data.inputHashs, List())
       .asInstanceOf[List[String]]
 

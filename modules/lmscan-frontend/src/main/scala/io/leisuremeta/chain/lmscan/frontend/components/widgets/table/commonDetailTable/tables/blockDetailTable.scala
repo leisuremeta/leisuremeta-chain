@@ -5,12 +5,11 @@ import tyrian.*
 import _root_.io.circe.Decoder.state
 import V.*
 import Dom.{_hidden, timeAgo}
+import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 
 object BlockDetailTable:
   val view = (model: Model) =>
-    val data: BlockDetail = BlockDetailParser
-      .decodeParser(model.blockDetailData.get)
-      .getOrElse(new BlockDetail)
+    val data: BlockDetail = BlockDetailParser.decodeParser(model.blockDetailData.get).getOrElse(new BlockDetail)
     genView(model, data)
 
   val genView = (model: Model, data: BlockDetail) =>

@@ -6,12 +6,15 @@ import scala.util.matching.Regex
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 
 enum Cell:
-  case Image(data: Option[String])                              extends Cell
-  case Head(data: String, css: String = "cell")                 extends Cell
-  case Any(data: String, css: String = "cell")                  extends Cell
-  case AGE(data: Option[Int])                                   extends Cell
-  case DATE(data: Option[Int], css: String = "cell")            extends Cell
-  case BLOCK_NUMBER(data: (Option[String], Option[Int]))        extends Cell
+  case Image(data: Option[String])              extends Cell
+  case Head(data: String, css: String = "cell") extends Cell
+  case Any(data: String, css: String = "cell")  extends Cell
+  // case AGE(data: Option[Int])                                   extends Cell
+  case AGE(data: Option[Long]) extends Cell
+  // case DATE(data: Option[Int], css: String = "cell")            extends Cell
+  case DATE(data: Option[Long], css: String = "cell") extends Cell
+  // case BLOCK_NUMBER(data: (Option[String], Option[Int]))        extends Cell
+  case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
   case BLOCK_HASH(data: Option[String])                         extends Cell
   case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
   case ACCOUNT_HASH_DETAIL(data: Option[String], css: String = "cell")
@@ -21,9 +24,12 @@ enum Cell:
   case Tx_VALUE(data: (Option[String], Option[String])) extends Cell
   case Tx_VALUE2(data: (Option[String], Option[String], Option[String]))
       extends Cell
-  case PlainInt(data: Option[Int]) extends Cell
-  case PlainStr(data: Option[String] | Option[Int], css: String = "cell")
-      extends Cell
+  case PlainInt(data: Option[Int])   extends Cell
+  case PlainLong(data: Option[Long]) extends Cell
+  case PlainStr(
+      data: Option[String] | Option[Int] | Option[Long],
+      css: String = "cell",
+  )                      extends Cell
   case AAA(data: String) extends Cell
 
 object gen:
@@ -52,6 +58,11 @@ object gen:
           div(`class` := "cell")(
             span(
             )(plainInt(data)),
+          )
+        case Cell.PlainLong(data) =>
+          div(`class` := "cell")(
+            span(
+            )(plainLong(data)),
           )
         case Cell.Tx_VALUE(tokeyType, value) =>
           div(
@@ -155,11 +166,11 @@ object gen:
             span(
               dataAttr(
                 "tooltip-text",
-                Dom.yyyy_mm_dd_time(plainInt(data).toInt),
+                Dom.yyyy_mm_dd_time(plainLong(data).toInt),
               ),
             )(
               Dom.timeAgo(
-                plainInt(data).toInt,
+                plainLong(data).toInt,
               ),
             ),
           )
@@ -184,7 +195,8 @@ object gen:
                   ),
                 ),
               ),
-            )(plainInt(number)),
+              // )(plainInt(number)),
+            )(plainLong(number)),
           )
 
         case Cell.BLOCK_HASH(data) =>

@@ -95,7 +95,6 @@ object ExploreApi:
     .in(path[String]("accountAddr")) // account_address
     .in("detail")
     .out(jsonBody[Option[AccountDetail]])
-<<<<<<< HEAD
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftDetailEndPoint = baseEndpoint.get

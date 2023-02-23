@@ -10,8 +10,13 @@ import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
 
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.NftActivity
+
 object Body:
-  def block = (payload: List[Block]) =>
+  def block = (payload: List[BlockInfo]) =>
+  // def block = (payload: List[Block]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
@@ -19,7 +24,7 @@ object Body:
             Cell.BLOCK_NUMBER(v.hash, v.number),
             Cell.AGE(v.createdAt),
             Cell.BLOCK_HASH(v.hash),
-            Cell.PlainInt(v.txCount),
+            Cell.PlainLong(v.txCount),
           ),
         ),
       )
@@ -39,13 +44,14 @@ object Body:
           ),
         ),
       )
-  def blockDetail_txtable = (payload: List[Tx]) =>
+  def blockDetail_txtable = (payload: List[TxInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
-            Cell.PlainInt(v.blockNumber),
+            // Cell.PlainInt(v.blockNumber),
+            Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
@@ -54,13 +60,14 @@ object Body:
           ),
         ),
       )
-  def txlist_txtable = (payload: List[Tx]) =>
+  def txlist_txtable = (payload: List[TxInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH10(v.hash),
-            Cell.PlainInt(v.blockNumber),
+            // Cell.PlainInt(v.blockNumber),
+            Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
@@ -70,13 +77,14 @@ object Body:
         ),
       )
 
-  def accountDetail_txtable = (payload: List[Tx]) =>
+  def accountDetail_txtable = (payload: List[TxInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
-            Cell.PlainInt(v.blockNumber),
+            // Cell.PlainInt(v.blockNumber),
+            Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
@@ -85,7 +93,7 @@ object Body:
           ),
         ),
       )
-  def dashboard_txtable = (payload: List[Tx]) =>
+  def dashboard_txtable = (payload: List[TxInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(

@@ -6,8 +6,9 @@ import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
 import V.*
 import java.math.RoundingMode
-import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.common.model.AccountDetail
+
 object AccountDetailTable:
   val view = (model: Model) =>
     val apiData: SummaryModel =
@@ -22,7 +23,7 @@ object AccountDetailTable:
       getOptionValue(apiData.lmPrice, 0.0).asInstanceOf[Double] * 10000,
     ) / 10000
     val balance = getOptionValue(data.balance, 0.0)
-      .asInstanceOf[Double] / Math.pow(10, 18).toDouble
+      .asInstanceOf[BigDecimal] / Math.pow(10, 18).toDouble
     val value = (lmPrice * balance)
     // val value   = Math.floor((lmPrice * balance) * 10000) / 10000
 
