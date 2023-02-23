@@ -13,6 +13,7 @@ object NftRepository:
   def getByTxHash[F[_]: Async](
       hash: String,
   ): EitherT[F, String, Option[NftTxEntity]] =
+    inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")
     inline def detailQuery =
       quote { (hash: String) =>
         query[NftTxEntity].filter(b => b.txHash == hash).take(1)

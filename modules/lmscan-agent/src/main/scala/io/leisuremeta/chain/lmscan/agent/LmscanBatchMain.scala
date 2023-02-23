@@ -65,7 +65,7 @@ object LmscanBatchMain extends IOApp:
   val ctx = new PostgresJAsyncContext(SnakeCase, "ctx")
   import ctx.{*, given}
 
-  val limit = 10;
+  val limit = 5;
   var isSecond = false;
 
   inline def upsertTransaction[F[_]: Async, T](
@@ -219,7 +219,7 @@ object LmscanBatchMain extends IOApp:
       def loop(backend: SttpBackend[F, Any])(currBlockOpt: Option[(Block0, String)], lastSavedBlockHash: String): EitherT[F, String, Option[(Block0, String)]] =
         inline given SchemaMeta[BlockStateEntity] = schemaMeta[BlockStateEntity]("block_state")  
         inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
-        
+        inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")
         for
           result1 <- isContinue(currBlockOpt)
           (block, blockJson) = result1
@@ -268,7 +268,7 @@ object LmscanBatchMain extends IOApp:
     // isEqual  match
     //   case true =>
     def buildSavedStateLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, /*currLastSavedBlock:*/ Option[Block0]] = 
-      inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")  
+      inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")
       inline given SchemaMeta[AccountEntity] = schemaMeta[AccountEntity]("account")  
       inline given SchemaMeta[BlockEntity] = schemaMeta[BlockEntity]("block")  
 
@@ -298,7 +298,6 @@ object LmscanBatchMain extends IOApp:
                       val txEntity: EitherT[F, String, Option[TxEntity]] = get[F, NftMetaInfo](backend)(url).flatMap {
                         // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
                         case metaInfo: NftMetaInfo =>
-                          // println(s"metaInfo: ${metaInfo}")
                           for 
                             _ <- upsertTransaction[F, NftTxEntity](
                               query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
@@ -493,6 +492,8 @@ object LmscanBatchMain extends IOApp:
               yield lastBlock
           }
           _ <- EitherT.right(Async[F].sleep(100.milliseconds))
+
+
         yield (None)
 
       loop(None)
@@ -617,19 +618,19 @@ object LmscanBatchMain extends IOApp:
       for 
         _ <- EitherT.right(Async[F].delay(scribe.info(s"summary loop start")))
         
-        coinMarketOpt <- ExternalApiService.getLmPrice(backend)  // coinMarket response
+        // coinMarket <- ExternalApiService.getLmPrice(backend)  // coinMarket response
         // lastSavedBlockOpt <- BlockService.getLastSavedBlock[F]
         lastSavedBlockOpt <- BlockService.getLastBuildedBlock[F]
         
-        _ <- (coinMarketOpt, lastSavedBlockOpt) match { 
-          case (Some(data), Some(lastSavedBlock)) => 
-            val lmPrice = data.quote.USD
+        _ <- lastSavedBlockOpt match { 
+          case Some(lastSavedBlock) => 
             for 
+              lmPrice <- ExternalApiService.getLmPrice(backend)  // coinMarket response
               txCountInLatest24h <- TxService.countInLatest24h[F]
               totalAccountCnt <- AccountService.totalCount[F]
               _ <- upsertTransaction[F, SummaryEntity](
                 query[SummaryEntity].insert(
-                  _.lmPrice -> lift(lmPrice.price),
+                  _.lmPrice -> lift(lmPrice),
                   _.blockNumber -> lift(lastSavedBlock.number),
                   _.txCountInLatest24h -> lift(txCountInLatest24h),
                   _.totalAccounts -> lift(totalAccountCnt),
@@ -679,10 +680,9 @@ object LmscanBatchMain extends IOApp:
           // _ <- Async[IO].racePair(blockCheckLoop(backend))
           _ <- List(
             blockCheckLoop(backend), 
-            // summaryLoop(backend)
+            summaryLoop(backend)
           ).parSequence
         yield ()
         program.value
     }
     .as(ExitCode.Success)
-// tx_count_in_latest24h
