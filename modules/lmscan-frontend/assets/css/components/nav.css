@@ -40,6 +40,7 @@ nav #title #body {
     font-size: 13px;
     font-weight: bold;
     color: rgb(227, 240, 231);
+    padding-bottom: 10px;
 }
 
 #buttons button {
