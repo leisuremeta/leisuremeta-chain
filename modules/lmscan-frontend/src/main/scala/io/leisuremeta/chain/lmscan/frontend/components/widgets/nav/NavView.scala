@@ -56,7 +56,7 @@ object NavView:
       )
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
-      div(id := "title")(
+      div(id := "title", onClick(PageMsg.PreUpdate(PageName.DashBoard)))(
         span(id := "head")("LMC"),
         // span(id := "body")("LEISURE META BLOCK CHAIN"),
         span(id := "body")("leisure meta block chain"),

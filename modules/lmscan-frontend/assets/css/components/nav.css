@@ -29,7 +29,10 @@ nav #title #head {
     align-items: center;
     font-size: 30px;
     font-weight: bold;
-    color: rgb(227, 240, 231);
+    color: white;
+}
+nav #title #head:hover {
+    color: rgba(201, 239, 205, 0.8)
 }
 
 nav #title #body {
@@ -39,8 +42,8 @@ nav #title #body {
     align-items: center;
     font-size: 13px;
     font-weight: bold;
-    color: rgb(227, 240, 231);
-    padding-bottom: 10px;
+    color: rgb(183, 177, 177);
+    padding-bottom: 20px;
 }
 
 #buttons button {
