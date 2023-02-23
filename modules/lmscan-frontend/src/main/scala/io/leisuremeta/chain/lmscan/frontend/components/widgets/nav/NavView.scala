@@ -58,7 +58,8 @@ object NavView:
     nav(`class` := "")(
       div(id := "title")(
         span(id := "head")("LMC"),
-        span(id := "body")("LEISURE META BLOCK CHAIN"),
+        // span(id := "body")("LEISURE META BLOCK CHAIN"),
+        span(id := "body")("leisure meta block chain"),
       ),
       div(
         id := "buttons",
