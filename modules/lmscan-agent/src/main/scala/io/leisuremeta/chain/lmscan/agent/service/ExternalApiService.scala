@@ -32,19 +32,14 @@ object ExternalApiService:
       }
     yield (result)
 
-    var price = 0.0
-    val _ = SummaryService.getLastSavedLmPrice[F].flatMap {
-      case Some(value) => {
-        price = value
-        EitherT.pure(Some(value))
-      }
-      case None => EitherT.pure(Some(0.0))
+    res.recoverWith{(msg: String) => 
+      SummaryService
+        .getLastSavedLmPrice[F]
+        .map(_.getOrElse(0.0))
     }
-    res.recover{(msg: String) => scribe.info(s"get error"); price}
 
   def getLmPrice[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Double] =
-    for 
-      result <- requestCoinMarket(backend)
+    for result <- requestCoinMarket(backend)
     yield result
 
   def get[F[_]: Async, A: io.circe.Decoder](

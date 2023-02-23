@@ -492,8 +492,6 @@ object LmscanBatchMain extends IOApp:
               yield lastBlock
           }
           _ <- EitherT.right(Async[F].sleep(100.milliseconds))
-
-
         yield (None)
 
       loop(None)
