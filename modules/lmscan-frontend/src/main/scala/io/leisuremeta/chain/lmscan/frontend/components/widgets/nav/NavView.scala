@@ -59,7 +59,7 @@ object NavView:
       div(id := "title", onClick(PageMsg.PreUpdate(PageName.DashBoard)))(
         span(id := "head")("LMC"),
         // span(id := "body")("LEISURE META BLOCK CHAIN"),
-        span(id := "body")("leisure meta block chain"),
+        span(id := "body")("LeisureMeta Chain"),
       ),
       div(
         id := "buttons",
@@ -67,14 +67,14 @@ object NavView:
         button(
           `class` := s"${isCurPageisDashBoard(model) || isPrevPageisDashBoard(model)}",
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
-        )("Dashboard"),
+        )(span()("Dashboard")),
         button(
           `class` := s"${isCurPageisBlock(model) || isPrevPageisBlock(model)}",
           onClick(PageMsg.PreUpdate(PageName.Blocks)),
-        )(PageName.Blocks.toString()),
+        )(span()(PageName.Blocks.toString())),
         button(
           `class` := s"${isCurPageisTransaction(model) || isPrevPageisTransaction(model)}",
           onClick(PageMsg.PreUpdate(PageName.Transactions)),
-        )(PageName.Transactions.toString()),
+        )(span()(PageName.Transactions.toString())),
       ),
     )
