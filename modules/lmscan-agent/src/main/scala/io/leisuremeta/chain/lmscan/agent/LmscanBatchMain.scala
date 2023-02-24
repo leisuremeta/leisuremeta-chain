@@ -41,6 +41,10 @@ import io.leisuremeta.chain.lmscan.agent.service.*
 import sttp.client3.{SttpBackend, SttpBackendOptions, _}
 import sttp.client3.armeria.cats.ArmeriaCatsBackend
 import sttp.model.Uri
+import com.linecorp.armeria.client.logging.LoggingClient;
+import com.linecorp.armeria.client.retry.RetryingClient;
+import com.linecorp.armeria.client.retry.RetryRule;
+import com.linecorp.armeria.client.retry.Backoff;
 
 import api.model.TransactionWithResult.ops.toSignedTxHash
 import lib.crypto.Hash.ops.*
@@ -48,6 +52,9 @@ import lib.crypto.Sign.ops.*
 import api.model.TransactionWithResult.ops.*
 import model.Block0
 import model.Block0.ops.*
+
+import sttp.model.StatusCode
+
 
 
 object LmscanBatchMain extends IOApp:
@@ -77,7 +84,6 @@ object LmscanBatchMain extends IOApp:
           given ExecutionContext <- Async[F].executionContext
           ids <- Async[F]
             .fromCompletableFuture(Async[F].delay {
-              scribe.info("333333")
               ctx.transaction[Long] {
                 for p <- ctx.run(query)
                 yield p
@@ -85,14 +91,13 @@ object LmscanBatchMain extends IOApp:
             })
             .map(Either.right(_))
         yield
-          scribe.info("444444")
           ids
       } {
         case e: SQLException =>
-          scribe.info("55555")
-          Left(s"sql exception occured: " + e.getMessage())
+          scribe.info(s"upsertTransaction sql exception occured: ${e.getMessage()}")
+          Left(s"upsertTransaction sql exception occured: " + e.getMessage())
         case e: Exception =>
-          scribe.info("66666: " + e.getMessage())
+          scribe.info(s"upsertTransaction exception occured: ${e.getMessage()}")
           Left(e.getMessage())
       }
     }  
@@ -100,14 +105,12 @@ object LmscanBatchMain extends IOApp:
   inline def updateTransaction[F[_]: Async, T](
       inline query: Update[T]
   ): EitherT[F, String, Long] =
-    scribe.info("222222")
     EitherT {
       Async[F].recover {
         for
           given ExecutionContext <- Async[F].executionContext
           ids <- Async[F]
             .fromCompletableFuture(Async[F].delay {
-              scribe.info("333333")
               ctx.transaction[Long] {
                 for p <- ctx.run(query)
                 yield p
@@ -115,14 +118,13 @@ object LmscanBatchMain extends IOApp:
             })
             .map(Either.right(_))
         yield
-          scribe.info("444444")
           ids
       } {
         case e: SQLException =>
-          scribe.info("55555")
+          scribe.info(s"updateTransaction sql exception occured: ${e.getMessage()}")
           Left(s"sql exception occured: " + e.getMessage())
         case e: Exception =>
-          scribe.info("66666: " + e.getMessage())
+          scribe.info(s"updateTransaction exception occured: ${e.getMessage()}")
           Left(e.getMessage())
       }
     }
@@ -154,18 +156,30 @@ object LmscanBatchMain extends IOApp:
   
   def get[F[_]: Async, A: io.circe.Decoder](
       backend: SttpBackend[F, Any],
-  )(uri: Uri): EitherT[F, String, A] =
-    EitherT {
-      basicRequest
+  )(uri: Uri): EitherT[F, String, Option[A]] =
+    val send: F[Either[String, Option[A]]] = basicRequest
         .get(uri)
+        .readTimeout(1.minutes)
         .send(backend)
-        .map { response =>
-          for
-            body <- response.body
-            a    <- decode[A](body).leftMap(_.getMessage())
-          yield a
+        .map{ response =>
+          if response.code.isSuccess then  
+            for
+              body <- response.body
+              a    <- decode[A](body).leftMap(_.getMessage())
+            yield Some(a)
+          else if response.code.code === StatusCode.NotFound.code then
+            scribe.info(s"request resource not found: ${response.body}")
+            Either.right(None)
+          else
+            scribe.error(s"Error getting resorce: ${response.body}")
+            Either.right(None)
         }
-    }    
+    EitherT(Async[F].handleErrorWith(send){ t=>
+      Async[F].pure(Left(s"error: ${t.getMessage}"))
+    }).recoverWith{ (errMsg: String) => 
+      scribe.info(s"get request error occured: $errMsg")
+      EitherT.pure(None)
+    }
 
   def getBlock[F[_]: Async](
       backend: SttpBackend[F, Any],
@@ -189,9 +203,12 @@ object LmscanBatchMain extends IOApp:
 
   def getStatus[F[_]: Async](
       backend: SttpBackend[F, Any],
-  ): EitherT[F, String, NodeStatus] =
+  ): EitherT[F, String, Option[NodeStatus]] =
     get[F, NodeStatus](backend) {
       uri"$baseUri/status"
+    }.leftMap { msg =>
+      scribe.error(s"getStatus error msg: $msg")
+      msg
     }
   
   def blockCheckLoop[F[_]: Async](
@@ -200,9 +217,11 @@ object LmscanBatchMain extends IOApp:
      // 트랜잭션 단위 = 블락 단위: 블락과 블락에 있는 트랜잭션들을 Transaction of unit 으로 봄.
     def bestBlock[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Option[(Block0, String)]] = 
       for 
-        status <- getStatus[F](backend)
-        block <- getBlock[F](backend)(status.bestHash.toBlockHash)
-      yield block
+        res <- getStatus[F](backend).flatMap { 
+          case Some(status) => getBlock[F](backend)(status.bestHash.toBlockHash)
+          case None => EitherT.pure(None)
+        }
+      yield res
 
     def getLastSavedBlock[F[_]: Async]: EitherT[F, String, /*prevLastSavedBlock:*/ Option[BlockSavedLog]] = 
       BlockService.getLastSavedBlock[F]
@@ -221,8 +240,8 @@ object LmscanBatchMain extends IOApp:
         inline given SchemaMeta[TxStateEntity] = schemaMeta[TxStateEntity]("tx_state")  
         inline given SchemaMeta[NftTxEntity] = schemaMeta[NftTxEntity]("nft")
         for
-          result1 <- isContinue(currBlockOpt)
-          (block, blockJson) = result1
+          currBlock <- isContinue(currBlockOpt)
+          (block, blockJson) = currBlock
           blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
           blockstate <- upsertTransaction[F, BlockStateEntity](query[BlockStateEntity].insert(
               _.eventTime -> lift(block.header.timestamp.getEpochSecond()),
@@ -231,7 +250,6 @@ object LmscanBatchMain extends IOApp:
               _.json -> lift(blockJson),
               _.isBuild -> lift(false)
             ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-          _ <- EitherT.right(Async[F].delay(scribe.info(s"blockstate upsertTransaction: $blockstate")))
           
           txs <- block.transactionHashes.toList.traverse { 
             (hash: Hash.Value[Signed.Tx]) => getTransaciton[F](backend)(hash.toUInt256Bytes.toBytes.toHex) }
@@ -246,19 +264,17 @@ object LmscanBatchMain extends IOApp:
                       _.blockHash -> lift(blockHash),
                       _.json -> lift(txJson),
                     ).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-                _ <- EitherT.right(Async[F].delay(scribe.info(s"txJson: $txJson")))
               yield ()
 
             case _ => EitherT.leftT(s"there is no exist transaction")  
           }
           nextBlockOpt <- getBlock[F](backend)(block.header.parentHash)
           
-          result2 <- if blockHash != lastSavedBlockHash then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
-          // result2 <- if testCount < 10 then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
-        yield result2
+          result <- if blockHash != lastSavedBlockHash then loop(backend)(nextBlockOpt, lastSavedBlockHash) else loop(backend)(None, lastSavedBlockHash)
+        yield result
         
       loop(backend)(currBlockOpt, lastSavedBlockHash).map{ option => option.map(_._1)}.recover((errMsg: String) => {
-        println("saveDiffStateLoop is ended"); 
+        scribe.info("saveDiffStateLoop is ended"); 
         None
       })
       
@@ -279,13 +295,12 @@ object LmscanBatchMain extends IOApp:
           blockHash = block.toHash.toUInt256Bytes.toBytes.toHex
           txStates <- StateService.getTxStatesByBlockOrderByEventTimeAsc[F](blockHash)
           
-          // _ <- EitherT.right(Async[F].delay(scribe.info(s"block.number: ${block.header.number.toBigInt.longValue}")))
           _ <- updateTransaction[F, BlockStateEntity]( quote { query[BlockStateEntity].filter(b => b.number == lift(block.header.number.toBigInt.longValue)).update(_.isBuild -> lift(true)) })
           _ <- upsertTransaction[F, BlockEntity]( quote { query[BlockEntity].insertValue(lift(BlockEntity.from(block, blockHash))).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash) })
+          _ <- EitherT.right(Async[F].delay(scribe.info(s"insert blockNumber: ${block.header.number.toBigInt.longValue}")))
           txWithResults <- txStates.traverse { txState => EitherT.fromEither[F](decode[TransactionWithResult](txState.json)).leftMap{ e => e.getMessage() } }
           _ <- (txWithResults zip txStates.map(_.json)).traverse[EitherT[F, String, *], Unit] {
             case (txResult, txJson) =>
-              scribe.info(s"txJson: $txJson")
               val txHash = txResult.signedTx.toHash.toUInt256Bytes.toBytes.toHex
               val fromAccount = txResult.signedTx.sig.account.utf8.value
               val result: EitherT[F, String, Option[TxEntity]] = for 
@@ -295,9 +310,8 @@ object LmscanBatchMain extends IOApp:
                       EitherT.pure(Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)))
                     case nft: MintNFT => 
                       val url = Uri.unsafeParse(nft.dataUrl.value)
-                      val txEntity: EitherT[F, String, Option[TxEntity]] = get[F, NftMetaInfo](backend)(url).flatMap {
-                        // metaInfo 받아오는거 실패하면 이후 로직 진행 불가 에러 로그 후 탈출.
-                        case metaInfo: NftMetaInfo =>
+                      val txEntity: EitherT[F, String, Option[TxEntity]] = OptionT(get[F, NftMetaInfo](backend)(url)).semiflatMap {
+                        case metaInfo =>
                           for 
                             _ <- upsertTransaction[F, NftTxEntity](
                               query[NftTxEntity].insertValue(lift(NftTxEntity.from(nft, txHash, fromAccount))).onConflictUpdate(_.txHash)((t, e) => t.txHash -> e.txHash)
@@ -320,8 +334,8 @@ object LmscanBatchMain extends IOApp:
                                 )))
                                 .onConflictUpdate(_.tokenId)((t, e) => t.tokenId -> e.tokenId)
                             })
-                          yield Some(TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount))
-                      }
+                          yield TxEntity.from(txHash, nft, block, blockHash, txJson, fromAccount)
+                      }.value
                       txEntity.recover{(msg: String) => scribe.info(s"get error"); None}
                     case nft: TransferNFT => 
                       for
@@ -460,7 +474,7 @@ object LmscanBatchMain extends IOApp:
                   case Some(value) => 
                     for 
                       _ <- upsertTransaction[F, TxEntity](query[TxEntity].insertValue(lift(value)).onConflictUpdate(_.hash)((t, e) => t.hash -> e.hash))
-                      _ <- EitherT.right(Async[F].delay(scribe.info(s"update tx transaction")))
+                      _ <- EitherT.right(Async[F].delay(scribe.info(s"insert tx - ${value.hash}")))
                     yield ()
                   case None => EitherT.pure[F, String](0L)
               yield txEntityOpt
@@ -482,7 +496,6 @@ object LmscanBatchMain extends IOApp:
         // }
         for
           blockStates <- StateService.getBlockStateByNotBuildedOrderByNumberAscLimit[F](limit)
-          
           _ <- blockStates.traverse { (blockState: BlockStateEntity) =>
               val decoded: Either[io.circe.Error, Block0] = decode[Block0](blockState.json)
               for 
@@ -492,8 +505,6 @@ object LmscanBatchMain extends IOApp:
               yield lastBlock
           }
           _ <- EitherT.right(Async[F].sleep(100.milliseconds))
-
-
         yield (None)
 
       loop(None)
@@ -520,50 +531,51 @@ object LmscanBatchMain extends IOApp:
 
     def loop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
       for 
-        _ <- EitherT.right(Async[F].delay(scribe.info(s"Checking for newly created blocks")))
-        status <- getStatus[F](backend)
-        _ <- EitherT.right(Async[F].delay(scribe.info(s"status: ${status}")))
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"block check loop started.")))
         
-        _ <- if (isSecond) {
+        statusOpt <- getStatus[F](backend)        
+        _ <- statusOpt.fold(EitherT.pure(())) { case (status: NodeStatus) =>
           for 
-            bestBlock <- getBlock[F](backend)(status.bestHash.toBlockHash)
-            // bestBlock <- getBlock[F](backend)("76b03e95b3db4f2eae07c8ebb28f8d6474357cbd5d8162bfa0be3da6b525bc4e")
-            _ <- bestBlock.fold(EitherT.pure(())) { case (block, json) =>
-              for
-                _ <- EitherT.right(Async[F].delay(scribe.info(s"start ss")))
-                // TODO: read sequentially saved last block
-                // prevLastBlockHash: String <- getLastSavedBlock[F].map {
-                prevLastBlockHash: String <- BlockService.getLastBuildedBlock[F].map {
-                  case Some(lastBlock) => lastBlock.hash
-                  case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
+            _ <- EitherT.right(Async[F].delay(scribe.info(s"status: ${status}")))
+            _ <- if (isSecond) {
+              for 
+                bestBlock <- getBlock[F](backend)(status.bestHash.toBlockHash)
+                _ <- bestBlock.fold(EitherT.pure(())) { case (block, json) =>
+                  for
+                    prevLastBlockHash: String <- BlockService.getLastBuildedBlock[F].map {
+                      case Some(lastBlock) => lastBlock.hash
+                      case None => status.genesisHash.toUInt256Bytes.toBytes.toHex
+                    }
+                    _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
+
+                    _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking started.")))
+                    lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
+                    _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
+
+                    _ <- EitherT.right(Async[F].delay(scribe.info(s"New block save proc started.")))
+                    currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
+                    _ <- EitherT.right(Async[F].delay(scribe.info(s"New block save proc finished.")))
+                    
+                    _ <- currLastSavedBlockOpt match
+                      case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
+                      case None => EitherT.pure(0L)
+                  yield ()
                 }
-                _ <- EitherT.right(Async[F].delay(scribe.info(s"prevLastBlockHash: $prevLastBlockHash")))
-
-                lastSavedBlockOpt <- saveDiffStateLoop[F](backend)(bestBlock, prevLastBlockHash)
-                _ <- EitherT.right(Async[F].delay(scribe.info(s"lastSavedBlockOpt: $lastSavedBlockOpt")))
-
+              yield ()
+            } else {
+              isSecond = true;
+              for         
                 currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
-
                 _ <- currLastSavedBlockOpt match
                   case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
                   case None => EitherT.pure(0L)
-
               yield ()
             }
           yield ()
-        } else {
-          isSecond = true;
-          for         
-            currLastSavedBlockOpt <- buildSavedStateLoop[F](backend)
-            _ <- currLastSavedBlockOpt match
-              case Some(currLastSavedBlock) => saveLastSavedBlockLog[F]((currLastSavedBlock))
-              case None => EitherT.pure(0L)
-          yield ()
         }
             
-        _ <- EitherT.right(Async[F].delay(scribe.info(s"New block checking finished.")))
+        _ <- EitherT.right(Async[F].delay(scribe.info(s"block check loop finished.")))
         _ <- EitherT.right(Async[F].sleep(10000.millis))
-        // _ <- EitherT.left(Async[F].delay("강제 종료."))
         _ <- loop[F](backend)
       yield ()
 
@@ -572,19 +584,28 @@ object LmscanBatchMain extends IOApp:
   def getWithJson[F[_]: Async, A: io.circe.Decoder](
       backend: SttpBackend[F, Any],
   )(uri: Uri): EitherT[F, String, Option[(A, String)]] =
-    EitherT {
-      basicRequest
+    val send: F[Either[String, Option[(A, String)]]] = basicRequest
         .get(uri)
+        .readTimeout(1.minutes)
         .send(backend)
-        .map { response => 
-          scribe.info(s"respone: $response")
-          for
-            body <- response.body
-            a <- decode[A](body).leftMap(_.getMessage())  
-          yield
-            scribe.info(s"yield: $a") 
-            Some(a, body)
+        .map{ response =>
+          if response.code.isSuccess then  
+            for
+              body <- response.body
+              a    <- decode[A](body).leftMap(_.getMessage())
+            yield Some((a, body))
+          else if response.code.code === StatusCode.NotFound.code then
+            scribe.info(s"request resource not found: ${response.body}")
+            Either.right(None)
+          else
+            scribe.error(s"Error getting resorce: ${response.body}")
+            Either.right(None)
         }
+    EitherT(Async[F].handleErrorWith(send){ t=>
+      Async[F].pure(Left(s"error: ${t.getMessage}"))
+    }).recoverWith{ (errMsg: String) => 
+      scribe.info(s"get request error occured: $errMsg")
+      EitherT.pure(None)
     }
 
   def getTransaciton[F[_]: Async](
@@ -597,19 +618,6 @@ object LmscanBatchMain extends IOApp:
       msg
     }
 
-  def readUnsavedBlocks(): IO[Seq[String]] = IO.blocking {
-    val path = Paths.get("unsaved-blocks.json")
-    val seqEither = for
-      json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
-      seq  <- decode[Seq[String]](json)
-    yield seq
-    seqEither match
-      case Right(seq) => seq
-      case Left(e) =>
-        e.printStackTrace()
-        scribe.error(s"Error reading unsaved blocks: ${e.getMessage}")
-        Seq.empty
-  }
 
   def summaryLoop[F[_]: Async](backend: SttpBackend[F, Any]): EitherT[F, String, Unit] =
     inline given SchemaMeta[SummaryEntity] = schemaMeta[SummaryEntity]("summary")
@@ -661,17 +669,23 @@ object LmscanBatchMain extends IOApp:
       }
     }
 
-    def webClient(options: SttpBackendOptions) = WebClient
-      .builder()
-      .decorator(
-        DecodingClient
-          .builder()
-          .autoFillAcceptEncoding(false)
-          .strictContentEncoding(false)
-          .newDecorator()
-      )
-      .factory(newClientFactory(options))
-      .build()
+
+    def webClient(options: SttpBackendOptions) =
+      val rule = RetryRule.failsafe(Backoff.ofDefault());
+
+      WebClient
+        .builder()
+        .decorator(LoggingClient.newDecorator())
+        .decorator(RetryingClient.newDecorator(rule))
+        .decorator(
+          DecodingClient
+            .builder()
+            .autoFillAcceptEncoding(false)
+            .strictContentEncoding(false)
+            .newDecorator()
+        )
+        .factory(newClientFactory(options))
+        .build()
 
     ArmeriaCatsBackend
       .resourceUsingClient[IO](webClient(SttpBackendOptions.Default))
