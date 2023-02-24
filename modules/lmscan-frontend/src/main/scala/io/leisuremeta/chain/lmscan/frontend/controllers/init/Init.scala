@@ -4,12 +4,54 @@ import cats.effect.IO
 import org.scalajs.dom.window
 import Log.*
 object Init:
-  val location: String = window.location.toString()
-  val location_list    = location.split("/").takeRight(2).toList
-  val action = log(location_list(0) match
-    case "tx"    => s"tx/${location_list(1)}"
-    case "block" => s"block/${location_list(1)}"
-    case _       => "페이지를 찾을수 없습니다",
+  val path =
+    Log.log(window.location.pathname.toString().split("/").takeRight(2).toList)
+
+  val path_match = log(
+    path match
+      case List("block", value) =>
+        Cmd.Emit(
+          PageMsg.PreUpdate(
+            PageName.BlockDetail(
+              value,
+            ),
+          ),
+        )
+      case List("tx", value) =>
+        Cmd.Emit(
+          PageMsg.PreUpdate(
+            PageName.TransactionDetail(
+              value,
+            ),
+          ),
+        )
+
+      case List("account", value) =>
+        Cmd.Emit(
+          PageMsg.PreUpdate(
+            PageName.AccountDetail(
+              value,
+            ),
+          ),
+        )
+
+      case List("nft", value) =>
+        Cmd.Emit(
+          PageMsg.PreUpdate(
+            PageName.NftDetail(
+              value,
+            ),
+          ),
+        )
+
+      case _ =>
+        Cmd.Emit(
+          PageMsg.PreUpdate(
+            PageName.BlockDetail(
+              "2288bcd18fd2df1fb1d5b8e95848b970aba2cfd058eec02c4accba4f58eec45a=1",
+            ),
+          ),
+        ),
   )
 
   val page                = PageName.DashBoard
