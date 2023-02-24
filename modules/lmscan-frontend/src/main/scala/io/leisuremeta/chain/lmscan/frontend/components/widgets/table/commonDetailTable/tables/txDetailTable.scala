@@ -53,7 +53,8 @@ object TxDetailTable:
     formatter.setRoundingMode(RoundingMode.FLOOR)
     formatter.setMaximumFractionDigits(18)
 
-    val value = getOptionValue(data.value, 0.0).asInstanceOf[Double] / Math.pow(10, 18).toDouble
+    // val value = getOptionValue(data.value, 0.0).asInstanceOf[Double] / Math.pow(10, 18).toDouble
+    val value = getOptionValue(data.value, "0").toString().toDouble / Math.pow(10, 18).toDouble
 
     // val value =
     //   getOptionValue(data.value, "0.0").toDouble / Math.pow(10, 18).toDouble
