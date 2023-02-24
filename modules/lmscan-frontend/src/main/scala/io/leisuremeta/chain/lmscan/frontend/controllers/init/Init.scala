@@ -54,6 +54,10 @@ object Init:
         ),
   )
 
+  val protocol =
+    if (window.location.href.contains("http:")) then
+      window.location.href = window.location.href.replace("http:", "https:")
+
   val page                = PageName.DashBoard
   val toggle              = true
   val toggleTxDetailInput = true
