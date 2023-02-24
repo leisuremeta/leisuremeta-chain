@@ -170,7 +170,7 @@ object gen:
             )(
               Dom.yyyy_mm_dd_time(
                 plainInt(data).toInt,
-              ),
+              ) + " +UTC",
             ),
           )
 
