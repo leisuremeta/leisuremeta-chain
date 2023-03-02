@@ -39,10 +39,9 @@ object TransactionRepository extends CommonQuery:
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
-        // val orderBy        = pageNavInfo.orderBy()
 
         query[Tx]
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
           .take(sizePerRequest)
       }
@@ -85,7 +84,7 @@ object TransactionRepository extends CommonQuery:
           .filter(t =>
             t.fromAddr == lift(addr) || t.toAddr.contains(lift(addr)),
           )
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
           .take(sizePerRequest)
       }
@@ -115,7 +114,7 @@ object TransactionRepository extends CommonQuery:
 
         query[Tx]
           .filter(t => t.blockHash == lift(blockHash))
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
           .take(sizePerRequest)
       }
