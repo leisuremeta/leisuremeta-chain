@@ -9,6 +9,6 @@ object View:
     div(
       div(`class` := "main")(
         NavView.view(model),
-        PagesView.view(model),
+        PageView.view(model),
       ),
     )

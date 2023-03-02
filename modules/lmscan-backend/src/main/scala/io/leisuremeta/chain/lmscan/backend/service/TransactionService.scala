@@ -31,14 +31,18 @@ object TransactionService:
       trx <- TransactionRepository.get(hash)
       detail = trx.map { tx =>
         val outputValsOpt: Option[Seq[TransferHist]] = tx.outputVals match
+          // [버그리포트] 개발망 devscan 트랜잭션 detail 표시 에러 hot fix
           case Some(outputValSeq) =>
-            Some(outputValSeq.map { (outputVal: String) =>
-              val items = outputVal.split("/")
-              TransferHist(
-                Some(items(0)),
-                Some(items(1)),
-              )
-            })
+            outputValSeq(0) == "/" match
+              case true => None
+              case _ =>
+                Some(outputValSeq.map { (outputVal: String) =>
+                  val items = outputVal.split("/")
+                  TransferHist(
+                    Some(items(0)),
+                    Some(items(1)),
+                  )
+                })
           case None => None
         TxDetail(
           Some(tx.hash),
@@ -49,7 +53,20 @@ object TransactionService:
           tx.inputHashs,
           outputValsOpt,
           Some(tx.json),
+          Some(tx.subType),
         )
+//         final case class TxDetail(
+//     hash: Option[String] = None,
+//     createdAt: Option[Long] = None,
+//     signer: Option[String] = None,
+//     txType: Option[String] = None,
+//     tokenType: Option[String] = None,
+//     inputHashs: Option[Seq[String]] = None,
+//     transferHist: Option[Seq[TransferHist]] = None,
+//     json: Option[String] = None,
+//     subType: Option[String] = None,
+// )
+
       }
     yield detail
 
@@ -60,6 +77,15 @@ object TransactionService:
   ): EitherT[F, String, PageResponse[TxInfo]] =
     for
       page <- TransactionRepository.getPage(pageNavInfo)
+      txInfo = convertToInfo(page.payload)
+    yield PageResponse(page.totalCount, page.totalPages, txInfo)
+
+  def getPageBySubtype[F[_]: Async](
+      subType: String,
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[TxInfo]] =
+    for
+      page <- TransactionRepository.getPageBySubtype(subType, pageNavInfo)
       txInfo = convertToInfo(page.payload)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
@@ -85,22 +111,33 @@ object TransactionService:
       pageInfo: PageNavigation,
       accountAddr: Option[String],
       blockHash: Option[String],
+      subType: Option[String],
   ): EitherT[F, String, PageResponse[TxInfo]] =
-    (accountAddr, blockHash) match
-      case (None, None) =>
-        getPage[F](pageInfo)
-      case (None, Some(blockHash)) =>
-        getPageByBlock[F](blockHash, pageInfo)
-      case (Some(accountAddr), None) =>
-        getPageByAccount[F](accountAddr, pageInfo)
-      case (_, _) =>
-        EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
+    subType match
+      case None =>
+        (accountAddr, blockHash) match
+          case (None, None) =>
+            getPage[F](pageInfo)
+          case (None, Some(blockHash)) =>
+            getPageByBlock[F](blockHash, pageInfo)
+          case (Some(accountAddr), None) =>
+            getPageByAccount[F](accountAddr, pageInfo)
+          case (_, _) =>
+            EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
+      case Some(subtype) =>
+        getPageBySubtype[F](subtype, pageInfo)
 
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     txs.map { tx =>
       val latestOutValOpt = tx.outputVals match
-        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
-        case None      => None
+        case Some(seq) =>
+          val x = seq.map(_.split("/"))
+          x.headOption.map(x =>
+            if x.isEmpty then ""
+            else x(1),
+          )
+        case None => None
+
       TxInfo(
         Some(tx.hash),
         Some(tx.blockNumber),
@@ -108,6 +145,7 @@ object TransactionService:
         Some(tx.txType),
         Some(tx.tokenType),
         Some(tx.fromAddr),
+        Some(tx.subType),
         None,
         latestOutValOpt,
       )
@@ -116,8 +154,15 @@ object TransactionService:
   def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
     txs.map { tx =>
       val latestOutValOpt = tx.outputVals match
-        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
-        case None      => None
+        // case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case Some(seq) =>
+          val x = seq.map(_.split("/"))
+          x.headOption.map(x =>
+            if x.isEmpty then ""
+            else x(1),
+          )
+        case None => None
+
       TxInfo(
         Some(tx.hash),
         Some(tx.blockNumber),

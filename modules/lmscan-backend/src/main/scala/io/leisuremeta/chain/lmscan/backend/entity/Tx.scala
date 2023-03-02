@@ -5,15 +5,18 @@ import io.getquill.Quoted
 final case class Tx(
     hash: String,
     txType: String, // col_name : type
-    tokenType: String,
     fromAddr: String,
     toAddr: Seq[String],
     blockHash: String,
-    blockNumber: Long,
     eventTime: Long,
     createdAt: Long,
-    inputHashs: Option[Seq[String]],
+    tokenType: String,
     outputVals: Option[Seq[String]],
     json: String,
+    blockNumber: Long,
+    inputHashs: Option[Seq[String]],
+
     // amount: Double,
+    subType: String,
+    display_yn: Boolean,
 )

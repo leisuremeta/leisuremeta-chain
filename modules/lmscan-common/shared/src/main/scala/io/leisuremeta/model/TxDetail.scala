@@ -9,6 +9,7 @@ final case class TxDetail(
     inputHashs: Option[Seq[String]] = None,
     transferHist: Option[Seq[TransferHist]] = None,
     json: Option[String] = None,
+    subType: Option[String] = None,
 )
 
 final case class TransferHist(

@@ -20,3 +20,5 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
 
   def subscriptions(model: Model): Sub[IO, Msg] =
     Subscriptions.subscriptions(model)
+
+  def router: Location => Msg = Routing.none(RouterMsg.NoOp)

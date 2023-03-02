@@ -39,22 +39,54 @@ object TransactionRepository extends CommonQuery:
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
-        // val orderBy        = pageNavInfo.orderBy()
 
         query[Tx]
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
+          .filter(t => t.display_yn == true)
           .take(sizePerRequest)
       }
 
     val res = for
-      a <- countQuery(cntQuery)
-      b <- seqQuery(pagedQuery(lift(pageNavInfo)))
-    yield (a, b)
+      totalCnt <- countQuery(cntQuery)
+      payload  <- seqQuery(pagedQuery(lift(pageNavInfo)))
+    yield (totalCnt, payload)
 
-    res.map { (totalCnt, r) =>
+    res.map { (totalCnt, payload) =>
       val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
-      new PageResponse(totalCnt, totalPages, r)
+      new PageResponse(totalCnt, totalPages, payload)
+    }
+
+  def getPageBySubtype[F[_]: Async](
+      subtype: String,
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[Tx]] =
+    // OFFSET 시작번호, limit 페이지보여줄갯수
+    val cntQuery = quote {
+      query[Tx].filter(t => t.subType == lift(subtype))
+    }
+
+    inline def pagedQuery =
+      quote { (pageNavInfo: PageNavigation) =>
+        val sizePerRequest = pageNavInfo.sizePerRequest
+        val offset         = sizePerRequest * pageNavInfo.pageNo
+
+        query[Tx]
+          .filter(t => t.subType == lift(subtype))
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
+          .drop(offset)
+          .filter(t => t.display_yn == true)
+          .take(sizePerRequest)
+      }
+
+    val res = for
+      totalCnt <- countQuery(cntQuery)
+      payload  <- seqQuery(pagedQuery(lift(pageNavInfo)))
+    yield (totalCnt, payload)
+
+    res.map { (totalCnt, payload) =>
+      val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
+      new PageResponse(totalCnt, totalPages, payload)
     }
 
   def get[F[_]: Async](
@@ -63,6 +95,7 @@ object TransactionRepository extends CommonQuery:
     inline def detailQuery =
       quote { (hash: String) =>
         query[Tx].filter(tx => tx.hash == hash).take(1)
+      // query[Tx].filter(tx => tx.subType == "CreateAccount").take(1)
       }
 
     optionQuery(detailQuery(lift(hash)))
@@ -85,7 +118,8 @@ object TransactionRepository extends CommonQuery:
           .filter(t =>
             t.fromAddr == lift(addr) || t.toAddr.contains(lift(addr)),
           )
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .filter(t => t.display_yn == true)
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
           .take(sizePerRequest)
       }
@@ -115,7 +149,8 @@ object TransactionRepository extends CommonQuery:
 
         query[Tx]
           .filter(t => t.blockHash == lift(blockHash))
-          .sortBy(t => t.eventTime)(Ord.desc)
+          .filter(t => t.display_yn == true)
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
           .take(sizePerRequest)
       }
@@ -146,7 +181,6 @@ object TransactionRepository extends CommonQuery:
 
 // inline def run[T](inline quoted: Quoted[Query[T]]): Future[Seq[T]]
 //   = InternalApi.runQueryDefault(quoted)
-
 
 /*
     처음 10개의 게시글(ROW)를 가져온다.

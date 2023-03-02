@@ -4,20 +4,23 @@ import tyrian.*
 import V.*
 import scala.util.matching.Regex
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.frontend.Log.*
 
 enum Cell:
-  case Image(data: Option[String])              extends Cell
-  case Head(data: String, css: String = "cell") extends Cell
-  case Any(data: String, css: String = "cell")  extends Cell
-  // case AGE(data: Option[Int])                                   extends Cell
-  case AGE(data: Option[Long]) extends Cell
-  // case DATE(data: Option[Int], css: String = "cell")            extends Cell
-  case DATE(data: Option[Long], css: String = "cell") extends Cell
-  // case BLOCK_NUMBER(data: (Option[String], Option[Int]))        extends Cell
+  case Image(data: Option[String])                              extends Cell
+  case Head(data: String, css: String = "cell")                 extends Cell
+  case Any(data: String, css: String = "cell")                  extends Cell
+  case AGE(data: Option[Long])                                  extends Cell
+  case DATE(data: Option[Long], css: String = "cell")           extends Cell
   case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
   case BLOCK_HASH(data: Option[String])                         extends Cell
   case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
   case ACCOUNT_HASH_DETAIL(data: Option[String], css: String = "cell")
+      extends Cell
+  case ACCOUNT_HASH_Long(data: Option[String], css: String = "cell")
       extends Cell
   case TX_HASH(data: Option[String])                    extends Cell
   case TX_HASH10(data: Option[String])                  extends Cell
@@ -37,19 +40,27 @@ object gen:
     .map(cell =>
       cell match
         case Cell.Image(nftUri) =>
-          plainStr(nftUri).contains("img") match
-            case true => // 이미지 포맷
+          List("mp3", "mp4")
+            .map(data => plainStr(nftUri).contains(data))
+            .contains(true) match
+            case true => // 비디오 포맷
+              video(
+                `class` := "nft-image p-10px",
+                autoPlay,
+                loop,
+                name := "media",
+              )(
+                source(
+                  src    := s"${getOptionValue(nftUri, "-").toString()}",
+                  `type` := "video/mp4",
+                ),
+              )
+            case _ => // 이미지 포맷
               img(
                 `class` := "nft-image p-10px",
                 src     := s"${getOptionValue(nftUri, "-").toString()}",
               )
 
-            case _ => // 비디오 포맷
-              video(`class` := "nft-image p-10px", autoPlay, loop)(
-                source(
-                  src := s"${getOptionValue(nftUri, "-").toString()}",
-                ),
-              )
         case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
         case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
         case Cell.PlainStr(data, css) =>
@@ -64,34 +75,54 @@ object gen:
             span(
             )(plainLong(data)),
           )
-        case Cell.Tx_VALUE(tokeyType, value) =>
+        case Cell.Tx_VALUE(subType, value) =>
           div(
-            `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
+            `class` := s"cell ${plainStr(subType).contains("Nft") match
+                case true => "type-3"
+                case _    => ""
+              }",
           )(
             span(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   onClick(
                     PageMsg.PreUpdate(
-                      PageName.NftDetail(
-                        plainStr(value),
+                      PageCase.NftDetail(
+                        name = PageCase.AccountDetail().name,
+                        url = s"nft/${plainStr(value)}",
+                        pubs = List(
+                          PubCase.NftDetailPub(
+                            hash = plainStr(value),
+                          ),
+                        ),
                       ),
                     ),
                   )
                 case _ => EmptyAttribute,
             )(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   plainStr(value)
-                case _ => txValue(value),
+                case _ =>
+                  value
+                    .map(s => s.forall(Character.isDigit))
+                    .getOrElse(false) match
+                    case true =>
+                      txValue(value)
+                    case false => plainStr(value),
             ),
           )
-        case Cell.Tx_VALUE2(tokeyType, value, inout) =>
+        case Cell.Tx_VALUE2(subType, value, inout) =>
           div(
-            `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
+            `class` := s"cell ${plainStr(subType).contains("Nft") match
+                case true => "type-3"
+                case _    => ""
+              }",
           )(
             {
-              txValue(value) == "-" match
+              txValue(value) == "-" || {
+                plainStr(value) == "-"
+              } match
                 case true => span()
                 case false =>
                   span(
@@ -100,7 +131,7 @@ object gen:
                         List(
                           style(
                             Style(
-                              "background-color" -> "white",
+                              "background-color" -> "rgba(171, 242, 0, 0.5)",
                               "padding"          -> "5px",
                               "border"           -> "1px solid green",
                               "border-radius"    -> "5px",
@@ -112,6 +143,7 @@ object gen:
                         List(
                           style(
                             Style(
+                              "text-decoration"  -> "none",
                               "background-color" -> "rgba(171, 242, 0, 0.5)",
                               "padding"          -> "5px",
                               "border"           -> "1px solid green",
@@ -123,35 +155,75 @@ object gen:
                   )(plainStr(inout))
             },
             span(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   onClick(
                     PageMsg.PreUpdate(
-                      PageName.NftDetail(
-                        plainStr(value),
+                      PageCase.NftDetail(
+                        name = PageCase.AccountDetail().name,
+                        url = s"nft/${plainStr(value)}",
+                        pubs = List(
+                          PubCase.NftDetailPub(
+                            hash = plainStr(value),
+                          ),
+                        ),
                       ),
                     ),
                   )
                 case _ => EmptyAttribute,
             )(
-              plainStr(tokeyType) match
-                case "NFT" =>
-                  plainStr(value)
+              plainStr(subType).contains("Nft") match
+                case true =>
+                  plainStr(value).replace("-", "")
                 case _ => txValue(value),
             ),
           )
-        case Cell.ACCOUNT_HASH(data, css) =>
+        case Cell.ACCOUNT_HASH(hash, css) =>
           div(`class` := "cell type-3")(
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageName.AccountDetail(
-                    plainStr(data),
+                  PageCase.AccountDetail(
+                    name = PageCase.AccountDetail().name,
+                    url = s"account/${plainStr(hash)}",
+                    pubs = List(
+                      // PubCase.BoardPub(1, "", SummaryModel()),
+                      PubCase.AccountDetailPub(hash = plainStr(hash)),
+                      PubCase.TxPub(
+                        page = 1,
+                        accountAddr = plainStr(hash),
+                        sizePerRequest = 10,
+                      ),
+                    ),
                   ),
                 ),
               ),
             )(
-              accountHash(data),
+              accountHash(hash),
+            ),
+          )
+        case Cell.ACCOUNT_HASH_Long(hash, css) =>
+          div(`class` := "cell type-3")(
+            span(
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.AccountDetail(
+                    name = PageCase.AccountDetail().name,
+                    url = s"account/${plainStr(hash)}",
+                    pubs = List(
+                      // PubCase.BoardPub(1, "", SummaryModel()),
+                      PubCase.AccountDetailPub(hash = plainStr(hash)),
+                      PubCase.TxPub(
+                        page = 1,
+                        accountAddr = plainStr(hash),
+                        sizePerRequest = 10,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )(
+              accountHash_DETAIL(hash),
             ),
           )
         case Cell.ACCOUNT_HASH_DETAIL(data, css) =>
@@ -169,9 +241,14 @@ object gen:
                 Dom.yyyy_mm_dd_time(plainLong(data).toInt),
               ),
             )(
-              Dom.timeAgo(
-                plainLong(data).toInt,
-              ),
+              {
+                val age = Dom.timeAgo(
+                  plainLong(data).toInt,
+                )
+                age match
+                  case x if x.contains("53 years") => "-"
+                  case _                           => age
+              },
             ),
           )
 
@@ -179,9 +256,15 @@ object gen:
           div(`class` := s"$css")(
             span(
             )(
-              Dom.yyyy_mm_dd_time(
-                plainLong(data).toInt,
-              ) + " +UTC",
+              {
+                val date = Dom.yyyy_mm_dd_time(
+                  plainLong(data).toInt,
+                ) + " +UTC"
+                date match
+                  case x if x.contains("1970") => "-"
+                  case _                       => date
+
+              },
             ),
           )
 
@@ -190,55 +273,78 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageName.BlockDetail(
-                    plainStr(hash),
+                  PageCase.BlockDetail(
+                    name = PageCase.Blocks().name,
+                    url = s"block/${plainStr(hash)}",
+                    pubs = List(
+                      PubCase.BlockDetailPub(
+                        hash = plainStr(hash),
+                      ),
+                      PubCase.TxPub(
+                        page = 1,
+                        blockHash = plainStr(hash),
+                        sizePerRequest = 10,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              // )(plainInt(number)),
             )(plainLong(number)),
           )
 
-        case Cell.BLOCK_HASH(data) =>
+        case Cell.BLOCK_HASH(hash) =>
           div(`class` := "cell type-3")(
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageName.BlockDetail(
-                    plainStr(data),
+                  PageCase.BlockDetail(
+                    name = PageCase.Blocks().name,
+                    url = s"block/${plainStr(hash)}",
+                    pubs = List(
+                      PubCase.BlockDetailPub(hash = plainStr(hash)),
+                      PubCase.TxPub(
+                        page = 1,
+                        blockHash = plainStr(hash),
+                        sizePerRequest = 10,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              dataAttr("tooltip-text", plainStr(data)),
-            )(hash10(data)),
+              dataAttr("tooltip-text", plainStr(hash)),
+            )(hash10(hash)),
           )
-        case Cell.TX_HASH(data) =>
+        case Cell.TX_HASH(hash) =>
           div(`class` := "cell type-3")(
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageName.TransactionDetail(
-                    plainStr(data),
+                  PageCase.TxDetail(
+                    name = PageCase.Transactions().name,
+                    url = s"transaction/${plainStr(hash)}",
+                    pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
                   ),
                 ),
               ),
             )(
-              plainStr(data),
+              plainStr(hash),
             ),
           )
-        case Cell.TX_HASH10(data) =>
+        case Cell.TX_HASH10(hash) =>
           div(`class` := "cell type-3")(
             span(
-              dataAttr("tooltip-text", plainStr(data)),
+              dataAttr("tooltip-text", plainStr(hash)),
               onClick(
                 PageMsg.PreUpdate(
-                  PageName.TransactionDetail(
-                    plainStr(data),
+                  PageCase.TxDetail(
+                    name = PageCase.Transactions().name,
+                    url = s"transaction/${plainStr(hash)}",
+                    pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
                   ),
                 ),
               ),
             )(
-              hash10(data),
+              hash10(hash),
             ),
           )
 

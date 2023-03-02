@@ -1,10 +1,12 @@
 package io.leisuremeta.chain.lmscan.frontend
 import cats.effect.IO
 import org.scalajs.dom.window
+import org.scalajs.dom
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.PopStateEvent
 import tyrian.*
 import Log.*
+import org.scalajs.dom.MouseEvent
 
 object Subscriptions:
   def subscriptions(model: Model): Sub[IO, Msg] =
@@ -40,13 +42,13 @@ object Subscriptions:
             e.keyCode match
               case 13 =>
                 // Enter key
-                Some(PageMoveMsg.Patch("Enter"))
+                None
+              // Some("")
               case _ =>
                 None
-          },
-      Sub.fromEvent("popstate", window){e =>
-          val state = e.asInstanceOf[PopStateEvent].state
-          val page: PageName = ValidPageName.getPageFromStr(state.toString)
-          Some(PageMsg.PreUpdate(page, false))
-      },      
+          }
+      ,
+      Sub.fromEvent("popstate", window) { e =>
+        Some(PageMsg.BackObserver)
+      },
     )

@@ -2,79 +2,48 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-
-// TODO :: A :: 페이지 매칭 방식 더 좋은 방법으로 대체하기
-
+import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
+import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object NavView:
-  val DashBoardPageList = List(
-    PageName.DashBoard.toString(),
-  )
 
-  val BlockPageList =
-    List(
-      PageName.Blocks.toString(),
-      PageName.BlockDetail.toString(),
-    )
-
-  val TransactionPageList = List(
-    PageName.Transactions.toString(),
-    PageName.TransactionDetail.toString(),
-    PageName.AccountDetail.toString(),
-    PageName.NftDetail.toString(),
-  )
-
-  def isCurPageisDashBoard = (model: Model) =>
-    DashBoardPageList.contains(model.curPage.toString())
-
-  def isCurPageisBlock = (model: Model) =>
-    BlockPageList
-      .reduce((a, b) => a + b)
-      .contains(Log.log(model.curPage.toString().take(5))) // TODO :: A
-
-  def isCurPageisTransaction = (model: Model) =>
-    TransactionPageList
-      .reduce((a, b) => a + b)
-      .contains(model.curPage.toString().take(5)) // TODO :: A
-
-  def isPrevPageisDashBoard = (model: Model) =>
-    model.curPage == PageName.NoPage && DashBoardPageList.contains(
-      model.prevPage.toString(),
-    )
-
-  def isPrevPageisBlock = (model: Model) =>
-    model.curPage == PageName.NoPage && BlockPageList
-      .reduce((a, b) => a + b)
-      .contains(
-        model.prevPage.toString().take(5), // TODO :: A
-      )
-
-  def isPrevPageisTransaction = (model: Model) =>
-    model.curPage == PageName.NoPage && TransactionPageList
-      .reduce((a, b) => a + b)
-      .contains(
-        model.prevPage.toString().take(5), // TODO :: A
-      )
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
-      div(id := "title", onClick(PageMsg.PreUpdate(PageName.DashBoard)))(
-        span(id := "head")("LMC"),
-        // span(id := "body")("LEISURE META BLOCK CHAIN"),
-        span(id := "body")("LeisureMeta Chain"),
+      div(id := "title", onClick(PageMsg.PreUpdate(PageCase.DashBoard())))(
+        span(id := "head")(img(id := "head-logo")),
+      ),
+      // div(
+      //   id := "buttons",
+      // )(
+      //   button(
+      //     `class` := s"${PageCase.Observer().name == find_name(model)}",
+      //     onClick(PageMsg.PreUpdate(PageCase.Observer())),
+      //   )(span()(PageCase.Observer().name)),
+      // ),
+
+      div(
+        id := "buttons",
+      )(
+        button(
+          `class` := s"${PageCase.DashBoard().name == find_name(model)}",
+          onClick(PageMsg.PreUpdate(PageCase.DashBoard())),
+        )(span()(PageCase.DashBoard().name)),
       ),
       div(
         id := "buttons",
       )(
         button(
-          `class` := s"${isCurPageisDashBoard(model) || isPrevPageisDashBoard(model)}",
-          onClick(PageMsg.PreUpdate(PageName.DashBoard)),
-        )(span()("Dashboard")),
+          `class` := s"${PageCase.Blocks().name == find_name(model)}",
+          onClick(PageMsg.PreUpdate(PageCase.Blocks())),
+        )(span()(PageCase.Blocks().name)),
+      ),
+      div(
+        id := "buttons",
+      )(
         button(
-          `class` := s"${isCurPageisBlock(model) || isPrevPageisBlock(model)}",
-          onClick(PageMsg.PreUpdate(PageName.Blocks)),
-        )(span()(PageName.Blocks.toString())),
-        button(
-          `class` := s"${isCurPageisTransaction(model) || isPrevPageisTransaction(model)}",
-          onClick(PageMsg.PreUpdate(PageName.Transactions)),
-        )(span()(PageName.Transactions.toString())),
+          `class` := s"${PageCase.Transactions().name == find_name(model)}",
+          onClick(PageMsg.PreUpdate(PageCase.Transactions())),
+        )(span()(PageCase.Transactions().name)),
       ),
     )

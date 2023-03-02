@@ -42,6 +42,7 @@ import sttp.tapir.server.armeria.TapirService
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
+import io.leisuremeta.chain.lmscan.backend.repository.PlaynommBalanceRepository
 
 object BackendMain extends IOApp:
 
@@ -51,10 +52,11 @@ object BackendMain extends IOApp:
           pageInfo,
           accountAddr,
           blockHash,
+          subType,
       ) =>
         scribe.info(s"txPaging request pageInfo: $pageInfo")
         val result = TransactionService
-          .getPageByFilter[F](pageInfo, accountAddr, blockHash)
+          .getPageByFilter[F](pageInfo, accountAddr, blockHash, subType)
           .leftMap { (errMsg: String) =>
             scribe.error(s"errorMsg: $errMsg")
             (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
@@ -135,13 +137,13 @@ object BackendMain extends IOApp:
         }
       result.value
     }
-  
+
   // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
   //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
-  //     scribe.info(s"search type request target: $target")  
+  //     scribe.info(s"search type request target: $target")
   //     val len = target.length()
 
-  //     val targetType = len match 
+  //     val targetType = len match
   //       case 40 => for a <- AccountService.get(target) yield if a.nonEmpty then Some("account")   // account
   //       case 25 => for n <-NftService.getNftDetail(target) yield if n.nonEmpty then Some("nft")   // token
   //       case 64 => {
@@ -155,8 +157,30 @@ object BackendMain extends IOApp:
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
       scribe.info(s"summary request")
-      val result = SummaryService
-        .get
+      val result = SummaryService.get
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
+
+  def totalBalance[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getTotalBalance.serverLogic { Unit =>
+      scribe.info(s"totalBalance")
+      val result = SummaryService.getBalance
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
+
+  // 대체
+  def playnommBalance[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getValanceFromChainDev.serverLogic { Unit =>
+      scribe.info(s"totalBalance")
+      val result = TempService.getBalance
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
@@ -174,20 +198,21 @@ object BackendMain extends IOApp:
       nftDetail[F],
       // searchTargetType[F],
       summaryMain[F],
+      totalBalance[F],
+      playnommBalance[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
-
-    def corsService =
-      CorsService
-        .builder("*")
-        .allowCredentials()
-        .allowNullOrigin() // 'Origin: null' will be accepted.
-        .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
-        .allowRequestHeaders("allow_request_header")
-        .exposeHeaders("expose_header_1", "expose_header_2")
-        .preflightResponseHeader("x-preflight-cors", "CORS")
-        .newDecorator();
+    // def corsService =
+    //   CorsService
+    //     .builder("*")
+    //     .allowCredentials()
+    //     .allowNullOrigin() // 'Origin: null' will be accepted.
+    //     .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
+    //     .allowRequestHeaders("allow_request_header")
+    //     .exposeHeaders("expose_header_1", "expose_header_2")
+    //     .preflightResponseHeader("x-preflight-cors", "CORS")
+    //     .newDecorator();
 
     for
       dispatcher <- Dispatcher.parallel[F]
@@ -207,7 +232,7 @@ object BackendMain extends IOApp:
           .annotatedService(tapirService)
           .http(8081)
           .maxRequestLength(128 * 1024 * 1024)
-          .requestTimeout(java.time.Duration.ofSeconds(30))
+          .requestTimeout(java.time.Duration.ofMinutes(6))
           .service(tapirService)
           .build
         server.start.handle[Unit] {

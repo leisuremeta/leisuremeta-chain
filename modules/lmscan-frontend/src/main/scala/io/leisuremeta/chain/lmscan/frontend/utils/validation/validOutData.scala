@@ -1,11 +1,21 @@
 package io.leisuremeta.chain.lmscan.frontend
 object V:
+  def validNull = (value: Option[String]) =>
+    value match
+      case Some("") => None
+      case _        => value
+
   def commaNumber = (value: String) =>
     String.format(
       "%,d",
       value.replace("-", "0"),
     )
-  def getOptionValue = (field: Option[Any], default: Any) =>
+  def getOptionValue[T] = (field: Option[T], default: T) =>
+    field match
+      case Some(value) => value
+      case None        => default
+
+  def getOptionValuePipe[T](default: T)(field: Option[T]) =
     field match
       case Some(value) => value
       case None        => default
@@ -19,7 +29,10 @@ object V:
     getOptionValue(data, 0).asInstanceOf[Int].toString
 
   def plainLong(data: Option[Long]) =
-    getOptionValue(data, 0).asInstanceOf[Long].toString
+    getOptionValue(data, 0.toLong).asInstanceOf[Long].toString
+
+  def plainDouble(data: Option[Double]) =
+    getOptionValue(data, 0.toDouble).asInstanceOf[Double].toString
 
   def hash10(data: Option[Any]) =
     getOptionValue(data, "-").toString().take(10) + "..."
@@ -65,6 +78,7 @@ object V:
 
           case _ =>
             plainStr(data)
+
   def accountHash_DETAIL(data: Option[String]) =
     plainStr(data).length match
       case 40 =>
