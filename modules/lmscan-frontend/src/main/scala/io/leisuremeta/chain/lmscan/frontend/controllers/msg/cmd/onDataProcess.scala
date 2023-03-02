@@ -22,7 +22,16 @@ object UnderDataProcess:
       case Left(parsingError) =>
         PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
       case Right(json) => {
-        dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
+        page match
+          case PageName.DashBoard =>
+            ""
+          case _ =>
+            dom.document
+              .querySelector("#loader-container")
+              .asInstanceOf[HTMLElement]
+              .style
+              .display = "none"
+
         page match
           case PageName.AccountDetail(_) =>
             Log.log(s"${page}: ${response.body}")
@@ -35,10 +44,13 @@ object UnderDataProcess:
 
       }
 
-  private val onError: HttpError => Msg = e => {
-    dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
+  private val onError: HttpError => Msg = e =>
+    dom.document
+      .querySelector("#loader-container")
+      .asInstanceOf[HTMLElement]
+      .style
+      .display = "none"
     ApiMsg.GetError(e.toString)
-  }
 
   def fromHttpResponse(page: PageName): Decoder[Msg] =
     // dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
@@ -54,7 +66,11 @@ object OnDataProcess:
       pageName: PageName,
       payload: ApiPayload = ApiPayload("1"),
   ): Cmd[IO, Msg] =
-    dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "block"
+    dom.document
+      .querySelector("#loader-container")
+      .asInstanceOf[HTMLElement]
+      .style
+      .display = "block"
 
     val url = pageName match
       case PageName.DashBoard =>

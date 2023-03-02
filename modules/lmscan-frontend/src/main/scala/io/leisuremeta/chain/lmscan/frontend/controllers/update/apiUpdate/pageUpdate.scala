@@ -1,7 +1,10 @@
 package io.leisuremeta.chain.lmscan.frontend
-
+import Dom.*
+import org.scalajs.dom
+import org.scalajs.dom.HTMLElement
 import cats.effect.IO
 import tyrian.Html.*
+import scala.scalajs.js
 import tyrian.*
 import Log.log
 import ValidPageName.*
@@ -13,7 +16,18 @@ object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     case PageMsg.PreUpdate(search: PageName, pushHistory: Boolean) =>
       if pushHistory == true then
-        window.history.pushState(search.toString(), null, null)
+        window.history.pushState(
+          search.toString(),
+          null,
+          s"${window.location.origin}/"
+            ++
+              getPage(search)
+                .toString()
+                .replace("Detail", "")
+                .replace("(", "/")
+                .replace(")", "")
+                .toLowerCase(),
+        )
       (
         model.copy(
           prevPage = model.curPage match
@@ -35,6 +49,7 @@ object PageUpdate:
                   PageName.Blocks,
                   ApiPayload(page = "1"),
                 ),
+                OnDataProcess.getData(PageName.DashBoard),
                 Cmd.Emit(PageMsg.PageUpdate),
               )
 
@@ -160,13 +175,24 @@ object PageUpdate:
           )
         case _ =>
           page match
+
             case PageName.DashBoard =>
+              dom.document
+                .querySelector("#loader-container")
+                .asInstanceOf[HTMLElement]
+                .style
+                .display = "none"
               Log.log(page.toString() + " -> " + msg)
               (
                 model,
                 Cmd.None,
               )
             case _ =>
+              dom.document
+                .querySelector("#loader-container")
+                .asInstanceOf[HTMLElement]
+                .style
+                .display = "none"
               Log.log(page.toString() + " -> " + msg)
               (
                 model.copy(curPage = PageName.NoPage),
