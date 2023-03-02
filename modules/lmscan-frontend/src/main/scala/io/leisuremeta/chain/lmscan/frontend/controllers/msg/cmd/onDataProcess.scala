@@ -10,6 +10,8 @@ import scala.scalajs.js
 import Dom.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.*
 
 case class ApiPayload(page: String)
 
@@ -93,4 +95,7 @@ object OnDataProcess:
 
       case _ => s"$base/summary/main"
 
-    Http.send(Request.get(url), UnderDataProcess.fromHttpResponse(pageName))
+    Http.send(
+      Request.get(url).withTimeout(30.seconds),
+      UnderDataProcess.fromHttpResponse(pageName),
+    )
