@@ -207,7 +207,7 @@ object BackendMain extends IOApp:
           .annotatedService(tapirService)
           .http(8081)
           .maxRequestLength(128 * 1024 * 1024)
-          .requestTimeout(java.time.Duration.ofSeconds(30))
+          .requestTimeout(java.time.Duration.ofMinutes(6))
           .service(tapirService)
           .build
         server.start.handle[Unit] {
