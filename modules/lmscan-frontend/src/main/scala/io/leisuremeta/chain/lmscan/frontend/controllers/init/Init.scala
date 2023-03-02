@@ -40,48 +40,56 @@ object Init:
   val path_match = log(
     path match
       case List("block", value) =>
-        Cmd.Emit(
-          PageMsg.PreUpdate(
-            PageName.BlockDetail(
-              value,
+        Cmd.Batch(
+          Cmd.Emit(
+            PageMsg.PreUpdate(
+              PageName.BlockDetail(
+                value,
+              ),
             ),
           ),
-        )
+        ) ++ txCmd ++ blockCmd
       case List("tx", value) =>
-        Cmd.Emit(
-          PageMsg.PreUpdate(
-            PageName.TransactionDetail(
-              value,
+        Cmd.Batch(
+          Cmd.Emit(
+            PageMsg.PreUpdate(
+              PageName.TransactionDetail(
+                value,
+              ),
             ),
           ),
-        )
+        ) ++ txCmd ++ blockCmd
       case List("transaction", value) =>
-        Cmd.Emit(
-          PageMsg.PreUpdate(
-            PageName.TransactionDetail(
-              value,
+        Cmd.Batch(
+          Cmd.Emit(
+            PageMsg.PreUpdate(
+              PageName.TransactionDetail(
+                value,
+              ),
             ),
           ),
-        )
+        ) ++ txCmd ++ blockCmd
 
       case List("account", value) =>
-        Cmd.Emit(
-          PageMsg.PreUpdate(
-            PageName.AccountDetail(
-              value,
+        Cmd.Batch(
+          Cmd.Emit(
+            PageMsg.PreUpdate(
+              PageName.AccountDetail(
+                value,
+              ),
             ),
           ),
-        )
-
+        ) ++ txCmd ++ blockCmd
       case List("nft", value) =>
-        Cmd.Emit(
-          PageMsg.PreUpdate(
-            PageName.NftDetail(
-              value,
+        Cmd.Batch(
+          Cmd.Emit(
+            PageMsg.PreUpdate(
+              PageName.NftDetail(
+                value,
+              ),
             ),
           ),
-        )
-
+        ) ++ txCmd ++ blockCmd
       case _ =>
         window.history.pushState(
           null,
