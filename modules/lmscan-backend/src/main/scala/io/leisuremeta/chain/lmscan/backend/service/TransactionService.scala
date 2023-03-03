@@ -33,15 +33,14 @@ object TransactionService:
     for
       trx <- TransactionRepository.get(hash)
       detail = trx.map { tx =>
-        val outputValsOpt: Option[Seq[TransferHist]] = tx.outputVals match 
-          case Some(outputValSeq) => 
-            Some(outputValSeq.map {
-              (outputVal: String) =>
-                val items = outputVal.split("/")
-                TransferHist(
-                  items(0),
-                  items(1),
-                )
+        val outputValsOpt: Option[Seq[TransferHist]] = tx.outputVals match
+          case Some(outputValSeq) =>
+            Some(outputValSeq.map { (outputVal: String) =>
+              val items = outputVal.split("/")
+              TransferHist(
+                items(0),
+                items(1),
+              )
             })
           case None => None
         TxDetail(
@@ -102,7 +101,7 @@ object TransactionService:
 
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     txs.map { tx =>
-      val latestOutValOpt = tx.outputVals match 
+      val latestOutValOpt = tx.outputVals match
         case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
         case None      => None
       TxInfo(
@@ -119,7 +118,7 @@ object TransactionService:
 
   def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
     txs.map { tx =>
-      val latestOutValOpt = tx.outputVals match 
+      val latestOutValOpt = tx.outputVals match
         case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
         case None      => None
       TxInfo(
