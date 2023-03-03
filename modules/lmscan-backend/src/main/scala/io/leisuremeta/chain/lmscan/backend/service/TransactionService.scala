@@ -18,6 +18,7 @@ import io.leisuremeta.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
+import io.leisuremeta.chain.lmscan.backend.model.TxInfo
 
 object TransactionService:
 
@@ -121,12 +122,12 @@ object TransactionService:
         case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
         case None      => None
       TxInfo(
-        tx.hash,
-        tx.blockNumber,
-        tx.eventTime,
-        tx.txType,
-        tx.tokenType,
-        tx.fromAddr,
+        Some(tx.hash),
+        Some(tx.blockNumber),
+        Some(tx.eventTime),
+        Some(tx.txType),
+        Some(tx.tokenType),
+        Some(tx.fromAddr),
         Some(if tx.fromAddr == address then "Out" else "In"),
         latestOutValOpt,
       )
