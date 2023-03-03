@@ -35,7 +35,7 @@ val V = new {
   val pgEmbedded    = "1.0.1"
   val quill         = "4.6.0"
   val postgres      = "42.5.1"
-  val flywayCore = "9.11.0"
+  val flywayCore    = "9.11.0"
 }
 
 val Dependencies = new {
@@ -149,6 +149,7 @@ val Dependencies = new {
       "org.scodec"                  %%% "scodec-bits"      % V.scodecBits,
       "co.fs2"                      %%% "fs2-core"         % V.fs2,
       "com.github.ghik" %% "zerowaste" % V.zerowaste cross CrossVersion.full,
+      "io.getquill" %% "quill-jasync-postgres" % V.quill,
     ),
   )
 
@@ -173,20 +174,20 @@ val Dependencies = new {
   lazy val lmscanBackend = Seq(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
-      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
-      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
-      "com.softwaremill.sttp.tapir"   %% "tapir-core"           % V.tapir,
-      "io.circe"                      %% "circe-generic"        % V.circe,
-      "io.circe"                      %% "circe-parser"         % V.circe,
-      "io.circe"                      %% "circe-refined"        % V.circe,
+      "org.typelevel"               %% "cats-effect"      % V.catsEffect,
+      "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % V.tapir,
+      "com.softwaremill.sttp.tapir" %% "tapir-core"       % V.tapir,
+      // "io.circe"                      %% "circe-generic"        % V.circe,
+      // "io.circe"                      %% "circe-parser"         % V.circe,
+      // "io.circe"                      %% "circe-refined"        % V.circe,
       "com.outr"                      %% "scribe-slf4j"         % V.scribe,
       "com.outr"                      %% "scribe-cats"          % V.scribe,
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
-      "com.typesafe"             % "config"                % V.typesafeConfig,
-      "com.outr"                %% "scribe-slf4j"          % V.scribe,
-      "io.getquill"             %% "quill-jasync-postgres" % V.quill,
-      "org.postgresql"           % "postgresql"            % V.postgres,
-      "com.opentable.components" % "otj-pg-embedded"       % V.pgEmbedded,
+      "com.typesafe" % "config"       % V.typesafeConfig,
+      "com.outr"    %% "scribe-slf4j" % V.scribe,
+      // "io.getquill"             %% "quill-jasync-postgres" % V.quill,
+      "org.postgresql"           % "postgresql"      % V.postgres,
+      "com.opentable.components" % "otj-pg-embedded" % V.pgEmbedded,
     ),
   )
 
@@ -199,9 +200,9 @@ val Dependencies = new {
       "io.circe"                      %% "circe-parser"         % V.circe,
       "io.circe"                      %% "circe-refined"        % V.circe,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
-      "org.typelevel"               %% "cats-effect"           % V.catsEffect,
-      "io.getquill"                 %% "quill-jasync-postgres" % V.quill,
-      "org.postgresql"               % "postgresql"            % V.postgres,
+      "org.typelevel" %% "cats-effect"           % V.catsEffect,
+      "io.getquill"   %% "quill-jasync-postgres" % V.quill,
+      "org.postgresql" % "postgresql"            % V.postgres,
     ),
     excludeDependencies ++= Seq(
       // "org.scala-lang.modules" % "scala-compiler-2.13",
@@ -340,7 +341,8 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
   }
 
 lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
+  // .crossType(CrossType.Pure)
+  .crossType(CrossType.Full)
   .in(file("modules/lmscan-common"))
   .settings(Dependencies.lmscanCommon)
   .settings(Dependencies.tests)
@@ -354,15 +356,19 @@ lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.CommonJSModule)
     },
+    scalacOptions ++= Seq(
+      "-scalajs",
+    ),
     externalNpm := {
       scala.sys.process.Process("yarn", baseDirectory.value).!
       baseDirectory.value
     },
     Test / fork := false,
-    Compile / compile / wartremoverErrors ++= Warts.all,
+    // Compile / compile / wartremoverErrors ++= Warts.all,
   )
   .jsConfigure { project =>
     project
+      .enablePlugins(ScalaJSBundlerPlugin)
       .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   }
 
@@ -393,7 +399,7 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
     name := "leisuremeta-chain-lmscan-backend",
     assemblyMergeStrategy := {
       case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
-      case PathList("io", "getquill", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*)        => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "scala-asm.properties" =>
@@ -422,7 +428,7 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
     name := "leisuremeta-chain-lmscan-agent",
     assemblyMergeStrategy := {
       case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
-      case PathList("io", "getquill", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*)        => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "scala-asm.properties" =>
@@ -436,5 +442,3 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
     },
   )
   .dependsOn(api.jvm)
-  
-
