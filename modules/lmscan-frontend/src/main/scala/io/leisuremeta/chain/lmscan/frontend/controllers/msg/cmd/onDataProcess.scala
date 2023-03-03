@@ -8,6 +8,10 @@ import tyrian.http.*
 import io.circe.syntax.*
 import scala.scalajs.js
 import Dom.*
+import org.scalajs.dom
+import org.scalajs.dom.HTMLElement
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.*
 
 case class ApiPayload(page: String)
 
@@ -21,6 +25,16 @@ object UnderDataProcess:
         PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
       case Right(json) => {
         page match
+          case PageName.DashBoard =>
+            ""
+          case _ =>
+            dom.document
+              .querySelector("#loader-container")
+              .asInstanceOf[HTMLElement]
+              .style
+              .display = "none"
+
+        page match
           case PageName.AccountDetail(_) =>
             Log.log(s"${page}: ${response.body}")
           case _ => ""
@@ -32,9 +46,16 @@ object UnderDataProcess:
 
       }
 
-  private val onError: HttpError => Msg = e => ApiMsg.GetError(e.toString)
+  private val onError: HttpError => Msg = e =>
+    dom.document
+      .querySelector("#loader-container")
+      .asInstanceOf[HTMLElement]
+      .style
+      .display = "none"
+    ApiMsg.GetError(e.toString)
 
   def fromHttpResponse(page: PageName): Decoder[Msg] =
+    // dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
     Decoder[Msg](onResponse(page), onError)
 
 object OnDataProcess:
@@ -47,6 +68,11 @@ object OnDataProcess:
       pageName: PageName,
       payload: ApiPayload = ApiPayload("1"),
   ): Cmd[IO, Msg] =
+    dom.document
+      .querySelector("#loader-container")
+      .asInstanceOf[HTMLElement]
+      .style
+      .display = "block"
 
     val url = pageName match
       case PageName.DashBoard =>
@@ -69,4 +95,7 @@ object OnDataProcess:
 
       case _ => s"$base/summary/main"
 
-    Http.send(Request.get(url), UnderDataProcess.fromHttpResponse(pageName))
+    Http.send(
+      Request.get(url).withTimeout(30.seconds),
+      UnderDataProcess.fromHttpResponse(pageName),
+    )

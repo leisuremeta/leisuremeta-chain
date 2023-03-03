@@ -91,11 +91,23 @@
     border-radius: 5px;
     border: 1px solid #f0f3f5;
     background-position: 50% 50%;
-    width: 100px;
+    /* width: 100px; */
+    width: 70px;
  }
  ._search .type-search:hover {
     color: rgb(65, 137, 65);
  }
+._search .type-text-btn > span{
+    padding: 5px;
+}
+
+._search .margin-right {
+    margin-right: 5px;
+}
+
+._search .text-center {
+    text-align: center;
+}
 
  .type-detail-head {
     width: 250px;

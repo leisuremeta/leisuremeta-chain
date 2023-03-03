@@ -148,3 +148,15 @@ case :: 12101
 ```md
 - action => result
 ```
+
+# 배포 방법
+
+```md
+# 루트폴더
+
+- fullLinkJS
+
+# lmscan-frontend 폴더
+
+- yarn build
+```

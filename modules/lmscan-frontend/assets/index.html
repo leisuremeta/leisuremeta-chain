@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>LeisureMeta Chain Block Explorer</title>
+    <link rel="stylesheet" type="text/css" href="./css/common/loading.css">
     <link rel="stylesheet" type="text/css" href="./css/common/fp.css">
     <link rel="stylesheet" type="text/css" href="./css/common/oop.css">
     <link rel="stylesheet" type="text/css" href="./css/components/search.css">
@@ -23,6 +24,10 @@
   </head>
 
   <body>
+    <div id="loader-container" class="loader-container" style="display: none;">
+      <div class="loader"></div>
+    </div>
+    
     <div id="app-container"></div>
     <script type="module" src="./load-main.js"></script>
   </body>

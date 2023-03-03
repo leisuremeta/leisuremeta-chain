@@ -1,0 +1,23 @@
+# test url
+
+```
+# tx detail
+- tx/7180e6241b9cda39598b391d45237467af90cce64b5008488be9c7ebfd4f4c09
+
+# block detail
+- block/4b4c785e9db449ce5651b62de156378868458531dc34d63b351b19c396b82658
+
+# nft detail
+- nft/2022091910000860000000058
+- nft/2022122210000940000000001
+
+# account detail
+- account/13c63ea071128619fbec886d29b9971f78234b4e
+
+# nopage
+- tx/213123
+- block/123123
+- nft/123123
+- nft/123/123
+...
+```

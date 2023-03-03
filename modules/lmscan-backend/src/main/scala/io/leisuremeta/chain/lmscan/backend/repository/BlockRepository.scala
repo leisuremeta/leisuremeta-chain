@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.backend.repository
 
-import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
-import io.leisuremeta.chain.lmscan.backend.model.PageResponse
+import io.leisuremeta.chain.lmscan.common.model.PageNavigation
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
 import io.leisuremeta.chain.lmscan.backend.entity.Block
 import cats.data.EitherT
@@ -10,7 +10,6 @@ import cats.implicits.*
 import io.getquill.*
 import io.getquill.Literal
 import java.sql.SQLException
-
 object BlockRepository extends CommonQuery:
 
   import ctx.{*, given}

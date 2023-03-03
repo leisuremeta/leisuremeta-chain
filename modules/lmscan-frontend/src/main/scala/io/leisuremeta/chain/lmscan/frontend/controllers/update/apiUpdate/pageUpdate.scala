@@ -1,19 +1,33 @@
 package io.leisuremeta.chain.lmscan.frontend
-
+import Dom.*
+import org.scalajs.dom
+import org.scalajs.dom.HTMLElement
 import cats.effect.IO
 import tyrian.Html.*
+import scala.scalajs.js
 import tyrian.*
 import Log.log
 import ValidPageName.*
-import ValidOutputData.*
-
+import V.*
 import org.scalajs.dom.window
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     case PageMsg.PreUpdate(search: PageName, pushHistory: Boolean) =>
       if pushHistory == true then
-        window.history.pushState(search.toString(), null, null)
+        window.history.pushState(
+          search.toString(),
+          null,
+          s"${window.location.origin}/"
+            ++
+              getPage(search)
+                .toString()
+                .replace("Detail", "")
+                .replace("(", "/")
+                .replace(")", "")
+                .toLowerCase(),
+        )
       (
         model.copy(
           prevPage = model.curPage match
@@ -35,6 +49,7 @@ object PageUpdate:
                   PageName.Blocks,
                   ApiPayload(page = "1"),
                 ),
+                OnDataProcess.getData(PageName.DashBoard),
                 Cmd.Emit(PageMsg.PageUpdate),
               )
 
@@ -60,7 +75,6 @@ object PageUpdate:
             Cmd.None,
           )
         case PageName.Transactions =>
-          log("case PageName.Transactions =>")
           // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
           var updated_tx_TotalPage = 1
 
@@ -68,8 +82,8 @@ object PageUpdate:
           TxParser
             .decodeParser(data)
             .map(data =>
-              updated_tx_TotalPage = getOptionValue(data.totalPages, 1)
-                .asInstanceOf[Int],
+              // updated_tx_TotalPage = getOptionValue(data.totalPages, 1).asInstanceOf[Int],
+              updated_tx_TotalPage = data.totalPages,
             )
 
           (
@@ -84,21 +98,30 @@ object PageUpdate:
           log("case PageName.Blocks =>")
           // TODO :: txData , tx_TotalPage 를 init 단계에서 실행되게 하는게 더 나은방법인지 생각해보자
           var updated_block_TotalPage      = 1
-          var latestBlockList: List[Block] = List(new Block)
-          var latestBlockNumber: Int       = 1
+          // var latestBlockList: List[Block] = List(new Block)
+          var latestBlockList: List[BlockInfo] = List(new BlockInfo)
+          // var latestBlockNumber: Int       = 1
+          var latestBlockNumber: Long       = 1
 
           // TODO :: more simple code
+          // BlockParser
+          //   .decodeParser(data)
+          //   .map(data =>
+          //     updated_block_TotalPage =
+          //       getOptionValue(data.totalPages, 1).asInstanceOf[Int]
+          //     latestBlockList = getOptionValue(data.payload, List[Block])
+          //       .asInstanceOf[List[Block]],
+          //   )
           BlockParser
             .decodeParser(data)
             .map(data =>
-              updated_block_TotalPage =
-                getOptionValue(data.totalPages, 1).asInstanceOf[Int]
-              latestBlockList = getOptionValue(data.payload, List[Block])
-                .asInstanceOf[List[Block]],
+              updated_block_TotalPage = data.totalPages
+              latestBlockList = data.payload
+                .asInstanceOf[List[BlockInfo]],
             )
 
-          latestBlockNumber =
-            getOptionValue(latestBlockList(0).number, 1).asInstanceOf[Int]
+          // latestBlockNumber = getOptionValue(latestBlockList(0).number, 1).asInstanceOf[Int]
+          latestBlockNumber = getOptionValue(latestBlockList(0).number, 1).asInstanceOf[Long]
 
           (
             model.copy(
@@ -161,13 +184,24 @@ object PageUpdate:
           )
         case _ =>
           page match
+
             case PageName.DashBoard =>
+              dom.document
+                .querySelector("#loader-container")
+                .asInstanceOf[HTMLElement]
+                .style
+                .display = "none"
               Log.log(page.toString() + " -> " + msg)
               (
                 model,
                 Cmd.None,
               )
             case _ =>
+              dom.document
+                .querySelector("#loader-container")
+                .asInstanceOf[HTMLElement]
+                .style
+                .display = "none"
               Log.log(page.toString() + " -> " + msg)
               (
                 model.copy(curPage = PageName.NoPage),
