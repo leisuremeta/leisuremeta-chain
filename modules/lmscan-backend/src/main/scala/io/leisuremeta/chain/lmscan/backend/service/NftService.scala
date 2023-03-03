@@ -3,16 +3,16 @@ package io.leisuremeta.chain.lmscan.backend.service
 import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.entity.Nft
-import io.leisuremeta.chain.lmscan.backend.model.NftActivity
 import io.leisuremeta.chain.lmscan.backend.repository.{
   NftRepository,
   NftFileRepository,
 }
-import io.leisuremeta.chain.lmscan.backend.model.{PageNavigation, PageResponse}
-import io.leisuremeta.chain.lmscan.backend.model.NftDetail
+import io.leisuremeta.chain.lmscan.common.model.{PageNavigation, PageResponse}
+import io.leisuremeta.chain.lmscan.common.model.NftActivity
+import io.leisuremeta.chain.lmscan.common.model.NftDetail
+import io.leisuremeta.chain.lmscan.common.model.NftFileModel
 import cats.implicits.*
 import cats.effect.IO
-
 object NftService:
 
   def getNftDetail[F[_]: Async](
@@ -25,12 +25,29 @@ object NftService:
       )
       activities = page.payload.map(nft =>
         NftActivity(
-          nft.txHash,
-          nft.action,
-          nft.fromAddr,
-          nft.toAddr,
-          nft.eventTime,
+          Some(nft.txHash),
+          Some(nft.action),
+          Some(nft.fromAddr),
+          Some(nft.toAddr),
+          Some(nft.eventTime),
         ),
       )
-      nftFile <- NftFileRepository.get(tokenId)
-    yield Some(NftDetail(nftFile, activities))
+      // nftFile <- NftFileRepository.get(tokenId)
+      nft <- NftFileRepository.get(tokenId)
+      nftFile = nft.map(nftFile =>
+        NftFileModel(
+          Some(nftFile.tokenId),
+          Some(nftFile.tokenDefId),
+          Some(nftFile.collectionName),
+          Some(nftFile.nftName),
+          Some(nftFile.nftUri),
+          Some(nftFile.creatorDescription),
+          Some(nftFile.dataUrl),
+          Some(nftFile.rarity),
+          Some(nftFile.creator),
+          Some(nftFile.eventTime),
+          Some(nftFile.createdAt),
+          Some(nftFile.owner),
+        )
+      )
+    yield Some(NftDetail(nftFile, Some(activities)))

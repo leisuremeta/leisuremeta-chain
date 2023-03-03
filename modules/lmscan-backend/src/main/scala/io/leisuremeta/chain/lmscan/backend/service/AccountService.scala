@@ -6,10 +6,10 @@ import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.repository.AccountRepository
 import io.leisuremeta.chain.lmscan.backend.service.TransactionService
 import io.leisuremeta.chain.lmscan.backend.entity.{Tx, Account}
-import io.leisuremeta.chain.lmscan.backend.model.{
+import io.leisuremeta.chain.lmscan.common.model.{
   PageNavigation,
   PageResponse,
-  AccountDetail,
+  AccountDetail
 }
 
 object AccountService:
@@ -27,7 +27,7 @@ object AccountService:
     res.map { (accountOpt, page) =>
       accountOpt match
         case Some(x) => {
-          val detail = new AccountDetail(x, page.payload)
+          val detail = AccountDetail(Some(x.address), Some(x.balance), Some(x.amount), Some(page.payload))
           Some(detail)
         }
         case None => {

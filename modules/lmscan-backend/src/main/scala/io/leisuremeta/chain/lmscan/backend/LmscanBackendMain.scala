@@ -19,11 +19,11 @@ import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 
 import common.LmscanApi
+import common.ExploreApi
+import common.model.{PageNavigation, SummaryModel}
 
 import scala.collection.StringOps
-import io.leisuremeta.ExploreApi
 import io.leisuremeta.chain.lmscan.backend.service.*
-import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
 import cats.effect.Async

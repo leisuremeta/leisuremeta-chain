@@ -1,24 +1,21 @@
 package io.leisuremeta.chain.lmscan.backend.service
 
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
-import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
-import io.leisuremeta.chain.lmscan.backend.model.PageResponse
-import io.leisuremeta.chain.lmscan.backend.model.{
-  TxDetail,
-  TransferHist,
-  TxInfo,
-}
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.PageNavigation
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
+import io.leisuremeta.chain.lmscan.common.model.{TxDetail, TransferHist, TxInfo}
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
 import cats.Functor
 import cats.data.EitherT
 import cats.Monad
 import eu.timepit.refined.boolean.False
 import cats.effect.Async
-import io.leisuremeta.ExploreApi
+// import io.leisuremeta.ExploreApi
+import io.leisuremeta.chain.lmscan.common.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
-import io.leisuremeta.chain.lmscan.backend.model.TxInfo
 
 object TransactionService:
 
@@ -38,20 +35,20 @@ object TransactionService:
             Some(outputValSeq.map { (outputVal: String) =>
               val items = outputVal.split("/")
               TransferHist(
-                items(0),
-                items(1),
+                Some(items(0)),
+                Some(items(1)),
               )
             })
           case None => None
         TxDetail(
-          tx.hash,
-          tx.eventTime,
-          tx.fromAddr,
-          tx.txType,
-          tx.tokenType,
+          Some(tx.hash),
+          Some(tx.eventTime),
+          Some(tx.fromAddr),
+          Some(tx.txType),
+          Some(tx.tokenType),
           tx.inputHashs,
           outputValsOpt,
-          tx.json,
+          Some(tx.json),
         )
       }
     yield detail
@@ -105,12 +102,12 @@ object TransactionService:
         case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
         case None      => None
       TxInfo(
-        tx.hash,
-        tx.blockNumber,
-        tx.eventTime,
-        tx.txType,
-        tx.tokenType,
-        tx.fromAddr,
+        Some(tx.hash),
+        Some(tx.blockNumber),
+        Some(tx.eventTime),
+        Some(tx.txType),
+        Some(tx.tokenType),
+        Some(tx.fromAddr),
         None,
         latestOutValOpt,
       )

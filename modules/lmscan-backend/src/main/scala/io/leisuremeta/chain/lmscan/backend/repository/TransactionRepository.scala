@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.backend.repository
 
-import io.leisuremeta.chain.lmscan.backend.model.PageNavigation
-import io.leisuremeta.chain.lmscan.backend.model.PageResponse
+import io.leisuremeta.chain.lmscan.common.model.PageNavigation
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import cats.data.EitherT
@@ -12,7 +12,6 @@ import io.getquill.*
 import io.getquill.Literal
 import cats.effect.{Async, IO}
 import scala.concurrent.Future
-
 trait TransactionRepository[F[_]]:
   def getPage(
       pageNavInfo: PageNavigation,
