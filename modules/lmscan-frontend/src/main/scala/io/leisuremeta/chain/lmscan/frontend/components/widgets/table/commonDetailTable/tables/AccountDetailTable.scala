@@ -6,7 +6,7 @@ import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
 import V.*
 import java.math.RoundingMode
-
+import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 object AccountDetailTable:
   val view = (model: Model) =>
     val apiData: ApiData =
