@@ -2,6 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import V.*
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object Board:
   val LM_Price     = "LM PRICE"
@@ -11,8 +12,8 @@ object Board:
 
 object BoardView:
   def view(model: Model): Html[Msg] =
-    val data: ApiData =
-      ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData)
+    val data: SummaryModel =
+      ApiParser.decodeParser(model.apiData.get).getOrElse(new SummaryModel)
 
     div(`class` := "board-area")(
       div(`class` := "board-list x")(

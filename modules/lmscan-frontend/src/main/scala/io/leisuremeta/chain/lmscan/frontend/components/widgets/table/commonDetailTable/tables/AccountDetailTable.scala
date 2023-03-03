@@ -7,16 +7,17 @@ import scala.compiletime.ops.any
 import V.*
 import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 object AccountDetailTable:
   val view = (model: Model) =>
-    val apiData: ApiData =
-      ApiParser.decodeParser(model.apiData.get).getOrElse(new ApiData)
+    val apiData: SummaryModel =
+      ApiParser.decodeParser(model.apiData.get).getOrElse(new SummaryModel)
     val data: AccountDetail = AccountDetailParser
       .decodeParser(model.accountDetailData.get)
       .getOrElse(new AccountDetail)
     genView(model, data, apiData)
 
-  val genView = (model: Model, data: AccountDetail, apiData: ApiData) =>
+  val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
     val lmPrice = Math.floor(
       getOptionValue(apiData.lmPrice, 0.0).asInstanceOf[Double] * 10000,
     ) / 10000
