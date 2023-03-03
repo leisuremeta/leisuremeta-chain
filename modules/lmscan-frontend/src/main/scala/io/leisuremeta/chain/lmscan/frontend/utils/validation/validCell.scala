@@ -180,7 +180,7 @@ object gen:
             span(
             )(
               Dom.yyyy_mm_dd_time(
-                plainInt(data).toInt,
+                plainLong(data).toInt,
               ) + " +UTC",
             ),
           )
