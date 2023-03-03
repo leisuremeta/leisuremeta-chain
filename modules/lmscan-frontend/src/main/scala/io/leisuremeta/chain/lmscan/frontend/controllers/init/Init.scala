@@ -48,7 +48,7 @@ object Init:
               ),
             ),
           ),
-        ) ++ txCmd ++ blockCmd
+        )
       case List("tx", value) =>
         Cmd.Batch(
           Cmd.Emit(
@@ -58,7 +58,7 @@ object Init:
               ),
             ),
           ),
-        ) ++ txCmd ++ blockCmd
+        )
       case List("transaction", value) =>
         Cmd.Batch(
           Cmd.Emit(
@@ -68,7 +68,7 @@ object Init:
               ),
             ),
           ),
-        ) ++ txCmd ++ blockCmd
+        )
 
       case List("account", value) =>
         Cmd.Batch(
@@ -79,7 +79,7 @@ object Init:
               ),
             ),
           ),
-        ) ++ txCmd ++ blockCmd
+        )
       case List("nft", value) =>
         Cmd.Batch(
           Cmd.Emit(
@@ -89,14 +89,14 @@ object Init:
               ),
             ),
           ),
-        ) ++ txCmd ++ blockCmd
+        )
       case _ =>
         window.history.pushState(
           null,
           null,
           s"${window.location.origin}",
         )
-        apiCmd ++ txCmd ++ blockCmd,
+        apiCmd,
   )
 
   val setProtocol =
@@ -119,5 +119,5 @@ object Init:
         block_list_Search,
         tx_list_Search,
       ),
-      path_match,
+      path_match ++ txCmd ++ blockCmd,
     )
