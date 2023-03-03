@@ -6,6 +6,9 @@ import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import V.*
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.NftActivity
 
 object Body:
   def block = (payload: List[Block]) =>
@@ -21,7 +24,7 @@ object Body:
         ),
       )
 
-  def nft = (payload: List[NftActivities]) =>
+  def nft = (payload: List[NftActivity]) =>
     payload
       .map(v =>
         div(

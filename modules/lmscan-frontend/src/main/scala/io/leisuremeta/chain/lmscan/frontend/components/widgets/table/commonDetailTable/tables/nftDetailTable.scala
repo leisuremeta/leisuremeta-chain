@@ -4,6 +4,8 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import V.*
+import io.leisuremeta.chain.lmscan.common.model.NftDetail
+import io.leisuremeta.chain.lmscan.common.model.NftFileModel
 
 object NftDetailTable:
   val view = (model: Model) =>
@@ -15,7 +17,7 @@ object NftDetailTable:
 
   val genView = (model: Model, data: NftDetail) =>
     val nftFile =
-      getOptionValue(data.nftFile, new NftFile).asInstanceOf[NftFile]
+      getOptionValue(data.nftFile, new NftFileModel).asInstanceOf[NftFileModel]
 
     div(`class` := "table-area")(
       div(id := "oop-table-blocks", `class` := "table-list x")(
