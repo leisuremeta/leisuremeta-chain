@@ -18,7 +18,6 @@ import io.leisuremeta.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
-import io.leisuremeta.chain.lmscan.backend.model.TxInfo
 
 object TransactionService:
 
