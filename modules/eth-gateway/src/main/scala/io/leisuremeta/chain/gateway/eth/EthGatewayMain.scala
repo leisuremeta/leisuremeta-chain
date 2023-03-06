@@ -421,17 +421,38 @@ object EthGatewayMain extends IOApp:
   def findAccountByEthAddress(
       lmAddress: String,
       ethAddress: String,
-  ): IO[Option[Account]] = IO {
-    val response = basicRequest
-      .response(asStringAlways)
-      .get(uri"http://$lmAddress/eth/$ethAddress")
-      .send(backend)
+  ): IO[Option[Account]] =
+    findAccountByEthAddress0(lmAddress, ethAddress).flatMap{
+      accountOption =>
+        if accountOption.isEmpty && ethAddress.startsWith("0x") then
+          findAccountByEthAddress0(lmAddress, ethAddress.drop(2))
+        else
+          IO.pure(accountOption)
+    }
 
-    if response.code.isSuccess then
-      Some(Account(Utf8.unsafeFrom(response.body.drop(1).dropRight(1))))
-    else
-      scribe.info(s"Account $ethAddress not found: ${response.body}")
-      None
+  def findAccountByEthAddress0(
+      lmAddress: String,
+      ethAddress: String,
+  ): IO[Option[Account]] = IO {
+    scribe.info(s"requesting eth address $ethAddress 's LM account")
+    try {
+      val response = basicRequest
+        .response(asStringAlways)
+        .get(uri"http://$lmAddress/eth/$ethAddress")
+        .send(backend)
+
+      scribe.info(s"eth address $ethAddress response: $response")
+
+      if response.code.isSuccess then
+        Some(Account(Utf8.unsafeFrom(response.body.drop(1).dropRight(1))))
+      else
+        scribe.info(s"Account $ethAddress not found: ${response.body}")
+        None
+    } catch {
+      case (e: Exception) =>
+        e.printStackTrace()
+        None
+    }
   }
 
   def checkDepositAndMint(
@@ -462,10 +483,12 @@ object EthGatewayMain extends IOApp:
       allEvents = depositEvents ++ oldEvents
       _ <- IO.delay(scribe.info(s"all deposit events: $allEvents"))
       eventAndAccountOptions <- allEvents.toList.traverse { event =>
+//        scribe.info(s"current event: $event")
         val amount    = event.value
         val toAccount = Account(Utf8.unsafeFrom(event.to))
         findAccountByEthAddress(lmAddress, event.from).map {
           (accountOption: Option[Account]) =>
+            scribe.info(s"eth address ${event.from}'s LM account: $accountOption")
             (event, accountOption)
         }
       }
@@ -735,7 +758,7 @@ object EthGatewayMain extends IOApp:
       conf <- getConfig
       gatewayConf = GatewayConf.fromConfig(conf)
       keyPair = CryptoOps.fromPrivate(
-        BigInt(gatewayConf.ethPrivate.drop(2), 16),
+        BigInt(gatewayConf.lmPrivate, 16),
       )
       _ <- allResource(gatewayConf, gatewayConf.ethAddress).use {
         (connection, web3) =>
