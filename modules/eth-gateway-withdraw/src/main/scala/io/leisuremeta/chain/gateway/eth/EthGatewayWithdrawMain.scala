@@ -32,7 +32,10 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.{
   DefaultBlockParameter,
   DefaultBlockParameterName,
+  Request as Web3jRequest,
+  Response as Web3jResponse,
 }
+import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.protocol.exceptions.TransactionException
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
@@ -48,6 +51,8 @@ import api.model.*
 import api.model.TransactionWithResult.ops.*
 import api.model.api_model.{AccountInfo, BalanceInfo, NftBalanceInfo}
 import api.model.token.*
+import org.web3j.protocol.core.methods.response.EthFeeHistory.FeeHistory
+import java.util.concurrent.CompletableFuture
 
 object EthGatewayWithdrawMain extends IOApp:
 
@@ -408,6 +413,16 @@ object EthGatewayWithdrawMain extends IOApp:
       ethPrivate = ethPrivate,
     ).as(())
 
+  def requestToIO[A, B, C <: Web3jResponse[B], D](
+      request: Web3jRequest[A, C],
+  )(map: C => D): IO[D] =
+    IO.fromCompletableFuture(IO.delay(request.sendAsync()))
+      .map(map)
+      .recoverWith { case t: Throwable =>
+        scribe.error(t)
+        IO.sleep(10.seconds) *> requestToIO(request)(map)
+      }
+
   def sendEthTransaction(
       web3j: Web3j,
       ethChainId: Int,
@@ -415,130 +430,181 @@ object EthGatewayWithdrawMain extends IOApp:
       txData: String,
       gatewayEthAddress: String,
       ethPrivate: String,
-  ): IO[BigInt] = IO
-    .delay {
-      val credential = Credentials.create(ethPrivate)
-      assert(
-        credential.getAddress() === gatewayEthAddress.toLowerCase(),
-        s"invalid gateway eth address: ${credential.getAddress} vs $gatewayEthAddress",
-      )
-      val TX_END_CHECK_DURATION = 20000
-      val TX_END_CHECK_RETRY    = 9
-      val receiptProcessor = new PollingTransactionReceiptProcessor(
+  ): IO[BigInt] =
+    val credential = Credentials.create(ethPrivate)
+    assert(
+      credential.getAddress() === gatewayEthAddress.toLowerCase(),
+      s"invalid gateway eth address: ${credential.getAddress} vs $gatewayEthAddress",
+    )
+    val TX_END_CHECK_DURATION = 20000
+    val TX_END_CHECK_RETRY    = 9
+    val receiptProcessor = new PollingTransactionReceiptProcessor(
+      web3j,
+      TX_END_CHECK_DURATION,
+      TX_END_CHECK_RETRY,
+    )
+    val manager =
+      new RawTransactionManager(
         web3j,
-        TX_END_CHECK_DURATION,
-        TX_END_CHECK_RETRY,
+        credential,
+        ethChainId,
+        receiptProcessor,
       )
-      val manager =
-        new RawTransactionManager(
-          web3j,
-          credential,
-          ethChainId,
-          receiptProcessor,
+
+    val GAS_LIMIT = 65_000
+
+    def loop(lastTrial: Option[(BigInteger, String)]): IO[BigInt] =
+
+      def getMaxPriorityFeePerGas(): IO[BigInteger] =
+        requestToIO(web3j.ethMaxPriorityFeePerGas())(
+          _.getMaxPriorityFeePerGas(),
         )
 
-      val GAS_LIMIT = 65_000
-
-      val baseFeePerGas = web3j
-        .ethGetBlockByNumber(DefaultBlockParameterName.LATEST, true)
-        .send()
-        .getBlock()
-        .getBaseFeePerGas()
-      println(s"Base Fee Per Gas: ${baseFeePerGas}")
-
-      val maxPriorityFeePerGas =
-        web3j.ethMaxPriorityFeePerGas().send().getMaxPriorityFeePerGas()
-
-      println(s"Max Priority Fee Per Gas: $maxPriorityFeePerGas")
-
-      val baseFee =
-
+      def getBaseFee(): IO[BigInteger] =
         val blockCount: String = BigInt(9).toString(16)
         val newestBlock: DefaultBlockParameter =
           DefaultBlockParameterName.LATEST
         val rewardPercentiles: java.util.List[java.lang.Double] =
           ArrayBuffer[java.lang.Double](0, 0.5, 1, 1.5, 3, 80).asJava
 
-        val history =
-          web3j
-            .ethFeeHistory(blockCount, newestBlock, rewardPercentiles)
-            .send()
-            .getFeeHistory()
+        requestToIO {
+          web3j.ethFeeHistory(blockCount, newestBlock, rewardPercentiles)
+        } { response =>
+          val history = response.getFeeHistory()
 
-        val baseFees = history.getBaseFeePerGas().asScala
+          val baseFees = history.getBaseFeePerGas().asScala
 
-        val mean = BigDecimal(baseFees.map(BigInt(_)).sum) / 10
-        val std = baseFees
-          .map(x =>
-            BigDecimal(
-              (BigDecimal(x) - mean)
-                .pow(2)
-                .bigDecimal
-                .sqrt(MathContext.DECIMAL32),
-            ),
-          )
-          .sum / 10
-        val targetBaseFees = (mean + std + 0.5).toBigInt
+          val mean = BigDecimal(baseFees.map(BigInt(_)).sum) / 10
+          val std = baseFees
+            .map(x =>
+              BigDecimal(
+                (BigDecimal(x) - mean)
+                  .pow(2)
+                  .bigDecimal
+                  .sqrt(MathContext.DECIMAL32),
+              ),
+            )
+            .sum / 10
+          val targetBaseFees = (mean + std + 0.5).toBigInt
 
-        targetBaseFees.bigInteger
+          targetBaseFees.bigInteger
+        }
 
-      val mintRes = manager
-        .sendEIP1559Transaction(
+      def getNonce(): IO[BigInteger] = requestToIO {
+        web3j.ethGetTransactionCount(
+          gatewayEthAddress,
+          DefaultBlockParameterName.LATEST,
+        )
+      }(_.getTransactionCount())
+
+      def sendNewTx(baseFee: BigInteger): IO[Option[String]] = for
+        maxPriorityFeePerGas <- getMaxPriorityFeePerGas()
+        _ <- IO.delay {
+          scribe.info(s"Max Priority Fee Per Gas: $maxPriorityFeePerGas")
+        }
+        nonce <- getNonce()
+        _     <- IO.delay { scribe.info(s"Nonce: $nonce") }
+        tx = RawTransaction.createTransaction(
           ethChainId,
-          maxPriorityFeePerGas,
-          baseFee,
+          nonce,
           BigInteger.valueOf(GAS_LIMIT),
           contractAddress,
-          txData,
           BigInteger.ZERO,
-          false,
+          txData,
+          maxPriorityFeePerGas,
+          baseFee,
         )
-        .getResult()
+        txResponseOption <- IO
+          .blocking {
+            manager.signAndSend(tx)
+          }
+          .map{ resp =>
+            if resp.hasError() then
+              val e = resp.getError()
+              scribe.info(s"Error in sending tx: #(${e.getCode()}) ${e.getMessage()}")
+            else
+              scribe.info(s"Sending Eth Tx: ${resp.getResult()}")
+            Option(resp.getResult)
+          }
+      yield
+        txResponseOption
 
-      scribe.info("Sending Eth Tx: " + mintRes)
+      def getReceipt(
+          txResponse: String,
+      ): IO[Either[Throwable, TransactionReceipt]] =
+        IO.blocking {
+          Try(receiptProcessor.waitForTransactionReceipt(txResponse)).toEither
+        }
 
-      Try(receiptProcessor.waitForTransactionReceipt(mintRes)).toEither
-    }
-    .flatMap {
-      case Left(e) =>
-        e match
-          case te: TransactionException =>
-            scribe.info(s"Timeout: ${te.getMessage()}")
-            sendEthTransaction(
-              web3j,
-              ethChainId,
-              contractAddress,
-              txData,
-              gatewayEthAddress,
-              ethPrivate,
-            )
+      for
+        _ <- IO.delay{ scribe.info(s"Last trial: ${lastTrial}")}
+        baseFee <- getBaseFee()
+        _ <- IO.delay{ scribe.info(s"New base fee: ${baseFee}")}
+        txIdOption <- lastTrial match
+          case Some((oldBaseFee, txId)) if oldBaseFee.compareTo(baseFee) >= 0 =>
+            scribe.info(s"New base fee is less than old one")
+            IO.pure(Some(txId))
           case _ =>
-            scribe.error(s"Fail to send transaction: ${e.getMessage()}")
-            sendEthTransaction(
-              web3j,
-              ethChainId,
-              contractAddress,
-              txData,
-              gatewayEthAddress,
-              ethPrivate,
-            )
-      case Right(receipt) =>
-        scribe.info(
-          s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}",
-        )
-        IO.pure(BigInt(receipt.getBlockNumber()))
-    }
+            sendNewTx(baseFee).map{
+              _.orElse(lastTrial.map(_._2))
+            }
+        blockNumber <- txIdOption match
+          case Some(txId) =>
+            for
+              receiptEither <- getReceipt(txId)
+              blockNumber <- receiptEither match
+                case Left(e) =>
+                  e match
+                    case te: TransactionException =>
+                      scribe.info(s"Timeout: ${te.getMessage()}")
+                      loop(Some(baseFee, txId))
+                    case _ =>
+                      scribe.error(s"Fail to send transaction: ${e.getMessage()}")
+                      loop(Some(baseFee, txId))
+                case Right(receipt) =>
+                  IO.delay {
+                    scribe.info(
+                      s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}",
+                    )
+                    BigInt(receipt.getBlockNumber())
+                  }
+            yield blockNumber
+          case None =>
+            IO.sleep(1.minute) *> loop(None)
+      yield blockNumber
+
+    loop(None)
 
   def run(args: List[String]): IO[ExitCode] =
     for
       conf <- getConfig
       gatewayConf = GatewayConf.fromConfig(conf)
       keyPair = CryptoOps.fromPrivate(
-        BigInt(gatewayConf.lmPrivate.drop(2), 16),
+        BigInt(gatewayConf.lmPrivate, 16),
       )
-      _ <- web3Resource(gatewayConf.ethAddress).use { web3 =>
+      _ <- web3Resource(gatewayConf.ethAddress).use { web3j =>
+//        requestToIO {
+//          web3j.ethGetTransactionCount(
+//            gatewayConf.gatewayEthAddress,
+//            DefaultBlockParameterName.PENDING,
+//          )
+//        }(_.getTransactionCount()).map{ nonce =>
+//          println(s"Nonce: ${nonce}")
+//        }
+
+//        transferEthLM(
+//            web3j = web3j,
+//            ethChainId = gatewayConf.ethChainId,
+//            ethLmContract = gatewayConf.ethContract,
+//            gatewayEthAddress = gatewayConf.gatewayEthAddress,
+//            ethPrivate = gatewayConf.ethPrivate,
+//            keyPair = keyPair,
+//            receiverEthAddress = "0xd84A65512fDc8d3bB98E76a7B8f27Fe411D44E71".toLowerCase(),
+//            amount = BigNat.unsafeFromBigInt(BigInt(10).pow(18)),
+//        )
+
         checkLoop(
-          web3j = web3,
+          web3j = web3j,
           ethChainId = gatewayConf.ethChainId,
           lmAddress = gatewayConf.lmAddress,
           ethContract = gatewayConf.ethContract,
