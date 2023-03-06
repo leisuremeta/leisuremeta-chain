@@ -453,7 +453,7 @@ object EthGatewayWithdrawMain extends IOApp:
 
     val GAS_LIMIT = 65_000
 
-    def loop(lastTrial: Option[(BigInteger, String)]): IO[BigInt] =
+    def loop(lastTrial: Option[(BigInteger, BigInteger, String)]): IO[BigInt] =
 
       def getMaxPriorityFeePerGas(): IO[BigInteger] =
         requestToIO(web3j.ethMaxPriorityFeePerGas())(
@@ -497,11 +497,10 @@ object EthGatewayWithdrawMain extends IOApp:
         )
       }(_.getTransactionCount())
 
-      def sendNewTx(baseFee: BigInteger): IO[Option[String]] = for
-        maxPriorityFeePerGas <- getMaxPriorityFeePerGas()
-        _ <- IO.delay {
-          scribe.info(s"Max Priority Fee Per Gas: $maxPriorityFeePerGas")
-        }
+      def sendNewTx(
+          baseFee: BigInteger,
+          maxPriorityFeePerGas: BigInteger,
+      ): IO[Option[String]] = for
         nonce <- getNonce()
         _     <- IO.delay { scribe.info(s"Nonce: $nonce") }
         tx = RawTransaction.createTransaction(
@@ -512,22 +511,22 @@ object EthGatewayWithdrawMain extends IOApp:
           BigInteger.ZERO,
           txData,
           maxPriorityFeePerGas,
-          baseFee,
+          baseFee `add` maxPriorityFeePerGas,
         )
         txResponseOption <- IO
           .blocking {
             manager.signAndSend(tx)
           }
-          .map{ resp =>
+          .map { resp =>
             if resp.hasError() then
               val e = resp.getError()
-              scribe.info(s"Error in sending tx: #(${e.getCode()}) ${e.getMessage()}")
-            else
-              scribe.info(s"Sending Eth Tx: ${resp.getResult()}")
+              scribe.info(
+                s"Error in sending tx: #(${e.getCode()}) ${e.getMessage()}",
+              )
+            else scribe.info(s"Sending Eth Tx: ${resp.getResult()}")
             Option(resp.getResult)
           }
-      yield
-        txResponseOption
+      yield txResponseOption
 
       def getReceipt(
           txResponse: String,
@@ -537,16 +536,23 @@ object EthGatewayWithdrawMain extends IOApp:
         }
 
       for
-        _ <- IO.delay{ scribe.info(s"Last trial: ${lastTrial}")}
+        _       <- IO.delay { scribe.info(s"Last trial: ${lastTrial}") }
         baseFee <- getBaseFee()
-        _ <- IO.delay{ scribe.info(s"New base fee: ${baseFee}")}
+        _       <- IO.delay { scribe.info(s"New base fee: ${baseFee}") }
+        maxPriorityFeePerGas <- getMaxPriorityFeePerGas()
+        _ <- IO.delay {
+          scribe.info(s"Max Priority Fee Per Gas: $maxPriorityFeePerGas")
+        }
         txIdOption <- lastTrial match
-          case Some((oldBaseFee, txId)) if oldBaseFee.compareTo(baseFee) >= 0 =>
+          case Some((oldBaseFee, oldPriorityFee, txId))
+              if (oldBaseFee `add` oldPriorityFee).compareTo(
+                baseFee `add` maxPriorityFeePerGas,
+              ) >= 0 =>
             scribe.info(s"New base fee is less than old one")
             IO.pure(Some(txId))
           case _ =>
-            sendNewTx(baseFee).map{
-              _.orElse(lastTrial.map(_._2))
+            sendNewTx(baseFee, maxPriorityFeePerGas).map {
+              _.orElse(lastTrial.map(_._3))
             }
         blockNumber <- txIdOption match
           case Some(txId) =>
@@ -557,10 +563,12 @@ object EthGatewayWithdrawMain extends IOApp:
                   e match
                     case te: TransactionException =>
                       scribe.info(s"Timeout: ${te.getMessage()}")
-                      loop(Some(baseFee, txId))
+                      loop(Some(baseFee, maxPriorityFeePerGas, txId))
                     case _ =>
-                      scribe.error(s"Fail to send transaction: ${e.getMessage()}")
-                      loop(Some(baseFee, txId))
+                      scribe.error(
+                        s"Fail to send transaction: ${e.getMessage()}",
+                      )
+                      loop(Some(baseFee, maxPriorityFeePerGas, txId))
                 case Right(receipt) =>
                   IO.delay {
                     scribe.info(
