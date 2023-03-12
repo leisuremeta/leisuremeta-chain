@@ -143,15 +143,15 @@ object EthGatewayWithdrawMain extends IOApp:
         ethPrivate,
         keyPair,
       )
-      _ <- checkNftWithdrawal(
-        web3j,
-        ethChainId,
-        lmAddress,
-        ethContract,
-        gatewayEthAddress,
-        ethPrivate,
-        keyPair,
-      )
+//      _ <- checkNftWithdrawal(
+//        web3j,
+//        ethChainId,
+//        lmAddress,
+//        ethContract,
+//        gatewayEthAddress,
+//        ethPrivate,
+//        keyPair,
+//      )
       _ <- IO.delay(scribe.info(s"Withdrawal check finished"))
     yield ()
 
