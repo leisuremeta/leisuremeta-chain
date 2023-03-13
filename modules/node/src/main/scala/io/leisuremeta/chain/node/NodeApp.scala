@@ -301,17 +301,7 @@ final case class NodeApp[F[_]
 
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
     (txHash: Signed.TxHash) =>
-      scribe.info(s"received getTx request: $txHash")
-      val result = TransactionService.get(txHash).value
-
-      result.map {
-        case Left(err) =>
-          scribe.info(s"error occured in getting tx $txHash: $err")
-        case Right(tx) =>
-          scribe.info(s"got tx: $tx")
-      }
-
-      result.map {
+      TransactionService.get(txHash).value.map {
         case Right(Some(tx)) => Right(tx)
         case Right(None) => Left(Right(Api.NotFound(s"tx not found: $txHash")))
         case Left(err)   => Left(Left(Api.ServerError(err)))
