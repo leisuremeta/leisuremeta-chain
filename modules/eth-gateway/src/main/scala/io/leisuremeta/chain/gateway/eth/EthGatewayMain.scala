@@ -541,7 +541,7 @@ object EthGatewayMain extends IOApp:
         .map(_.getBlockNumber)
         .map(BigInt(_))
       _ <- IO.delay(scribe.info(s"blockNumber: $blockNumber"))
-      endBlockNumber = blockNumber - 6
+      endBlockNumber = (startBlockNumber + 100) min (blockNumber - 6)
       _ <- IO.delay(
         scribe.info(s"startBlockNumber: $startBlockNumber"),
         scribe.info(
