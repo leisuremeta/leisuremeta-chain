@@ -37,6 +37,7 @@ import service.{
 }
 import service.interpreter.LocalGossipServiceInterpreter
 import io.leisuremeta.chain.node.service.BlockService
+import cats.effect.std.Semaphore
 
 final case class NodeApp[F[_]
   : Async: BlockRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
@@ -269,10 +270,10 @@ final case class NodeApp[F[_]
         .value
     }
 
-  def postTxServerEndpoint =
+  def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
-      val result = TransactionService.submit[F](txs, localKeyPair).value
+      val result = TransactionService.submit[F](semaphore, txs, localKeyPair).value
       result.map {
         case Left(err) =>
           scribe.info(s"error occured in tx $txs: $err")
@@ -335,7 +336,9 @@ final case class NodeApp[F[_]
         }
   }
 */
-  def leisuremetaEndpoints: List[ServerEndpoint[Fs2Streams[F], F]] = List(
+  def leisuremetaEndpoints(
+    semaphore: Semaphore[F]
+  ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
     getBlockListServerEndpoint,
@@ -355,7 +358,7 @@ final case class NodeApp[F[_]
     getTokenSnapshotServerEndpoint,
     getOwnershipSnapshotServerEndpoint,
 //    getRewardServerEndpoint,
-    postTxServerEndpoint,
+    postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )
 
@@ -382,9 +385,10 @@ final case class NodeApp[F[_]
       case Left(err)    => Async[F].raiseError(Exception(err))
       case Right(block) => Async[F].pure(block)
 //    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
+    semaphore <- Semaphore[F](1)
     server <- Async[F].async_[Server] { cb =>
       val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
-        .toService(leisuremetaEndpoints)
+        .toService(leisuremetaEndpoints(semaphore))
       val server = Server.builder
         .maxRequestLength(128 * 1024 * 1024)
         .requestTimeout(java.time.Duration.ofMinutes(10))

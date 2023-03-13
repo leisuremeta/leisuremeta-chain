@@ -5,6 +5,7 @@ package service
 import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli, StateT}
 import cats.effect.{Clock, Concurrent}
+import cats.effect.std.Semaphore
 import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
@@ -32,9 +33,15 @@ import GossipDomain.MerkleState
 
 object TransactionService:
   def submit[F[_]: Concurrent: Clock: BlockRepository: TransactionRepository: PlayNommState: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
+      semaphore: Semaphore[F],
       txs: Seq[Signed.Tx],
       localKeyPair: KeyPair,
   ): EitherT[F, String, Seq[Hash.Value[TransactionWithResult]]] = for
+    _ <- EitherT.right(semaphore.acquire)
+    _ <- EitherT.pure{
+      scribe.info(s"Lock Acquired: $txs")
+    }
+    time0 <- EitherT.right(Clock[F].realTime)
     bestBlockHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
       scribe.error(s"Best Header Error: $e")
       e.msg
@@ -114,6 +121,14 @@ object TransactionService:
     )
     _ <- txWithResults.traverse { txWithResult =>
       EitherT.right(TransactionRepository[F].put(txWithResult))
+    }
+    _ <- EitherT.right(semaphore.release)
+    _ <- EitherT.pure{
+      scribe.info(s"Lock Released: $txs")
+    }
+    time1 <- EitherT.right(Clock[F].realTime)
+    _ <- EitherT.pure{
+      scribe.info(s"total time consumed: ${time1 - time0}")
     }
   yield txHashes
 
