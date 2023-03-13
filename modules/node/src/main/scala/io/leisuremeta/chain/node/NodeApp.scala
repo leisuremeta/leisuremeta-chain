@@ -25,6 +25,7 @@ import repository.{
   GenericStateRepository,
   TransactionRepository,
 }
+import repository.StateRepository.given
 import service.{
   LocalGossipService,
   LocalStatusService,
@@ -64,7 +65,7 @@ final case class NodeApp[F[_]
   }
   val localKeyPair: KeyPair =
     val privateKey = scala.sys.env
-      .get("BBGO_PRIVATE_KEY")
+      .get("LMNODE_PRIVATE_KEY")
       .map(BigInt(_, 16))
       .orElse(config.local.`private`)
       .get
@@ -268,10 +269,10 @@ final case class NodeApp[F[_]
         .value
     }
 
-  def postTxServerEndpoint(using LocalGossipService[F]) =
+  def postTxServerEndpoint =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
-      val result = TransactionService.submit[F](txs).value
+      val result = TransactionService.submit[F](txs, localKeyPair).value
       result.map {
         case Left(err) =>
           scribe.info(s"error occured in tx $txs: $err")
@@ -312,7 +313,7 @@ final case class NodeApp[F[_]
       }
   }
 
-  def postTxHashServerEndpoint(using LocalGossipService[F]) =
+  def postTxHashServerEndpoint =
     Api.postTxHashEndpoint.serverLogicPure[F] { (txs: Seq[Transaction]) =>
       scribe.info(s"received postTxHash request: $txs")
       Right(txs.map(_.toHash))
@@ -333,10 +334,8 @@ final case class NodeApp[F[_]
           case Right(rewardInfo) => Right(rewardInfo)
         }
   }
-   */
-  def leisuremetaEndpoints(using
-      LocalGossipService[F],
-  ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
+*/
+  def leisuremetaEndpoints: List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
     getBlockListServerEndpoint,
@@ -382,7 +381,7 @@ final case class NodeApp[F[_]
     bestBlock <- initializeResult match
       case Left(err)    => Async[F].raiseError(Exception(err))
       case Right(block) => Async[F].pure(block)
-    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
+//    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
     server <- Async[F].async_[Server] { cb =>
       val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
         .toService(leisuremetaEndpoints)
