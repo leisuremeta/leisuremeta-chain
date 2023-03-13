@@ -2,16 +2,20 @@ package io.leisuremeta.chain
 package node
 
 import cats.effect.{Async, IO}
-import cats.effect.std.Dispatcher
 import cats.effect.kernel.Resource
+import cats.effect.std.{Dispatcher, Semaphore}
 import cats.syntax.apply.given
-import cats.syntax.functor.given
 import cats.syntax.flatMap.given
+import cats.syntax.functor.given
 
 import com.linecorp.armeria.server.Server
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
+import sttp.tapir.server.armeria.cats.{
+  ArmeriaCatsServerInterpreter,
+  ArmeriaCatsServerOptions,
+}
+import sttp.tapir.server.interceptor.log.DefaultServerLog
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
@@ -27,6 +31,7 @@ import repository.{
 }
 import repository.StateRepository.given
 import service.{
+  BlockService,
   LocalGossipService,
   LocalStatusService,
   NodeInitializationService,
@@ -36,8 +41,6 @@ import service.{
   TransactionService,
 }
 import service.interpreter.LocalGossipServiceInterpreter
-import io.leisuremeta.chain.node.service.BlockService
-import cats.effect.std.Semaphore
 
 final case class NodeApp[F[_]
   : Async: BlockRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
@@ -273,7 +276,8 @@ final case class NodeApp[F[_]
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
-      val result = TransactionService.submit[F](semaphore, txs, localKeyPair).value
+      val result =
+        TransactionService.submit[F](semaphore, txs, localKeyPair).value
       result.map {
         case Left(err) =>
           scribe.info(s"error occured in tx $txs: $err")
@@ -335,9 +339,9 @@ final case class NodeApp[F[_]
           case Right(rewardInfo) => Right(rewardInfo)
         }
   }
-*/
+   */
   def leisuremetaEndpoints(
-    semaphore: Semaphore[F]
+      semaphore: Semaphore[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
@@ -387,7 +391,28 @@ final case class NodeApp[F[_]
 //    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
     semaphore <- Semaphore[F](1)
     server <- Async[F].async_[Server] { cb =>
-      val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
+      def log[F[_]: Async](
+          level: scribe.Level,
+      )(msg: String, exOpt: Option[Throwable])(using
+          mdc: scribe.data.MDC,
+      ): F[Unit] =
+        Async[F].delay(exOpt match
+          case None     => scribe.log(level, mdc, msg)
+          case Some(ex) => scribe.log(level, mdc, msg, ex),
+        )
+      val serverLog = DefaultServerLog(
+        doLogWhenReceived = log(scribe.Level.Info)(_, None),
+        doLogWhenHandled = log(scribe.Level.Info),
+        doLogAllDecodeFailures = log(scribe.Level.Info),
+        doLogExceptions =
+          (msg: String, ex: Throwable) => Async[F].delay(scribe.warn(msg, ex)),
+        noLog = Async[F].pure(()),
+      )
+      val serverOptions = ArmeriaCatsServerOptions
+        .customiseInterceptors[F](dispatcher)
+        .serverLog(serverLog)
+        .options
+      val tapirService = ArmeriaCatsServerInterpreter[F](serverOptions)
         .toService(leisuremetaEndpoints(semaphore))
       val server = Server.builder
         .maxRequestLength(128 * 1024 * 1024)
