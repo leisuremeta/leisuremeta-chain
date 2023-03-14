@@ -120,7 +120,7 @@ object LeisureMetaChainApi:
     baseEndpoint.post
       .in("tx")
       .in(jsonBody[Seq[Signed.Tx]])
-      .out(jsonBody[Seq[Signed.TxHash]])
+      .out(jsonBody[Seq[Hash.Value[TransactionWithResult]]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val postTxHashEndpoint = baseEndpoint.post

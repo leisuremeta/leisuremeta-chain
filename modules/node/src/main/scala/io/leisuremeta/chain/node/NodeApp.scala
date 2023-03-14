@@ -2,16 +2,20 @@ package io.leisuremeta.chain
 package node
 
 import cats.effect.{Async, IO}
-import cats.effect.std.Dispatcher
 import cats.effect.kernel.Resource
+import cats.effect.std.{Dispatcher, Semaphore}
 import cats.syntax.apply.given
-import cats.syntax.functor.given
 import cats.syntax.flatMap.given
+import cats.syntax.functor.given
 
 import com.linecorp.armeria.server.Server
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
+import sttp.tapir.server.armeria.cats.{
+  ArmeriaCatsServerInterpreter,
+  ArmeriaCatsServerOptions,
+}
+import sttp.tapir.server.interceptor.log.DefaultServerLog
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
@@ -25,7 +29,9 @@ import repository.{
   GenericStateRepository,
   TransactionRepository,
 }
+import repository.StateRepository.given
 import service.{
+  BlockService,
   LocalGossipService,
   LocalStatusService,
   NodeInitializationService,
@@ -35,7 +41,6 @@ import service.{
   TransactionService,
 }
 import service.interpreter.LocalGossipServiceInterpreter
-import io.leisuremeta.chain.node.service.BlockService
 
 final case class NodeApp[F[_]
   : Async: BlockRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
@@ -64,7 +69,7 @@ final case class NodeApp[F[_]
   }
   val localKeyPair: KeyPair =
     val privateKey = scala.sys.env
-      .get("BBGO_PRIVATE_KEY")
+      .get("LMNODE_PRIVATE_KEY")
       .map(BigInt(_, 16))
       .orElse(config.local.`private`)
       .get
@@ -268,10 +273,11 @@ final case class NodeApp[F[_]
         .value
     }
 
-  def postTxServerEndpoint(using LocalGossipService[F]) =
+  def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
-      val result = TransactionService.submit[F](txs).value
+      val result =
+        TransactionService.submit[F](semaphore, txs, localKeyPair).value
       result.map {
         case Left(err) =>
           scribe.info(s"error occured in tx $txs: $err")
@@ -295,24 +301,14 @@ final case class NodeApp[F[_]
 
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
     (txHash: Signed.TxHash) =>
-      scribe.info(s"received getTx request: $txHash")
-      val result = TransactionService.get(txHash).value
-
-      result.map {
-        case Left(err) =>
-          scribe.info(s"error occured in getting tx $txHash: $err")
-        case Right(tx) =>
-          scribe.info(s"got tx: $tx")
-      }
-
-      result.map {
+      TransactionService.get(txHash).value.map {
         case Right(Some(tx)) => Right(tx)
         case Right(None) => Left(Right(Api.NotFound(s"tx not found: $txHash")))
         case Left(err)   => Left(Left(Api.ServerError(err)))
       }
   }
 
-  def postTxHashServerEndpoint(using LocalGossipService[F]) =
+  def postTxHashServerEndpoint =
     Api.postTxHashEndpoint.serverLogicPure[F] { (txs: Seq[Transaction]) =>
       scribe.info(s"received postTxHash request: $txs")
       Right(txs.map(_.toHash))
@@ -334,8 +330,8 @@ final case class NodeApp[F[_]
         }
   }
    */
-  def leisuremetaEndpoints(using
-      LocalGossipService[F],
+  def leisuremetaEndpoints(
+      semaphore: Semaphore[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
@@ -356,7 +352,7 @@ final case class NodeApp[F[_]
     getTokenSnapshotServerEndpoint,
     getOwnershipSnapshotServerEndpoint,
 //    getRewardServerEndpoint,
-    postTxServerEndpoint,
+    postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )
 
@@ -382,10 +378,32 @@ final case class NodeApp[F[_]
     bestBlock <- initializeResult match
       case Left(err)    => Async[F].raiseError(Exception(err))
       case Right(block) => Async[F].pure(block)
-    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
+//    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
+    semaphore <- Semaphore[F](1)
     server <- Async[F].async_[Server] { cb =>
-      val tapirService = ArmeriaCatsServerInterpreter[F](dispatcher)
-        .toService(leisuremetaEndpoints)
+      def log[F[_]: Async](
+          level: scribe.Level,
+      )(msg: String, exOpt: Option[Throwable])(using
+          mdc: scribe.data.MDC,
+      ): F[Unit] =
+        Async[F].delay(exOpt match
+          case None     => scribe.log(level, mdc, msg)
+          case Some(ex) => scribe.log(level, mdc, msg, ex),
+        )
+      val serverLog = DefaultServerLog(
+        doLogWhenReceived = log(scribe.Level.Info)(_, None),
+        doLogWhenHandled = log(scribe.Level.Info),
+        doLogAllDecodeFailures = log(scribe.Level.Info),
+        doLogExceptions =
+          (msg: String, ex: Throwable) => Async[F].delay(scribe.warn(msg, ex)),
+        noLog = Async[F].pure(()),
+      )
+      val serverOptions = ArmeriaCatsServerOptions
+        .customiseInterceptors[F](dispatcher)
+        .serverLog(serverLog)
+        .options
+      val tapirService = ArmeriaCatsServerInterpreter[F](serverOptions)
+        .toService(leisuremetaEndpoints(semaphore))
       val server = Server.builder
         .maxRequestLength(128 * 1024 * 1024)
         .requestTimeout(java.time.Duration.ofMinutes(10))
