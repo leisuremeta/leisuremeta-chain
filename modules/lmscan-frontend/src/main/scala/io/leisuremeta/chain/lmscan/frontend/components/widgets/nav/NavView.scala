@@ -15,7 +15,7 @@ object NavView:
       )(
         button(
           `class` := s"${PageName.Observer
-              .toString() == model.observers.takeRight(1)(0).toString()}",
+              .toString() == model.observers.takeRight(1)(0).pageName.toString()}",
           onClick(PageMsg.PreUpdate(PageName.Observer)),
         )(
           span()(
@@ -24,7 +24,7 @@ object NavView:
         ),
         button(
           `class` := s"${PageName.DashBoard
-              .toString() == model.observers.takeRight(1)(0).toString()}",
+              .toString() == model.observers.takeRight(1)(0).pageName.toString()}",
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
         )(span()(PageName.DashBoard.toString())),
       ),
