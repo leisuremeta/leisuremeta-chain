@@ -5,6 +5,7 @@ import io.circe.syntax.*
 import io.circe.parser.*
 
 enum PageName:
+  case Observer
   case DashBoard, Blocks, Transactions, NoPage
   case TransactionDetail(hash: String) extends PageName
   case BlockDetail(hash: String)       extends PageName

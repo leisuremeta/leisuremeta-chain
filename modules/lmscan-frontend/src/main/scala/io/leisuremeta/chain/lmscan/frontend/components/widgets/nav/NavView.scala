@@ -15,6 +15,14 @@ object NavView:
       )(
         button(
           `class` := s"",
+          onClick(PageMsg.PreUpdate(PageName.Observer)),
+        )(span()("Observer")),
+      ),
+      div(
+        id := "buttons",
+      )(
+        button(
+          `class` := s"",
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
         )(span()("Dashboard")),
       ),
