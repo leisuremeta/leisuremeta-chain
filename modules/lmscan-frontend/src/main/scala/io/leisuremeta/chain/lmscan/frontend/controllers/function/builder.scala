@@ -5,4 +5,5 @@ import scala.concurrent.duration.*
 
 object Builder:
   def getPage(observers: List[Observer]) =
+    // 최신 상태에서 page 를 만듦
     observers.takeRight(1)(0).pageName.toString()
