@@ -6,10 +6,10 @@ object Pages:
   def render(model: Model): Html[Msg] =
     model.curPage match
       case PageName.DashBoard =>
-        div(`class` := "color-white")("대시보드")
+        DashboardView.view(model)
 
       case PageName.Observer =>
-        div(`class` := "color-white")("옵져버")
+        ObserverView.view(model)
 
       case _ => div("매칭x")
 
