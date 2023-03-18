@@ -5,6 +5,8 @@ import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
 
+case class Observer(pageName: PageName)
+
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     case PageMsg.PreUpdate(page: PageName) =>
@@ -29,7 +31,7 @@ object PageUpdate:
       (
         model.copy(
           curPage = page,
-          observer = model.observer ++ Seq(page),
+          observers = model.observers ++ Seq(Observer(page)),
         ),
         Cmd.None,
       )

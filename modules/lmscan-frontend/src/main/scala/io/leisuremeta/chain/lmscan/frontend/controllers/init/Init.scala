@@ -9,7 +9,7 @@ object Init:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (
       Model(
-        observer = List(PageName.Observer),
+        observers = List(Observer(PageName.Observer)),
         curPage = PageName.Observer,
       ),
       Cmd.None,

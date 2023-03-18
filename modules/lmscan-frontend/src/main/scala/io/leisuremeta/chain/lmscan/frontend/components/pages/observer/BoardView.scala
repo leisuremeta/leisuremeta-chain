@@ -14,16 +14,12 @@ object Head:
 
 object Body:
   def view = (model: Model) =>
-    model.observer.map(d =>
+    model.observers.map(observer =>
       div(`class` := "row table-body")(
         div(`class` := "cell type-3")(
           span(
           )({
-            Log.log(model.observer)
-            Some(model.observer) match
-              case Some(Seq("v: Seq[String]")) => "v"
-              case _ =>
-                d.toString()
+            observer.pageName.toString()
           }),
         ),
         div(`class` := "cell")(span("1414443")),
