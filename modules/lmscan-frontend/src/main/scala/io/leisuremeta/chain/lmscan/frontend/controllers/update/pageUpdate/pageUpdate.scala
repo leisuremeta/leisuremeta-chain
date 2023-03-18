@@ -7,7 +7,10 @@ object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     case PageMsg.PreUpdate(page: PageName) =>
       (
-        model.copy(curPage = page),
+        model.copy(
+          curPage = page,
+          observer = model.observer ++ Seq(page),
+        ),
         Cmd.None,
       )
     case _ =>
