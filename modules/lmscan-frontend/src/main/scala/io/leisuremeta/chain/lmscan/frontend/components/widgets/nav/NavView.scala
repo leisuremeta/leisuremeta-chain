@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-
+import Builder.getPage
 object NavView:
 
   def view(model: Model): Html[Msg] =
@@ -14,8 +14,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageName.Observer
-              .toString() == model.observers.takeRight(1)(0).pageName.toString()}",
+          `class` := s"${PageName.Observer.toString() == getPage(model.observers)}",
           onClick(PageMsg.PreUpdate(PageName.Observer)),
         )(
           span()(
@@ -23,8 +22,7 @@ object NavView:
           ),
         ),
         button(
-          `class` := s"${PageName.DashBoard
-              .toString() == model.observers.takeRight(1)(0).pageName.toString()}",
+          `class` := s"${PageName.DashBoard.toString() == getPage(model.observers)}",
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
         )(span()(PageName.DashBoard.toString())),
       ),
