@@ -14,12 +14,18 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageName.Observer.toString() == model.curPage.toString()}",
+          `class` := s"${PageName.Observer
+              .toString() == model.observer.takeRight(1)(0).toString()}",
           onClick(PageMsg.PreUpdate(PageName.Observer)),
-        )(span()("Observer")),
+        )(
+          span()(
+            PageName.Observer.toString(),
+          ),
+        ),
         button(
-          `class` := s"${PageName.DashBoard.toString() == model.curPage.toString()}",
+          `class` := s"${PageName.DashBoard
+              .toString() == model.observer.takeRight(1)(0).toString()}",
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
-        )(span()("Dashboard")),
+        )(span()(PageName.DashBoard.toString())),
       ),
     )
