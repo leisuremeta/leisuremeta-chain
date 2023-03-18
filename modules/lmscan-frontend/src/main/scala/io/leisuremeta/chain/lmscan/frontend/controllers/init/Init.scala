@@ -9,7 +9,7 @@ object Init:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (
       Model(
-        curPage = PageName.DashBoard,
+        curPage = PageName.Observer,
       ),
       Cmd.None,
     )
