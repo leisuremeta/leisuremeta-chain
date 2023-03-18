@@ -11,6 +11,12 @@ object Pages:
       case PageName.Observer =>
         ObserverView.view(model)
 
+      case PageName.Blocks(_) =>
+        ObserverView.view(model)
+
+      // case PageName.Observer =>
+      //   ObserverView.view(model)
+
       case _ => div("매칭x")
 
 object PageView:

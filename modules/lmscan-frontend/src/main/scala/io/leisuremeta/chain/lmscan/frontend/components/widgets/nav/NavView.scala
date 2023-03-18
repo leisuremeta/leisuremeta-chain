@@ -26,12 +26,12 @@ object NavView:
           onClick(PageMsg.PreUpdate(PageName.DashBoard)),
         )(span()(PageName.DashBoard.toString())),
         button(
-          `class` := s"${PageName.Blocks.toString() == getPage(model.observers)}",
-          onClick(PageMsg.PreUpdate(PageName.Blocks)),
-        )(span()(PageName.Blocks.toString())),
+          `class` := s"${PageName.Blocks(1).toString() == getPage(model.observers)}",
+          onClick(PageMsg.PreUpdate(PageName.Blocks(1))),
+        )(span()(PageName.Blocks(1).toString())),
         button(
-          `class` := s"${PageName.Transactions.toString() == getPage(model.observers)}",
-          onClick(PageMsg.PreUpdate(PageName.Transactions)),
-        )(span()(PageName.Transactions.toString())),
+          `class` := s"${PageName.Transactions(1).toString() == getPage(model.observers)}",
+          onClick(PageMsg.PreUpdate(PageName.Transactions(1))),
+        )(span()(PageName.Transactions(1).toString())),
       ),
     )
