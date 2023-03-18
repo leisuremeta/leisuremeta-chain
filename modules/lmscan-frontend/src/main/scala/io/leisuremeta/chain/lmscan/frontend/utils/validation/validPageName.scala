@@ -5,17 +5,40 @@ import io.circe.syntax.*
 import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
-enum PageName:
-  case DashBoard
-  case Observer
-  case Blocks(page: Int)               extends PageName
-  case Transactions(page: Int)         extends PageName
-  case TransactionDetail(hash: String) extends PageName
-  case BlockDetail(hash: String)       extends PageName
-  case NftDetail(hash: String)         extends PageName
-  case AccountDetail(hash: String)     extends PageName
-  case Page64(hash: String)            extends PageName
-  case NoPage                          extends PageName
+trait PageCase:
+  def name: String
+  def url: String
+  // def page: Int
+
+object PageCase:
+
+  case class DashBoard(name: String = "DashBoard", url: String = "DashBoard")
+      extends PageCase
+  case class Observer(name: String = "Observer", url: String = "Observer")
+      extends PageCase
+  case class Blocks(name: String = "Blocks", url: String = "Blocks")
+      extends PageCase
+  case class Transactions(
+      name: String = "Transactions",
+      url: String = "Transactions",
+  ) extends PageCase
+
+// case class PageCase ex:
+//   def DashBoard(name: String = "DashBoard", url: String = "DashBoard")
+//   def Observer(name: String = "Observer", url: String = "Observer")
+//   def Blocks(page: Int, name: String = "Blocks", url: String = "Blocks")
+//       extends PageName
+//   def Transactions(
+//       page: Int,
+//       name: String = "Transactions",
+//       url: String = "Transactions",
+//   ) extends PageName
+// case TransactionDetail(hash: String) extends PageName
+// case BlockDetail(hash: String)       extends PageName
+// case NftDetail(hash: String)         extends PageName
+// case AccountDetail(hash: String)     extends PageName
+// case Page64(hash: String)            extends PageName
+// case NoPage                          extends PageName
 
 // object ValidPageName:
 //   def getPage(search: PageName): PageName =

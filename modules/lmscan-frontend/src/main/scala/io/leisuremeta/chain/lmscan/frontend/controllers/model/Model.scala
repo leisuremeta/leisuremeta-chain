@@ -4,6 +4,6 @@ import io.circe.Json
 import org.scalafmt.config.Newlines.ForceBeforeMultilineAssign.any
 
 final case class Model(
-    observers: List[Observer],
-    curPage: PageName,
+    observers: List[ObserverState],
+    curPage: PageCase,
 )

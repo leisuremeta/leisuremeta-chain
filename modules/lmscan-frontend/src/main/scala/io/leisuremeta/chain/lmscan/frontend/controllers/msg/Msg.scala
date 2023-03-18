@@ -5,4 +5,4 @@ import io.circe.Json
 sealed trait Msg
 
 enum PageMsg extends Msg:
-  case PreUpdate(page: PageName) extends PageMsg
+  case PreUpdate(page: PageCase) extends PageMsg
