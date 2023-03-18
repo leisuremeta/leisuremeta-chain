@@ -1,0 +1,71 @@
+@charset "utf-8";
+body {font-family: 'Roboto', sans-serif;}
+/* #24a3da, #51ff00*/
+
+nav{background-color:#000;overflow: hidden;}
+nav:after{display: inline-block;position: absolute;bottom:-39px;left:-39px; width:200px;height:220px;content: "";background:url('../img/lm.png') no-repeat center center;opacity: 0.4;background-size:auto 100%;}
+nav #title{position: relative;z-index: 2;}
+nav #title #head{padding:30px 48px;height: auto; background-color: #000;color:#fff;transition:color 0.3s ease;}
+nav #title #head img{max-width: 100%;}
+nav #title #head:hover{color:#51ff00;}
+nav #title #body{background-color: #000;color:#fff;}
+nav #title{position: relative;z-index: 2;}
+nav #buttons{position: relative;z-index: 2;background-color: #000;}
+nav #buttons button{color:#51ff00;}
+nav #buttons button.true{background-color: #24a3da;}
+nav #buttons button.false:hover{background-color: #51ff00;color:#000;}
+
+/* #head{
+    position: relative; 
+    background: url('../img/logo_w.png') center center no-repeat;  
+    background-size: 50%;
+    
+} */
+
+#page{position: relative; background: url('../img/bg02_.jpg') no-repeat left bottom;background-size: cover;}
+
+
+.board-container{ background: linear-gradient(240deg, hsla(0, 0%, 100%, 0.3),hsla(0,10%,80%,0.1));border:none;box-shadow: none;}
+.board-container:hover{border:none;}
+
+.color-white{color:white}
+
+.table-container{background: linear-gradient(240deg,hsl(0, 0% ,100%,0.3),hsla(0,10%,80%,0.1));border:none;color:#fff;}
+.type-TableDetail .row:hover{background-color: rgba(81, 255, 0, 0.15);}
+.type-TableDetail .row:nth-child(even):hover{background-color: rgba(81, 255, 0, 0.1);}
+.table-area .row:hover{background-color: rgba(81, 255, 0, 0.15);}
+.table-area .row:nth-child(even):hover{background-color: rgba(81, 255, 0, 0.1);}
+
+.type-2 span{background-color: rgb(81, 255, 0, 0.5); border:none;color:#ffffff;}
+.type-2 span:hover{background-color: rgb(81, 255, 0,1);border:none;color:#000000;}
+/* .type-3{color:#51ff00;} */
+.type-3{color:#51ff00b8;}
+
+
+.selectedPage{border:none;background-color: rgb(81, 255, 0, 1);color:#000000;}
+.search-container{height:42px; background:transparent;border:1px solid #ffffff; }
+.search-icon{color:#ffffff;}
+
+
+.search-container input{color:#fff}
+.search-container input::-ms-input-placeholder { font-weight: 500; color: #646873; }
+.search-container input::-webkit-input-placeholder { font-weight: 500; color: #646873; }
+.search-container input::-moz-placeholder { font-weight: 500; color: #646873; }
+
+
+._search .type-arrow{border:none;color:#fff;width:24px;}
+._search .type-text-btn > span{min-width:20px;text-align: center;}
+
+.nft-image {background-color:#ffffff; border-radius:5px;}
+
+
+
+
+
+
+
+
+
+
+
+

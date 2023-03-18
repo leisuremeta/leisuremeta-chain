@@ -1,0 +1,90 @@
+button {
+    all: unset;
+    cursor: pointer;
+    display: block;
+    width: 40px;
+    color: black;
+}
+
+
+nav {
+    position: absolute;
+    height: 100vh;
+    width: 230px;
+    cursor: pointer;
+
+    background-color: #1F2937;
+    background-color: rgba(0, 0, 0, 0.936);
+    background-color: #222222;
+}
+
+
+
+nav #title #head {
+    /* height: 50px; */
+    padding-top: 30px;
+    background-color: #222222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: white;
+    background: url('../img/logo_w.png') center center no-repeat;  
+    background-size: 60%;
+}
+
+#head-logo{
+    /* width: 134px; */
+    height: 46px;
+}
+nav #title #head:hover {
+    color: rgba(201, 239, 205, 0.8)
+}
+
+nav #title #body {
+    background-color: #222222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: rgb(183, 177, 177);
+    padding-bottom: 20px;
+}
+
+#buttons button {
+    all: unset;
+    cursor: pointer;
+    color: white;
+    color: rgb(95, 94, 128);
+    width: 100%;
+    height: 55px;
+    display: flex;
+    /* margin-left: 55px; */
+    justify-content: left;
+    align-items: center;
+    font-size: larger;
+    transition: all .15s;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+#buttons button span {
+    margin-left: 55px;
+}
+
+#buttons button.true {
+    color: white;
+    background-color: #0767b2;
+
+}
+
+#buttons {
+    padding-top: 10px;
+}
+
+#buttons button.false:hover {
+    background-color: #00ae87;
+    color: white
+}
+
