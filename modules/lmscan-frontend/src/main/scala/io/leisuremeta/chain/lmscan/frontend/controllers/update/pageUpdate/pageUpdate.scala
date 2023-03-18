@@ -5,9 +5,9 @@ import cats.effect.IO
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
-    case PageMsg.PreUpdate(_) =>
+    case PageMsg.PreUpdate(page: PageName) =>
       (
-        model.copy(),
+        model.copy(curPage = page),
         Cmd.None,
       )
     case _ =>
