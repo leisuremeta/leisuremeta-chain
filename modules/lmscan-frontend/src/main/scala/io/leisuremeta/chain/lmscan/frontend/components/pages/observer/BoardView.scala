@@ -19,7 +19,7 @@ object Body:
         div(`class` := "cell type-3")(
           span(
           )({
-            observer.pageName.toString()
+            observer.pageCase.toString()
           }),
         ),
         div(`class` := "cell")(span("1414443")),

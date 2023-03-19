@@ -10,7 +10,7 @@ object Init:
     (
       Model(
         observers = List(ObserverState(PageCase.Observer())),
-        curPage = PageCase.Observer(),
+        // curPage = PageCase.Observer(),
       ),
       Cmd.None,
     )

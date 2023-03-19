@@ -4,14 +4,21 @@ import tyrian.*
 
 object Pages:
   def render(model: Model): Html[Msg] =
-    model.curPage match
-      case PageCase.DashBoard(_, _) =>
-        DashboardView.view(model)
+    Builder.getPage(model.observers) match
 
       case PageCase.Observer(_, _) =>
         ObserverView.view(model)
 
+      case PageCase.DashBoard(_, _) =>
+        div()(
+          ObserverView.view(model),
+          DashboardView.view(model),
+        )
+
       case PageCase.Blocks(_, _) =>
+        ObserverView.view(model)
+
+      case PageCase.Transactions(_, _) =>
         ObserverView.view(model)
 
       case _ => div("매칭x")

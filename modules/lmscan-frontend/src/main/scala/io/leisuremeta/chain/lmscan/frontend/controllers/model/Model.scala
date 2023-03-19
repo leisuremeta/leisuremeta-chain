@@ -5,5 +5,5 @@ import org.scalafmt.config.Newlines.ForceBeforeMultilineAssign.any
 
 final case class Model(
     observers: List[ObserverState],
-    curPage: PageCase,
+    // curPage: PageCase,
 )

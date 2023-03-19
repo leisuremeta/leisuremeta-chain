@@ -5,9 +5,15 @@ import io.circe.syntax.*
 import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
+object Builder:
+  def getPage(observers: List[ObserverState]) =
+    // 최신 상태에서 page 를 만듦
+    observers.takeRight(1)(0).pageCase
+
 trait PageCase:
   def name: String
   def url: String
+
   // def page: Int
 
 object PageCase:
