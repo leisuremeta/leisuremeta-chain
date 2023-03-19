@@ -159,6 +159,17 @@
 .table-area .row:nth-child(even) {
     background-color: rgb(200 200 200 / 20%);
 }
+
+/* .table-area .row:hover.true {
+    background-color: rebeccapurple;
+}
+.table-area .row:nth-child(even).true {
+    background-color: rebeccapurple;
+} */
+.true_observer {
+    background-color: rebeccapurple !important;
+}
+
 .table-area .row:nth-child(even):hover {
     background-color: rgba(201, 239, 205, 0.2);
 }
@@ -186,10 +197,17 @@
 .type-TableDetail .row:hover {
     background-color: rgba(201, 239, 205, 0.2);
 }
+/* .type-TableDetail .row:hover.true {
+    background-color: rebeccapurple;
+} */
 
 .type-TableDetail .row:nth-child(even):hover {
     background-color: rgba(201, 239, 205, 0.2);
 }
+/* .type-TableDetail .row:nth-child(even):hover.true{
+    background-color: rebeccapurple;
+} */
+
 
 
 .type-TableDetail .cell {
@@ -369,6 +387,9 @@
 .row {
     display: table-row;
 }
+
+
+
 .cell {
     display: table-cell;
     vertical-align: middle;

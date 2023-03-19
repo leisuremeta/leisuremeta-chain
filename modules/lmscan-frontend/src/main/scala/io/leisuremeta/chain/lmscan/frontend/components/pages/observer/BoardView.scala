@@ -2,9 +2,11 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
+import io.leisuremeta.chain.lmscan.frontend.Builder.getNumber
 
 object Head:
   val view = div(`class` := "row table-head")(
+    div(`class` := "cell")(span("#")),
     div(`class` := "cell")(span("pages(page,hash,data)")),
     div(`class` := "cell")(span("url")),
     div(`class` := "cell")(span("as")),
@@ -15,7 +17,15 @@ object Head:
 object Body:
   def view = (model: Model) =>
     model.observers.map(observer =>
-      div(`class` := "row table-body")(
+      div(
+        `class` := s"row table-body ${observer.number == getNumber(model.observers)}_observer",
+      )(
+        div(
+          `class` := s"cell type-3 ",
+        )(
+          span(
+          )(observer.number.toString()),
+        ),
         div(`class` := "cell type-3")(
           span(
           )({

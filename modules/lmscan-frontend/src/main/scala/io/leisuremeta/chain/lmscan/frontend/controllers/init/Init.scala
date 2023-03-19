@@ -9,7 +9,8 @@ object Init:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (
       Model(
-        observers = List(ObserverState(PageCase.Observer())),
+        observers =
+          List(ObserverState(pageCase = PageCase.Observer(), number = 1)),
         // curPage = PageCase.Observer(),
       ),
       Cmd.None,

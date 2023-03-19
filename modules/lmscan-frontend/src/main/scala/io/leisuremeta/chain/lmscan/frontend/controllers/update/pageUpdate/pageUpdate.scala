@@ -4,8 +4,9 @@ import scala.scalajs.js
 import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
+import io.leisuremeta.chain.lmscan.frontend.Builder.getNumber
 
-case class ObserverState(pageCase: PageCase)
+case class ObserverState(pageCase: PageCase, number: Int)
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -28,7 +29,10 @@ object PageUpdate:
             model.copy(
               // curPage = page,
               observers = model.observers ++ Seq(
-                ObserverState(page),
+                ObserverState(
+                  number = getNumber(model.observers) + 1,
+                  pageCase = page,
+                ),
               ),
             ),
             Cmd.None,

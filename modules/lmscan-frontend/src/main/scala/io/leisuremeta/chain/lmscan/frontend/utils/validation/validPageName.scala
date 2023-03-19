@@ -6,9 +6,14 @@ import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Builder:
+  def getNew(observers: List[ObserverState]) =
+    observers.takeRight(1)(0)
   def getPage(observers: List[ObserverState]) =
     // 최신 상태에서 page 를 만듦
-    observers.takeRight(1)(0).pageCase
+    getNew(observers).pageCase
+  def getNumber(observers: List[ObserverState]) =
+    // 최신 상태에서 page 를 만듦
+    getNew(observers).number
 
 trait PageCase:
   def name: String
