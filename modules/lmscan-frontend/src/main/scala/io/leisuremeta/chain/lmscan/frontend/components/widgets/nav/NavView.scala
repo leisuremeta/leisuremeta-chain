@@ -3,7 +3,6 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import Builder.getPage
-// import PageCase
 object NavView:
 
   def view(model: Model): Html[Msg] =
