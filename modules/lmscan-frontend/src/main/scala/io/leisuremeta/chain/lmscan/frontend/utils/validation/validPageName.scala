@@ -28,6 +28,8 @@ object PageCase:
       name: String = "Transactions",
       url: String = "Transactions",
   ) extends PageCase
+  case class NoPage(name: String = "noPage", url: String = "noPage")
+      extends PageCase
 
 // case class PageCase ex:
 //   def DashBoard(name: String = "DashBoard", url: String = "DashBoard")

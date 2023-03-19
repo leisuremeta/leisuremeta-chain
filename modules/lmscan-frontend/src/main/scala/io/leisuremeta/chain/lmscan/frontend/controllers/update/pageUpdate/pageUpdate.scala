@@ -10,22 +10,29 @@ case class ObserverState(pageCase: PageCase)
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     case PageMsg.PreUpdate(page: PageCase) =>
-      window.history.pushState(
-        // save page to history
-        page.url,
-        null,
-        // show url
-        page.url,
-      )
-      (
-        model.copy(
-          // curPage = page,
-          observers = model.observers ++ Seq(
-            ObserverState(page),
-          ),
-        ),
-        Cmd.None,
-      )
+      page match
+        case PageCase.NoPage(_, _) =>
+          (
+            model.copy(),
+            Cmd.None,
+          )
+        case _ =>
+          window.history.pushState(
+            // save page to history
+            page.url,
+            null,
+            // show url
+            page.url,
+          )
+          (
+            model.copy(
+              // curPage = page,
+              observers = model.observers ++ Seq(
+                ObserverState(page),
+              ),
+            ),
+            Cmd.None,
+          )
     case _ =>
       (
         model.copy(),
