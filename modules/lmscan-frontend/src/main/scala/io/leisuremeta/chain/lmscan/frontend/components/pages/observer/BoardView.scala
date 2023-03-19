@@ -18,7 +18,9 @@ object Body:
   def view = (model: Model) =>
     model.observers.map(observer =>
       div(
-        `class` := s"row table-body ${observer.number == getNumber(model.observers)}_observer",
+        `class` := s"row table-body ${observer.number == getNumber(
+            model.observers,
+          )}_observer ${model.observerNumber == observer.number}_observer",
       )(
         div(
           `class` := s"cell type-3 ",
