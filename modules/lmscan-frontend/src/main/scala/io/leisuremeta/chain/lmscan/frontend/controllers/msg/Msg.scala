@@ -6,3 +6,4 @@ sealed trait Msg
 
 enum PageMsg extends Msg:
   case PreUpdate(page: PageCase) extends PageMsg
+  case UpdateObserver(page: Int) extends PageMsg

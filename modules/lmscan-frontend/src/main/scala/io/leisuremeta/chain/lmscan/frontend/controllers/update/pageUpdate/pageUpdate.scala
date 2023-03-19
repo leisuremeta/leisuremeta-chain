@@ -37,8 +37,13 @@ object PageUpdate:
             ),
             Cmd.None,
           )
-    case _ =>
+    case PageMsg.UpdateObserver(page: Int) =>
       (
-        model.copy(),
+        model.copy(observerNumber = page),
         Cmd.None,
       )
+    // case _ =>
+    //   (
+    //     model.copy(),
+    //     Cmd.None,
+    //   )

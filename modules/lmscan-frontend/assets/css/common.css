@@ -170,6 +170,10 @@
     background-color: rebeccapurple !important;
 }
 
+.true_observer_click {
+    background-color: rgb(183, 102, 79) !important;
+}
+
 .table-area .row:nth-child(even):hover {
     background-color: rgba(201, 239, 205, 0.2);
 }

@@ -13,11 +13,9 @@ object Init:
           ObserverState(
             pageCase = PageCase.Observer(),
             number = 1,
-            // observerNumber = 1,
           ),
         ),
         observerNumber = 1,
-        // curPage = PageCase.Observer(),
       ),
       Cmd.None,
     )

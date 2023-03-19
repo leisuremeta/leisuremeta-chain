@@ -7,11 +7,9 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.getNumber
 object Head:
   val view = div(`class` := "row table-head")(
     div(`class` := "cell")(span("#")),
-    div(`class` := "cell")(span("pages(page,hash,data)")),
+    div(`class` := "cell")(span("Page")),
     div(`class` := "cell")(span("url")),
-    div(`class` := "cell")(span("as")),
-    div(`class` := "cell")(span("Signer")),
-    div(`class` := "cell")(span("Value")),
+    div(`class` := "cell")(span("page")),
   )
 
 object Body:
@@ -20,28 +18,21 @@ object Body:
       div(
         `class` := s"row table-body ${observer.number == getNumber(
             model.observers,
-          )}_observer ${model.observerNumber == observer.number}_observer",
+          )}_observer ${model.observerNumber == observer.number}_observer_click",
+        onClick(PageMsg.UpdateObserver(observer.number)),
       )(
         div(
           `class` := s"cell type-3 ",
         )(
-          span(
-          )(observer.number.toString()),
+          span()(observer.number.toString()),
         ),
         div(`class` := "cell type-3")(
-          span(
-          )({
-            observer.pageCase.toString()
-          }),
+          span()(observer.pageCase.name),
         ),
-        div(`class` := "cell")(span("1414443")),
+        div(`class` := "cell")(span(observer.pageCase.url)),
         div(`class` := "cell")(
-          span(
-            Attribute("data-tooltip-text", "2023-03-16 00:27:09"),
-          )("8 mins ago"),
+          span()(observer.pageCase.url),
         ),
-        div(`class` := "cell type-3")(span("9c2418c620...")),
-        div(`class` := "cell")(span("-")),
       ),
     )
 
