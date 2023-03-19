@@ -49,7 +49,14 @@ object Subscriptions:
       Sub.fromEvent("popstate", window) { e =>
         val state = e.asInstanceOf[PopStateEvent].state
         log("#state " + state)
-        Some(PageMsg.PreUpdate(PageCase.NoPage()))
+        // Some(PageMsg.PreUpdate(PageCase.NoPage()))
+        // log(model.observerNumber)
+
+        // 1 보다 작을 경우 => 1로 보낸다
+        // val page = state.toString().toIntOption.getOrElse(0) case
+        log("model.observerNumber")
+        log(model.observerNumber)
+        Some(PageMsg.BackObserver)
         // val page: PageCase = ValidPageName.getPageFromStr(state.toString)
 
         // // PageMoveMsg.Get(value)
