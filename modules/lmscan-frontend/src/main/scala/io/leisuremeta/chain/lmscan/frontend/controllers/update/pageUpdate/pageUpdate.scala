@@ -39,6 +39,11 @@ object PageUpdate:
                 ),
               ),
             ),
+            // Cmd.Batch(
+            //   OnDataProcess.getData(
+            //     PageCase.Block,
+            //   ),
+            // ),
             Cmd.None,
           )
     case PageMsg.UpdateObserver(page: Int) =>
