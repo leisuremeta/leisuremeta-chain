@@ -48,7 +48,7 @@ object PageUpdate:
 
       window.history.pushState(
         // save page to history
-        "page.name",
+        getPage(model.observers, safeNumber).name,
         null,
         // show url
         getPage(model.observers, safeNumber).name,
@@ -64,7 +64,7 @@ object PageUpdate:
 
       window.history.pushState(
         // save page to history
-        "page.name",
+        getPage(model.observers, safeNumber).name,
         null,
         // show url
         getPage(model.observers, safeNumber).name,
