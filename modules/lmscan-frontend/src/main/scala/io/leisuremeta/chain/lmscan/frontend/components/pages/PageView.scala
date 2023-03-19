@@ -1,10 +1,13 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Pages:
   def render(model: Model): Html[Msg] =
-    Builder.getPage(model.observers, model.observers.length) match
+    log("Builder.getPage(model.observers, model.observerNumber)")
+    log(Builder.getPage(model.observers, model.observerNumber))
+    Builder.getPage(model.observers, model.observerNumber) match
 
       case PageCase.Observer(_, _) =>
         ObserverView.view(model)

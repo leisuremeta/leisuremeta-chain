@@ -9,12 +9,13 @@ object Builder:
   def getNew(observers: List[ObserverState], find: Int) =
     log(observers.filter(o => o.number == find))
     observers.takeRight(1)(0)
+    observers.filter(o => o.number == find)(0)
   def getPage(observers: List[ObserverState], find: Int) =
     // 최신 상태에서 page 를 만듦
-    getNew(observers, 1).pageCase
+    getNew(observers, find).pageCase
   def getNumber(observers: List[ObserverState], find: Int) =
     // 최신 상태에서 page 를 만듦
-    getNew(observers, 1).number
+    getNew(observers, find).number
 
 trait PageCase:
   def name: String
