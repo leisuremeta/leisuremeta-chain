@@ -16,8 +16,13 @@ object DataProcess:
     // val data: BlockList = BlockParser.decodeParser(model.blockListData.get).getOrElse(new BlockList)
     // val payload = getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
     // payload
+
+    val datax = Builder.getPage(model.observers, model.observerNumber) match
+      case PageCase.Blocks(_, _, data) => data
+      case _                           => Some("")
+
     val data: PageResponse[BlockInfo] = BlockParser
-      .decodeParser(model.blockListData.get)
+      .decodeParser(datax.get)
       .getOrElse(new PageResponse(0, 0, List()))
     data.payload.toList
 

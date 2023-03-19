@@ -27,14 +27,21 @@ object PageCase:
 
   case class DashBoard(name: String = "DashBoard", url: String = "DashBoard")
       extends PageCase
+
   case class Observer(name: String = "Observer", url: String = "Observer")
       extends PageCase
-  case class Blocks(name: String = "Blocks", url: String = "Blocks")
-      extends PageCase
+
+  case class Blocks(
+      name: String = "Blocks",
+      url: String = "Blocks",
+      data: Option[String] = Some(""),
+  ) extends PageCase
+
   case class Transactions(
       name: String = "Transactions",
       url: String = "Transactions",
   ) extends PageCase
+
   case class NoPage(name: String = "noPage", url: String = "noPage")
       extends PageCase
 
