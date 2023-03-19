@@ -9,7 +9,7 @@ object Head2:
     div(`class` := "cell")(span("#")),
     div(`class` := "cell")(span("Page")),
     div(`class` := "cell")(span("url")),
-    div(`class` := "cell")(span("page")),
+    div(`class` := "cell")(span("data")),
   )
 
 object Body2:
@@ -32,7 +32,7 @@ object Body2:
         ),
         div(`class` := "cell")(span(observer.pageCase.url)),
         div(`class` := "cell")(
-          span()(observer.pageCase.url),
+          span()(observer.data),
         ),
       ),
     )

@@ -18,7 +18,7 @@ object Pages:
           DashboardView.view(model),
         )
 
-      case PageCase.Blocks(_, _) =>
+      case PageCase.Blocks(_, _, _) =>
         div()(
           ObserverView.view(model),
           BlocksView.view(model),

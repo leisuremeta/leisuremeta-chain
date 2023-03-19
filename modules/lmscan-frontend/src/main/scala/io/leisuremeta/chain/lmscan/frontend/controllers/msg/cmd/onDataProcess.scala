@@ -26,7 +26,7 @@ object UnderDataProcess:
         // PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
         PageMsg.BackObserver
       case Right(json) => {
-        PageMsg.BackObserver
+        PageMsg.DataUpdate(response.body)
         // page match
         //   case PageCase.DashBoard =>
         //     ""
@@ -51,11 +51,11 @@ object UnderDataProcess:
       }
 
   private val onError: HttpError => Msg = e =>
-    dom.document
-      .querySelector("#loader-container")
-      .asInstanceOf[HTMLElement]
-      .style
-      .display = "none"
+    // dom.document
+    //   .querySelector("#loader-container")
+    //   .asInstanceOf[HTMLElement]
+    //   .style
+    //   .display = "none"
     // ApiMsg.GetError(e.toString)
     PageMsg.BackObserver
 
@@ -75,11 +75,11 @@ object OnDataProcess:
       page: PageCase,
       // payload: ApiPayload = ApiPayload("1"),
   ): Cmd[IO, Msg] =
-    dom.document
-      .querySelector("#loader-container")
-      .asInstanceOf[HTMLElement]
-      .style
-      .display = "block"
+    // dom.document
+    //   .querySelector("#loader-container")
+    //   .asInstanceOf[HTMLElement]
+    //   .style
+    //   .display = "block"
 
     val url = page match
       // case PageCase.DashBoard =>

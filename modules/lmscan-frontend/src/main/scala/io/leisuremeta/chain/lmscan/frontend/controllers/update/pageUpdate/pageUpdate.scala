@@ -5,9 +5,10 @@ import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
+// import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.data
 // import io.leisuremeta.chain.lmscan.frontend.Model.observerNumber
 
-case class ObserverState(pageCase: PageCase, number: Int)
+case class ObserverState(pageCase: PageCase, number: Int, data: String)
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -36,15 +37,16 @@ object PageUpdate:
                   number =
                     getNumber(model.observers, model.observers.length) + 1,
                   pageCase = page,
+                  data = "",
                 ),
               ),
             ),
-            // Cmd.Batch(
-            //   OnDataProcess.getData(
-            //     PageCase.Block,
-            //   ),
-            // ),
-            Cmd.None,
+            Cmd.Batch(
+              OnDataProcess.getData(
+                PageCase.Blocks(),
+              ),
+            ),
+            // Cmd.None,
           )
     case PageMsg.UpdateObserver(page: Int) =>
       val safeNumber = (model.observerNumber - 1) < 1 match
@@ -76,5 +78,18 @@ object PageUpdate:
       )
       (
         model.copy(observerNumber = safeNumber),
+        Cmd.None,
+      )
+
+    case PageMsg.DataUpdate(data) =>
+      // 가장 최신의 observer 상태 업데이트
+      (
+        model.copy(observers =
+          model.observers.map(observer =>
+            observer.number == model.observerNumber match
+              case true => observer.copy(data = data)
+              case _    => observer,
+          ),
+        ),
         Cmd.None,
       )

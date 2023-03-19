@@ -13,9 +13,12 @@ import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Body:
   def block = (payload: List[BlockInfo]) =>
+    log("payload")
+    log(payload)
     // def block = (payload: List[Block]) =>
     payload
       .map(v =>

@@ -8,3 +8,6 @@ enum PageMsg extends Msg:
   case PreUpdate(page: PageCase) extends PageMsg
   case UpdateObserver(page: Int) extends PageMsg
   case BackObserver              extends PageMsg
+
+  // 데이터 업데이트
+  case DataUpdate(data: String) extends PageMsg

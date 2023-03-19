@@ -17,6 +17,10 @@ object Builder:
     // 최신 상태에서 page 를 만듦
     getNew(observers, find).number
 
+  def getData(observers: List[ObserverState], find: Int) =
+    // 최신 상태에서 page 를 만듦
+    getNew(observers, find).data
+
 trait PageCase:
   def name: String
   def url: String

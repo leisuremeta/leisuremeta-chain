@@ -17,13 +17,10 @@ object DataProcess:
     // val payload = getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
     // payload
 
-    val datax = Builder.getPage(model.observers, model.observerNumber) match
-      case PageCase.Blocks(_, _, data) => data
-      case _                           => Some("")
-
     val data: PageResponse[BlockInfo] = BlockParser
-      .decodeParser(datax.get)
+      .decodeParser(Builder.getData(model.observers, model.observers.length))
       .getOrElse(new PageResponse(0, 0, List()))
+
     data.payload.toList
 
 //   def nft(model: Model) =
