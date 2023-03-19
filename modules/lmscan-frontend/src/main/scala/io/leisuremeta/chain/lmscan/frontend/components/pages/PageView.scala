@@ -4,7 +4,7 @@ import tyrian.*
 
 object Pages:
   def render(model: Model): Html[Msg] =
-    Builder.getPage(model.observers) match
+    Builder.getPage(model.observers, model.observers.length) match
 
       case PageCase.Observer(_, _) =>
         ObserverView.view(model)

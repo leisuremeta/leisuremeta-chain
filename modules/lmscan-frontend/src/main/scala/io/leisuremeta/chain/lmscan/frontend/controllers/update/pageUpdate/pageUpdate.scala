@@ -30,7 +30,8 @@ object PageUpdate:
               // curPage = page,
               observers = model.observers ++ Seq(
                 ObserverState(
-                  number = getNumber(model.observers) + 1,
+                  number =
+                    getNumber(model.observers, model.observers.length) + 1,
                   pageCase = page,
                 ),
               ),

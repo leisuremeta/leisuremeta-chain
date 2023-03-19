@@ -18,6 +18,7 @@ object Body:
       div(
         `class` := s"row table-body ${observer.number == getNumber(
             model.observers,
+            model.observers.length,
           )}_observer ${model.observerNumber == observer.number}_observer_click",
         onClick(PageMsg.UpdateObserver(observer.number)),
       )(
