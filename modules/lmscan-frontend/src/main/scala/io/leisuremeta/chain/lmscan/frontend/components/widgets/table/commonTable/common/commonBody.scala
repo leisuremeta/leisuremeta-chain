@@ -1,33 +1,33 @@
-// package io.leisuremeta.chain.lmscan.frontend
+package io.leisuremeta.chain.lmscan.frontend
 
-// import tyrian.Html.*
-// import tyrian.*
-// import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
-// import io.circe.syntax.*
-// import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
-// import V.*
-// import io.leisuremeta.chain.lmscan.common.model.BlockInfo
-// import io.leisuremeta.chain.lmscan.common.model.TxInfo
-// import io.leisuremeta.chain.lmscan.common.model.NftActivity
+import tyrian.Html.*
+import tyrian.*
+import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
+import io.circe.syntax.*
+import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
+import V.*
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.NftActivity
 
-// import io.leisuremeta.chain.lmscan.common.model.BlockInfo
-// import io.leisuremeta.chain.lmscan.common.model.TxInfo
-// import io.leisuremeta.chain.lmscan.common.model.NftActivity
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.NftActivity
 
-// object Body:
-//   def block = (payload: List[BlockInfo]) =>
-//   // def block = (payload: List[Block]) =>
-//     payload
-//       .map(v =>
-//         div(`class` := "row table-body")(
-//           gen.cell(
-//             Cell.BLOCK_NUMBER(v.hash, v.number),
-//             Cell.AGE(v.createdAt),
-//             Cell.BLOCK_HASH(v.hash),
-//             Cell.PlainLong(v.txCount),
-//           ),
-//         ),
-//       )
+object Body:
+  def block = (payload: List[BlockInfo]) =>
+    // def block = (payload: List[Block]) =>
+    payload
+      .map(v =>
+        div(`class` := "row table-body")(
+          gen.cell(
+            Cell.BLOCK_NUMBER(v.hash, v.number),
+            Cell.AGE(v.createdAt),
+            Cell.BLOCK_HASH(v.hash),
+            Cell.PlainLong(v.txCount),
+          ),
+        ),
+      )
 
 //   def nft = (payload: List[NftActivity]) =>
 //     payload

@@ -73,8 +73,3 @@ object PageUpdate:
         model.copy(observerNumber = safeNumber),
         Cmd.None,
       )
-    // case _ =>
-    //   (
-    //     model.copy(),
-    //     Cmd.None,
-    //   )

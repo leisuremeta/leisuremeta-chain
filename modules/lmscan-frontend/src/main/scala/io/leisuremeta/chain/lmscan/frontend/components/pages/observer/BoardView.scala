@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import io.leisuremeta.chain.lmscan.frontend.Builder.getNumber
 
-object Head:
+object Head2:
   val view = div(`class` := "row table-head")(
     div(`class` := "cell")(span("#")),
     div(`class` := "cell")(span("Page")),
@@ -12,7 +12,7 @@ object Head:
     div(`class` := "cell")(span("page")),
   )
 
-object Body:
+object Body2:
   def view = (model: Model) =>
     model.observers.map(observer =>
       div(
@@ -46,7 +46,7 @@ object BoardView:
       div(`class` := "table-list x", id := "oop-table-blocks")(
         div(`class` := "table-container")(
           div(`class` := "table w-[100%]")(
-            Head.view :: Body.view(model),
+            Head2.view :: Body2.view(model),
           ),
         ),
       ),

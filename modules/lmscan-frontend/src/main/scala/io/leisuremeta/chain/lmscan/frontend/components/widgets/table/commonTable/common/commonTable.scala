@@ -1,18 +1,18 @@
-// package io.leisuremeta.chain.lmscan.frontend
+package io.leisuremeta.chain.lmscan.frontend
 
-// import tyrian.Html.*
-// import tyrian.*
-// import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
+import tyrian.Html.*
+import tyrian.*
+import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
-// import Log.*
+import Log.*
 
-// object Table:
-//   def block = (model: Model) =>
-//     div(`class` := "table w-[100%]")(
-//       Head.block :: Body.block(
-//         DataProcess.block(model),
-//       ),
-//     )
+object Table:
+  def block = (model: Model) =>
+    div(`class` := "table w-[100%]")(
+      Head.block :: Body.block(
+        DataProcess.block(model),
+      ),
+    )
 
 //   def dashboard_txtable = (model: Model) =>
 //     div(`class` := "table w-[100%]")(
