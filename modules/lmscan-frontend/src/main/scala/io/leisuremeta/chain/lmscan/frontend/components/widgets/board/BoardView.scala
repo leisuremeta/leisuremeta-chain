@@ -12,10 +12,7 @@ object Board:
 
 object BoardView:
   def view(model: Model): Html[Msg] =
-    val data: SummaryModel =
-      ApiParser
-        .decodeParser(Builder.getData(model.observers, model.observerNumber))
-        .getOrElse(new SummaryModel)
+    val data = DataProcess.board(model)
 
     div(`class` := "board-area")(
       div(`class` := "board-list x")(
