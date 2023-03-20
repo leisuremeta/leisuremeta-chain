@@ -55,7 +55,7 @@ object PageUpdate:
               ),
             ),
           )
-    case PageMsg.UpdateObserver(page: Int) =>
+    case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = (model.observerNumber - 1) < 1 match
         case true => 1
         case _    => model.observerNumber - 1

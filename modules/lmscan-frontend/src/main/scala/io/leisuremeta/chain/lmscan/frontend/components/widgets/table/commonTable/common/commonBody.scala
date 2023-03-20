@@ -36,7 +36,7 @@ object Body:
             model.observers,
             model.observers.length,
           )}_observer ${model.observerNumber == observer.number}_observer_click",
-        onClick(PageMsg.UpdateObserver(observer.number)),
+        onClick(PageMsg.GotoObserver(observer.number)),
       )(
         div(
           `class` := s"cell type-3 ",
