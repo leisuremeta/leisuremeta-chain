@@ -86,13 +86,13 @@ object OnDataProcess:
         s"$base/summary/main"
       case PageCase.Transactions(_, _) =>
         // s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-        s"$base/tx/list?pageNo=${(1).toString()}&sizePerRequest=10"
+        s"$base/tx/list?pageNo=${(0).toString()}&sizePerRequest=10"
       case PageCase.Blocks(_, _, _) =>
         // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-        s"$base/block/list?pageNo=${(1).toString()}&sizePerRequest=10"
+        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
 
       case _ =>
-        s"$base/block/list?pageNo=${(1).toString()}&sizePerRequest=10"
+        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
       // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
 
       // case PageCase.BlockDetail(hash) =>
