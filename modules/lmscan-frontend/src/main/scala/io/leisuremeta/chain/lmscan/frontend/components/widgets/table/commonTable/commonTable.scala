@@ -25,18 +25,18 @@ object Tables:
           ),
         )
 
+      case PageCase.Transactions(_, _) =>
+        div(`class` := "table-area")(
+          div(`class` := "font-40px pt-16px font-block-detail color-white")(
+            "Transactions",
+          ),
+          div(id := "oop-table-blocks", `class` := "table-list x")(
+            TransactionTable.view(model),
+          ),
+        )
+
       //   case PageName.BlockDetail(_) =>
       //     div(`class` := "table-area ")(
-      //       div(id := "oop-table-blocks", `class` := "table-list x")(
-      //         TransactionTable.view(model),
-      //       ),
-      //     )
-
-      //   case PageName.Transactions(_) =>
-      //     div(`class` := "table-area")(
-      //       div(`class` := "font-40px pt-16px font-block-detail color-white")(
-      //         "Transactions",
-      //       ),
       //       div(id := "oop-table-blocks", `class` := "table-list x")(
       //         TransactionTable.view(model),
       //       ),

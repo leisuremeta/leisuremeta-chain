@@ -13,9 +13,12 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
 import io.leisuremeta.chain.lmscan.frontend.Builder.getData
 
 object DataProcess:
+  val getDataNew = (model: Model) =>
+    Builder.getData(model.observers, model.observerNumber)
+
   def block(model: Model) =
     val data: PageResponse[BlockInfo] = BlockParser
-      .decodeParser(Builder.getData(model.observers, model.observerNumber))
+      .decodeParser(getDataNew(model))
       .getOrElse(new PageResponse(0, 0, List()))
 
     data.payload.toList
@@ -23,9 +26,15 @@ object DataProcess:
   def board(model: Model) =
     val data: SummaryModel =
       ApiParser
-        .decodeParser(Builder.getData(model.observers, model.observerNumber))
+        .decodeParser(getDataNew(model))
         .getOrElse(new SummaryModel)
     data
+
+  def dashboard_tx(model: Model) =
+    val data: PageResponse[TxInfo] = TxParser
+      .decodeParser(getDataNew(model))
+      .getOrElse(new PageResponse(0, 0, List()))
+    data.payload.toList
 
 // def common(model: Model) =
 //   // 현재 상태의 페이지를 가져온다
@@ -83,12 +92,3 @@ object DataProcess:
 //       .decodeParser(model.accountDetailData.get)
 //       .getOrElse(new AccountDetail)
 //     getOptionValue(data.txHistory, List()).asInstanceOf[List[TxInfo]]
-
-//   def dashboard_tx(model: Model) =
-//     // val data: TxList = TxParser.decodeParser(model.txListData.get).getOrElse(new TxList)
-//     // val payload = getOptionValue(data.payload, List()).asInstanceOf[List[Tx]]
-//     // payload
-//     val data: PageResponse[TxInfo] = TxParser
-//       .decodeParser(model.txListData.get)
-//       .getOrElse(new PageResponse(0, 0, List()))
-//     data.payload.toList

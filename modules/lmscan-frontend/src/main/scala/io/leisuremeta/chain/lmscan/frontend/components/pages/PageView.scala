@@ -25,7 +25,10 @@ object Pages:
         )
 
       case PageCase.Transactions(_, _) =>
-        ObserverView.view(model)
+        div()(
+          ObserverView.view(model),
+          TransactionsView.view(model),
+        )
 
       case _ => div("매칭x")
 

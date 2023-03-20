@@ -52,7 +52,22 @@ object Body:
         ),
       ),
     )
-
+  def txlist_txtable = (payload: List[TxInfo]) =>
+    payload
+      .map(v =>
+        div(`class` := "row table-body")(
+          gen.cell(
+            Cell.TX_HASH10(v.hash),
+            // Cell.PlainInt(v.blockNumber),
+            Cell.PlainLong(v.blockNumber),
+            Cell.AGE(v.createdAt),
+            Cell.ACCOUNT_HASH(v.signer),
+            // Cell.PlainStr(v.txType),
+            // Cell.PlainStr(v.tokenType),
+            Cell.Tx_VALUE((v.tokenType, v.value)),
+          ),
+        ),
+      )
 //   def nft = (payload: List[NftActivity]) =>
 //     payload
 //       .map(v =>
@@ -74,22 +89,6 @@ object Body:
 //         div(`class` := "row table-body")(
 //           gen.cell(
 //             Cell.TX_HASH(v.hash),
-//             // Cell.PlainInt(v.blockNumber),
-//             Cell.PlainLong(v.blockNumber),
-//             Cell.AGE(v.createdAt),
-//             Cell.ACCOUNT_HASH(v.signer),
-//             // Cell.PlainStr(v.txType),
-//             // Cell.PlainStr(v.tokenType),
-//             Cell.Tx_VALUE((v.tokenType, v.value)),
-//           ),
-//         ),
-//       )
-//   def txlist_txtable = (payload: List[TxInfo]) =>
-//     payload
-//       .map(v =>
-//         div(`class` := "row table-body")(
-//           gen.cell(
-//             Cell.TX_HASH10(v.hash),
 //             // Cell.PlainInt(v.blockNumber),
 //             Cell.PlainLong(v.blockNumber),
 //             Cell.AGE(v.createdAt),

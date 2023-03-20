@@ -13,17 +13,16 @@ object Table:
         DataProcess.block(model),
       ),
     )
+  def txList_txtable = (model: Model) =>
+    div(`class` := "table w-[100%]")(
+      Head.tx :: Body.txlist_txtable(
+        DataProcess.dashboard_tx(model),
+      ),
+    )
 
 //   def dashboard_txtable = (model: Model) =>
 //     div(`class` := "table w-[100%]")(
 //       Head.tx_dashBoard :: Body.dashboard_txtable(
-//         DataProcess.dashboard_tx(model),
-//       ),
-//     )
-
-//   def txList_txtable = (model: Model) =>
-//     div(`class` := "table w-[100%]")(
-//       Head.tx :: Body.txlist_txtable(
 //         DataProcess.dashboard_tx(model),
 //       ),
 //     )

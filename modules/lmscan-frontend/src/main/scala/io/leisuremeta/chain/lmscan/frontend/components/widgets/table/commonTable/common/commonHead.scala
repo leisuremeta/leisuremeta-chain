@@ -31,17 +31,17 @@ object Head:
 //     ),
 //   )
 
-//   val tx = div(`class` := "row table-head")(
-//     gen.cell(
-//       Cell.Head("Tx Hash"),
-//       Cell.Head("Block"),
-//       Cell.Head("Age"),
-//       Cell.Head("Signer"),
-//       // Cell.Head("Type"),
-//       // Cell.Head("Token Type"),
-//       Cell.Head("Value"),
-//     ),
-//   )
+  val tx = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head("Tx Hash"),
+      Cell.Head("Block"),
+      Cell.Head("Age"),
+      Cell.Head("Signer"),
+      // Cell.Head("Type"),
+      // Cell.Head("Token Type"),
+      Cell.Head("Value"),
+    ),
+  )
 
 //   val tx_dashBoard = div(`class` := "row table-head")(
 //     gen.cell(
