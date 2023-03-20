@@ -58,19 +58,22 @@ object PageCase2:
       subs: List[SubCase],
   ) extends PageCase
 
-  case class Observer(name: String = "Observer", url: String = "Observer")
-      extends PageCase
+  case class Transactions(
+      name: String = "Transactions",
+      url: String = "Transactions",
+      pubs: List[PubCase] = List(PubCase.txPub(1)),
+      subs: List[SubCase],
+  ) extends PageCase
 
   case class Blocks(
       name: String = "Blocks",
       url: String = "Blocks",
-      data: Option[String] = Some(""),
+      pubs: List[PubCase] = List(PubCase.blockPub(1)),
+      subs: List[SubCase],
   ) extends PageCase
 
-  case class Transactions(
-      name: String = "Transactions",
-      url: String = "Transactions",
-  ) extends PageCase
+  case class Observer(name: String = "Observer", url: String = "Observer")
+      extends PageCase
 
   case class NoPage(name: String = "noPage", url: String = "noPage")
       extends PageCase
