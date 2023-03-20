@@ -21,6 +21,7 @@ object PageUpdate:
             model.copy(),
             Cmd.None,
           )
+
         case _ =>
           window.history.pushState(
             // save page to history
@@ -47,8 +48,14 @@ object PageUpdate:
               OnDataProcess.getData(
                 page,
               ),
+            ) ++ Cmd.Batch(
+              OnDataProcess.getData(
+                PageCase.Blocks(),
+              ),
+              OnDataProcess.getData(
+                PageCase.Transactions(),
+              ),
             ),
-            // Cmd.None,
           )
     case PageMsg.UpdateObserver(page: Int) =>
       val safeNumber = (model.observerNumber - 1) < 1 match

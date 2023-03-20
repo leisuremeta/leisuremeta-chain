@@ -7,13 +7,13 @@ object Tables:
   def render(model: Model): Html[Msg] =
     getPage(model.observers, model.observerNumber) match
       case PageCase.DashBoard(_, _) =>
-        div("dkssud?")
-      // div(`class` := "table-area")(
-      //   div(id := "oop-table-blocks", `class` := "table-list x")(
-      //     BlockTable.view(model),
-      //     TransactionTable.view(model),
-      //   ),
-      // )
+        // div("dkssud?")
+        div(`class` := "table-area")(
+          div(id := "oop-table-blocks", `class` := "table-list x")(
+            BlockTable.view(model),
+            TransactionTable.view(model),
+          ),
+        )
 
       case PageCase.Blocks(_, _, _) =>
         div(`class` := "table-area")(
