@@ -12,6 +12,15 @@ object Head:
     ),
   )
 
+  val observer = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head("#"),
+      Cell.Head("page"),
+      Cell.Head("url"),
+      Cell.Head("data"),
+    ),
+  )
+
 //   val nft = div(`class` := "row table-head")(
 //     gen.cell(
 //       Cell.Head("Tx Hash"),

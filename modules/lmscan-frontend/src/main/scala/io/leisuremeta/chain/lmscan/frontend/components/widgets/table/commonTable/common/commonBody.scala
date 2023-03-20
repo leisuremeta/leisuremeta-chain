@@ -13,13 +13,11 @@ import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
+import io.leisuremeta.chain.lmscan.frontend.Builder.getNumber
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Body:
   def block = (payload: List[BlockInfo]) =>
-    log("payload")
-    log(payload)
-    // def block = (payload: List[Block]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
@@ -31,6 +29,29 @@ object Body:
           ),
         ),
       )
+  def observer = (model: Model) =>
+    model.observers.map(observer =>
+      div(
+        `class` := s"row table-body ${observer.number == getNumber(
+            model.observers,
+            model.observers.length,
+          )}_observer ${model.observerNumber == observer.number}_observer_click",
+        onClick(PageMsg.UpdateObserver(observer.number)),
+      )(
+        div(
+          `class` := s"cell type-3 ",
+        )(
+          span()(observer.number.toString()),
+        ),
+        div(`class` := "cell type-3")(
+          span()(observer.pageCase.name),
+        ),
+        div(`class` := "cell")(span(observer.pageCase.url)),
+        div(`class` := "cell")(
+          span()(observer.data),
+        ),
+      ),
+    )
 
 //   def nft = (payload: List[NftActivity]) =>
 //     payload

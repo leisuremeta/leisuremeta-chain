@@ -13,35 +13,35 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
 import io.leisuremeta.chain.lmscan.frontend.Builder.getData
 
 object DataProcess:
-  def common(model: Model) =
-    // 현재 상태의 페이지를 가져온다
-    val observedPage = getPage(model.observers, model.observerNumber)
-    // 현재 상태의 데이터를 가져온다
-    val observedData = getData(model.observers, model.observerNumber)
+  // def common(model: Model) =
+  //   // 현재 상태의 페이지를 가져온다
+  //   val observedPage = getPage(model.observers, model.observerNumber)
+  //   // 현재 상태의 데이터를 가져온다
+  //   val observedData = getData(model.observers, model.observerNumber)
 
-    val processedData = observedPage match
-      case PageCase.Blocks(_, _, _) =>
-        BlockParser
-          .decodeParser(
-            Builder.getData(model.observers, model.observers.length),
-          )
-          .getOrElse(new PageResponse(0, 0, List()))
+  //   val processedData = observedPage match
+  //     case PageCase.Blocks(_, _, _) =>
+  //       BlockParser
+  //         .decodeParser(
+  //           Builder.getData(model.observers, model.observers.length),
+  //         )
+  //         .getOrElse(new PageResponse(0, 0, List()))
 
-      case PageCase.Transactions(_, _) =>
-        TxParser
-          .decodeParser(
-            Builder.getData(model.observers, model.observers.length),
-          )
-          .getOrElse(new PageResponse(0, 0, List()))
+  //     case PageCase.Transactions(_, _) =>
+  //       TxParser
+  //         .decodeParser(
+  //           Builder.getData(model.observers, model.observers.length),
+  //         )
+  //         .getOrElse(new PageResponse(0, 0, List()))
 
-      case _ =>
-        BlockParser
-          .decodeParser(
-            Builder.getData(model.observers, model.observers.length),
-          )
-          .getOrElse(new PageResponse(0, 0, List()))
+  //     case _ =>
+  //       BlockParser
+  //         .decodeParser(
+  //           Builder.getData(model.observers, model.observers.length),
+  //         )
+  //         .getOrElse(new PageResponse(0, 0, List()))
 
-    processedData.payload.toList
+  //   processedData.payload.toList
 
   def block(model: Model) =
     val data: PageResponse[BlockInfo] = BlockParser

@@ -20,7 +20,7 @@ object Pages:
 
       case PageCase.Blocks(_, _, _) =>
         div()(
-          ObserverView.view(model),
+          // ObserverView.view(model),
           BlocksView.view(model),
         )
 
