@@ -5,8 +5,6 @@ import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
-// import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.data
-// import io.leisuremeta.chain.lmscan.frontend.Model.observerNumber
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
