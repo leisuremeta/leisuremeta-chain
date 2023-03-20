@@ -95,3 +95,15 @@ object PageUpdate:
         ),
         Cmd.None,
       )
+// kInfo(None,Some(6d2c247405be7730d79fbd9e7cb809285bf09e2b2db75ec3e6436b7fa459d7ca),None,Some(1679265162)))
+// main.js:51 Uncaught org.scalajs.linker.runtime.UndefinedBehaviorError: java.lang.ClassCastException: number(0) cannot be cast to java.lang.Long
+//     at $throwClassCastException (main.js:51:9)
+//     at $uJ (main.js:518:95)
+//     at $c_Lio_leisuremeta_chain_lmscan_frontend_V$.plainLong__s_Option__T (main.js:8687:16)
+//     at main.js:9134:73
+//     at $c_sjsr_AnonFunction1.apply__O__O (main.js:45223:41)
+//     at $c_sci_ArraySeq.map__F1__sci_ArraySeq (main.js:98987:16)
+//     at $c_sci_ArraySeq.map__F1__O (main.js:99080:15)
+//     at $c_Lio_leisuremeta_chain_lmscan_frontend_gen$.cell__sci_Seq__sci_List (main.js:8810:39)
+//     at f (main.js:6984:27)
+//     at main.js:6993:39
