@@ -9,26 +9,26 @@ object Pages:
     log(Builder.getPage(model.observers, model.observerNumber))
     Builder.getPage(model.observers, model.observerNumber) match
 
-      case PageCase.Observer(_, _) =>
-        ObserverView.view(model)
+      // case PageCase.Observer(_, _) =>
+      //   ObserverView.view(model)
 
-      case PageCase.DashBoard(_, _) =>
-        div()(
-          ObserverView.view(model),
-          DashboardView.view(model),
-        )
+      // case PageCase.DashBoard(_, _) =>
+      //   div()(
+      //     ObserverView.view(model),
+      //     DashboardView.view(model),
+      //   )
 
-      case PageCase.Blocks(_, _, _) =>
+      case PageCase.Blocks(_, _, _, _) =>
         div()(
           ObserverView.view(model),
           BlocksView.view(model),
         )
 
-      case PageCase.Transactions(_, _) =>
-        div()(
-          ObserverView.view(model),
-          TransactionsView.view(model),
-        )
+      // case PageCase.Transactions(_, _) =>
+      //   div()(
+      //     ObserverView.view(model),
+      //     TransactionsView.view(model),
+      //   )
 
       case _ => div("매칭x")
 

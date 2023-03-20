@@ -11,7 +11,7 @@ object Init:
       Model(
         observers = List(
           ObserverState(
-            pageCase = PageCase.Observer(),
+            pageCase = PageCase.Blocks(),
             number = 1,
             data = "",
           ),

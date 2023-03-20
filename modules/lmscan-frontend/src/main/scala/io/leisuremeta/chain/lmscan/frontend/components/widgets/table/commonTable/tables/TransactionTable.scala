@@ -18,11 +18,11 @@ object TransactionTable:
       //       Table.dashboard_txtable(model),
       //     )
 
-      case PageCase.Transactions(_, _) =>
-        div(`class` := "table-container")(
-          Table.txList_txtable(model),
-          //   Search.search_tx(model),
-        )
+      // case PageCase.Transactions(_, _, _, _) =>
+      //   div(`class` := "table-container")(
+      //     Table.txList_txtable(model),
+      //     //   Search.search_tx(model),
+      //   )
 
       //   case PageName.BlockDetail(_) =>
       //     div(`class` := "table-container")(

@@ -18,7 +18,7 @@ case class ApiPayload(page: String)
 
 object UnderDataProcess:
 
-  private def onResponse(page: PageCase): Response => Msg = response =>
+  private def onResponse(pub: PubCase): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
@@ -26,27 +26,11 @@ object UnderDataProcess:
         // PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
         PageMsg.BackObserver
       case Right(json) => {
-        PageMsg.DataUpdate(response.body)
-        // page match
-        //   case PageCase.DashBoard =>
-        //     ""
-        //   case _ =>
-        //     dom.document
-        //       .querySelector("#loader-container")
-        //       .asInstanceOf[HTMLElement]
-        //       .style
-        //       .display = "none"
-
-        // page match
-        //   case PageCase.AccountDetail(_) =>
-        //     log("#?")
-        //     log(s"${page}: ${response.body}")
-        //   case _ => ""
-
-        // page match
-        //   case PageCase.Page64(hash) =>
-        //     PageMsg.DataUpdate(response.body, PageCase.TransactionDetail(hash))
-        //   case _ => PageMsg.DataUpdate(log(response.body), page)
+        PageMsg.DataUpdate(
+          pub match
+            case PubCase.blockPub(_) => SubCase.blockSub(response.body)
+            case _                   => SubCase.blockSub(response.body),
+        )
 
       }
 
@@ -59,9 +43,9 @@ object UnderDataProcess:
     // ApiMsg.GetError(e.toString)
     PageMsg.BackObserver
 
-  def fromHttpResponse(page: PageCase): Decoder[Msg] =
+  def fromHttpResponse(pub: PubCase): Decoder[Msg] =
     // dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
-    Decoder[Msg](onResponse(page), onError)
+    Decoder[Msg](onResponse(pub), onError)
 
 object OnDataProcess:
   // val host = js.Dynamic.global.process.env.BACKEND_URL
@@ -72,7 +56,7 @@ object OnDataProcess:
   var base = js.Dynamic.global.process.env.BASE_API_URL
 
   def getData(
-      page: PageCase,
+      pub: PubCase,
       // payload: ApiPayload = ApiPayload("1"),
   ): Cmd[IO, Msg] =
     // dom.document
@@ -81,35 +65,14 @@ object OnDataProcess:
     //   .style
     //   .display = "block"
 
-    val url = page match
-      case PageCase.DashBoard(_, _) =>
-        s"$base/summary/main"
-      case PageCase.Transactions(_, _) =>
-        // s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-        s"$base/tx/list?pageNo=${(0).toString()}&sizePerRequest=10"
-      case PageCase.Blocks(_, _, _) =>
-        // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+    val url = pub match
+      case PubCase.blockPub(page) =>
+        s"$base/block/list?pageNo=${(page).toString()}&sizePerRequest=10"
 
       case _ =>
         s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
-      // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-
-      // case PageCase.BlockDetail(hash) =>
-      //   s"$base/block/$hash/detail"
-      // case PageCase.TransactionDetail(hash) =>
-      //   s"$base/tx/$hash/detail"
-      // case PageCase.AccountDetail(hash) =>
-      //   s"$base/account/$hash/detail"
-      // case PageCase.NftDetail(hash) =>
-      //   s"$base/nft/$hash/detail"
-      // case PageCase.Page64(hash) =>
-      //   log(s"#page64 $base/tx/$hash/detail")
-      //   s"$base/tx/$hash/detail"
-
-      // case _ => s"$base/summary/main"
 
     Http.send(
       Request.get(url).withTimeout(30.seconds),
-      UnderDataProcess.fromHttpResponse(page),
+      UnderDataProcess.fromHttpResponse(pub),
     )

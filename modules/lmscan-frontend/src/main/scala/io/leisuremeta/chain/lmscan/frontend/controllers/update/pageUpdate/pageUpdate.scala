@@ -5,6 +5,7 @@ import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
+// import io.leisuremeta.chain.lmscan.frontend.ObserverState.pageCase
 // import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.data
 // import io.leisuremeta.chain.lmscan.frontend.Model.observerNumber
 
@@ -16,11 +17,11 @@ object PageUpdate:
     // => #flow2
     case PageMsg.PreUpdate(page: PageCase) =>
       page match
-        case PageCase.NoPage(_, _) =>
-          (
-            model.copy(),
-            Cmd.None,
-          )
+        // case PageCase.NoPage(_, _) =>
+        //   (
+        //     model.copy(),
+        //     Cmd.None,
+        //   )
         case _ =>
           window.history.pushState(
             // save page to history
@@ -43,9 +44,13 @@ object PageUpdate:
                 ),
               ),
             ),
+
+            // pubs
             Cmd.Batch(
-              OnDataProcess.getData(
-                page,
+              page.pubs.map(pub =>
+                OnDataProcess.getData(
+                  pub,
+                ),
               ),
             ),
             // Cmd.None,
@@ -83,27 +88,18 @@ object PageUpdate:
         Cmd.None,
       )
 
-    case PageMsg.DataUpdate(data) =>
+    case PageMsg.DataUpdate(sub: SubCase) =>
       // 가장 최신의 observer 상태 업데이트
       (
         model.copy(observers =
           model.observers.map(observer =>
             observer.number == model.observerNumber match
-              case true => observer.copy(data = data)
-              case _    => observer,
+              case true =>
+                // 여기 고쳐야한다....!!
+                observer
+              // observer.copy(pageCase = observer.copy(pageCase(sub = sub)))
+              case _ => observer,
           ),
         ),
         Cmd.None,
       )
-// kInfo(None,Some(6d2c247405be7730d79fbd9e7cb809285bf09e2b2db75ec3e6436b7fa459d7ca),None,Some(1679265162)))
-// main.js:51 Uncaught org.scalajs.linker.runtime.UndefinedBehaviorError: java.lang.ClassCastException: number(0) cannot be cast to java.lang.Long
-//     at $throwClassCastException (main.js:51:9)
-//     at $uJ (main.js:518:95)
-//     at $c_Lio_leisuremeta_chain_lmscan_frontend_V$.plainLong__s_Option__T (main.js:8687:16)
-//     at main.js:9134:73
-//     at $c_sjsr_AnonFunction1.apply__O__O (main.js:45223:41)
-//     at $c_sci_ArraySeq.map__F1__sci_ArraySeq (main.js:98987:16)
-//     at $c_sci_ArraySeq.map__F1__O (main.js:99080:15)
-//     at $c_Lio_leisuremeta_chain_lmscan_frontend_gen$.cell__sci_Seq__sci_List (main.js:8810:39)
-//     at f (main.js:6984:27)
-//     at main.js:6993:39

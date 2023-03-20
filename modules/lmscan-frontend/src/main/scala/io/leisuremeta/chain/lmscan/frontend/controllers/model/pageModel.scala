@@ -20,53 +20,61 @@ object Builder:
     // 최신 상태에서 page 를 만듦
     getNew(observers, find).data
 
+trait SubCase:
+  def data: String
+
+object SubCase:
+  case class txSub(data: String)    extends SubCase
+  case class blockSub(data: String) extends SubCase
+
+  case class txDetailSub(data: String)      extends SubCase
+  case class accountDetailSub(data: String) extends SubCase
+  case class nftDetailSub(data: String)     extends SubCase
+  case class blockDetailSub(data: String)   extends SubCase
+  case class None(data: String = "")        extends SubCase
+
+trait PubCase:
+  def page: Int
+
+object PubCase:
+  case class txPub(page: Int)            extends PubCase
+  case class blockPub(page: Int)         extends PubCase
+  case class txDetailPub(page: Int)      extends PubCase
+  case class accountDetailPub(page: Int) extends PubCase
+  case class nftDetailPub(page: Int)     extends PubCase
+  case class blockDetailPub(page: Int)   extends PubCase
+
 trait PageCase:
   def name: String
   def url: String
-
-  // def page: Int
+  def subs: List[SubCase]
+  def pubs: List[PubCase]
 
 object PageCase:
 
-  case class DashBoard(name: String = "DashBoard", url: String = "DashBoard")
-      extends PageCase
+  // case class DashBoard(
+  //     name: String = "DashBoard",
+  //     url: String = "DashBoard",
+  //     pubs: List[PubCase] = List(PubCase.txPub(1), PubCase.blockPub(1)),
+  //     subs: List[SubCase],
+  // ) extends PageCase
 
-  case class Observer(name: String = "Observer", url: String = "Observer")
-      extends PageCase
+  // case class Transactions(
+  //     name: String = "Transactions",
+  //     url: String = "Transactions",
+  //     pubs: List[PubCase] = List(PubCase.txPub(1)),
+  //     subs: List[SubCase],
+  // ) extends PageCase
 
   case class Blocks(
       name: String = "Blocks",
       url: String = "Blocks",
-      data: Option[String] = Some(""),
+      pubs: List[PubCase] = List(PubCase.blockPub(1)),
+      subs: List[SubCase] = List(SubCase.None()),
   ) extends PageCase
 
-  case class Transactions(
-      name: String = "Transactions",
-      url: String = "Transactions",
-  ) extends PageCase
+  // case class Observer(name: String = "Observer", url: String = "Observer")
+  //     extends PageCase2
 
-  case class NoPage(name: String = "noPage", url: String = "noPage")
-      extends PageCase
-
-// case class Datas(
-//     txData: String = "",
-//     blockData: String = "",
-//     apiData: String = "",
-//     txDetailData: String = "",
-//     blockDetailData: String = "",
-//     nftDetailData: String = "",
-// )
-
-// case class ObserverState(
-//     pageCase: PageCase,
-//     number: Int,
-//     data: String,
-//     datas: Datas = Datas(),
-// )
-
-// final case class Model(
-//     observers: List[ObserverState],
-//     observerNumber: Int,
-//     // blockListData: Option[String] = Some(""),
-//     // curPage: PageCase,
-// )
+  // case class NoPage(name: String = "noPage", url: String = "noPage")
+  //     extends PageCase2

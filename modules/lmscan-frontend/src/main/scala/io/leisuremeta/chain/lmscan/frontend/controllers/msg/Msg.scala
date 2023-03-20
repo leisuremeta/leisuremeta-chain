@@ -11,4 +11,4 @@ enum PageMsg extends Msg:
   case BackObserver            extends PageMsg
 
   // 데이터 업데이트
-  case DataUpdate(data: String) extends PageMsg
+  case DataUpdate(sub: SubCase) extends PageMsg
