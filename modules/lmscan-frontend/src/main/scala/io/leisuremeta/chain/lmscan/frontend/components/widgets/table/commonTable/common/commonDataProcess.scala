@@ -6,7 +6,6 @@ import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 import V.*
-// import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 
 import Log.*
 import io.leisuremeta.chain.lmscan.common.model.*
@@ -42,17 +41,9 @@ object DataProcess:
           )
           .getOrElse(new PageResponse(0, 0, List()))
 
-    // val data: PageResponse[BlockInfo] = BlockParser
-    //   .decodeParser(Builder.getData(model.observers, model.observers.length))
-    //   .getOrElse(new PageResponse(0, 0, List()))
-
     processedData.payload.toList
 
   def block(model: Model) =
-    // val data: BlockList = BlockParser.decodeParser(model.blockListData.get).getOrElse(new BlockList)
-    // val payload = getOptionValue(data.payload, List()).asInstanceOf[List[Block]]
-    // payload
-
     val data: PageResponse[BlockInfo] = BlockParser
       .decodeParser(Builder.getData(model.observers, model.observerNumber))
       .getOrElse(new PageResponse(0, 0, List()))
