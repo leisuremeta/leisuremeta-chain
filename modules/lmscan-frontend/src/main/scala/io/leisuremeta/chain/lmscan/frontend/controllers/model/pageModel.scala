@@ -51,6 +51,12 @@ trait PageCase:
   def subs: List[SubCase]
 
 object PageCase:
+  case class Blocks(
+      name: String = "Blocks",
+      url: String = "Blocks",
+      pubs: List[PubCase] = List(PubCase.blockPub(1)),
+      subs: List[SubCase] = List(SubCase.None()),
+  ) extends PageCase
 
   // case class DashBoard(
   //     name: String = "DashBoard",
@@ -65,13 +71,6 @@ object PageCase:
   //     pubs: List[PubCase] = List(PubCase.txPub(1)),
   //     subs: List[SubCase],
   // ) extends PageCase
-
-  case class Blocks(
-      name: String = "Blocks",
-      url: String = "Blocks",
-      pubs: List[PubCase] = List(PubCase.blockPub(1)),
-      subs: List[SubCase] = List(SubCase.None()),
-  ) extends PageCase
 
   // case class Observer(name: String = "Observer", url: String = "Observer")
   //     extends PageCase2

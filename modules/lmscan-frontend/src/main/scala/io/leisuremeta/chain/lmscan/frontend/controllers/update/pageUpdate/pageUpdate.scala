@@ -5,6 +5,8 @@ import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
+import io.leisuremeta.chain.lmscan.frontend.Log.log
+// import io.leisuremeta.chain.lmscan.frontend.ObserverState.pageCase
 // import io.leisuremeta.chain.lmscan.frontend.ObserverState.pageCase
 // import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.data
 // import io.leisuremeta.chain.lmscan.frontend.Model.observerNumber
@@ -93,11 +95,18 @@ object PageUpdate:
       (
         model.copy(observers =
           model.observers.map(observer =>
-            observer.number == model.observerNumber match
+            observer.number == model.observers.length match
+
+              // 가장최신의 데이터인경우 => sub 를 pagecase의 subs에 넣어준다
               case true =>
-                // 여기 고쳐야한다....!!
-                observer
-              // observer.copy(pageCase = observer.copy(pageCase(sub = sub)))
+                // observer
+                val newSubs      = sub :: observer.pageCase.subs
+                val newSubs_case = observer.pageCase
+                observer.copy(pageCase = observer.pageCase match
+                  case PageCase.Blocks(_, _, _, _) =>
+                    PageCase.Blocks(subs = newSubs),
+                )
+
               case _ => observer,
           ),
         ),
