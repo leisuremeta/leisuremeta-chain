@@ -31,6 +31,7 @@ object SubCase:
   case class accountDetailSub(data: String) extends SubCase
   case class nftDetailSub(data: String)     extends SubCase
   case class blockDetailSub(data: String)   extends SubCase
+  case class None(data: String = "")        extends SubCase
 
 trait PubCase:
   def page: Int
@@ -56,24 +57,24 @@ object PageCase2:
       url: String = "DashBoard",
       pubs: List[PubCase] = List(PubCase.txPub(1), PubCase.blockPub(1)),
       subs: List[SubCase],
-  ) extends PageCase
+  ) extends PageCase2
 
   case class Transactions(
       name: String = "Transactions",
       url: String = "Transactions",
       pubs: List[PubCase] = List(PubCase.txPub(1)),
       subs: List[SubCase],
-  ) extends PageCase
+  ) extends PageCase2
 
   case class Blocks(
       name: String = "Blocks",
       url: String = "Blocks",
       pubs: List[PubCase] = List(PubCase.blockPub(1)),
       subs: List[SubCase],
-  ) extends PageCase
+  ) extends PageCase2
 
-  case class Observer(name: String = "Observer", url: String = "Observer")
-      extends PageCase
+  // case class Observer(name: String = "Observer", url: String = "Observer")
+  //     extends PageCase2
 
-  case class NoPage(name: String = "noPage", url: String = "noPage")
-      extends PageCase
+  // case class NoPage(name: String = "noPage", url: String = "noPage")
+  //     extends PageCase2

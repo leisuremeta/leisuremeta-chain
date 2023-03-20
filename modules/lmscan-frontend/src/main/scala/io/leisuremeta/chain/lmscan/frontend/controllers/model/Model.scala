@@ -14,6 +14,7 @@ case class Datas(
 
 case class ObserverState(
     pageCase: PageCase,
+    // pageCase2: PageCase2,
     number: Int,
     data: String,
     datas: Datas = Datas(),
