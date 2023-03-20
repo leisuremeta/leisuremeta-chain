@@ -47,6 +47,8 @@ object Body:
           span()(observer.pageCase.name),
         ),
         div(`class` := "cell")(span(observer.pageCase.url)),
+        div(`class` := "cell")(span(observer.pageCase.pubs.toString())),
+        div(`class` := "cell")(span(observer.pageCase.subs.toString())),
         div(`class` := "cell")(
           span()(observer.data),
         ),

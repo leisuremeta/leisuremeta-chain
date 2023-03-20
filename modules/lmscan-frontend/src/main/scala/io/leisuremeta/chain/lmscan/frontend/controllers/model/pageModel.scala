@@ -47,8 +47,8 @@ object PubCase:
 trait PageCase:
   def name: String
   def url: String
-  def subs: List[SubCase]
   def pubs: List[PubCase]
+  def subs: List[SubCase]
 
 object PageCase:
 
