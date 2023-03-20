@@ -8,10 +8,12 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 // import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.data
 // import io.leisuremeta.chain.lmscan.frontend.Model.observerNumber
 
-case class ObserverState(pageCase: PageCase, number: Int, data: String)
-
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
+    // #flow1 ::
+    // - Observers 에 새로운 ObserverState 를 추가한다
+    // - observerNumber 를 최신으로 업데이트 한다
+    // => #flow2
     case PageMsg.PreUpdate(page: PageCase) =>
       page match
         case PageCase.NoPage(_, _) =>
@@ -43,7 +45,7 @@ object PageUpdate:
             ),
             Cmd.Batch(
               OnDataProcess.getData(
-                PageCase.Blocks(),
+                page,
               ),
             ),
             // Cmd.None,

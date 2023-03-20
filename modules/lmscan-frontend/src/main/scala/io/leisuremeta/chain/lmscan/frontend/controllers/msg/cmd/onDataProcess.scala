@@ -82,17 +82,19 @@ object OnDataProcess:
     //   .display = "block"
 
     val url = page match
-      // case PageCase.DashBoard =>
-      //   s"$base/summary/main"
-      // case PageCase.Transactions(page) =>
-      //   s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+      case PageCase.DashBoard(_, _) =>
+        s"$base/summary/main"
+      case PageCase.Transactions(_, _) =>
+        // s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+        s"$base/tx/list?pageNo=${(1).toString()}&sizePerRequest=10"
       case PageCase.Blocks(_, _, _) =>
         // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
         s"$base/block/list?pageNo=${(1).toString()}&sizePerRequest=10"
 
       case _ =>
-        // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
         s"$base/block/list?pageNo=${(1).toString()}&sizePerRequest=10"
+      // s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+
       // case PageCase.BlockDetail(hash) =>
       //   s"$base/block/$hash/detail"
       // case PageCase.TransactionDetail(hash) =>
