@@ -9,15 +9,15 @@ import Log.*
 object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
-      Head.block :: Body.block(
-        DataProcess.block(model),
-      ),
+      // Head.block :: Body.block(
+      //   DataProcess.block(model),
+      // ),
     )
   def txList_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
-      Head.tx :: Body.txlist_txtable(
-        DataProcess.dashboard_tx(model),
-      ),
+      // Head.tx :: Body.txlist_txtable(
+      //   DataProcess.dashboard_tx(model),
+      // ),
     )
 
 //   def dashboard_txtable = (model: Model) =>
