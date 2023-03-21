@@ -325,6 +325,17 @@ object StateReadService:
                 totalAmount = amount,
                 unused = Map(txHash -> txWithResult),
               )
+            case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
+              val amount = txWithResult.result.fold(BigNat.Zero) {
+                case Transaction.RewardTx.ExecuteOwnershipRewardResult(outputs) =>
+                  outputs.get(account).getOrElse(BigNat.Zero)
+                case _ => BigNat.Zero
+              }
+              BalanceInfo(
+                totalAmount = amount,
+                unused = Map(txHash -> txWithResult),
+              )
+
 
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>

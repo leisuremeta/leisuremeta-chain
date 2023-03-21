@@ -76,29 +76,30 @@ object JvmClientMain extends IOApp:
     ),
   )
 
-//  val tx: Transaction = Transaction.RewardTx.BuildSnapshot(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-//    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
-//  )
+  val tx1: Transaction = Transaction.RewardTx.BuildSnapshot(
+    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
+    accountAmount = BigNat.Zero,
+    tokenAmount = BigNat.Zero,
+    ownershipAmount = BigNat.unsafeFromBigInt(BigInt(100000) * BigInt(10).pow(18)),
+  )
 
-//  val lm = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-//
-//  def txHash(bytes: ByteVector): Signed.TxHash =
-//    Hash.Value[Signed.Tx](UInt256.from(bytes).toOption.get)
-//
-//  val tx: Transaction = Transaction.RewardTx.ExecuteAccountReward(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-//    inputDefinitionId = lm,
-//    inputs = Set(
-//      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"),
-//    ),
-//    targets = Set(alice, bob, carol),
-//    amountPerPoint = BigNat.unsafeFromLong(10),
-//  )
-    
-  val signedTx = signAlice(tx)
+  val LM = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+
+  def txHash(bytes: ByteVector): Signed.TxHash =
+    Hash.Value[Signed.Tx](UInt256.from(bytes).toOption.get)
+
+  val tx2: Transaction = Transaction.RewardTx.ExecuteOwnershipReward(
+    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+    inputs = Set(
+      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"),
+    ),
+    targets = Set(TokenId(Utf8.unsafeFrom("1234567890")), TokenId(Utf8.unsafeFrom("1234567891"))),
+  )
+
+  val signedTx = signAlice(tx2)
 
   val json = Seq(signedTx).asJson.spaces2
 
@@ -117,7 +118,7 @@ object JvmClientMain extends IOApp:
           )
 
           println(json)
-          println(Seq(tx.toHash).asJson.noSpaces)
+          println(Seq(tx2.toHash).asJson.noSpaces)
 
           IO.unit.as(ExitCode.Success)
 
