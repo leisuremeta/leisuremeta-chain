@@ -69,9 +69,10 @@ object PageUpdate:
     case PageMsg.DataUpdate(sub: SubCase) =>
       (
         // 가장최신의 데이터 상태를 검색하여 업데이트
+        // pub 에 맞는 sub 을 찾게 해주는게 더 정확할것 같다
         model.copy(observers =
           model.observers.map(observer =>
-            observer.number == model.observers.length match
+            observer.number == model.observerNumber match
               case true =>
                 observer.copy(pageCase = observer.pageCase match
                   case PageCase.Blocks(_, _, _, _) =>
