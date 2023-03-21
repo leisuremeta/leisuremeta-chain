@@ -5,13 +5,14 @@ import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
 import Log.*
+import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
 
 object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
-      // Head.block :: Body.block(
-      //   DataProcess.block(model),
-      // ),
+      Head.block :: Body.block(
+        getPage(model.observers).pubs.takeRight(1)(0).pub_m2.payload.toList,
+      ),
     )
   def txList_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(

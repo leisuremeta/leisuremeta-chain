@@ -9,7 +9,7 @@ object BlockTable:
       Title.block(model),
       Table.block(model), {
         getPage(model.observers, model.observerNumber) match
-          case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
-          case _                           => div()
+          case PageCase.Blocks(_, _, _, pub_m2) => Search.search_block(model)
+          case _                                => div()
       },
     )
