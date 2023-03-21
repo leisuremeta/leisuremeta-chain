@@ -58,14 +58,30 @@ object Body:
         // : pub_m1
         div(`class` := "cell")(
           span(
-            observer.pageCase.pubs.takeRight(1)(0).pub_m1.toString().take(150),
+            observer.pageCase.pubs
+              .map(d => d.pub_m1)
+              .reduce((a, b) => a + b),
+
+              // observer.pageCase.pubs
+              //   .takeRight(1)(0)
+              //   .pub_m1
+              //   .toString(),
+              // .take(150),
           ),
         ),
 
         // : pub_m2
         div(`class` := "cell")(
           span(
-            observer.pageCase.pubs.takeRight(1)(0).pub_m2.toString().take(150),
+            observer.pageCase.pubs
+              .map(d => d.pub_m2.toString())
+              .reduce((a, b) => a + b),
+
+              // observer.pageCase.pubs
+              //   .takeRight(1)(0)
+              //   .pub_m2
+              //   .toString(),
+              // .take(150),
           ),
         ),
 
