@@ -32,23 +32,23 @@ object PubCase:
   case class blockDetailPub(page: Int)   extends PubCase
   case class NonePub(page: Int = 1)      extends PubCase
 
-trait SubCase:
+trait PubCase_M1:
   def data: String
 
-object SubCase:
-  case class txSub(data: String)            extends SubCase
-  case class blockSub(data: String)         extends SubCase
-  case class txDetailSub(data: String)      extends SubCase
-  case class accountDetailSub(data: String) extends SubCase
-  case class nftDetailSub(data: String)     extends SubCase
-  case class blockDetailSub(data: String)   extends SubCase
-  case class NoneSub(data: String = "")     extends SubCase
+object PubCase_M1:
+  case class txSub(data: String)            extends PubCase_M1
+  case class blockSub(data: String)         extends PubCase_M1
+  case class txDetailSub(data: String)      extends PubCase_M1
+  case class accountDetailSub(data: String) extends PubCase_M1
+  case class nftDetailSub(data: String)     extends PubCase_M1
+  case class blockDetailSub(data: String)   extends PubCase_M1
+  case class NoneSub(data: String = "")     extends PubCase_M1
 
 trait PageCase:
   def name: String
   def url: String
   def pubs: List[PubCase]
-  def subs: List[SubCase]
+  def subs: List[PubCase_M1]
   def status: Boolean
   def pubsub: List[PageResponse[BlockInfo]] // todo :: fix
 
@@ -57,7 +57,7 @@ object PageCase:
       name: String = "Blocks",
       url: String = "Blocks",
       pubs: List[PubCase] = List(PubCase.blockPub(1)),
-      subs: List[SubCase] = List(SubCase.NoneSub()),
+      subs: List[PubCase_M1] = List(PubCase_M1.NoneSub()),
       status: Boolean = false,
       pubsub: List[PageResponse[BlockInfo]] = List(
         new PageResponse(0, 0, List()),
