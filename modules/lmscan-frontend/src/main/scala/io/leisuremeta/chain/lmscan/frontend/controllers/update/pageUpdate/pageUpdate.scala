@@ -6,10 +6,6 @@ import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-// import io.leisuremeta.chain.lmscan.frontend.ObserverState.pageCase
-// import io.leisuremeta.chain.lmscan.frontend.ObserverState.pageCase
-// import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.data
-// import io.leisuremeta.chain.lmscan.frontend.Model.observerNumber
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -35,12 +31,10 @@ object PageUpdate:
           (
             model.copy(
               // curPage = page,
-              observerNumber =
-                getNumber(model.observers, model.observers.length) + 1,
+              observerNumber = getNumber(model.observers),
               observers = model.observers ++ Seq(
                 ObserverState(
-                  number =
-                    getNumber(model.observers, model.observers.length) + 1,
+                  number = getNumber(model.observers) + 1,
                   pageCase = page,
                   data = "",
                 ),

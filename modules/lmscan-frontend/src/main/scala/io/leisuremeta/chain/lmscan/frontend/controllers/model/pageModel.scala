@@ -5,20 +5,33 @@ import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Builder:
-  def getNew(observers: List[ObserverState], find: Int) =
-    log(observers.filter(o => o.number == find))
-    observers.takeRight(1)(0)
+  def getObserver(observers: List[ObserverState], find: Int) =
+    // find 가 0이면 가장 최신 옵져버로 검색할수 있게 해준다
+    val _find = find match
+      case 0 => observers.length
+      case _ => find
     observers.filter(o => o.number == find)(0)
-  def getPage(observers: List[ObserverState], find: Int) =
-    // 최신 상태에서 page 를 만듦
-    getNew(observers, find).pageCase
-  def getNumber(observers: List[ObserverState], find: Int) =
-    // 최신 상태에서 page 를 만듦
-    getNew(observers, find).number
 
-  def getData(observers: List[ObserverState], find: Int) =
-    // 최신 상태에서 page 를 만듦
-    getNew(observers, find).data
+  def getPage(observers: List[ObserverState], find: Int = 0) =
+    getObserver(observers, find).pageCase
+
+  def getNumber(observers: List[ObserverState], find: Int = 0) =
+    getObserver(observers, find).number
+
+  def getData(observers: List[ObserverState], find: Int = 0) =
+    getObserver(observers, find).data
+
+trait PubCase:
+  def page: Int
+
+object PubCase:
+  case class txPub(page: Int)            extends PubCase
+  case class blockPub(page: Int)         extends PubCase
+  case class txDetailPub(page: Int)      extends PubCase
+  case class accountDetailPub(page: Int) extends PubCase
+  case class nftDetailPub(page: Int)     extends PubCase
+  case class blockDetailPub(page: Int)   extends PubCase
+  case class NonePub(page: Int = 1)      extends PubCase
 
 trait SubCase:
   def data: String
@@ -31,18 +44,7 @@ object SubCase:
   case class accountDetailSub(data: String) extends SubCase
   case class nftDetailSub(data: String)     extends SubCase
   case class blockDetailSub(data: String)   extends SubCase
-  case class None(data: String = "")        extends SubCase
-
-trait PubCase:
-  def page: Int
-
-object PubCase:
-  case class txPub(page: Int)            extends PubCase
-  case class blockPub(page: Int)         extends PubCase
-  case class txDetailPub(page: Int)      extends PubCase
-  case class accountDetailPub(page: Int) extends PubCase
-  case class nftDetailPub(page: Int)     extends PubCase
-  case class blockDetailPub(page: Int)   extends PubCase
+  case class NoneSub(data: String = "")     extends SubCase
 
 trait PageCase:
   def name: String
@@ -55,7 +57,7 @@ object PageCase:
       name: String = "Blocks",
       url: String = "Blocks",
       pubs: List[PubCase] = List(PubCase.blockPub(1)),
-      subs: List[SubCase] = List(SubCase.None()),
+      subs: List[SubCase] = List(SubCase.NoneSub()),
   ) extends PageCase
 
   // case class DashBoard(
