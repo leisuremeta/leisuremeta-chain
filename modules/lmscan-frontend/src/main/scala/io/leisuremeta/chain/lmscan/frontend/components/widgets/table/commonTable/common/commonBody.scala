@@ -38,28 +38,35 @@ object Body:
           )}_observer ${model.observerNumber == observer.number}_observer_click",
         onClick(PageMsg.GotoObserver(observer.number)),
       )(
+        // #
         div(
           `class` := s"cell type-3 ",
         )(
           span()(observer.number.toString()),
         ),
+        // name
         div(`class` := "cell type-3")(
           span()(observer.pageCase.name),
         ),
+
+        // url
         div(`class` := "cell")(span(observer.pageCase.url)),
-        // div(`class` := "cell")(span(observer.pageCase.pubs.toString())),
+
+        // :page
         div(`class` := "cell")(span(observer.pageCase.pubs(0).page.toString())),
+
+        // : pub_m1
         div(`class` := "cell")(
-          span(observer.pageCase.pubs(0).pub_m1.toString()),
+          span(
+            observer.pageCase.pubs.takeRight(1)(0).pub_m1.toString().take(150),
+          ),
         ),
+
+        // : pub_m2
         div(`class` := "cell")(
-          span(observer.pageCase.pubs(0).pub_m2.toString()),
-        ),
-        div(`class` := "cell")(
-          span(observer.pageCase.pubs.toString()),
-        ),
-        div(`class` := "cell")(
-          span(observer.pageCase.pubs.takeRight(1).toString()),
+          span(
+            observer.pageCase.pubs.takeRight(1)(0).pub_m2.toString().take(150),
+          ),
         ),
 
         // div(`class` := "cell")(span(observer.pageCase.pubs(0).)),

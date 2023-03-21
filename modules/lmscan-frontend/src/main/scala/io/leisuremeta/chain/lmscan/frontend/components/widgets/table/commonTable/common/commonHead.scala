@@ -15,11 +15,11 @@ object Head:
   val observer = div(`class` := "row table-head")(
     gen.cell(
       Cell.Head("#"),
-      Cell.Head("page:name"),
-      Cell.Head("page:url"),
-      Cell.Head("page:pubCase0:page"),
-      Cell.Head("page:pubCase0:pub_m1"),
-      Cell.Head("page:pubCase0:pub_m2"),
+      Cell.Head("name"),
+      Cell.Head("url"),
+      Cell.Head(":page"),
+      Cell.Head(":pub_m1"),
+      Cell.Head(":pub_m2"),
     ),
   )
 
