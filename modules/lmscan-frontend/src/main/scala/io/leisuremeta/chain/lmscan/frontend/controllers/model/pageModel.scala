@@ -47,6 +47,8 @@ trait PageCase:
   def url: String
   def pubs: List[PubCase]
   def subs: List[SubCase]
+  // def status: Boolean
+  // def pubsub: List[SubCase]
 
 object PageCase:
   case class Blocks(
