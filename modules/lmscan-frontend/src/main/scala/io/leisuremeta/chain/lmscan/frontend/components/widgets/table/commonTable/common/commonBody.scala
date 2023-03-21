@@ -52,6 +52,9 @@ object Body:
         // url
         div(`class` := "cell")(span(observer.pageCase.url)),
 
+        // pubs
+        div(`class` := "cell")(span(observer.pageCase.pubs.length.toString())),
+
         // :page
         div(`class` := "cell")(span(observer.pageCase.pubs(0).page.toString())),
 
