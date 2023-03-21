@@ -18,7 +18,7 @@ object ReducePipe:
       .filter(d =>
         d.pub_m2 match
           case block: PageResponse[BlockInfo] => true,
-          // case _                          => false,
+          // case _                              => false,
       )(0)
       .pub_m2
       .payload

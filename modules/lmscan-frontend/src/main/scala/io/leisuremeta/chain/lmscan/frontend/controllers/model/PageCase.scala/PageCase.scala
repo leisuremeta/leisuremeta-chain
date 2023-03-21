@@ -17,3 +17,12 @@ object PageCase:
       ),
       status: Boolean = false,
   ) extends PageCase
+
+  // case class Transactions(
+  //     name: String = "Transactions",
+  //     url: String = "Transactions",
+  //     pubs: List[PubCase] = List(
+  //       PubCase.txPub(1, "", PageResponse[TxInfo](0, 0, List())),
+  //     ),
+  //     status: Boolean = false,
+  // ) extends PageCase

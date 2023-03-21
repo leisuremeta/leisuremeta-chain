@@ -15,6 +15,12 @@ object PubCase:
         new PageResponse[BlockInfo](0, 0, List()),
   ) extends PubCase
 
+  // case class txPub(
+  //     page: Int = 1,
+  //     pub_m1: String = "",
+  //     pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
+  // ) extends PubCase
+
   // case class txPub(page: Int, pub_m1: String, pub_m2: PageResponse[TxInfo])
   //     extends PubCase
   // case class txDetailPub(page: Int)      extends PubCase
