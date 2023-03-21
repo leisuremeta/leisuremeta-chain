@@ -67,19 +67,16 @@ object PageUpdate:
       )
 
     case PageMsg.DataUpdate(sub: SubCase) =>
-      // 가장 최신의 observer 상태 업데이트
       (
+        // 가장최신의 데이터 상태를 검색하여 업데이트
         model.copy(observers =
           model.observers.map(observer =>
             observer.number == model.observers.length match
-
-              // 가장최신의 데이터인경우 => sub 를 pagecase의 subs에 넣어준다
               case true =>
                 observer.copy(pageCase = observer.pageCase match
                   case PageCase.Blocks(_, _, _, _) =>
                     PageCase.Blocks(subs = observer.pageCase.subs ++ List(sub)),
                 )
-
               case _ => observer,
           ),
         ),
