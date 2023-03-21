@@ -6,7 +6,7 @@ import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-// import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.pubsub
+// import io.leisuremeta.chain.lmscan.frontend.PageCase.*
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 
 object PageUpdate:
@@ -67,7 +67,7 @@ object PageUpdate:
         Cmd.None,
       )
 
-    case PageMsg.DataUpdate(pubCase_m1: PubCase_M1) =>
+    case PageMsg.DataUpdate(pub: PubCase) =>
       (
         // 가장최신의 데이터 상태를 검색하여 업데이트
         // pub 에 맞는 sub 을 찾게 해주는게 더 정확할것 같다
@@ -76,9 +76,9 @@ object PageUpdate:
             observer.number == model.observerNumber match
               case true =>
                 observer.copy(pageCase = observer.pageCase match
-                  case PageCase.Blocks(_, _, _, _, _) =>
+                  case PageCase.Blocks(_, _, _, _) =>
                     PageCase.Blocks(
-                      pubs_m1 = observer.pageCase.pubs_m1 ++ List(pubCase_m1),
+                      pubs = observer.pageCase.pubs ++ List(pub),
                     ),
                 )
               case _ => observer,

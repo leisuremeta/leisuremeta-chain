@@ -28,8 +28,9 @@ object UnderDataProcess:
       case Right(json) => {
         PageMsg.DataUpdate(
           pub match
-            case PubCase.blockPub(_) => PubCase_M1.block(response.body)
-            case _                   => PubCase_M1.block(response.body),
+            case PubCase.blockPub(_, _, _) =>
+              PubCase.blockPub(pub_m1 = response.body)
+            case _ => PubCase.blockPub(pub_m1 = response.body),
         )
 
       }
@@ -66,8 +67,8 @@ object OnDataProcess:
     //   .display = "block"
 
     val url = pub match
-      case PubCase.blockPub(page) =>
-        s"$base/block/list?pageNo=${(page).toString()}&sizePerRequest=10"
+      case PubCase.blockPub(_, _, _) =>
+        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
 
       case _ =>
         s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
