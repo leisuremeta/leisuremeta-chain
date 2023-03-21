@@ -19,6 +19,10 @@ object Table:
       //   DataProcess.dashboard_tx(model),
       // ),
     )
+  def observer_table = (model: Model) =>
+    div(`class` := "table w-[100%]")(
+      Head.observer :: Body.observer(model),
+    )
 
 //   def dashboard_txtable = (model: Model) =>
 //     div(`class` := "table w-[100%]")(

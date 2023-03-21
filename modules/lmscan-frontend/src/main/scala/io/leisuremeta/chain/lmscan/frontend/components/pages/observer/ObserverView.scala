@@ -13,7 +13,7 @@ object ObserverView:
           div(`class` := "table-list x", id := "oop-table-blocks")(
             div(`class` := "table-container")(
               div(`class` := "table w-[100%]")(
-                Head.observer :: Body.observer(model),
+                Table.observer_table(model),
               ),
             ),
           ),

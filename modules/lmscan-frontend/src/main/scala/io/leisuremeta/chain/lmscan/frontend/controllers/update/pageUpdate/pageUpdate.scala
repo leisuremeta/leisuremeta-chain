@@ -6,6 +6,8 @@ import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+// import io.leisuremeta.chain.lmscan.frontend.PageCase.Blocks.pubsub
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -75,10 +77,32 @@ object PageUpdate:
               case true =>
                 observer.copy(pageCase = observer.pageCase match
                   case PageCase.Blocks(_, _, _, _, _, _) =>
-                    PageCase.Blocks(subs = observer.pageCase.subs ++ List(sub)),
+                    PageCase.Blocks(
+                      subs = observer.pageCase.subs ++ List(sub),
+                      pubsub = observer.pageCase.pubsub ++ List(sub)
+                      //
+                        .map(d =>
+                          d match
+                            case SubCase.blockSub(data) =>
+                              BlockParser
+                                .decodeParser(data)
+                                .getOrElse(new PageResponse(0, 0, List())),
+                        )
+                        .filter(d =>
+                          d match
+                            case PageResponse[BlockInfo] => true
+                            case _                       => false,
+                        ),
+                    ),
                 )
               case _ => observer,
           ),
         ),
         Cmd.None,
       )
+
+    //  .filter(d =>
+    //                 d match
+    //                   case SubCase.blockSub(_) => true
+    //                   case _                   => false,
+    //               )
