@@ -13,7 +13,7 @@ object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.block :: Body.block(
-        getPage(model.observers).pubs
+        getPage(model.observers).pubs.reverse
           .filter(d =>
             d.pub_m2 match
               case block: PageResponse[BlockInfo] => true,
