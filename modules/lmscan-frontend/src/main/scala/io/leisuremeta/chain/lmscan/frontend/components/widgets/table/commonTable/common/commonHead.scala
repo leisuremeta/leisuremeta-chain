@@ -19,6 +19,8 @@ object Head:
       Cell.Head("page:url"),
       Cell.Head("page:pubs"),
       Cell.Head("page:subs"),
+      Cell.Head("page:pubsub"),
+      Cell.Head("page:status"),
     ),
   )
 

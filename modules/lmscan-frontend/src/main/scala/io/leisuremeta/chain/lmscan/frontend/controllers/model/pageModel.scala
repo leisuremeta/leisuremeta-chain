@@ -3,6 +3,7 @@ import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object Builder:
   def getObserver(observers: List[ObserverState], find: Int) =
@@ -47,8 +48,8 @@ trait PageCase:
   def url: String
   def pubs: List[PubCase]
   def subs: List[SubCase]
-  // def status: Boolean
-  // def pubsub: List[SubCase]
+  def status: Boolean
+  def pubsub: List[BlockInfo]
 
 object PageCase:
   case class Blocks(
@@ -56,6 +57,8 @@ object PageCase:
       url: String = "Blocks",
       pubs: List[PubCase] = List(PubCase.blockPub(1)),
       subs: List[SubCase] = List(SubCase.NoneSub()),
+      status: Boolean = false,
+      pubsub: List[BlockInfo] = List(new BlockInfo),
   ) extends PageCase
 
   // case class DashBoard(

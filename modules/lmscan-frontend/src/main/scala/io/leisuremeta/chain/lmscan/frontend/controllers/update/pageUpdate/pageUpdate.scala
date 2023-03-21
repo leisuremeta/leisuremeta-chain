@@ -74,7 +74,7 @@ object PageUpdate:
             observer.number == model.observerNumber match
               case true =>
                 observer.copy(pageCase = observer.pageCase match
-                  case PageCase.Blocks(_, _, _, _) =>
+                  case PageCase.Blocks(_, _, _, _, _, _) =>
                     PageCase.Blocks(subs = observer.pageCase.subs ++ List(sub)),
                 )
               case _ => observer,
