@@ -1035,11 +1035,34 @@
   * Example
 
     ```json
-    
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 28,
+            "r" : "004b940e651bb950350157116fbfedf5ec98eed68068cea2b666a9e2b52b9588",
+            "s" : "17eb8460877a7d212fac4a59caf7abf1cb96c145f5cae41a8ffce55df226f003"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "BuildSnapshot" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-11T18:01:00Z",
+              "timestamp" : "2023-01-09T09:00:00Z",
+              "accountAmount" : 0,
+              "tokenAmount" : 0,
+              "ownershipAmount" : 100000000000000000000000
+            }
+          }
+        }
+      }
+    ]
     ```
     
     ```json
-    
+    ["da140a6816e9437c0583b34f64636ba9b3fca02721f2ff90b03460c061067cfa"]
     ```
     
     
@@ -1051,8 +1074,6 @@
 
   * Fields
 
-    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
-  
     * inputs: Set[TxHash] 보상에 사용할 UTXO
     * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
     
@@ -1063,11 +1084,37 @@
   * Example
   
     ```json
-    
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "2289a570405738a66d75c1eeae451f899cbcc3bd7fd98b4b4d5aaf807c965211",
+            "s" : "0364409abf9829ae5ca38b9c31ee0bcc5ce4dabcff3a5d0be180dd925ec51096"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "RewardTx" : {
+            "ExecuteOwnershipReward" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-11T18:01:00Z",
+              "inputs" : [
+                "270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"
+              ],
+              "targets" : [
+                "1234567890",
+                "1234567891"
+              ]
+            }
+          }
+        }
+      }
+    ]
     ```
     
     ```json
-    
+    ["c7824fd901b71918f10663a2990988b3a933353aebc5d1b80f39d78ce43be1ca"]
     ```
   
 
