@@ -11,7 +11,7 @@ object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.block :: Body.block(
-        PubCase_Pipe.getBlocks(model),
+        ReducePipe.getBlocks(model),
       ),
     )
   def txList_txtable = (model: Model) =>
