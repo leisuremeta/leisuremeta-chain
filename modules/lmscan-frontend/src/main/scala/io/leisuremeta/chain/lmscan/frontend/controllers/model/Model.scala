@@ -14,10 +14,10 @@ case class Datas(
 
 case class ObserverState(
     pageCase: PageCase,
-    // pageCase2: PageCase2,
     number: Int,
-    data: String,
-    datas: Datas = Datas(),
+    // pageCase2: PageCase2,
+    // data: String,
+    // datas: Datas = Datas(),
 )
 
 final case class Model(

@@ -13,7 +13,6 @@ object Init:
           ObserverState(
             pageCase = PageCase.Blocks(),
             number = 1,
-            data = "",
           ),
         ),
         observerNumber = 1,

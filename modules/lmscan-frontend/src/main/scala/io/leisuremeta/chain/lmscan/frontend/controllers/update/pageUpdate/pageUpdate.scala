@@ -30,7 +30,6 @@ object PageUpdate:
                 ObserverState(
                   number = getNumber(model.observers) + 1,
                   pageCase = page,
-                  data = "",
                 ),
               ),
             ),

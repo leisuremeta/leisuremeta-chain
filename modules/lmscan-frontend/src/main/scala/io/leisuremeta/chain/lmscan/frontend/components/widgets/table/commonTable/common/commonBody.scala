@@ -49,9 +49,6 @@ object Body:
         div(`class` := "cell")(span(observer.pageCase.url)),
         div(`class` := "cell")(span(observer.pageCase.pubs.toString())),
         div(`class` := "cell")(span(observer.pageCase.subs.toString())),
-        div(`class` := "cell")(
-          span()(observer.data),
-        ),
       ),
     )
   def txlist_txtable = (payload: List[TxInfo]) =>

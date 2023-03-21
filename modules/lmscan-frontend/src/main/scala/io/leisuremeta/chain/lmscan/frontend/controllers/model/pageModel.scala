@@ -18,8 +18,8 @@ object Builder:
   def getNumber(observers: List[ObserverState], find: Int = 0) =
     getObserver(observers, find).number
 
-  def getData(observers: List[ObserverState], find: Int = 0) =
-    getObserver(observers, find).data
+  // def getData(observers: List[ObserverState], find: Int = 0) =
+  //   getObserver(observers, find).data
 
 trait PubCase:
   def page: Int
