@@ -1,6 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 
-object PipePubCase:
+object PubCase_Pipe:
   // [PubCase]
   // |> [PubCase_m1]
   // |> [PubCase_m1(f1)]
