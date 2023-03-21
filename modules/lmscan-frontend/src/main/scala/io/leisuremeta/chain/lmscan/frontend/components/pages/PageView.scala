@@ -5,8 +5,6 @@ import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Pages:
   def render(model: Model): Html[Msg] =
-    log("Builder.getPage(model.observers, model.observerNumber)")
-    log(Builder.getPage(model.observers, model.observerNumber))
     Builder.getPage(model.observers, model.observerNumber) match
 
       // case PageCase.Observer(_, _) =>
@@ -18,7 +16,7 @@ object Pages:
       //     DashboardView.view(model),
       //   )
 
-      case PageCase.Blocks(_, _, _, _, _) =>
+      case PageCase.Blocks(_, _, _, _) =>
         div()(
           ObserverView.view(model),
           BlocksView.view(model),

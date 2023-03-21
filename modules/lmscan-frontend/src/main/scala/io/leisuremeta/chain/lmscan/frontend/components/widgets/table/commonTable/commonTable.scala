@@ -15,7 +15,7 @@ object Tables:
       //     ),
       //   )
 
-      case PageCase.Blocks(_, _, _, _, _) =>
+      case PageCase.Blocks(_, _, _, _) =>
         div(`class` := "table-area")(
           div(`class` := "font-40px pt-16px font-block-detail color-white")(
             "Blocks",

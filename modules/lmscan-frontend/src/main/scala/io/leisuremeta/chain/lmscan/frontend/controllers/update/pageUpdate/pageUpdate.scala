@@ -6,8 +6,6 @@ import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-// import io.leisuremeta.chain.lmscan.frontend.PageCase.*
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -22,9 +20,9 @@ object PageUpdate:
         //     model.copy(),
         //     Cmd.None,
         //   )
+
         case _ =>
           Window.History(page.name, page.name)
-
           (
             model.copy(
               observerNumber = getNumber(model.observers) + 1,
