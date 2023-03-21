@@ -91,8 +91,29 @@
 
 `GET`  **/owners/{definitionID}** 특정 컬렉션 NFT들의 보유자 정보 조회
 
-* Resoponse:
+* Response:
   * Map[TokenID, AccountName]
+
+`GET`  **/snapshot/ownership/**  받을 토큰 소유보상 점수 조회
+
+> `param` *(optional)* from: 조회를 시작할 token id. 주어지지 않으면 ""
+>
+> `param` *(optional)* limit: 조회할 총 갯수. 디폴트값은 100
+
+* Response: [TokenId, OwnershipSnapshot]
+  * OwnershipSnapshot
+    * account
+    * timestamp 기준 시점
+    * point 포인트. 일반적으론 해당 NFT의 Rarity 점수
+    * definitionId 보상받을 토큰 종류. 일반적으론 LM
+    * amount 보상량
+
+`GET`  **/rewarded/ownership/{tokenID}**  최근에 받은 토큰 소유보상 조회
+
+* Response: OwnershipRewardLog
+  * OwnershipRewardLog
+    * OwnershipShapshot
+    * ExecuteReward TxHash
 
 `POST` **/tx** 트랜잭션 제출
 
@@ -993,28 +1014,62 @@
   * Example
 
     ```json
+    
+    ```
+    
+    ```json
+    
     ```
 
-    
-
-* ExecuteReward 보상 실행.
+* BuildSnapshot: 보상을 위한 스냅샷 생성. 사용자가 한 활동, 토큰이 받은 활동, 토큰 소유보상의 세 가지 스냅샷을 동시에 만든다
 
   * > 보상 실행 주체. 일반적으로 Playnomm
 
   * Fields
 
-    * timestamp: 보상 기준 시점
-    * *(optional)* daoAccount: 보상이 담긴 계정. 없으면 "DAO-M"
-
-  * Results
-
-    * outputs: Map[Account, Amount] 보상 실행 결과
+    * Timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
+    * accountAmount: 계정활동 총 보상량
+    * tokenAmount: 토큰이 받을 총 보상량
+    * ownershipAmount: 토큰 보유에 따르는 총 보상량
 
   * Example
 
     ```json
+    
     ```
+    
+    ```json
+    
+    ```
+    
+    
+    
 
+* ExecuteOwnershipReward: 스냅샷의 자료를 기반으로 토큰 소유 보상 실행.
+
+  * 보상 실행 주체. 일반적으로 Playnomm
+
+  * Fields
+
+    * inputDefinitionId: 보상에 사용할 토큰정의. 일반적으로 LM
+  
+    * inputs: Set[TxHash] 보상에 사용할 UTXO
+    * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
+    
+  * Results
+  
+    * outputs: Map[Account, Amount] 각 계정별 보상결과
+  
+  * Example
+  
+    ```json
+    
+    ```
+    
+    ```json
+    
+    ```
+  
 
 
 ## Other API
