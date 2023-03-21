@@ -30,8 +30,7 @@ object PageUpdate:
           )
           (
             model.copy(
-              // curPage = page,
-              observerNumber = getNumber(model.observers),
+              observerNumber = getNumber(model.observers) + 1,
               observers = model.observers ++ Seq(
                 ObserverState(
                   number = getNumber(model.observers) + 1,
@@ -40,8 +39,6 @@ object PageUpdate:
                 ),
               ),
             ),
-
-            // pubs
             Cmd.Batch(
               page.pubs.map(pub =>
                 OnDataProcess.getData(
@@ -49,12 +46,9 @@ object PageUpdate:
                 ),
               ),
             ),
-            // Cmd.None,
           )
     case PageMsg.GotoObserver(page: Int) =>
-      val safeNumber = (model.observerNumber - 1) < 1 match
-        case true => 1
-        case _    => model.observerNumber - 1
+      val safeNumber = Num.Int_Positive(model.observerNumber - 1)
 
       window.history.pushState(
         // save page to history
@@ -68,9 +62,7 @@ object PageUpdate:
         Cmd.None,
       )
     case PageMsg.BackObserver =>
-      val safeNumber = (model.observerNumber - 1) < 1 match
-        case true => 1
-        case _    => model.observerNumber - 1
+      val safeNumber = Num.Int_Positive(model.observerNumber - 1)
 
       window.history.pushState(
         // save page to history
@@ -93,12 +85,9 @@ object PageUpdate:
 
               // 가장최신의 데이터인경우 => sub 를 pagecase의 subs에 넣어준다
               case true =>
-                // observer
-                val newSubs      = sub :: observer.pageCase.subs
-                val newSubs_case = observer.pageCase
                 observer.copy(pageCase = observer.pageCase match
                   case PageCase.Blocks(_, _, _, _) =>
-                    PageCase.Blocks(subs = newSubs),
+                    PageCase.Blocks(subs = observer.pageCase.subs ++ List(sub)),
                 )
 
               case _ => observer,

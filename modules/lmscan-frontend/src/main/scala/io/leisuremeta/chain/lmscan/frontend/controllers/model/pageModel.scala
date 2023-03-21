@@ -10,7 +10,7 @@ object Builder:
     val _find = find match
       case 0 => observers.length
       case _ => find
-    observers.filter(o => o.number == find)(0)
+    observers.filter(o => o.number == _find)(0)
 
   def getPage(observers: List[ObserverState], find: Int = 0) =
     getObserver(observers, find).pageCase
