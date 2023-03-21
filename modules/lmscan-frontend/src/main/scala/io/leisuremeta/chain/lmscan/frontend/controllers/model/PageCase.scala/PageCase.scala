@@ -16,7 +16,4 @@ object PageCase:
         PubCase.blockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
       ),
       status: Boolean = false,
-      // pubsub: List[PageResponse[BlockInfo]] = List(
-      //   new PageResponse(0, 0, List()),
-      // ),
   ) extends PageCase
