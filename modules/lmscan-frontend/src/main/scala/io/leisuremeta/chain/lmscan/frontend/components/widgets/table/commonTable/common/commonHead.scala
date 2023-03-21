@@ -17,10 +17,9 @@ object Head:
       Cell.Head("#"),
       Cell.Head("page:name"),
       Cell.Head("page:url"),
-      Cell.Head("page:pubs"),
-      Cell.Head("page:pubs_m1"),
-      Cell.Head("page:pubs_m1(f1)"),
-      Cell.Head("page:pubs_m1(f1)r1"),
+      Cell.Head("page:pubCase0:page"),
+      Cell.Head("page:pubCase0:pub_m1"),
+      Cell.Head("page:pubCase0:pub_m2"),
     ),
   )
 

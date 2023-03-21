@@ -48,6 +48,22 @@ object Body:
         ),
         div(`class` := "cell")(span(observer.pageCase.url)),
         // div(`class` := "cell")(span(observer.pageCase.pubs.toString())),
+        div(`class` := "cell")(span(observer.pageCase.pubs(0).page.toString())),
+        div(`class` := "cell")(
+          span(observer.pageCase.pubs(0).pub_m1.toString()),
+        ),
+        div(`class` := "cell")(
+          span(observer.pageCase.pubs(0).pub_m2.toString()),
+        ),
+        div(`class` := "cell")(
+          span(observer.pageCase.pubs.toString()),
+        ),
+        div(`class` := "cell")(
+          span(observer.pageCase.pubs.takeRight(1).toString()),
+        ),
+
+        // div(`class` := "cell")(span(observer.pageCase.pubs(0).)),
+        // div(`class` := "cell")(span(observer.pageCase.pubs(0).page)),
         // div(`class` := "cell")(span(observer.pageCase..toString())),
         // div(`class` := "cell")(span(observer.pageCase.pubs.toString())),
         // div(`class` := "cell")(span(observer.pageCase.status.toString())),
