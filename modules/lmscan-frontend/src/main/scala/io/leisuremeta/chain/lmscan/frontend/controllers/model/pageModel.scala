@@ -18,9 +18,6 @@ object Builder:
   def getNumber(observers: List[ObserverState], find: Int = 0) =
     getObserver(observers, find).number
 
-  // def getData(observers: List[ObserverState], find: Int = 0) =
-  //   getObserver(observers, find).data
-
 trait PubCase:
   def page: Int
 
@@ -37,9 +34,8 @@ trait SubCase:
   def data: String
 
 object SubCase:
-  case class txSub(data: String)    extends SubCase
-  case class blockSub(data: String) extends SubCase
-
+  case class txSub(data: String)            extends SubCase
+  case class blockSub(data: String)         extends SubCase
   case class txDetailSub(data: String)      extends SubCase
   case class accountDetailSub(data: String) extends SubCase
   case class nftDetailSub(data: String)     extends SubCase
