@@ -67,7 +67,7 @@ object PageUpdate:
         Cmd.None,
       )
 
-    case PageMsg.DataUpdate(sub: SubCase) =>
+    case PageMsg.DataUpdate(pubCase_m1: PubCase_M1) =>
       (
         // 가장최신의 데이터 상태를 검색하여 업데이트
         // pub 에 맞는 sub 을 찾게 해주는게 더 정확할것 같다
@@ -76,23 +76,9 @@ object PageUpdate:
             observer.number == model.observerNumber match
               case true =>
                 observer.copy(pageCase = observer.pageCase match
-                  case PageCase.Blocks(_, _, _, _, _, _) =>
+                  case PageCase.Blocks(_, _, _, _, _) =>
                     PageCase.Blocks(
-                      subs = observer.pageCase.subs ++ List(sub),
-                      pubsub = observer.pageCase.pubsub ++ List(sub)
-                      //
-                        .map(d =>
-                          d match
-                            case SubCase.blockSub(data) =>
-                              BlockParser
-                                .decodeParser(data)
-                                .getOrElse(new PageResponse(0, 0, List())),
-                        )
-                        .filter(d =>
-                          d match
-                            case PageResponse[BlockInfo] => true
-                            case _                       => false,
-                        ),
+                      pubs_m1 = observer.pageCase.pubs_m1 ++ List(pubCase_m1),
                     ),
                 )
               case _ => observer,

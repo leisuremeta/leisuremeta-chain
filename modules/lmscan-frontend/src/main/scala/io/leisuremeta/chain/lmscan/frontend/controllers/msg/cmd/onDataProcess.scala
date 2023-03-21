@@ -28,8 +28,8 @@ object UnderDataProcess:
       case Right(json) => {
         PageMsg.DataUpdate(
           pub match
-            case PubCase.blockPub(_) => SubCase.blockSub(response.body)
-            case _                   => SubCase.blockSub(response.body),
+            case PubCase.blockPub(_) => PubCase_M1.block(response.body)
+            case _                   => PubCase_M1.block(response.body),
         )
 
       }
