@@ -1,4 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
+import scala.scalajs.js
 
 object Builder:
   def getObserver(observers: List[ObserverState], find: Int) =
@@ -39,3 +40,12 @@ object Builder:
         PageCase.Transactions(
           pubs = getPagePubs(pageCase) ++ List(pub),
         )
+
+  def getPubUrl(pub: PubCase) =
+    var base = js.Dynamic.global.process.env.BASE_API_URL
+    pub match
+      case PubCase.blockPub(_, _, _) =>
+        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+
+      case _ =>
+        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"

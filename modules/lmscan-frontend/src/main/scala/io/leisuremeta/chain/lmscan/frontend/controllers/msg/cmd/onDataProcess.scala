@@ -66,7 +66,6 @@ object OnDataProcess:
 
   def getData(
       pub: PubCase,
-      // payload: ApiPayload = ApiPayload("1"),
   ): Cmd[IO, Msg] =
     // dom.document
     //   .querySelector("#loader-container")
@@ -74,12 +73,7 @@ object OnDataProcess:
     //   .style
     //   .display = "block"
 
-    val url = pub match
-      case PubCase.blockPub(_, _, _) =>
-        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
-
-      case _ =>
-        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+    val url = Builder.getPubUrl(pub)
 
     Http.send(
       Request.get(url).withTimeout(30.seconds),
