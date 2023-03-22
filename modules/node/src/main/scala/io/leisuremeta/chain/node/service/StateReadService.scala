@@ -33,7 +33,11 @@ import api.model.api_model.{
   GroupInfo,
   NftBalanceInfo,
 }
-import api.model.reward.{ActivitySnapshot, OwnershipSnapshot}
+import api.model.reward.{
+  ActivitySnapshot,
+  OwnershipSnapshot,
+  OwnershipRewardLog,
+}
 import api.model.token.{
   Rarity,
   NftState,
@@ -827,3 +831,19 @@ object StateReadService:
         .toList
         .leftMap(_.asLeft[String])
     yield snapshots.toMap
+
+  def getOwnershipRewarded[F[_]: Concurrent: BlockRepository: PlayNommState](
+      tokenId: TokenId,
+  ): EitherT[F, Either[String, String], Option[OwnershipRewardLog]] =
+
+    val program = PlayNommState[F].reward.ownershipRewarded.get(tokenId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      logOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+    yield logOption
