@@ -17,6 +17,7 @@ object PubCase:
 
   // case class txPub(
   //     page: Int = 1,
+
   //     pub_m1: String = "",
   //     pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
   // ) extends PubCase
