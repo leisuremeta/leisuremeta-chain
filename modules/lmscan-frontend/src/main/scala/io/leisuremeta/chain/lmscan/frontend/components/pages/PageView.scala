@@ -23,13 +23,13 @@ object Pages:
           BlocksView.view(model),
         )
 
-      // case PageCase.Transactions(_, _) =>
-      //   div()(
-      //     ObserverView.view(model),
-      //     TransactionsView.view(model),
-      //   )
+      case PageCase.Transactions(_, _, _, _) =>
+        div()(
+          ObserverView.view(model),
+          TransactionsView.view(model),
+        )
 
-      case _ => div("매칭x")
+      // case _ => div("매칭x")
 
 object PageView:
   def view(model: Model): Html[Msg] =

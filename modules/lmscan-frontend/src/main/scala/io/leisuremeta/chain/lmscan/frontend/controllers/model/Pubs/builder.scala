@@ -62,23 +62,15 @@ object Builder:
 
   // # PageCase |> [Pubcase] |> [in page] |> all page
   def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
-    log(
-      log(
-        log(in_PageCase_PubCases(log(pageCase)))
-          .map(d => in_PubCase_Page(d)),
-      )
-        .reduce((a, b) => a + b),
-    )
+    in_PageCase_PubCases(pageCase)
+      .map(d => in_PubCase_Page(d))
+      .reduce((a, b) => a + b)
 
   // # PageCase |> [Pubcase] |> [in pub_m1] |> all page
   def pipe_PageCase_PubCase__pub_m1_All(pageCase: PageCase) =
-    log(
-      log(
-        log(in_PageCase_PubCases(log(pageCase)))
-          .map(d => in_PubCase_pub_m1(d)),
-      )
-        .reduce((a, b) => a + b),
-    )
+    in_PageCase_PubCases(log(pageCase))
+      .map(d => in_PubCase_pub_m1(d))
+      .reduce((a, b) => a + b)
 
   // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
   def pipe_PageCase_ViewCase(pageCase: PageCase): ViewCase =
@@ -98,6 +90,11 @@ object Builder:
       )
     resulte
 
+  def getViewCase(model: Model): ViewCase =
+    pipe_PageCase_ViewCase(
+      in_Observer_PageCase(model.observers, model.observerNumber),
+    )
+
   //
   def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
@@ -116,8 +113,11 @@ object Builder:
       case PubCase.BlockPub(_, _, _) =>
         s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
 
-      case _ =>
-        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+      case PubCase.TxPub(_, _, _) =>
+        s"$base/tx/list?pageNo=${(0).toString()}&sizePerRequest=10"
+
+      // case _ =>
+      //   s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
 
   def updatePub_m1m2(pub: PubCase, data: String) =
     pub match
@@ -129,4 +129,10 @@ object Builder:
             .getOrElse(new PageResponse(0, 0, List())),
         )
 
-      case _ => PubCase.BlockPub(pub_m1 = data)
+      case PubCase.TxPub(_, _, _) =>
+        PubCase.TxPub(
+          pub_m1 = data,
+          pub_m2 = TxParser
+            .decodeParser(data)
+            .getOrElse(new PageResponse(0, 0, List())),
+        )
