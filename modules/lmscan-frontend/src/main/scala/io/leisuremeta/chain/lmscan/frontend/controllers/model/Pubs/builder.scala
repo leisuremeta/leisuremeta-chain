@@ -1,5 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 import scala.scalajs.js
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
 
 object Builder:
   def getObserver(observers: List[ObserverState], find: Int) =
@@ -49,3 +50,14 @@ object Builder:
 
       case _ =>
         s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+
+  def updatePub_m1m2(pub: PubCase, data: String) =
+    pub match
+      case PubCase.blockPub(_, _, _) =>
+        PubCase.blockPub(
+          pub_m1 = data,
+          pub_m2 = BlockParser
+            .decodeParser(data)
+            .getOrElse(new PageResponse(0, 0, List())),
+        )
+      case _ => PubCase.blockPub(pub_m1 = data)

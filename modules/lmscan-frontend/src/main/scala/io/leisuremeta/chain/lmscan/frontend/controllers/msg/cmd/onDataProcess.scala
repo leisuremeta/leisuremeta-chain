@@ -14,6 +14,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
+import Builder.*
 // import io.leisuremeta.chain.lmscan.frontend.PubCase.blockPub.pub_m1
 
 case class ApiPayload(page: String)
@@ -29,16 +30,7 @@ object UnderDataProcess:
         PageMsg.BackObserver
       case Right(json) => {
         PageMsg.DataUpdate(
-          // pub(pub_m1 = response.body),
-          pub match
-            case PubCase.blockPub(_, _, _) =>
-              PubCase.blockPub(
-                pub_m1 = response.body,
-                pub_m2 = BlockParser
-                  .decodeParser(response.body)
-                  .getOrElse(new PageResponse(0, 0, List())),
-              )
-            case _ => PubCase.blockPub(pub_m1 = response.body),
+          updatePub_m1m2(pub, response.body),
         )
 
       }
