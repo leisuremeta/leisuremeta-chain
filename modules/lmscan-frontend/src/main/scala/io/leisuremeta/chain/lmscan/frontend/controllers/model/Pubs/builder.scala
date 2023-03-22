@@ -13,3 +13,15 @@ object Builder:
 
   def getNumber(observers: List[ObserverState], find: Int = 0) =
     getObserver(observers, find).number
+
+  def getPageName(pageCase: PageCase) =
+    pageCase match
+      case PageCase.Blocks(name, _, _, _) => name
+
+  def getPageUrl(pageCase: PageCase) =
+    pageCase match
+      case PageCase.Blocks(_, url, _, _) => url
+
+  def getPagePubs(pageCase: PageCase) =
+    pageCase match
+      case PageCase.Blocks(_, _, pubs, _) => pubs

@@ -6,6 +6,7 @@ import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import V.*
+import Builder.*
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
@@ -46,53 +47,49 @@ object Body:
         ),
         // name
         div(`class` := "cell type-3")(
-          span()(observer.pageCase.name),
+          span()(
+            getPageName(observer.pageCase),
+          ),
         ),
 
         // url
-        div(`class` := "cell")(span(observer.pageCase.url)),
+        div(`class` := "cell")(
+          span(
+            getPageUrl(observer.pageCase),
+          ),
+        ),
 
         // pubs
-        div(`class` := "cell")(span(observer.pageCase.pubs.length.toString())),
+        div(`class` := "cell")(
+          span(
+            getPagePubs(observer.pageCase).length.toString(),
+          ),
+        ),
 
         // :page
-        div(`class` := "cell")(span(observer.pageCase.pubs(0).page.toString())),
+        div(`class` := "cell")(
+          span(
+            getPagePubs(observer.pageCase)(0).page.toString(),
+          ),
+        ),
 
         // : pub_m1
         div(`class` := "cell")(
           span(
-            observer.pageCase.pubs
+            getPagePubs(observer.pageCase)
               .map(d => d.pub_m1)
               .reduce((a, b) => a + b),
-
-              // observer.pageCase.pubs
-              //   .takeRight(1)(0)
-              //   .pub_m1
-              //   .toString(),
-              // .take(150),
           ),
         ),
 
         // : pub_m2
         div(`class` := "cell")(
           span(
-            observer.pageCase.pubs
+            getPagePubs(observer.pageCase)
               .map(d => d.pub_m2.toString())
               .reduce((a, b) => a + b),
-
-              // observer.pageCase.pubs
-              //   .takeRight(1)(0)
-              //   .pub_m2
-              //   .toString(),
-              // .take(150),
           ),
         ),
-
-        // div(`class` := "cell")(span(observer.pageCase.pubs(0).)),
-        // div(`class` := "cell")(span(observer.pageCase.pubs(0).page)),
-        // div(`class` := "cell")(span(observer.pageCase..toString())),
-        // div(`class` := "cell")(span(observer.pageCase.pubs.toString())),
-        // div(`class` := "cell")(span(observer.pageCase.status.toString())),
       ),
     )
   def txlist_txtable = (payload: List[TxInfo]) =>

@@ -22,7 +22,7 @@ object PageUpdate:
         //   )
 
         case _ =>
-          Window.History(page.name, page.name)
+          Window.History(getPageName(page), getPageName(page))
           (
             model.copy(
               observerNumber = getNumber(model.observers) + 1,
@@ -34,7 +34,7 @@ object PageUpdate:
               ),
             ),
             Cmd.Batch(
-              page.pubs.map(pub =>
+              getPagePubs(page).map(pub =>
                 OnDataProcess.getData(
                   pub,
                 ),
@@ -44,8 +44,8 @@ object PageUpdate:
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
       Window.History(
-        getPage(model.observers, safeNumber).name,
-        getPage(model.observers, safeNumber).name,
+        getPageName(getPage(model.observers, safeNumber)),
+        getPageName(getPage(model.observers, safeNumber)),
       )
 
       (
@@ -56,8 +56,8 @@ object PageUpdate:
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
 
       Window.History(
-        getPage(model.observers, safeNumber).name,
-        getPage(model.observers, safeNumber).name,
+        getPageName(getPage(model.observers, safeNumber)),
+        getPageName(getPage(model.observers, safeNumber)),
       )
 
       (
@@ -77,11 +77,11 @@ object PageUpdate:
                   case PageCase.Blocks(_, _, _, _) =>
                     PageCase.Blocks(
                       pubs =
-                        log(List(1, 2, 3) ++ List(4, 5))
-                        log(observer.pageCase.pubs)
-                        log(List(pub))
-                        log(observer.pageCase.pubs ++ List(pub))
-                        observer.pageCase.pubs ++ List(pub),
+                        // log(List(1, 2, 3) ++ List(4, 5))
+                        // log(observer.pageCase.pubs)
+                        // log(List(pub))
+                        // log(observer.pageCase.pubs ++ List(pub))
+                        getPagePubs(observer.pageCase) ++ List(pub),
                     ),
                 )
               case _ => observer,

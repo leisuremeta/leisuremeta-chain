@@ -7,15 +7,17 @@ import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object ReducePipe:
   def getBlocks = (model: Model) =>
-    getPage(model.observers).pubs.reverse
-      .filter(d =>
-        d.pub_m2 match
-          case block: PageResponse[BlockInfo] => true,
-          // case _                              => false,
-      )(0)
-      .pub_m2
-      .payload
-      .toList
+    getPage(model.observers) match
+      case PageCase.Blocks(_, _, pubs, _) =>
+        pubs.reverse
+          .filter(d =>
+            d.pub_m2 match
+              case block: PageResponse[BlockInfo] => true,
+              // case _                              => false,
+          )(0)
+          .pub_m2
+          .payload
+          .toList
 
   // [PubCase]
   // |> [PubCase_m1] // api 단계에서 처리
