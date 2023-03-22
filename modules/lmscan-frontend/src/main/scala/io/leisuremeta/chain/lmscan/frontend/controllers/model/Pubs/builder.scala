@@ -13,29 +13,6 @@ case class ViewCase(
     var txInfo: List[TxInfo] = List(new TxInfo),
 );
 
-// model.observers
-// |> find_Observer => observer
-// |> in_Observer_PageCase => pageCase
-// |> in_PageCase_pubs => pubs
-
-// Observers
-// - find_Observer
-
-// observer
-// - in_Observer_PageCase
-// - in_Observer_Number // 없음
-
-// PageCase(name,url,pubs,status)
-// - in_PageCase_Name
-// - in_PageCase_url
-// - in_PageCase_pubs
-// - in_PageCase_status // 없음
-
-// PubCase(::page,pub_m1,pub_m2)
-// - :: in_PubCase_page
-// - :: in_PubCase_pub_m1
-// - :: in_PubCase_pub_m2
-
 // TODO:: go, pipe 함수로 redesign!
 object Builder:
   // #1-observer
@@ -205,8 +182,3 @@ object Builder:
       //       .getOrElse(new PageResponse(0, 0, List())),
       //   )
       case _ => PubCase.BlockPub(pub_m1 = data)
-
-  // def get_M3r1(m3: List[TxInfo] | List[BlockInfo]) =
-  //   m3 match
-  //     case m3: List[TxInfo]    => M3R1(txInfo = m3)
-  //     case m3: List[BlockInfo] => M3R1(blockInfo = m3)
