@@ -33,7 +33,7 @@ object PageUpdate:
               ),
             ),
             Cmd.Batch(
-              in_PageCase_pubs(page).map(pub =>
+              in_PageCase_PubCases(page).map(pub =>
                 OnDataProcess.getData(
                   pub,
                 ),
@@ -66,14 +66,13 @@ object PageUpdate:
 
     case PageMsg.DataUpdate(pub: PubCase) =>
       (
-        // 가장최신의 데이터 상태를 검색하여 업데이트
-        // pub 에 맞는 sub 을 찾게 해주는게 더 정확할것 같다
+        // 가장최신의 데이터 상태를 검색하여 pubs 업데이트
         model.copy(observers =
           model.observers.map(observer =>
             observer.number == model.observerNumber match
               case true =>
                 observer.copy(pageCase =
-                  update_pagecase_pub(observer.pageCase, pub),
+                  update_PageCase_PubCases(observer.pageCase, pub),
                 )
               case _ => observer,
           ),

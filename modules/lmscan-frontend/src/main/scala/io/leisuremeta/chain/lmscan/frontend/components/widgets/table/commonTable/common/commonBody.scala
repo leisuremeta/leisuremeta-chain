@@ -62,32 +62,28 @@ object Body:
         // pubs
         div(`class` := "cell")(
           span(
-            in_PageCase_pubs(observer.pageCase).length.toString(),
+            in_PageCase_PubCases(observer.pageCase).length.toString(),
           ),
         ),
 
         // :page
         div(`class` := "cell")(
           span(
-            in_PubCase_Page(observer.pageCase).toString(),
+            // pipe_PubCase_Page(observer.pageCase).toString(),
           ),
         ),
 
-        // : pub_m1
+        // : PubCases |> map - pipe_PubCase_Page |> reduce
         div(`class` := "cell")(
           span(
-            // getPagePubs(observer.pageCase)
-            //   .map(d => d.pub_m1)
-            //   .reduce((a, b) => a + b),
+            pipe_PageCase_PubCase__Page_All(observer.pageCase).toString(),
           ),
         ),
 
         // : pub_m2
         div(`class` := "cell")(
           span(
-            // getPagePubs(observer.pageCase)
-            //   .map(d => d.pub_m2.toString())
-            //   .reduce((a, b) => a + b),
+            pipe_PageCase_PubCase__pub_m1_All(observer.pageCase).toString(),
           ),
         ),
       ),

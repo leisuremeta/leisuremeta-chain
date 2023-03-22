@@ -4,6 +4,7 @@ import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.getquill.parser.Unlifter.caseClass
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 // import io.leisuremeta.chain.lmscan.frontend.M3R1.blockInfo
 
 case class M3R1(
@@ -62,31 +63,72 @@ object Builder:
       case PageCase.Blocks(_, url, _, _)       => url
       case PageCase.Transactions(_, url, _, _) => url
 
-  def in_PageCase_pubs(pageCase: PageCase): List[PubCase] =
+  def in_PageCase_PubCases(pageCase: PageCase): List[PubCase] =
     pageCase match
       case PageCase.Blocks(_, _, pubs, _)       => pubs
       case PageCase.Transactions(_, _, pubs, _) => pubs
 
   // #3-PubCase-function
-  def in_PubCase_Page(pageCase: PageCase) =
-    in_PageCase_pubs(pageCase)(0) match
+  def in_PubCase_Page(pubCase: PubCase) =
+    pubCase match
       case PubCase.BlockPub(page, _, _) => page
       case PubCase.TxPub(page, _, _)    => page
 
-  def in_PubCase_pub_m1(pageCase: PageCase) =
-    in_PageCase_pubs(pageCase)(0) match
+  def in_PubCase_pub_m1(pubCase: PubCase) =
+    pubCase match
       case PubCase.BlockPub(_, pub_m1, _) => pub_m1
       case PubCase.TxPub(_, pub_m1, _)    => pub_m1
 
-  def in_PubCase_pub_m2(pageCase: PageCase) =
-    in_PageCase_pubs(pageCase)(0) match
-      case PubCase.BlockPub(_, pub_m2, _) => pub_m2
-      case PubCase.TxPub(_, pub_m2, _)    => pub_m2
+  def in_PubCase_pub_m2(pubCase: PubCase) =
+    pubCase match
+      case PubCase.BlockPub(_, _, pub_m2) => pub_m2
+      case PubCase.TxPub(_, _, pub_m2)    => pub_m2
 
-  // #4-final case
+  // # PageCase |> [Pucase] |> [in page] |> all page
+  def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
+    log(
+      log(
+        log(in_PageCase_PubCases(log(pageCase)))
+          .map(d => in_PubCase_Page(d)),
+      )
+        .reduce((a, b) => a + b),
+    )
 
+  def pipe_PageCase_PubCase__pub_m1_All(pageCase: PageCase) =
+    log(
+      log(
+        log(in_PageCase_PubCases(log(pageCase)))
+          .map(d => in_PubCase_pub_m1(d)),
+      )
+        .reduce((a, b) => a + b),
+    )
+  // def pipe_PageCase_PubCase__pub_m2_All(pageCase: PageCase) =
+  //   log(
+  //     log(
+  //       log(in_PageCase_PubCases(log(pageCase)))
+  //         .map(d => in_PubCase_pub_m2(d)),
+  //     )
+  //       .reduce((a, b) => a.toString() + b.toString()),
+  //   )
+
+  // def pipe_PubCase_Page(pageCase: PageCase) =
+  //   in_PageCase_PubCases(pageCase).reverse(0) match
+  //     case PubCase.BlockPub(page, _, _) => page
+  //     case PubCase.TxPub(page, _, _)    => page
+
+  // def pipe_PubCase_pub_m1(pageCase: PageCase) =
+  //   in_PageCase_PubCases(pageCase).reverse(0) match
+  //     case PubCase.BlockPub(_, pub_m1, _) => pub_m1
+  //     case PubCase.TxPub(_, pub_m1, _)    => pub_m1
+
+  // def pipe_PubCase_pub_m2(pageCase: PageCase) =
+  //   in_PageCase_PubCases(pageCase).reverse(0) match
+  //     case PubCase.BlockPub(_, _, pub_m2) => pub_m2
+  //     case PubCase.TxPub(_, _, pub_m2)    => pub_m2
+
+  // #4-case-case-case=case
   def pipe_observers_reduced_data(observers: List[ObserverState]) =
-    in_PageCase_pubs(in_Observer_PageCase(observers)).reverse.map(d =>
+    in_PageCase_PubCases(in_Observer_PageCase(observers)).reverse.map(d =>
       d match
         case PubCase.BlockPub(_, _, pub_m2) =>
           // get_M3r1(pub_m2.payload.toList)
@@ -97,15 +139,17 @@ object Builder:
           pub_m2.payload.toList,
     )
 
-  def update_pagecase_pub(pageCase: PageCase, pub: PubCase) =
+  //
+
+  def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
       case PageCase.Blocks(_, _, _, _) =>
         PageCase.Blocks(
-          pubs = in_PageCase_pubs(pageCase) ++ List(pub),
+          pubs = in_PageCase_PubCases(pageCase) ++ List(pub),
         )
       case PageCase.Transactions(_, _, _, _) =>
         PageCase.Transactions(
-          pubs = in_PageCase_pubs(pageCase) ++ List(pub),
+          pubs = in_PageCase_PubCases(pageCase) ++ List(pub),
         )
 
   def pipe_pubcase_apiUrl(pub: PubCase) =
