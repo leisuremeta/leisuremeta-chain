@@ -73,6 +73,18 @@ object Builder:
       case PubCase.BlockPub(page, _, _) => page
       case PubCase.TxPub(page, _, _)    => page
 
+  def in_PubCase_pub_m1(pageCase: PageCase) =
+    in_PageCase_pubs(pageCase)(0) match
+      case PubCase.BlockPub(_, pub_m1, _) => pub_m1
+      case PubCase.TxPub(_, pub_m1, _)    => pub_m1
+
+  def in_PubCase_pub_m2(pageCase: PageCase) =
+    in_PageCase_pubs(pageCase)(0) match
+      case PubCase.BlockPub(_, pub_m2, _) => pub_m2
+      case PubCase.TxPub(_, pub_m2, _)    => pub_m2
+
+  // #4-final case
+
   def pipe_observers_reduced_data(observers: List[ObserverState]) =
     in_PageCase_pubs(in_Observer_PageCase(observers)).reverse.map(d =>
       d match
