@@ -11,18 +11,23 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =
-    in_Observer_PageCase(model.observers, model.observerNumber) match
+    getPage(model) match
       case PageCase.Transactions(_, _, _, _) =>
         div(`class` := "table-container")(
           Table.txList_txtable(model),
-          //   Search.search_tx(model),
+          Search.search_tx(model),
+        )
+      case PageCase.DashBoard(_, _, _, _) =>
+        div(`class` := "table-container")(
+          Title.tx(model),
+          Table.dashboard_txtable(model),
+          // Search.search_tx(model),
         )
       //   case PageName.DashBoard =>
       //     div(`class` := "table-container")(
       //       Title.tx(model),
       //       Table.dashboard_txtable(model),
       //     )
-
       //   case PageName.BlockDetail(_) =>
       //     div(`class` := "table-container")(
       //       Table.blockDetail_txtable(model),

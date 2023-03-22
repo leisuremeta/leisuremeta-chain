@@ -5,10 +5,18 @@ import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.getquill.parser.Unlifter.caseClass
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 case class ViewCase(
     var blockInfo: List[BlockInfo] = List(new BlockInfo),
     var txInfo: List[TxInfo] = List(new TxInfo),
+);
+
+case class PageResponseViewCase(
+    var block: PageResponse[BlockInfo] =
+      new PageResponse[BlockInfo](0, 0, List()),
+    var tx: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
+    var board: SummaryModel = new SummaryModel,
 );
 
 // TODO:: go, pipe 함수로 redesign!
@@ -33,32 +41,41 @@ object Builder:
     pageCase match
       case PageCase.Blocks(name, _, _, _)       => name
       case PageCase.Transactions(name, _, _, _) => name
+      case PageCase.DashBoard(name, _, _, _)    => name
+      case PageCase.BlockDetail(name, _, _, _)  => name
 
   def in_PageCase_url(pageCase: PageCase) =
     pageCase match
       case PageCase.Blocks(_, url, _, _)       => url
       case PageCase.Transactions(_, url, _, _) => url
+      case PageCase.DashBoard(_, url, _, _)    => url
+      case PageCase.BlockDetail(_, url, _, _)  => url
 
   def in_PageCase_PubCases(pageCase: PageCase): List[PubCase] =
     pageCase match
       case PageCase.Blocks(_, _, pubs, _)       => pubs
       case PageCase.Transactions(_, _, pubs, _) => pubs
+      case PageCase.DashBoard(_, _, pubs, _)    => pubs
+      case PageCase.BlockDetail(_, _, pubs, _)  => pubs
 
   // #3-PubCase-function
   def in_PubCase_Page(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(page, _, _) => page
       case PubCase.TxPub(page, _, _)    => page
+      case PubCase.BoardPub(page, _, _) => page
 
   def in_PubCase_pub_m1(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(_, pub_m1, _) => pub_m1
       case PubCase.TxPub(_, pub_m1, _)    => pub_m1
+      case PubCase.BoardPub(_, pub_m1, _) => pub_m1
 
   def in_PubCase_pub_m2(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(_, _, pub_m2) => pub_m2
       case PubCase.TxPub(_, _, pub_m2)    => pub_m2
+      case PubCase.BoardPub(_, _, pub_m2) => pub_m2
 
   // # PageCase |> [Pubcase] |> [in page] |> all page
   def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
@@ -72,6 +89,20 @@ object Builder:
       .map(d => in_PubCase_pub_m1(d))
       .reduce((a, b) => a + b)
 
+  def pipe_currentPage(model: Model) =
+    in_PubCase_Page(
+      in_PageCase_PubCases(
+        in_Observer_PageCase(model.observers, model.observerNumber),
+      )(0),
+    )
+
+  // getViewCurPage
+  def getPage(model: Model) =
+    in_Observer_PageCase(model.observers, model.observerNumber)
+
+  // def pipe_totalPage(model: Model) =
+  // pipe_PageCase_ViewCase(model).blockInfo(0).
+
   // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
   def pipe_PageCase_ViewCase(pageCase: PageCase): ViewCase =
 
@@ -84,42 +115,76 @@ object Builder:
             resulte.blockInfo = pub_m2.payload.toList
 
           case PubCase.TxPub(_, _, pub_m2) =>
-            resulte.txInfo = pub_m2.payload.toList,
+            resulte.txInfo = pub_m2.payload.toList
+
+          // case PubCase.BoardPub(_, _, pub_m2) =>
+          //   resulte.txInfo = pub_m2,
+          // case PubCase.BoardPub(_, _, pub_m2) =>
+          //   resulte.txInfo = pub_m2,
+          case _ =>
+            "no",
+      )
+    resulte
+
+  def pipe_PageCase_PageResponseViewCase(
+      pageCase: PageCase,
+  ): PageResponseViewCase =
+
+    // ViewCase 재할당이 일어나는 구조이므로, 리팩토링 필요할듯
+    var resulte = new PageResponseViewCase()
+    in_PageCase_PubCases(pageCase)
+      .map(d =>
+        d match
+          case PubCase.BlockPub(_, _, pub_m2) =>
+            resulte.block = pub_m2
+
+          case PubCase.TxPub(_, _, pub_m2) =>
+            resulte.tx = pub_m2
+
+          case PubCase.BoardPub(_, _, pub_m2) =>
+            resulte.board = pub_m2,
           // case _ =>
           //   "no",
       )
     resulte
 
+  // api 함수 정리필요
   def getViewCase(model: Model): ViewCase =
     pipe_PageCase_ViewCase(
       in_Observer_PageCase(model.observers, model.observerNumber),
     )
-
-  //
+  def getPageResponseViewCase(model: Model): PageResponseViewCase =
+    pipe_PageCase_PageResponseViewCase(
+      in_Observer_PageCase(model.observers, model.observerNumber),
+    )
   def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
-      case PageCase.Blocks(_, _, _, _) =>
-        PageCase.Blocks(
-          pubs = in_PageCase_PubCases(pageCase) ++ List(pub),
-        )
-      case PageCase.Transactions(_, _, _, _) =>
-        PageCase.Transactions(
-          pubs = in_PageCase_PubCases(pageCase) ++ List(pub),
-        )
+      // fixed :: create class => copy class 로 변경
+      case pageCase: PageCase.Blocks =>
+        pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.Transactions =>
+        pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.DashBoard =>
+        pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.BlockDetail =>
+        pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
 
   def pipe_pubcase_apiUrl(pub: PubCase) =
     var base = js.Dynamic.global.process.env.BASE_API_URL
     pub match
-      case PubCase.BlockPub(_, _, _) =>
-        s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+      case PubCase.BlockPub(page, _, _) =>
+        s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
 
-      case PubCase.TxPub(_, _, _) =>
-        s"$base/tx/list?pageNo=${(0).toString()}&sizePerRequest=10"
+      case PubCase.TxPub(page, _, _) =>
+        s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+
+      case PubCase.BoardPub(page, _, _) =>
+        s"$base/summary/main"
 
       // case _ =>
       //   s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
 
-  def updatePub_m1m2(pub: PubCase, data: String) =
+  def update_PubCase_m1m2(pub: PubCase, data: String) =
     pub match
       case PubCase.BlockPub(_, _, _) =>
         PubCase.BlockPub(
@@ -135,4 +200,12 @@ object Builder:
           pub_m2 = TxParser
             .decodeParser(data)
             .getOrElse(new PageResponse(0, 0, List())),
+        )
+
+      case PubCase.BoardPub(_, _, _) =>
+        PubCase.BoardPub(
+          pub_m1 = data,
+          pub_m2 = ApiParser
+            .decodeParser(data)
+            .getOrElse(new SummaryModel),
         )

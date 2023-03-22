@@ -30,7 +30,7 @@ object UnderDataProcess:
         PageMsg.BackObserver
       case Right(json) => {
         PageMsg.DataUpdate(
-          updatePub_m1m2(pub, response.body),
+          update_PubCase_m1m2(pub, response.body),
         )
 
       }

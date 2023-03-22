@@ -23,6 +23,7 @@ nav {
 nav #title #head {
     /* height: 50px; */
     padding-top: 30px;
+    margin-bottom: 10px;
     background-color: #222222;
     display: flex;
     justify-content: center;
@@ -78,10 +79,10 @@ nav #title #body {
     background-color: #0767b2;
 
 }
-
+/* 
 #buttons {
     padding-top: 10px;
-}
+} */
 
 #buttons button.false:hover {
     background-color: #00ae87;

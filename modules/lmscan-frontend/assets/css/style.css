@@ -1,11 +1,12 @@
 @charset "utf-8";
-body {font-family: 'Roboto', sans-serif;}
+/* body {font-family: 'Roboto', sans-serif;} */
+body {font-family:  sans-serif;}
 /* #24a3da, #51ff00*/
 
 nav{background-color:#000;overflow: hidden;}
 nav:after{display: inline-block;position: absolute;bottom:-39px;left:-39px; width:200px;height:220px;content: "";background:url('../img/lm.png') no-repeat center center;opacity: 0.4;background-size:auto 100%;}
 nav #title{position: relative;z-index: 2;}
-nav #title #head{padding:30px 48px;height: auto; background-color: #000;color:#fff;transition:color 0.3s ease;}
+nav #title #head{padding:35px 48px;height: auto; background-color: #000;color:#fff;transition:color 0.3s ease; margin-top: 10px;}
 nav #title #head img{max-width: 100%;}
 nav #title #head:hover{color:#51ff00;}
 nav #title #body{background-color: #000;color:#fff;}

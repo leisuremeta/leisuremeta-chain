@@ -10,18 +10,20 @@ import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object Table:
   def block = (model: Model) =>
-    log("blockInfo")
-    log(getViewCase(model).blockInfo)
     div(`class` := "table w-[100%]")(
       Head.block :: Body.block(
         getViewCase(model).blockInfo,
       ),
     )
   def txList_txtable = (model: Model) =>
-    log("txInfo")
-    log(getViewCase(model).txInfo)
     div(`class` := "table w-[100%]")(
       Head.tx :: Body.txlist_txtable(
+        getViewCase(model).txInfo,
+      ),
+    )
+  def dashboard_txtable = (model: Model) =>
+    div(`class` := "table w-[100%]")(
+      Head.tx_dashBoard :: Body.dashboard_txtable(
         getViewCase(model).txInfo,
       ),
     )

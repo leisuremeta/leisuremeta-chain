@@ -2,9 +2,21 @@ package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.common.model.*
 
 enum PageCase:
+
+  case DashBoard(
+      name: String = "Dashboard",
+      url: String = "dashboard",
+      pubs: List[PubCase] = List(
+        PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
+        PubCase.TxPub(1, "", PageResponse[TxInfo](0, 0, List())),
+        PubCase.BoardPub(1, "", SummaryModel()),
+      ),
+      status: Boolean = false,
+  ) extends PageCase
+
   case Blocks(
       name: String = "Blocks",
-      ulr: String = "Blocks",
+      url: String = "blocks/1",
       pubs: List[PubCase] = List(
         PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
       ),
@@ -13,9 +25,18 @@ enum PageCase:
 
   case Transactions(
       name: String = "Transactions",
-      ulr: String = "Transactions",
+      url: String = "transactions/1",
       pubs: List[PubCase] = List(
         PubCase.TxPub(1, "", PageResponse[TxInfo](0, 0, List())),
+      ),
+      status: Boolean = false,
+  ) extends PageCase
+
+  case BlockDetail(
+      name: String = "BlockDetail",
+      url: String = "block/hash...",
+      pubs: List[PubCase] = List(
+        PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
       ),
       status: Boolean = false,
   ) extends PageCase

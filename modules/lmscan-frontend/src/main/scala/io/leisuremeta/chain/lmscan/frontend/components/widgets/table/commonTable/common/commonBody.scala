@@ -105,6 +105,18 @@ object Body:
           ),
         ),
       )
+  def dashboard_txtable = (payload: List[TxInfo]) =>
+    payload
+      .map(v =>
+        div(`class` := "row table-body")(
+          gen.cell(
+            Cell.TX_HASH10(v.hash),
+            Cell.AGE(v.createdAt),
+            Cell.ACCOUNT_HASH(v.signer),
+          ),
+        ),
+      )
+
 //   def nft = (payload: List[NftActivity]) =>
 //     payload
 //       .map(v =>
@@ -150,17 +162,6 @@ object Body:
 //             // Cell.PlainStr(v.txType),
 //             // Cell.PlainStr(v.tokenType),
 //             Cell.Tx_VALUE2((v.tokenType, v.value, v.inOut)),
-//           ),
-//         ),
-//       )
-//   def dashboard_txtable = (payload: List[TxInfo]) =>
-//     payload
-//       .map(v =>
-//         div(`class` := "row table-body")(
-//           gen.cell(
-//             Cell.TX_HASH10(v.hash),
-//             Cell.AGE(v.createdAt),
-//             Cell.ACCOUNT_HASH(v.signer),
 //           ),
 //         ),
 //       )

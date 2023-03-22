@@ -16,7 +16,11 @@ object Pages:
       //     ObserverView.view(model),
       //     DashboardView.view(model),
       //   )
-
+      case PageCase.DashBoard(_, _, _, _) =>
+        div()(
+          ObserverView.view(model),
+          DashboardView.view(model),
+        )
       case PageCase.Blocks(_, _, _, _) =>
         div()(
           ObserverView.view(model),

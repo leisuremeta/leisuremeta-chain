@@ -21,7 +21,10 @@ object PageUpdate:
         //     Cmd.None,
         //   )
         case _ =>
-          Window.History(in_PageCase_Name(page), in_PageCase_Name(page))
+          Window.History(
+            in_PageCase_url(page),
+            in_PageCase_url(page),
+          )
           (
             model.copy(
               observerNumber = in_Observer_Number(model.observers) + 1,
@@ -40,23 +43,25 @@ object PageUpdate:
               ),
             ),
           )
+
     case PageMsg.GotoObserver(page: Int) =>
-      val safeNumber = Num.Int_Positive(model.observerNumber - 1)
+      val safeNumber = Num.Int_Positive(page)
       Window.History(
-        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
-        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
       )
 
       (
         model.copy(observerNumber = page),
         Cmd.None,
       )
+
     case PageMsg.BackObserver =>
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
 
       Window.History(
-        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
-        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
       )
 
       (

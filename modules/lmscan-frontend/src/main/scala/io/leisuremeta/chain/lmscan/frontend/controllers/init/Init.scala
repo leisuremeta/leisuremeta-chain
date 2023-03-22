@@ -11,11 +11,12 @@ object Init:
       Model(
         observers = List(
           ObserverState(
-            pageCase = PageCase.Blocks(),
+            pageCase = PageCase.DashBoard(),
             number = 1,
           ),
         ),
         observerNumber = 1,
       ),
-      Cmd.None,
+      // Batch()
+      Cmd.Emit(PageMsg.PreUpdate(PageCase.DashBoard())),
     )

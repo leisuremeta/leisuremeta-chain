@@ -24,3 +24,10 @@
  - :: in_PubCase_pub_m1
  - :: in_PubCase_pub_m2
 ```
+
+# 시나리오
+
+```scala
+init
+ob[page[pubs]]
+```

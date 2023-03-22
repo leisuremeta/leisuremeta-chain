@@ -5,15 +5,14 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object Tables:
   def render(model: Model): Html[Msg] =
-    in_Observer_PageCase(model.observers, model.observerNumber) match
-      // case PageCase.DashBoard(_, _) =>
-      //   // div("dkssud?")
-      //   div(`class` := "table-area")(
-      //     div(id := "oop-table-blocks", `class` := "table-list x")(
-      //       BlockTable.view(model),
-      //       TransactionTable.view(model),
-      //     ),
-      //   )
+    getPage(model) match
+      case PageCase.DashBoard(_, _, _, _) =>
+        div(`class` := "table-area")(
+          div(id := "oop-table-blocks", `class` := "table-list x")(
+            BlockTable.view(model),
+            TransactionTable.view(model),
+          ),
+        )
 
       case PageCase.Blocks(_, _, _, _) =>
         div(`class` := "table-area")(
@@ -34,13 +33,14 @@ object Tables:
             TransactionTable.view(model),
           ),
         )
+      case PageCase.BlockDetail(_, _, _, _) =>
+        div(`class` := "table-area ")(
+          div(id := "oop-table-blocks", `class` := "table-list x")(
+            TransactionTable.view(model),
+          ),
+        )
 
       //   case PageName.BlockDetail(_) =>
-      //     div(`class` := "table-area ")(
-      //       div(id := "oop-table-blocks", `class` := "table-list x")(
-      //         TransactionTable.view(model),
-      //       ),
-      //     )
 
       //   case PageName.TransactionDetail(_) =>
       //     TransactionDetailView.view(model)
