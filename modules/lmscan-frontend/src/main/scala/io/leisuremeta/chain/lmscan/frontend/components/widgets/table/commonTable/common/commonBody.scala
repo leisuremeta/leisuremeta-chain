@@ -23,6 +23,7 @@ object Body:
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
+            // TODO FIX :: BLOCK_NUMBER,HASH,PlainLong 초기값 할당되지 않을경우, 에러난다
             Cell.BLOCK_NUMBER(v.hash, v.number),
             Cell.AGE(v.createdAt),
             Cell.BLOCK_HASH(v.hash),

@@ -13,7 +13,8 @@ object Table:
     div(`class` := "table w-[100%]")(
       Head.block :: Body.block(
         // Builder.get_Pub_M3(model.observers).blockInfo,
-        List(new BlockInfo),
+        // List(new BlockInfo),
+        pipe_PageCase_ViewCase(in_Observer_PageCase(model.observers)).blockInfo,
       ),
     )
   def txList_txtable = (model: Model) =>

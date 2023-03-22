@@ -5,11 +5,12 @@ import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.getquill.parser.Unlifter.caseClass
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+// import io.leisuremeta.chain.lmscan.frontend.ViewCase.blockInfo
 // import io.leisuremeta.chain.lmscan.frontend.M3R1.blockInfo
 
-case class M3R1(
-    txInfo: List[TxInfo] = List(new TxInfo),
-    blockInfo: List[BlockInfo] = List(new BlockInfo),
+case class ViewCase(
+    var blockInfo: List[BlockInfo] = List(new BlockInfo),
+    var txInfo: List[TxInfo] = List(new TxInfo),
 );
 
 // model.observers
@@ -84,7 +85,7 @@ object Builder:
       case PubCase.BlockPub(_, _, pub_m2) => pub_m2
       case PubCase.TxPub(_, _, pub_m2)    => pub_m2
 
-  // # PageCase |> [Pucase] |> [in page] |> all page
+  // # PageCase |> [Pubcase] |> [in page] |> all page
   def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
     log(
       log(
@@ -94,6 +95,7 @@ object Builder:
         .reduce((a, b) => a + b),
     )
 
+  // # PageCase |> [Pubcase] |> [in pub_m1] |> all page
   def pipe_PageCase_PubCase__pub_m1_All(pageCase: PageCase) =
     log(
       log(
@@ -102,6 +104,30 @@ object Builder:
       )
         .reduce((a, b) => a + b),
     )
+
+    // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
+  def pipe_PageCase_ViewCase(pageCase: PageCase): ViewCase =
+
+    // ViewCase 재할당이 일어나는 구조이므로, 리팩토링 필요할듯
+    var resulte = new ViewCase()
+    in_PageCase_PubCases(pageCase)
+      .map(d =>
+        d match
+          case PubCase.BlockPub(_, _, pub_m2) =>
+            resulte.blockInfo = pub_m2.payload.toList
+
+          case PubCase.TxPub(_, _, pub_m2) =>
+            resulte.txInfo = pub_m2.payload.toList,
+          // case _ =>
+          //   "no",
+      )
+    resulte
+    // resulte
+    // resulte
+
+    // [pubm2,.....] => viewCase(txInfo,blockInfo,...)
+    // .reduce((a, b) => a + b)
+
   // def pipe_PageCase_PubCase__pub_m2_All(pageCase: PageCase) =
   //   log(
   //     log(
