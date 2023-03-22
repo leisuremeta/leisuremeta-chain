@@ -43,33 +43,33 @@ object Body:
         div(
           `class` := s"cell type-3 ",
         )(
-          // span()(observer.number.toString()),
+          span()(observer.number.toString()),
         ),
         // name
         div(`class` := "cell type-3")(
           span()(
-            // getPageName(observer.pageCase),
+            in_PageCase_Name(observer.pageCase),
           ),
         ),
 
         // url
         div(`class` := "cell")(
           span(
-            // getPageUrl(observer.pageCase),
+            in_PageCase_url(observer.pageCase),
           ),
         ),
 
         // pubs
         div(`class` := "cell")(
           span(
-            // getPagePubs(observer.pageCase).length.toString(),
+            in_PageCase_pubs(observer.pageCase).length.toString(),
           ),
         ),
 
         // :page
         div(`class` := "cell")(
           span(
-            // getPagePubs(observer.pageCase)(0).page.toString(),
+            in_PubCase_Page(observer.pageCase).toString(),
           ),
         ),
 

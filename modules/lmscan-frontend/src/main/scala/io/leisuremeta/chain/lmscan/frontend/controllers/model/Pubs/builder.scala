@@ -67,6 +67,12 @@ object Builder:
       case PageCase.Blocks(_, _, pubs, _)       => pubs
       case PageCase.Transactions(_, _, pubs, _) => pubs
 
+  // #3-PubCase-function
+  def in_PubCase_Page(pageCase: PageCase) =
+    in_PageCase_pubs(pageCase)(0) match
+      case PubCase.BlockPub(page, _, _) => page
+      case PubCase.TxPub(page, _, _)    => page
+
   def pipe_observers_reduced_data(observers: List[ObserverState]) =
     in_PageCase_pubs(in_Observer_PageCase(observers)).reverse.map(d =>
       d match
