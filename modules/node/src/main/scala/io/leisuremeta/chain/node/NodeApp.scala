@@ -273,6 +273,18 @@ final case class NodeApp[F[_]
         .value
     }
 
+  def getOwnershipSnapshotMapServerEndpoint =
+    Api.getOwnershipSnapshotMapEndpoint.serverLogic{
+      (from: Option[TokenId], limit: Option[Int]) =>
+        StateReadService
+          .getOwnershipSnapshotMap(from, limit.getOrElse(100))
+          .leftMap {
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          }
+          .value
+    }
+
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -351,6 +363,7 @@ final case class NodeApp[F[_]
     getAccountSnapshotServerEndpoint,
     getTokenSnapshotServerEndpoint,
     getOwnershipSnapshotServerEndpoint,
+    getOwnershipSnapshotMapServerEndpoint,
 //    getRewardServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,

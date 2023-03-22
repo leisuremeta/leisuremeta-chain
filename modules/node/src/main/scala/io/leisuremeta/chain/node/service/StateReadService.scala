@@ -327,7 +327,9 @@ object StateReadService:
               )
             case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
               val amount = txWithResult.result.fold(BigNat.Zero) {
-                case Transaction.RewardTx.ExecuteOwnershipRewardResult(outputs) =>
+                case Transaction.RewardTx.ExecuteOwnershipRewardResult(
+                      outputs,
+                    ) =>
                   outputs.get(account).getOrElse(BigNat.Zero)
                 case _ => BigNat.Zero
               }
@@ -335,7 +337,6 @@ object StateReadService:
                 totalAmount = amount,
                 unused = Map(txHash -> txWithResult),
               )
-
 
         case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
     }((a, b) =>
@@ -774,7 +775,7 @@ object StateReadService:
 
   def getTokenSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
       tokenId: TokenId,
-  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] = 
+  ): EitherT[F, Either[String, String], Option[ActivitySnapshot]] =
 
     val program = PlayNommState[F].reward.tokenSnapshot.get(tokenId)
 
@@ -803,3 +804,26 @@ object StateReadService:
       merkleState = MerkleState.from(bestHeader)
       snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
     yield snapshotOption
+
+  def getOwnershipSnapshotMap[F[_]: Concurrent: BlockRepository: PlayNommState](
+      from: Option[TokenId],
+      limit: Int,
+  ): EitherT[F, Either[String, String], Map[TokenId, OwnershipSnapshot]] =
+
+    val program = PlayNommState[F].reward.ownershipSnapshot
+      .from(from.fold(ByteVector.empty)(_.toBytes))
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap { e =>
+        Left(e.msg)
+      }
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleState.from(bestHeader)
+      snapshotStream <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      snapshots <- snapshotStream
+        .take(limit)
+        .compile
+        .toList
+        .leftMap(_.asLeft[String])
+    yield snapshots.toMap
