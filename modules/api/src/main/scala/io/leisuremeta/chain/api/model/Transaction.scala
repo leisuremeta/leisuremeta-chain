@@ -374,7 +374,8 @@ object Transaction:
     final case class ExecuteOwnershipReward(
         networkId: NetworkId,
         createdAt: Instant,
-        inputs: Set[Signed.TxHash],
+        definitionId: TokenDefinitionId,
+        inputs: Set[Hash.Value[TransactionWithResult]],
         targets: Set[TokenId],
     ) extends RewardTx
         with FungibleBalance
