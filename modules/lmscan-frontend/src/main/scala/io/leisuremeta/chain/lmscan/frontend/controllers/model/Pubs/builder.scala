@@ -80,7 +80,7 @@ object Builder:
         .reduce((a, b) => a + b),
     )
 
-    // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
+  // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
   def pipe_PageCase_ViewCase(pageCase: PageCase): ViewCase =
 
     // ViewCase 재할당이 일어나는 구조이므로, 리팩토링 필요할듯
@@ -97,51 +97,8 @@ object Builder:
           //   "no",
       )
     resulte
-    // resulte
-    // resulte
-
-    // [pubm2,.....] => viewCase(txInfo,blockInfo,...)
-    // .reduce((a, b) => a + b)
-
-  // def pipe_PageCase_PubCase__pub_m2_All(pageCase: PageCase) =
-  //   log(
-  //     log(
-  //       log(in_PageCase_PubCases(log(pageCase)))
-  //         .map(d => in_PubCase_pub_m2(d)),
-  //     )
-  //       .reduce((a, b) => a.toString() + b.toString()),
-  //   )
-
-  // def pipe_PubCase_Page(pageCase: PageCase) =
-  //   in_PageCase_PubCases(pageCase).reverse(0) match
-  //     case PubCase.BlockPub(page, _, _) => page
-  //     case PubCase.TxPub(page, _, _)    => page
-
-  // def pipe_PubCase_pub_m1(pageCase: PageCase) =
-  //   in_PageCase_PubCases(pageCase).reverse(0) match
-  //     case PubCase.BlockPub(_, pub_m1, _) => pub_m1
-  //     case PubCase.TxPub(_, pub_m1, _)    => pub_m1
-
-  // def pipe_PubCase_pub_m2(pageCase: PageCase) =
-  //   in_PageCase_PubCases(pageCase).reverse(0) match
-  //     case PubCase.BlockPub(_, _, pub_m2) => pub_m2
-  //     case PubCase.TxPub(_, _, pub_m2)    => pub_m2
-
-  // #4-case-case-case=case
-  def pipe_observers_reduced_data(observers: List[ObserverState]) =
-    in_PageCase_PubCases(in_Observer_PageCase(observers)).reverse.map(d =>
-      d match
-        case PubCase.BlockPub(_, _, pub_m2) =>
-          // get_M3r1(pub_m2.payload.toList)
-          pub_m2.payload.toList
-
-        case PubCase.TxPub(_, _, pub_m2) =>
-          // get_M3r1(pub_m2.payload.toList)
-          pub_m2.payload.toList,
-    )
 
   //
-
   def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
       case PageCase.Blocks(_, _, _, _) =>
@@ -172,11 +129,4 @@ object Builder:
             .getOrElse(new PageResponse(0, 0, List())),
         )
 
-      // case PubCase.BlockPub(_, _, _) =>
-      //   PubCase.BlockPub(
-      //     pub_m1 = data,
-      //     pub_m2 = BlockParser
-      //       .decodeParser(data)
-      //       .getOrElse(new PageResponse(0, 0, List())),
-      //   )
       case _ => PubCase.BlockPub(pub_m1 = data)
