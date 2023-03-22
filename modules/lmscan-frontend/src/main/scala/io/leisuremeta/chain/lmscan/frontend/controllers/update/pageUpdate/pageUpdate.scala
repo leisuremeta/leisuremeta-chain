@@ -79,9 +79,3 @@ object PageUpdate:
         ),
         Cmd.None,
       )
-
-    //  .filter(d =>
-    //                 d match
-    //                   case SubCase.blockSub(_) => true
-    //                   case _                   => false,
-    //               )
