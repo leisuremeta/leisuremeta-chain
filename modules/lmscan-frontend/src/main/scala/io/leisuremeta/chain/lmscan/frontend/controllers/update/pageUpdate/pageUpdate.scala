@@ -73,16 +73,7 @@ object PageUpdate:
           model.observers.map(observer =>
             observer.number == model.observerNumber match
               case true =>
-                observer.copy(pageCase = observer.pageCase match
-                  case PageCase.Blocks(_, _, _, _) =>
-                    PageCase.Blocks(
-                      pubs = getPagePubs(observer.pageCase) ++ List(pub),
-                    )
-                  case PageCase.Transactions(_, _, _, _) =>
-                    PageCase.Transactions(
-                      pubs = getPagePubs(observer.pageCase) ++ List(pub),
-                    ),
-                )
+                observer.copy(pageCase = updatePagePubs(observer.pageCase, pub))
               case _ => observer,
           ),
         ),

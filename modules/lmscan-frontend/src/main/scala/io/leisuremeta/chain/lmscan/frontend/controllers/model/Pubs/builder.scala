@@ -28,3 +28,14 @@ object Builder:
     pageCase match
       case PageCase.Blocks(_, _, pubs, _)       => pubs
       case PageCase.Transactions(_, _, pubs, _) => pubs
+
+  def updatePagePubs(pageCase: PageCase, pub: PubCase) =
+    pageCase match
+      case PageCase.Blocks(_, _, _, _) =>
+        PageCase.Blocks(
+          pubs = getPagePubs(pageCase) ++ List(pub),
+        )
+      case PageCase.Transactions(_, _, _, _) =>
+        PageCase.Transactions(
+          pubs = getPagePubs(pageCase) ++ List(pub),
+        )
