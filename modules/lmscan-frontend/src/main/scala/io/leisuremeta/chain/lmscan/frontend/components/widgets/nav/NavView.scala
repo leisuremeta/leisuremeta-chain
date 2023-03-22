@@ -14,7 +14,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageCase.Blocks() == getObserver_PageCase(model.observers, model.observerNumber)}",
+          `class` := s"${PageCase.Blocks() == in_Observer_PageCase(model.observers, model.observerNumber)}",
           onClick(PageMsg.PreUpdate(PageCase.Blocks())),
         )(span()(PageCase.Blocks().name)),
       ),
@@ -22,7 +22,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageCase.Transactions() == getObserver_PageCase(model.observers, model.observerNumber)}",
+          `class` := s"${PageCase.Transactions() == in_Observer_PageCase(model.observers, model.observerNumber)}",
           onClick(PageMsg.PreUpdate(PageCase.Transactions())),
         )(span()(PageCase.Transactions().name)),
       ),

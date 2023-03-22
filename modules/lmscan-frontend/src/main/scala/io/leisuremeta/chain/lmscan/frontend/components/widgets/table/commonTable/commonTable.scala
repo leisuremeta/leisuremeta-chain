@@ -5,7 +5,7 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object Tables:
   def render(model: Model): Html[Msg] =
-    getObserver_PageCase(model.observers, model.observerNumber) match
+    in_Observer_PageCase(model.observers, model.observerNumber) match
       // case PageCase.DashBoard(_, _) =>
       //   // div("dkssud?")
       //   div(`class` := "table-area")(

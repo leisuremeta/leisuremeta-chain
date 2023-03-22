@@ -33,7 +33,7 @@ object Body:
   def observer = (model: Model) =>
     model.observers.map(observer =>
       div(
-        `class` := s"row table-body ${observer.number == getObserver_Number(
+        `class` := s"row table-body ${observer.number == in_Observer_Number(
             model.observers,
             model.observers.length,
           )}_observer ${model.observerNumber == observer.number}_observer_click",

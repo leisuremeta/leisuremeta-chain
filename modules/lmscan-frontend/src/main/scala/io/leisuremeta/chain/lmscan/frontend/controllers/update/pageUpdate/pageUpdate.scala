@@ -21,19 +21,19 @@ object PageUpdate:
         //     Cmd.None,
         //   )
         case _ =>
-          Window.History(getPageCase_Name(page), getPageCase_Name(page))
+          Window.History(in_PageCase_Name(page), in_PageCase_Name(page))
           (
             model.copy(
-              observerNumber = getObserver_Number(model.observers) + 1,
+              observerNumber = in_Observer_Number(model.observers) + 1,
               observers = model.observers ++ Seq(
                 ObserverState(
-                  number = getObserver_Number(model.observers) + 1,
+                  number = in_Observer_Number(model.observers) + 1,
                   pageCase = page,
                 ),
               ),
             ),
             Cmd.Batch(
-              getPageCase_pubs(page).map(pub =>
+              in_PageCase_pubs(page).map(pub =>
                 OnDataProcess.getData(
                   pub,
                 ),
@@ -43,8 +43,8 @@ object PageUpdate:
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
       Window.History(
-        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
-        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
+        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
       )
 
       (
@@ -55,8 +55,8 @@ object PageUpdate:
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
 
       Window.History(
-        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
-        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
+        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_Name(in_Observer_PageCase(model.observers, safeNumber)),
       )
 
       (
@@ -72,7 +72,9 @@ object PageUpdate:
           model.observers.map(observer =>
             observer.number == model.observerNumber match
               case true =>
-                observer.copy(pageCase = updatePagePubs(observer.pageCase, pub))
+                observer.copy(pageCase =
+                  update_pagecase_pub(observer.pageCase, pub),
+                )
               case _ => observer,
           ),
         ),

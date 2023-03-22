@@ -66,6 +66,6 @@ object OnDataProcess:
     //   .display = "block"
 
     Http.send(
-      Request.get(Builder.getPubUrl(pub)).withTimeout(30.seconds),
+      Request.get(Builder.pipe_pubcase_apiUrl(pub)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(pub),
     )

@@ -11,74 +11,64 @@ case class M3R1(
     blockInfo: List[BlockInfo] = List(new BlockInfo),
 );
 
-// 파이프라인
+// model.observers
+// |> find_Observer => observer
+// |> in_Observer_PageCase => pageCase
+// |> in_PageCase_pubs => pubs
 
-// getObservers
-// - getObserver
+// Observers
+// - find_Observer
 
-// observer(최신)
-// - getObserver_PageCase
-// - getObserver_Number // 없음
+// observer
+// - in_Observer_PageCase
+// - in_Observer_Number // 없음
 
 // PageCase(name,url,pubs,status)
-// - getPageCase_Name
-// - getPageCase_url
-// - getPageCase_pubs
-// - getPageCase_status
+// - in_PageCase_Name
+// - in_PageCase_url
+// - in_PageCase_pubs
+// - in_PageCase_status // 없음
 
 // PubCase(::page,pub_m1,pub_m2)
-// - :: get
-// - :: get
-// - :: get
-// - :: get
+// - :: in_PubCase_page
+// - :: in_PubCase_pub_m1
+// - :: in_PubCase_pub_m2
 
+// TODO:: go, pipe 함수로 redesign!
 object Builder:
-  // observer(최신)
-  // - getObserver_PageCase
-  // - getObserver_Number // 없음
-
-  def getObserver(observers: List[ObserverState], find: Int) =
+  // #1-observer
+  def find_Observer(observers: List[ObserverState], find: Int) =
     // find 가 0이면 가장 최신 옵져버로 검색할수 있게 해준다
     val _find = find match
       case 0 => observers.length
       case _ => find
     observers.filter(o => o.number == _find)(0)
 
-  def getObserver_PageCase(observers: List[ObserverState], find: Int = 0) =
-    getObserver(observers, find).pageCase
+  // #1-observer-function
+  def in_Observer_PageCase(observers: List[ObserverState], find: Int = 0) =
+    find_Observer(observers, find).pageCase
 
-  def getObserver_Number(observers: List[ObserverState], find: Int = 0) =
-    getObserver(observers, find).number
+  def in_Observer_Number(observers: List[ObserverState], find: Int = 0) =
+    find_Observer(observers, find).number
 
-  // PageCase(name,url,pubs,status)
-  // - getPageCase_Name
-  // - getPageCase_url
-  // - getPageCase_pubs
-  // - getPageCase_status -- 없음
-
-  def getPageCase_Name(pageCase: PageCase) =
+  // #2-PageCase-function
+  def in_PageCase_Name(pageCase: PageCase) =
     pageCase match
       case PageCase.Blocks(name, _, _, _)       => name
       case PageCase.Transactions(name, _, _, _) => name
 
-  def getPageCase_url(pageCase: PageCase) =
+  def in_PageCase_url(pageCase: PageCase) =
     pageCase match
       case PageCase.Blocks(_, url, _, _)       => url
       case PageCase.Transactions(_, url, _, _) => url
 
-  def getPageCase_pubs(pageCase: PageCase): List[PubCase] =
+  def in_PageCase_pubs(pageCase: PageCase): List[PubCase] =
     pageCase match
       case PageCase.Blocks(_, _, pubs, _)       => pubs
       case PageCase.Transactions(_, _, pubs, _) => pubs
 
-  // def get_M3r1(m3: List[TxInfo] | List[BlockInfo]) =
-  //   m3 match
-  //     case m3: List[TxInfo]    => M3R1(txInfo = m3)
-  //     case m3: List[BlockInfo] => M3R1(blockInfo = m3)
-
-  // TODO:: go, pipe 함수로 redesign!
-  def updatePagePubs(observers: List[ObserverState]) =
-    getPageCase_pubs(getObserver_PageCase(observers)).reverse.map(d =>
+  def pipe_observers_reduced_data(observers: List[ObserverState]) =
+    in_PageCase_pubs(in_Observer_PageCase(observers)).reverse.map(d =>
       d match
         case PubCase.BlockPub(_, _, pub_m2) =>
           // get_M3r1(pub_m2.payload.toList)
@@ -89,18 +79,18 @@ object Builder:
           pub_m2.payload.toList,
     )
 
-  def updatePagePubs(pageCase: PageCase, pub: PubCase) =
+  def update_pagecase_pub(pageCase: PageCase, pub: PubCase) =
     pageCase match
       case PageCase.Blocks(_, _, _, _) =>
         PageCase.Blocks(
-          pubs = getPageCase_pubs(pageCase) ++ List(pub),
+          pubs = in_PageCase_pubs(pageCase) ++ List(pub),
         )
       case PageCase.Transactions(_, _, _, _) =>
         PageCase.Transactions(
-          pubs = getPageCase_pubs(pageCase) ++ List(pub),
+          pubs = in_PageCase_pubs(pageCase) ++ List(pub),
         )
 
-  def getPubUrl(pub: PubCase) =
+  def pipe_pubcase_apiUrl(pub: PubCase) =
     var base = js.Dynamic.global.process.env.BASE_API_URL
     pub match
       case PubCase.BlockPub(_, _, _) =>
@@ -127,3 +117,8 @@ object Builder:
       //       .getOrElse(new PageResponse(0, 0, List())),
       //   )
       case _ => PubCase.BlockPub(pub_m1 = data)
+
+  // def get_M3r1(m3: List[TxInfo] | List[BlockInfo]) =
+  //   m3 match
+  //     case m3: List[TxInfo]    => M3R1(txInfo = m3)
+  //     case m3: List[BlockInfo] => M3R1(blockInfo = m3)
