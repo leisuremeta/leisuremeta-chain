@@ -5,8 +5,6 @@ import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.getquill.parser.Unlifter.caseClass
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-// import io.leisuremeta.chain.lmscan.frontend.ViewCase.blockInfo
-// import io.leisuremeta.chain.lmscan.frontend.M3R1.blockInfo
 
 case class ViewCase(
     var blockInfo: List[BlockInfo] = List(new BlockInfo),
