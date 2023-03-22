@@ -76,12 +76,11 @@ object PageUpdate:
                 observer.copy(pageCase = observer.pageCase match
                   case PageCase.Blocks(_, _, _, _) =>
                     PageCase.Blocks(
-                      pubs =
-                        // log(List(1, 2, 3) ++ List(4, 5))
-                        // log(observer.pageCase.pubs)
-                        // log(List(pub))
-                        // log(observer.pageCase.pubs ++ List(pub))
-                        getPagePubs(observer.pageCase) ++ List(pub),
+                      pubs = getPagePubs(observer.pageCase) ++ List(pub),
+                    )
+                  case PageCase.Transactions(_, _, _, _) =>
+                    PageCase.Transactions(
+                      pubs = getPagePubs(observer.pageCase) ++ List(pub),
                     ),
                 )
               case _ => observer,

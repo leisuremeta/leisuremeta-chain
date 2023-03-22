@@ -18,12 +18,12 @@ object NavView:
           onClick(PageMsg.PreUpdate(PageCase.Blocks())),
         )(span()(PageCase.Blocks().name)),
       ),
-      // div(
-      //   id := "buttons",
-      // )(
-      //   button(
-      //     `class` := s"${PageCase.Blocks() == getPage(model.observers, model.observerNumber)}",
-      //     onClick(PageMsg.PreUpdate(PageCase.Transactions())),
-      //   )(span()(PageCase.Transactions().name)),
-      // ),
+      div(
+        id := "buttons",
+      )(
+        button(
+          `class` := s"${PageCase.Transactions() == getPage(model.observers, model.observerNumber)}",
+          onClick(PageMsg.PreUpdate(PageCase.Transactions())),
+        )(span()(PageCase.Transactions().name)),
+      ),
     )

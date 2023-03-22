@@ -2,10 +2,18 @@ package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.common.model.*
 
 enum PageCase:
-
   case Blocks(
       name: String = "Blocks",
       ulr: String = "Blocks",
+      pubs: List[PubCase] = List(
+        PubCase.blockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
+      ),
+      status: Boolean = false,
+  ) extends PageCase
+
+  case Transactions(
+      name: String = "Transactions",
+      ulr: String = "Transactions",
       pubs: List[PubCase] = List(
         PubCase.blockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
       ),

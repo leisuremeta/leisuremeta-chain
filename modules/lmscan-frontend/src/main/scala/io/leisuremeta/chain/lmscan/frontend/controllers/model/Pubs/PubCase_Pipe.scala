@@ -18,6 +18,16 @@ object ReducePipe:
           .pub_m2
           .payload
           .toList
+      case PageCase.Transactions(_, _, pubs, _) =>
+        pubs.reverse
+          .filter(d =>
+            d.pub_m2 match
+              case block: PageResponse[BlockInfo] => true,
+              // case _                              => false,
+          )(0)
+          .pub_m2
+          .payload
+          .toList
 
   // [PubCase]
   // |> [PubCase_m1] // api 단계에서 처리

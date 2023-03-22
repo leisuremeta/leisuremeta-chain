@@ -16,12 +16,15 @@ object Builder:
 
   def getPageName(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(name, _, _, _) => name
+      case PageCase.Blocks(name, _, _, _)       => name
+      case PageCase.Transactions(name, _, _, _) => name
 
   def getPageUrl(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(_, url, _, _) => url
+      case PageCase.Blocks(_, url, _, _)       => url
+      case PageCase.Transactions(_, url, _, _) => url
 
   def getPagePubs(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(_, _, pubs, _) => pubs
+      case PageCase.Blocks(_, _, pubs, _)       => pubs
+      case PageCase.Transactions(_, _, pubs, _) => pubs
