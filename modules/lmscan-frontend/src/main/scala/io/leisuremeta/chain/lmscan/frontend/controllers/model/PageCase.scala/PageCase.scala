@@ -6,7 +6,7 @@ enum PageCase:
       name: String = "Blocks",
       ulr: String = "Blocks",
       pubs: List[PubCase] = List(
-        PubCase.blockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
+        PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
       ),
       status: Boolean = false,
   ) extends PageCase
@@ -15,7 +15,7 @@ enum PageCase:
       name: String = "Transactions",
       ulr: String = "Transactions",
       pubs: List[PubCase] = List(
-        PubCase.blockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
+        PubCase.TxPub(1, "", PageResponse[TxInfo](0, 0, List())),
       ),
       status: Boolean = false,
   ) extends PageCase

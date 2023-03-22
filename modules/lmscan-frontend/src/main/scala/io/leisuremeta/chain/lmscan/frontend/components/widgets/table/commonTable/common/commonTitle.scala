@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
+import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object Title:
   def block = (model: Model) =>

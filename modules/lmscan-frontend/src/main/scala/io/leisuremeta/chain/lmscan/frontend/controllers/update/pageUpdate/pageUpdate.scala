@@ -20,21 +20,20 @@ object PageUpdate:
         //     model.copy(),
         //     Cmd.None,
         //   )
-
         case _ =>
-          Window.History(getPageName(page), getPageName(page))
+          Window.History(getPageCase_Name(page), getPageCase_Name(page))
           (
             model.copy(
-              observerNumber = getNumber(model.observers) + 1,
+              observerNumber = getObserver_Number(model.observers) + 1,
               observers = model.observers ++ Seq(
                 ObserverState(
-                  number = getNumber(model.observers) + 1,
+                  number = getObserver_Number(model.observers) + 1,
                   pageCase = page,
                 ),
               ),
             ),
             Cmd.Batch(
-              getPagePubs(page).map(pub =>
+              getPageCase_pubs(page).map(pub =>
                 OnDataProcess.getData(
                   pub,
                 ),
@@ -44,8 +43,8 @@ object PageUpdate:
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
       Window.History(
-        getPageName(getPage(model.observers, safeNumber)),
-        getPageName(getPage(model.observers, safeNumber)),
+        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
+        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
       )
 
       (
@@ -56,8 +55,8 @@ object PageUpdate:
       val safeNumber = Num.Int_Positive(model.observerNumber - 1)
 
       Window.History(
-        getPageName(getPage(model.observers, safeNumber)),
-        getPageName(getPage(model.observers, safeNumber)),
+        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
+        getPageCase_Name(getObserver_PageCase(model.observers, safeNumber)),
       )
 
       (

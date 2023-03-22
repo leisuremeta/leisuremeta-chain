@@ -5,13 +5,15 @@ import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
 import Log.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
+import io.leisuremeta.chain.lmscan.frontend.Builder.*
+import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.block :: Body.block(
-        ReducePipe.getBlocks(model),
+        // Builder.get_Pub_M3(model.observers).blockInfo,
+        List(new BlockInfo),
       ),
     )
   def txList_txtable = (model: Model) =>

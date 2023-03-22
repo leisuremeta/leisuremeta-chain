@@ -65,9 +65,7 @@ object OnDataProcess:
     //   .style
     //   .display = "block"
 
-    val url = Builder.getPubUrl(pub)
-
     Http.send(
-      Request.get(url).withTimeout(30.seconds),
+      Request.get(Builder.getPubUrl(pub)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(pub),
     )

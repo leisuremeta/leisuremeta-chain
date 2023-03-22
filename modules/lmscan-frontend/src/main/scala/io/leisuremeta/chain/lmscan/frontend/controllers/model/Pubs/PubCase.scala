@@ -1,18 +1,24 @@
 package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.common.model.*
 
-trait PubCase:
-  def page: Int
-  def pub_m1: String
-  def pub_m2: PageResponse[BlockInfo]
+// trait PubCase
+// def page: Int
+// def pub_m1: String
+// def pub_m2: PageResponse[BlockInfo]
 
-object PubCase:
+enum PubCase:
 
-  case class blockPub(
+  case BlockPub(
       page: Int = 1,
       pub_m1: String = "",
       pub_m2: PageResponse[BlockInfo] =
         new PageResponse[BlockInfo](0, 0, List()),
+  ) extends PubCase
+
+  case TxPub(
+      page: Int = 1,
+      pub_m1: String = "",
+      pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
   ) extends PubCase
 
   // case class txPub(

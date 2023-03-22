@@ -14,7 +14,7 @@ import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
-import io.leisuremeta.chain.lmscan.frontend.Builder.getNumber
+import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Body:
@@ -33,7 +33,7 @@ object Body:
   def observer = (model: Model) =>
     model.observers.map(observer =>
       div(
-        `class` := s"row table-body ${observer.number == getNumber(
+        `class` := s"row table-body ${observer.number == getObserver_Number(
             model.observers,
             model.observers.length,
           )}_observer ${model.observerNumber == observer.number}_observer_click",
@@ -43,51 +43,51 @@ object Body:
         div(
           `class` := s"cell type-3 ",
         )(
-          span()(observer.number.toString()),
+          // span()(observer.number.toString()),
         ),
         // name
         div(`class` := "cell type-3")(
           span()(
-            getPageName(observer.pageCase),
+            // getPageName(observer.pageCase),
           ),
         ),
 
         // url
         div(`class` := "cell")(
           span(
-            getPageUrl(observer.pageCase),
+            // getPageUrl(observer.pageCase),
           ),
         ),
 
         // pubs
         div(`class` := "cell")(
           span(
-            getPagePubs(observer.pageCase).length.toString(),
+            // getPagePubs(observer.pageCase).length.toString(),
           ),
         ),
 
         // :page
         div(`class` := "cell")(
           span(
-            getPagePubs(observer.pageCase)(0).page.toString(),
+            // getPagePubs(observer.pageCase)(0).page.toString(),
           ),
         ),
 
         // : pub_m1
         div(`class` := "cell")(
           span(
-            getPagePubs(observer.pageCase)
-              .map(d => d.pub_m1)
-              .reduce((a, b) => a + b),
+            // getPagePubs(observer.pageCase)
+            //   .map(d => d.pub_m1)
+            //   .reduce((a, b) => a + b),
           ),
         ),
 
         // : pub_m2
         div(`class` := "cell")(
           span(
-            getPagePubs(observer.pageCase)
-              .map(d => d.pub_m2.toString())
-              .reduce((a, b) => a + b),
+            // getPagePubs(observer.pageCase)
+            //   .map(d => d.pub_m2.toString())
+            //   .reduce((a, b) => a + b),
           ),
         ),
       ),

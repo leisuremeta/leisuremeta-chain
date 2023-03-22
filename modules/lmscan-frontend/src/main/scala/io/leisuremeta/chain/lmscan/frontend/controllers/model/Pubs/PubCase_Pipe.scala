@@ -1,33 +1,33 @@
 package io.leisuremeta.chain.lmscan.frontend
 
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
+import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object ReducePipe:
-  def getBlocks = (model: Model) =>
-    getPage(model.observers) match
-      case PageCase.Blocks(_, _, pubs, _) =>
-        pubs.reverse
-          .filter(d =>
-            d.pub_m2 match
-              case block: PageResponse[BlockInfo] => true,
-              // case _                              => false,
-          )(0)
-          .pub_m2
-          .payload
-          .toList
-      case PageCase.Transactions(_, _, pubs, _) =>
-        pubs.reverse
-          .filter(d =>
-            d.pub_m2 match
-              case block: PageResponse[BlockInfo] => true,
-              // case _                              => false,
-          )(0)
-          .pub_m2
-          .payload
-          .toList
+  def getPubM2 = (model: Model) => ""
+  // getPage(model.observers) match
+  //   case PageCase.Blocks(_, _, pubs, _) =>
+  //     pubs.reverse
+  //       .filter(d =>
+  //         d match
+  //           // case block: PageResponse[BlockInfo] => true
+  //           case _ => true,
+  //       )(0)
+  //       .pub_m2
+  //       .payload
+  //       .toList
+  //   case PageCase.Transactions(_, _, pubs, _) =>
+  //     pubs.reverse
+  //       .filter(d =>
+  //         d match
+  //           // case block: PageResponse[BlockInfo] => true
+  //           case _ => true,
+  //       )(0)
+  //       .pub_m2
+  //       .payload
+  //       .toList
 
   // [PubCase]
   // |> [PubCase_m1] // api 단계에서 처리

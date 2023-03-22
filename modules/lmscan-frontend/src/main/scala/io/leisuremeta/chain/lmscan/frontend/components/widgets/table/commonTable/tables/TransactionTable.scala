@@ -7,11 +7,11 @@ import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 
 import Log.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
+import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =
-    getPage(model.observers, model.observerNumber) match
+    getObserver_PageCase(model.observers, model.observerNumber) match
       //   case PageName.DashBoard =>
       //     div(`class` := "table-container")(
       //       Title.tx(model),
