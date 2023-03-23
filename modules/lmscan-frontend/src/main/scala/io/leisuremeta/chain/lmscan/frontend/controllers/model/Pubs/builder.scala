@@ -1,6 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 import scala.scalajs.js
-import io.getquill.parser.Unlifter.caseClass
+// import io.getquill.parser.Unlifter.caseClass
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.*
 

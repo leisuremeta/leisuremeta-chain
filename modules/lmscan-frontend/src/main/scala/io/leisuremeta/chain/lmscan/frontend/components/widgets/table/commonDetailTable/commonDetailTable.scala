@@ -4,6 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object DetailTables:
   def render(model: Model): Html[Msg] =

@@ -11,18 +11,10 @@ import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object BlockDetailTable:
   val view = (model: Model) =>
-    // val data: BlockDetail = BlockDetailParser
-    //   .decodeParser(model.blockDetailData.get)
-    //   .getOrElse(new BlockDetail)
-
-    // val data: BlockDetail = new BlockDetail
     val data: BlockDetail = getPubData(model).blockDetail
-    log("123123123")
-    log(data)
     genView(model, data)
 
   val genView = (model: Model, data: BlockDetail) =>
-    div("asdadad")
     div(`class` := "type-TableDetail table-container pt-16px")(
       div(`class` := "table w-[100%]")(
         div(`class` := "row")(

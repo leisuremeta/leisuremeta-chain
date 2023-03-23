@@ -10,6 +10,5 @@ object BlockDetailView:
         "Block Details",
       ),
       div(`class` := "x")(CommonDetailTable.view(model)),
-      CommonDetailTable.view(model),
       CommonTableView.view(model),
     )

@@ -35,7 +35,7 @@ object Pages:
       case PageCase.BlockDetail(_, _, _, _) =>
         div()(
           ObserverView.view(model),
-          TransactionsView.view(model),
+          BlockDetailView.view(model),
         )
 
       // case _ => div("매칭x")
