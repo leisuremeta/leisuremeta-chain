@@ -8,7 +8,7 @@ enum PageCase:
       pubs: List[PubCase] = List(
         // PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
         // PubCase.TxPub(1, "", PageResponse[TxInfo](0, 0, List())),
-        // PubCase.BoardPub(1, "", SummaryModel()),
+        PubCase.BoardPub(1, "", SummaryModel()),
       ),
       status: Boolean = false,
   ) extends PageCase

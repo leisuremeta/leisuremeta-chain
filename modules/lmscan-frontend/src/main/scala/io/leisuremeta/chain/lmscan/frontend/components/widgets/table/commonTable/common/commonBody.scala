@@ -33,60 +33,75 @@ object Body:
       )
   def observer = (model: Model) =>
     model.observers.map(observer =>
-      div(
-        `class` := s"row table-body ${observer.number == in_Observer_Number(
-            model.observers,
-            model.observers.length,
-          )}_observer ${model.observerNumber == observer.number}_observer_click",
-        onClick(PageMsg.GotoObserver(observer.number)),
-      )(
-        // #
+      div()(
         div(
-          `class` := s"cell type-3 ",
+          `class` := s"row table-body ${observer.number == in_Observer_Number(
+              model.observers,
+              model.observers.length,
+            )}_observer ${model.observerNumber == observer.number}_observer_click",
+          onClick(PageMsg.GotoObserver(observer.number)),
         )(
-          span()(observer.number.toString()),
-        ),
-        // name
-        div(`class` := "cell type-3")(
-          span()(
-            in_PageCase_Name(observer.pageCase),
+          // #
+          div(
+            `class` := s"cell type-3 ",
+          )(
+            span()(observer.number.toString()),
           ),
-        ),
+          // name
+          div(`class` := "cell type-3")(
+            span()(
+              in_PageCase_Name(observer.pageCase),
+            ),
+          ),
 
-        // url
-        div(`class` := "cell")(
-          span(
-            in_PageCase_url(observer.pageCase),
+          // url
+          div(`class` := "cell")(
+            span(
+              in_PageCase_url(observer.pageCase),
+            ),
           ),
-        ),
 
-        // pubs
-        div(`class` := "cell")(
-          span(
-            in_PageCase_PubCases(observer.pageCase).length.toString(),
+          // pubs
+          div(`class` := "cell")(
+            span(
+              in_PageCase_PubCases(observer.pageCase).length.toString(),
+            ),
           ),
-        ),
 
-        // :page
-        div(`class` := "cell")(
-          span(
-            // pipe_PubCase_Page(observer.pageCase).toString(),
+          // :page
+          div(`class` := "cell")(
+            span(
+              // pipe_PubCase_Page(observer.pageCase).toString(),
+            ),
           ),
-        ),
 
-        // : PubCases |> map - pipe_PubCase_Page |> reduce
-        div(`class` := "cell")(
-          span(
-            pipe_PageCase_PubCase__Page_All(observer.pageCase).toString(),
+          // : PubCases |> map - pipe_PubCase_Page |> reduce
+          div(`class` := "cell")(
+            span(
+              pipe_PageCase_PubCase__Page_All(observer.pageCase).toString(),
+            ),
           ),
-        ),
 
-        // : pub_m2
-        div(`class` := "cell")(
-          span(
-            pipe_PageCase_PubCase__pub_m1_All(observer.pageCase).toString(),
+          // : pub_m2
+          div(`class` := "cell")(
+            span(
+              pipe_PageCase_PubCase__pub_m1_All(observer.pageCase).toString(),
+            ),
           ),
         ),
+        div(
+          `class` := s"${observer.number == in_Observer_Number(
+              model.observers,
+              model.observerNumber,
+            ) match
+              case true => ""
+              case _    => "hidden"
+            }",
+          // `class` := s"row table-body ${observer.number == in_Observer_Number(
+          //     model.observers,
+          //     model.observers.length,
+          //   )}_observer ${model.observerNumber == observer.number}_observer_click",
+        )(PageView.view2(model)),
       ),
     )
   def txlist_txtable = (payload: List[TxInfo]) =>
