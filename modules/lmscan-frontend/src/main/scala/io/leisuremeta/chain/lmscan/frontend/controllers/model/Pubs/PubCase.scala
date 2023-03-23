@@ -39,6 +39,11 @@ enum PubCase:
       pub_m2: TxDetail = new TxDetail,
   ) extends PubCase
 
+  case AccountDetailPub(
+      hash: String = "",
+      pub_m1: String = "",
+      pub_m2: AccountDetail = new AccountDetail,
+  ) extends PubCase
 // BlockDetailParser
 //     .decodeParser(model.blockDetailData.get)
 //     .getOrElse(new BlockDetail)

@@ -14,8 +14,9 @@ object DetailTables:
 
       case PageCase.TxDetail(_, _, _, _) =>
         TxDetailTable.view(model)
-      //   case PageName.AccountDetail(_) =>
-      //     AccountDetailTable.view(model)
+
+      case PageCase.AccountDetail(_, _, _, _) =>
+        AccountDetailTable.view(model)
       //   case PageName.NftDetail(_) =>
       //     NftDetailTable.view(model)
 

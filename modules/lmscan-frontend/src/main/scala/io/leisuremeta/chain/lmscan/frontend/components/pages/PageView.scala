@@ -38,6 +38,11 @@ object Pages:
           ObserverView.view(model),
           TransactionDetailView.view(model),
         )
+      case PageCase.AccountDetail(_, _, _, _) =>
+        div()(
+          ObserverView.view(model),
+          AccountView.view(model),
+        )
 
       // case _ => div("매칭x")
 

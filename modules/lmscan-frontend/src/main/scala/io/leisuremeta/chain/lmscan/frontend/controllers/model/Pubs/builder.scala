@@ -16,6 +16,7 @@ case class PageResponseViewCase(
     var board: SummaryModel = new SummaryModel,
     var blockDetail: BlockDetail = new BlockDetail,
     var txDetail: TxDetail = new TxDetail,
+    var accountDetail: AccountDetail = new AccountDetail,
 );
 
 // TODO:: go, pipe 함수로 redesign!
@@ -38,27 +39,30 @@ object Builder:
   // #2-PageCase-function
   def in_PageCase_Name(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(name, _, _, _)       => name
-      case PageCase.Transactions(name, _, _, _) => name
-      case PageCase.DashBoard(name, _, _, _)    => name
-      case PageCase.BlockDetail(name, _, _, _)  => name
-      case PageCase.TxDetail(name, _, _, _)     => name
+      case PageCase.Blocks(name, _, _, _)        => name
+      case PageCase.Transactions(name, _, _, _)  => name
+      case PageCase.DashBoard(name, _, _, _)     => name
+      case PageCase.BlockDetail(name, _, _, _)   => name
+      case PageCase.TxDetail(name, _, _, _)      => name
+      case PageCase.AccountDetail(name, _, _, _) => name
 
   def in_PageCase_url(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(_, url, _, _)       => url
-      case PageCase.Transactions(_, url, _, _) => url
-      case PageCase.DashBoard(_, url, _, _)    => url
-      case PageCase.BlockDetail(_, url, _, _)  => url
-      case PageCase.TxDetail(_, url, _, _)     => url
+      case PageCase.Blocks(_, url, _, _)        => url
+      case PageCase.Transactions(_, url, _, _)  => url
+      case PageCase.DashBoard(_, url, _, _)     => url
+      case PageCase.BlockDetail(_, url, _, _)   => url
+      case PageCase.TxDetail(_, url, _, _)      => url
+      case PageCase.AccountDetail(_, url, _, _) => url
 
   def in_PageCase_PubCases(pageCase: PageCase): List[PubCase] =
     pageCase match
-      case PageCase.Blocks(_, _, pubs, _)       => pubs
-      case PageCase.Transactions(_, _, pubs, _) => pubs
-      case PageCase.DashBoard(_, _, pubs, _)    => pubs
-      case PageCase.BlockDetail(_, _, pubs, _)  => pubs
-      case PageCase.TxDetail(_, _, pubs, _)     => pubs
+      case PageCase.Blocks(_, _, pubs, _)        => pubs
+      case PageCase.Transactions(_, _, pubs, _)  => pubs
+      case PageCase.DashBoard(_, _, pubs, _)     => pubs
+      case PageCase.BlockDetail(_, _, pubs, _)   => pubs
+      case PageCase.TxDetail(_, _, pubs, _)      => pubs
+      case PageCase.AccountDetail(_, _, pubs, _) => pubs
 
   // #3-PubCase-function
   def in_PubCase_Page(pubCase: PubCase) =
@@ -70,19 +74,21 @@ object Builder:
 
   def in_PubCase_pub_m1(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(_, pub_m1, _)       => pub_m1
-      case PubCase.TxPub(_, pub_m1, _)          => pub_m1
-      case PubCase.BoardPub(_, pub_m1, _)       => pub_m1
-      case PubCase.BlockDetailPub(_, pub_m1, _) => pub_m1
-      case PubCase.TxDetailPub(_, pub_m1, _)    => pub_m1
+      case PubCase.BlockPub(_, pub_m1, _)         => pub_m1
+      case PubCase.TxPub(_, pub_m1, _)            => pub_m1
+      case PubCase.BoardPub(_, pub_m1, _)         => pub_m1
+      case PubCase.BlockDetailPub(_, pub_m1, _)   => pub_m1
+      case PubCase.TxDetailPub(_, pub_m1, _)      => pub_m1
+      case PubCase.AccountDetailPub(_, pub_m1, _) => pub_m1
 
   def in_PubCase_pub_m2(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(_, _, pub_m2)       => pub_m2
-      case PubCase.TxPub(_, _, pub_m2)          => pub_m2
-      case PubCase.BoardPub(_, _, pub_m2)       => pub_m2
-      case PubCase.BlockDetailPub(_, _, pub_m2) => pub_m2
-      case PubCase.TxDetailPub(_, _, pub_m2)    => pub_m2
+      case PubCase.BlockPub(_, _, pub_m2)         => pub_m2
+      case PubCase.TxPub(_, _, pub_m2)            => pub_m2
+      case PubCase.BoardPub(_, _, pub_m2)         => pub_m2
+      case PubCase.BlockDetailPub(_, _, pub_m2)   => pub_m2
+      case PubCase.TxDetailPub(_, _, pub_m2)      => pub_m2
+      case PubCase.AccountDetailPub(_, _, pub_m2) => pub_m2
 
   // # PageCase |> [Pubcase] |> [in page] |> all page
   def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
@@ -124,7 +130,7 @@ object Builder:
           case PubCase.TxPub(_, _, pub_m2) =>
             resulte.txInfo = pub_m2.payload.toList
 
-          // case PubCase.BoardPub(_, _, pub_m2) =>
+          // case PubCase.AccountDetailPub(_, _, pub_m2) =>
           //   resulte.txInfo = pub_m2,
           // case PubCase.BoardPub(_, _, pub_m2) =>
           //   resulte.txInfo = pub_m2,
@@ -155,7 +161,10 @@ object Builder:
             resulte.blockDetail = pub_m2
 
           case PubCase.TxDetailPub(_, _, pub_m2) =>
-            resulte.txDetail = pub_m2,
+            resulte.txDetail = pub_m2
+
+          case PubCase.AccountDetailPub(_, _, pub_m2) =>
+            resulte.accountDetail = pub_m2,
       )
     resulte
 
@@ -181,6 +190,8 @@ object Builder:
         pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
       case pageCase: PageCase.TxDetail =>
         pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.AccountDetail =>
+        pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
 
   def pipe_pubcase_apiUrl(pub: PubCase) =
     var base = js.Dynamic.global.process.env.BASE_API_URL
@@ -197,8 +208,12 @@ object Builder:
 
       case PubCase.BlockDetailPub(hash, _, _) =>
         s"$base/block/$hash/detail"
+
       case PubCase.TxDetailPub(hash, _, _) =>
         s"$base/tx/$hash/detail"
+
+      case PubCase.AccountDetailPub(hash, _, _) =>
+        s"$base/account/$hash/detail"
 
       // case PageName.DashBoard =>
       //   s"$base/summary/main"
@@ -258,6 +273,13 @@ object Builder:
           pub_m2 = TxDetailParser
             .decodeParser(data)
             .getOrElse(new TxDetail),
+        )
+      case PubCase.AccountDetailPub(_, _, _) =>
+        PubCase.AccountDetailPub(
+          pub_m1 = data,
+          pub_m2 = AccountDetailParser
+            .decodeParser(data)
+            .getOrElse(new AccountDetail),
         )
 
       //        val data: BlockDetail = BlockDetailParser

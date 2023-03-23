@@ -30,17 +30,11 @@ object TransactionTable:
           // Search.search_tx(model),
         )
 
-      //   case PageName.DashBoard =>
-      //     div(`class` := "table-container")(
-      //       Title.tx(model),
-      //       Table.dashboard_txtable(model),
-      //     )
-
-      //   case PageName.AccountDetail(_) =>
-      //     div(`class` := "table-container")(
-      //       Table.accountDetail_txtable(model),
-      //       // Search.search_tx(model),
-      //     )
+      case PageCase.AccountDetail(_, _, _, _) =>
+        div(`class` := "table-container")(
+          Table.accountDetail_txtable(model),
+          // Search.search_tx(model),
+        )
 
       //   case PageName.NftDetail(_) =>
       //     div(`class` := "table-container")(

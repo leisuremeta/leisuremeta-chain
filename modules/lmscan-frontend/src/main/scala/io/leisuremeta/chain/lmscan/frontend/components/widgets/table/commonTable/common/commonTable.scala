@@ -44,6 +44,15 @@ object Table:
           .asInstanceOf[List[TxInfo]],
       ),
     )
+
+  def accountDetail_txtable = (model: Model) =>
+    div(`class` := "table w-[100%]")(
+      Head.tx :: Body.accountDetail_txtable(
+        getOptionValue(getPubData(model).accountDetail.txHistory, List())
+          .asInstanceOf[List[TxInfo]],
+      ),
+    )
+
     //   Head.tx :: Body.blockDetail_txtable(
     //     // getPubData(model).blockDetail.txs.getOrElse(new BlockDetail),
 
@@ -76,9 +85,4 @@ object Table:
 //   def nftDetail_txtable = (model: Model) =>
 //     div(`class` := "table w-[100%]")(
 //       Head.nft :: Body.nft(DataProcess.nft(model)),
-//     )
-
-//   def accountDetail_txtable = (model: Model) =>
-//     div(`class` := "table w-[100%]")(
-//       Head.tx :: Body.accountDetail_txtable(DataProcess.acountDetail_tx(model)),
 //     )

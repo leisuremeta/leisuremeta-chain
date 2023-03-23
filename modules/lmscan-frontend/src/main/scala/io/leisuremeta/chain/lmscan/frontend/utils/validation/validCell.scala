@@ -146,18 +146,20 @@ object gen:
                 case _ => txValue(value),
             ),
           )
-        case Cell.ACCOUNT_HASH(data, css) =>
+        case Cell.ACCOUNT_HASH(hash, css) =>
           div(`class` := "cell type-3")(
             span(
-              //   onClick(
-              //     PageMsg.PreUpdate(
-              //       PageName.AccountDetail(
-              //         plainStr(data),
-              //       ),
-              //     ),
-              //   ),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.AccountDetail(
+                    name = PageCase.AccountDetail().name,
+                    url = s"account/${plainStr(hash)}",
+                    pubs = List(PubCase.AccountDetailPub(hash = plainStr(hash))),
+                  ),
+                ),
+              ),
             )(
-              accountHash(data),
+              accountHash(hash),
             ),
           )
         case Cell.ACCOUNT_HASH_DETAIL(data, css) =>
