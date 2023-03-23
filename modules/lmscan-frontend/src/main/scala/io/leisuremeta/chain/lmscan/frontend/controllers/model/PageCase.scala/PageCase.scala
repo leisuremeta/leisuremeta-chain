@@ -33,7 +33,7 @@ enum PageCase:
   ) extends PageCase
 
   case BlockDetail(
-      name: String = "BlockDetail",
+      name: String = "Blocks",
       url: String = "block/hash...",
       pubs: List[PubCase] = List(
         PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),

@@ -197,6 +197,7 @@ object gen:
               onClick(
                 PageMsg.PreUpdate(
                   PageCase.BlockDetail(
+                    name = PageCase.Blocks().name,
                     url = s"block/${plainStr(hash)}",
                     pubs = List(PubCase.BlockDetailPub(hash = plainStr(hash))),
                   ),
