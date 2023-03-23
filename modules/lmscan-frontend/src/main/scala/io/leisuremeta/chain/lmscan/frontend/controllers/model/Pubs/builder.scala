@@ -174,14 +174,15 @@ object Builder:
   def pipe_pubcase_apiUrl(pub: PubCase) =
     var base = js.Dynamic.global.process.env.BASE_API_URL
     pub match
+
+      case PubCase.BoardPub(page, _, _) =>
+        s"$base/summary/main"
+
       case PubCase.BlockPub(page, _, _) =>
         s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
 
       case PubCase.TxPub(page, _, _) =>
         s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-
-      case PubCase.BoardPub(page, _, _) =>
-        s"$base/summary/main"
 
       case PubCase.BlockDetailPub(hash, _, _) =>
         s"$base/block/$hash/detail"
