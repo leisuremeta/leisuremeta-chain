@@ -196,7 +196,10 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.BlockDetail(pubs = List(PubCase.BlockPub())),
+                  PageCase
+                    .BlockDetail(pubs =
+                      List(PubCase.BlockDetailPub(hash = plainStr(hash))),
+                    ),
                 ),
               ),
             )(plainLong(number)),

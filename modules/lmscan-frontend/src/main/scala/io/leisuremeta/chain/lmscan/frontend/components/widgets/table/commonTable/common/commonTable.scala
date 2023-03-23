@@ -39,6 +39,7 @@ object Table:
   def blockDetail_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.tx :: Body.blockDetail_txtable(
+        // todo :: fix as pipe
         getOptionValue(getPubData(model).blockDetail.txs, List())
           .asInstanceOf[List[TxInfo]],
       ),
