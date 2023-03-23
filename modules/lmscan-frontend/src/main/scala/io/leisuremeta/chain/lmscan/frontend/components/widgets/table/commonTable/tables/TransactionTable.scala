@@ -23,15 +23,17 @@ object TransactionTable:
           Table.dashboard_txtable(model),
           // Search.search_tx(model),
         )
+
+      case PageCase.BlockDetail(_, _, _, _) =>
+        div(`class` := "table-container")(
+          Table.blockDetail_txtable(model),
+          // Search.search_tx(model),
+        )
+
       //   case PageName.DashBoard =>
       //     div(`class` := "table-container")(
       //       Title.tx(model),
       //       Table.dashboard_txtable(model),
-      //     )
-      //   case PageName.BlockDetail(_) =>
-      //     div(`class` := "table-container")(
-      //       Table.blockDetail_txtable(model),
-      //       // Search.search_tx(model),
       //     )
 
       //   case PageName.AccountDetail(_) =>

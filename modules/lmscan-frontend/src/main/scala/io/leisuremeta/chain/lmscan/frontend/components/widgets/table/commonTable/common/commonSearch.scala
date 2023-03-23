@@ -10,7 +10,7 @@ object Search:
     // todo :: make as pipe
     val curPage = pipe_currentPage(model)
 
-    val totalPage = getPageResponseViewCase(model).block.totalPages
+    val totalPage = getPubData(model).block.totalPages
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2)                         => 1
@@ -116,7 +116,7 @@ object Search:
     // todo :: make as pipe
     val curPage = pipe_currentPage(model)
 
-    val totalPage = getPageResponseViewCase(model).tx.totalPages
+    val totalPage = getPubData(model).tx.totalPages
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2)                         => 1

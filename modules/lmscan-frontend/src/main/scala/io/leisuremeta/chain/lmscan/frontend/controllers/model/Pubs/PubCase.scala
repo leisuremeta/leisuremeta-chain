@@ -27,6 +27,20 @@ enum PubCase:
       pub_m2: SummaryModel = new SummaryModel,
   ) extends PubCase
 
+  case BlockDetailPub(
+      hash: String = "",
+      pub_m1: String = "",
+      pub_m2: BlockDetail = new BlockDetail,
+  ) extends PubCase
+
+  // BlockDetailParser
+  //     .decodeParser(model.blockDetailData.get)
+  //     .getOrElse(new BlockDetail)
+  //   getOptionValue(data.txs, List()).asInstanceOf[List[TxInfo]]
+
+  // BlockDetailParser.decodeParser(model.blockDetailData.get).getOrElse(new BlockDetail)
+  //   genView(model, data)
+
   // case class txPub(
   //     page: Int = 1,
 

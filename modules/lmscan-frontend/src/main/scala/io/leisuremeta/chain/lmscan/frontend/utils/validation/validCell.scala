@@ -194,14 +194,11 @@ object gen:
         case Cell.BLOCK_NUMBER((hash, number)) =>
           div(`class` := "cell type-3")(
             span(
-              //   onClick(
-              //     PageMsg.PreUpdate(
-              //       PageName.BlockDetail(
-              //         plainStr(hash),
-              //       ),
-              //     ),
-              //   ),
-              // )(plainInt(number)),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.BlockDetail(pubs = List(PubCase.BlockPub())),
+                ),
+              ),
             )(plainLong(number)),
           )
 

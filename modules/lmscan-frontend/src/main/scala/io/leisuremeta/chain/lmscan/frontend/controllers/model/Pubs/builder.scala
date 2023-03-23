@@ -1,11 +1,8 @@
 package io.leisuremeta.chain.lmscan.frontend
 import scala.scalajs.js
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.common.model.TxInfo
-import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.getquill.parser.Unlifter.caseClass
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.common.model.*
 
 case class ViewCase(
     var blockInfo: List[BlockInfo] = List(new BlockInfo),
@@ -17,6 +14,7 @@ case class PageResponseViewCase(
       new PageResponse[BlockInfo](0, 0, List()),
     var tx: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
     var board: SummaryModel = new SummaryModel,
+    var blockDetail: BlockDetail = new BlockDetail,
 );
 
 // TODO:: go, pipe 함수로 redesign!
@@ -64,18 +62,21 @@ object Builder:
       case PubCase.BlockPub(page, _, _) => page
       case PubCase.TxPub(page, _, _)    => page
       case PubCase.BoardPub(page, _, _) => page
+      case _                            => 1 // TODO FIX
 
   def in_PubCase_pub_m1(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(_, pub_m1, _) => pub_m1
-      case PubCase.TxPub(_, pub_m1, _)    => pub_m1
-      case PubCase.BoardPub(_, pub_m1, _) => pub_m1
+      case PubCase.BlockPub(_, pub_m1, _)       => pub_m1
+      case PubCase.TxPub(_, pub_m1, _)          => pub_m1
+      case PubCase.BoardPub(_, pub_m1, _)       => pub_m1
+      case PubCase.BlockDetailPub(_, pub_m1, _) => pub_m1
 
   def in_PubCase_pub_m2(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(_, _, pub_m2) => pub_m2
-      case PubCase.TxPub(_, _, pub_m2)    => pub_m2
-      case PubCase.BoardPub(_, _, pub_m2) => pub_m2
+      case PubCase.BlockPub(_, _, pub_m2)       => pub_m2
+      case PubCase.TxPub(_, _, pub_m2)          => pub_m2
+      case PubCase.BoardPub(_, _, pub_m2)       => pub_m2
+      case PubCase.BlockDetailPub(_, _, pub_m2) => pub_m2
 
   // # PageCase |> [Pubcase] |> [in page] |> all page
   def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
@@ -142,9 +143,10 @@ object Builder:
             resulte.tx = pub_m2
 
           case PubCase.BoardPub(_, _, pub_m2) =>
-            resulte.board = pub_m2,
-          // case _ =>
-          //   "no",
+            resulte.board = pub_m2
+
+          case PubCase.BlockDetailPub(_, _, pub_m2) =>
+            resulte.blockDetail = pub_m2,
       )
     resulte
 
@@ -153,7 +155,7 @@ object Builder:
     pipe_PageCase_ViewCase(
       in_Observer_PageCase(model.observers, model.observerNumber),
     )
-  def getPageResponseViewCase(model: Model): PageResponseViewCase =
+  def getPubData(model: Model): PageResponseViewCase =
     pipe_PageCase_PageResponseViewCase(
       in_Observer_PageCase(model.observers, model.observerNumber),
     )
@@ -181,8 +183,26 @@ object Builder:
       case PubCase.BoardPub(page, _, _) =>
         s"$base/summary/main"
 
-      // case _ =>
-      //   s"$base/block/list?pageNo=${(0).toString()}&sizePerRequest=10"
+      case PubCase.BlockDetailPub(hash, _, _) =>
+        s"$base/block/$hash/detail"
+
+      // case PageName.DashBoard =>
+      //   s"$base/summary/main"
+      // case PageName.Transactions(page) =>
+      //   s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+      // case PageName.Blocks(page) =>
+      //   s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+      // case PageName.BlockDetail(hash) =>
+      //   s"$base/block/$hash/detail"
+      // case PageName.TransactionDetail(hash) =>
+      //   s"$base/tx/$hash/detail"
+      // case PageName.AccountDetail(hash) =>
+      //   s"$base/account/$hash/detail"
+      // case PageName.NftDetail(hash) =>
+      //   s"$base/nft/$hash/detail"
+      // case PageName.Page64(hash) =>
+      //   log(s"#page64 $base/tx/$hash/detail")
+      //   s"$base/tx/$hash/detail"
 
   def update_PubCase_m1m2(pub: PubCase, data: String) =
     pub match
@@ -209,3 +229,17 @@ object Builder:
             .decodeParser(data)
             .getOrElse(new SummaryModel),
         )
+
+      // todo
+      case PubCase.BlockDetailPub(_, _, _) =>
+        PubCase.BlockDetailPub(
+          pub_m1 = data,
+          pub_m2 = BlockDetailParser
+            .decodeParser(data)
+            .getOrElse(new BlockDetail),
+        )
+
+      //        val data: BlockDetail = BlockDetailParser
+      //   .decodeParser(model.blockDetailData.get)
+      //   .getOrElse(new BlockDetail)
+      // getOptionValue(data.txs, List()).asInstanceOf[List[TxInfo]]
