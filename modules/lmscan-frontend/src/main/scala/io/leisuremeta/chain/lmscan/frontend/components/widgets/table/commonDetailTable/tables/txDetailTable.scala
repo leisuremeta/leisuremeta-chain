@@ -32,13 +32,15 @@ object TxDetailTable:
       div(`class` := "cell type-detail-body")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          //   onClick(
-          //     PageMsg.PreUpdate(
-          //       PageName.TransactionDetail(
-          //         plainStr(Some(data)),
-          //       ),
-          //     ),
-          //   ),
+          onClick(
+            PageMsg.PreUpdate(
+              PageCase.TxDetail(
+                name = PageCase.Transactions().name,
+                url = s"txDetail/${plainStr(Some(data))}",
+                pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
+              ),
+            ),
+          ),
         )(data),
       ),
     )
