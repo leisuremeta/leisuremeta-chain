@@ -8,8 +8,8 @@ object Pages:
   def render(model: Model): Html[Msg] =
     getPage(model) match
 
-      // case PageCase.Observer(_, _) =>
-      //   ObserverView.view(model)
+      case PageCase.Observer(_, _, _, _) =>
+        ObserverView.view(model)
 
       case PageCase.DashBoard(_, _, _, _) =>
         div()(
@@ -18,29 +18,29 @@ object Pages:
         )
       case PageCase.Blocks(_, _, _, _) =>
         div()(
-          ObserverView.view(model),
+          // ObserverView.view(model),
           BlocksView.view(model),
         )
 
       case PageCase.Transactions(_, _, _, _) =>
         div()(
-          ObserverView.view(model),
+          // ObserverView.view(model),
           TransactionsView.view(model),
         )
       case PageCase.BlockDetail(_, _, _, _) =>
         div()(
-          ObserverView.view(model),
+          // ObserverView.view(model),
           BlockDetailView.view(model),
         )
 
       case PageCase.TxDetail(_, _, _, _) =>
         div()(
-          ObserverView.view(model),
+          // ObserverView.view(model),
           TransactionDetailView.view(model),
         )
       case PageCase.AccountDetail(_, _, _, _) =>
         div()(
-          ObserverView.view(model),
+          // ObserverView.view(model),
           AccountView.view(model),
         )
 

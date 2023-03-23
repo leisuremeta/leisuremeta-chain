@@ -45,6 +45,7 @@ object Builder:
       case PageCase.BlockDetail(name, _, _, _)   => name
       case PageCase.TxDetail(name, _, _, _)      => name
       case PageCase.AccountDetail(name, _, _, _) => name
+      case PageCase.Observer(name, _, _, _)      => name
 
   def in_PageCase_url(pageCase: PageCase) =
     pageCase match
@@ -54,6 +55,7 @@ object Builder:
       case PageCase.BlockDetail(_, url, _, _)   => url
       case PageCase.TxDetail(_, url, _, _)      => url
       case PageCase.AccountDetail(_, url, _, _) => url
+      case PageCase.Observer(_, url, _, _)      => url
 
   def in_PageCase_PubCases(pageCase: PageCase): List[PubCase] =
     pageCase match
@@ -63,6 +65,7 @@ object Builder:
       case PageCase.BlockDetail(_, _, pubs, _)   => pubs
       case PageCase.TxDetail(_, _, pubs, _)      => pubs
       case PageCase.AccountDetail(_, _, pubs, _) => pubs
+      case PageCase.Observer(_, _, pubs, _)      => pubs
 
   // #3-PubCase-function
   def in_PubCase_Page(pubCase: PubCase) =
@@ -191,6 +194,8 @@ object Builder:
       case pageCase: PageCase.TxDetail =>
         pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
       case pageCase: PageCase.AccountDetail =>
+        pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.Observer =>
         pageCase.copy(pubs = in_PageCase_PubCases(pageCase) ++ List(pub))
 
   def pipe_pubcase_apiUrl(pub: PubCase) =

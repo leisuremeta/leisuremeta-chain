@@ -2,6 +2,16 @@ package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.common.model.*
 
 enum PageCase:
+  case Observer(
+      name: String = "Observer",
+      url: String = "Observer",
+      pubs: List[PubCase] = List(
+        // PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
+        // PubCase.TxPub(1, "", PageResponse[TxInfo](0, 0, List())),
+        // PubCase.BoardPub(1, "", SummaryModel()),
+      ),
+      status: Boolean = false,
+  ) extends PageCase
 
   case DashBoard(
       name: String = "Dashboard",

@@ -14,6 +14,14 @@ object NavView:
         id := "buttons",
       )(
         button(
+          `class` := s"${PageCase.Observer().name == in_PageCase_Name(in_Observer_PageCase(model.observers, model.observerNumber))}",
+          onClick(PageMsg.PreUpdate(PageCase.Observer())),
+        )(span()(PageCase.Observer().name)),
+      ),
+      div(
+        id := "buttons",
+      )(
+        button(
           `class` := s"${PageCase.DashBoard().name == in_PageCase_Name(in_Observer_PageCase(model.observers, model.observerNumber))}",
           onClick(PageMsg.PreUpdate(PageCase.DashBoard())),
         )(span()(PageCase.DashBoard().name)),
