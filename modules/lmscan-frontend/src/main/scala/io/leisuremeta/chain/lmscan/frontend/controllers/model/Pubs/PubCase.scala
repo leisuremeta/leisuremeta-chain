@@ -33,30 +33,36 @@ enum PubCase:
       pub_m2: BlockDetail = new BlockDetail,
   ) extends PubCase
 
-  // BlockDetailParser
-  //     .decodeParser(model.blockDetailData.get)
-  //     .getOrElse(new BlockDetail)
-  //   getOptionValue(data.txs, List()).asInstanceOf[List[TxInfo]]
+  case TxDetailPub(
+      hash: String = "",
+      pub_m1: String = "",
+      pub_m2: TxDetail = new TxDetail,
+  ) extends PubCase
 
-  // BlockDetailParser.decodeParser(model.blockDetailData.get).getOrElse(new BlockDetail)
-  //   genView(model, data)
+// BlockDetailParser
+//     .decodeParser(model.blockDetailData.get)
+//     .getOrElse(new BlockDetail)
+//   getOptionValue(data.txs, List()).asInstanceOf[List[TxInfo]]
 
-  // case class txPub(
-  //     page: Int = 1,
+// BlockDetailParser.decodeParser(model.blockDetailData.get).getOrElse(new BlockDetail)
+//   genView(model, data)
 
-  //     pub_m1: String = "",
-  //     pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
-  // ) extends PubCase
+// case class txPub(
+//     page: Int = 1,
 
-  // case class txPub(page: Int, pub_m1: String, pub_m2: PageResponse[TxInfo])
-  //     extends PubCase
-  // case class txDetailPub(page: Int)      extends PubCase
-  // case class accountDetailPub(page: Int) extends PubCase
-  // case class nftDetailPub(page: Int)     extends PubCase
-  // case class blockDetailPub(page: Int)   extends PubCase
-  // case class NonePub(page: Int = 1)      extends PubCase
+//     pub_m1: String = "",
+//     pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
+// ) extends PubCase
 
-  // package io.leisuremeta.chain.lmscan.frontend
+// case class txPub(page: Int, pub_m1: String, pub_m2: PageResponse[TxInfo])
+//     extends PubCase
+// case class txDetailPub(page: Int)      extends PubCase
+// case class accountDetailPub(page: Int) extends PubCase
+// case class nftDetailPub(page: Int)     extends PubCase
+// case class blockDetailPub(page: Int)   extends PubCase
+// case class NonePub(page: Int = 1)      extends PubCase
+
+// package io.leisuremeta.chain.lmscan.frontend
 
 // import tyrian.Html.*
 // import tyrian.*

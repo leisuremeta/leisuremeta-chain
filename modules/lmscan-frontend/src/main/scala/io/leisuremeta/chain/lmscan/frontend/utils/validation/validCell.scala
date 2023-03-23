@@ -206,46 +206,52 @@ object gen:
             )(plainLong(number)),
           )
 
-        case Cell.BLOCK_HASH(data) =>
+        case Cell.BLOCK_HASH(hash) =>
           div(`class` := "cell type-3")(
             span(
-              //   onClick(
-              //     PageMsg.PreUpdate(
-              //       PageName.BlockDetail(
-              //         plainStr(data),
-              //       ),
-              //     ),
-              //   ),
-              dataAttr("tooltip-text", plainStr(data)),
-            )(hash10(data)),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.BlockDetail(
+                    name = PageCase.Blocks().name,
+                    url = s"block/${plainStr(hash)}",
+                    pubs = List(PubCase.BlockDetailPub(hash = plainStr(hash))),
+                  ),
+                ),
+              ),
+              dataAttr("tooltip-text", plainStr(hash)),
+            )(hash10(hash)),
           )
-        case Cell.TX_HASH(data) =>
+        case Cell.TX_HASH(hash) =>
           div(`class` := "cell type-3")(
             span(
-              //   onClick(
-              //     PageMsg.PreUpdate(
-              //       PageName.TransactionDetail(
-              //         plainStr(data),
-              //       ),
-              //     ),
-              //   ),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.TxDetail(
+                    name = PageCase.Transactions().name,
+                    url = s"txDetail/${plainStr(hash)}",
+                    pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
+                  ),
+                ),
+              ),
             )(
-              plainStr(data),
+              plainStr(hash),
             ),
           )
-        case Cell.TX_HASH10(data) =>
+        case Cell.TX_HASH10(hash) =>
           div(`class` := "cell type-3")(
             span(
-              dataAttr("tooltip-text", plainStr(data)),
-              //   onClick(
-              //     PageMsg.PreUpdate(
-              //       PageName.TransactionDetail(
-              //         plainStr(data),
-              //       ),
-              //     ),
-              //   ),
+              dataAttr("tooltip-text", plainStr(hash)),
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.TxDetail(
+                    name = PageCase.Transactions().name,
+                    url = s"txDetail/${plainStr(hash)}",
+                    pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
+                  ),
+                ),
+              ),
             )(
-              hash10(data),
+              hash10(hash),
             ),
           )
 

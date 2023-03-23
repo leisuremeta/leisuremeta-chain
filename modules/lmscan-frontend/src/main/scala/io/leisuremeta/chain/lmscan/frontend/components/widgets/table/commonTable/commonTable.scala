@@ -39,6 +39,12 @@ object Tables:
             TransactionTable.view(model),
           ),
         )
+      case PageCase.TxDetail(_, _, _, _) =>
+        div(`class` := "table-area ")(
+          div(id := "oop-table-blocks", `class` := "table-list x")(
+            TransactionTable.view(model),
+          ),
+        )
 
       //   case PageName.BlockDetail(_) =>
 

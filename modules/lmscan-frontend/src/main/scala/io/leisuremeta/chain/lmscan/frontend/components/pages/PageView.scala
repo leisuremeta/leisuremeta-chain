@@ -11,11 +11,6 @@ object Pages:
       // case PageCase.Observer(_, _) =>
       //   ObserverView.view(model)
 
-      // case PageCase.DashBoard(_, _) =>
-      //   div()(
-      //     ObserverView.view(model),
-      //     DashboardView.view(model),
-      //   )
       case PageCase.DashBoard(_, _, _, _) =>
         div()(
           ObserverView.view(model),
@@ -36,6 +31,12 @@ object Pages:
         div()(
           ObserverView.view(model),
           BlockDetailView.view(model),
+        )
+
+      case PageCase.TxDetail(_, _, _, _) =>
+        div()(
+          ObserverView.view(model),
+          TransactionDetailView.view(model),
         )
 
       // case _ => div("매칭x")

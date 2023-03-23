@@ -11,8 +11,9 @@ object DetailTables:
     getPage(model) match
       case PageCase.BlockDetail(_, _, _, _) =>
         BlockDetailTable.view(model)
-      //   case PageName.TransactionDetail(_) =>
-      //     TxDetailTable.view(model)
+
+      case PageCase.TxDetail(_, _, _, _) =>
+        TxDetailTable.view(model)
       //   case PageName.AccountDetail(_) =>
       //     AccountDetailTable.view(model)
       //   case PageName.NftDetail(_) =>

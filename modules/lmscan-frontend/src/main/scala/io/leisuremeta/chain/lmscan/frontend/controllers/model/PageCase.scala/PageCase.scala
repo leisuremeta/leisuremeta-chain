@@ -36,7 +36,16 @@ enum PageCase:
       name: String = "Blocks",
       url: String = "block/hash...",
       pubs: List[PubCase] = List(
-        PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
+        PubCase.BlockDetailPub(),
+      ),
+      status: Boolean = false,
+  ) extends PageCase
+
+  case TxDetail(
+      name: String = "Transactions",
+      url: String = "tx/hash...",
+      pubs: List[PubCase] = List(
+        PubCase.TxDetailPub(),
       ),
       status: Boolean = false,
   ) extends PageCase
