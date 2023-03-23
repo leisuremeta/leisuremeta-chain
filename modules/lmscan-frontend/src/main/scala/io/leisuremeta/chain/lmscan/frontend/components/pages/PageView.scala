@@ -6,7 +6,7 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object Pages:
   def render(model: Model): Html[Msg] =
-    in_Observer_PageCase(model.observers, model.observerNumber) match
+    getPage(model) match
 
       // case PageCase.Observer(_, _) =>
       //   ObserverView.view(model)
@@ -28,6 +28,11 @@ object Pages:
         )
 
       case PageCase.Transactions(_, _, _, _) =>
+        div()(
+          ObserverView.view(model),
+          TransactionsView.view(model),
+        )
+      case PageCase.BlockDetail(_, _, _, _) =>
         div()(
           ObserverView.view(model),
           TransactionsView.view(model),
