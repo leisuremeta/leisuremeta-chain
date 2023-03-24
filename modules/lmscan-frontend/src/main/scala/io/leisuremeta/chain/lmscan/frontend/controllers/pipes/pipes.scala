@@ -16,6 +16,9 @@ object Pipes:
   //      - in_pub_m1
   //      - in_pub_m2
 
+  // account detail 에서 페이지넘길때 구조
+  // page page page
+
   // page
   // page
   // page
