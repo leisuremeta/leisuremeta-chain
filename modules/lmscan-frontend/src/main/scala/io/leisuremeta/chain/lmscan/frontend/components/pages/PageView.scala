@@ -18,29 +18,29 @@ object Pages:
         )
       case PageCase.Blocks(_, _, _, _) =>
         div()(
-          // ObserverView.view(model),
+          ObserverView.view(model),
           BlocksView.view(model),
         )
 
       case PageCase.Transactions(_, _, _, _) =>
         div()(
-          // ObserverView.view(model),
+          ObserverView.view(model),
           TransactionsView.view(model),
         )
       case PageCase.BlockDetail(_, _, _, _) =>
         div()(
-          // ObserverView.view(model),
+          ObserverView.view(model),
           BlockDetailView.view(model),
         )
 
       case PageCase.TxDetail(_, _, _, _) =>
         div()(
-          // ObserverView.view(model),
+          ObserverView.view(model),
           TransactionDetailView.view(model),
         )
       case PageCase.AccountDetail(_, _, _, _) =>
         div()(
-          // ObserverView.view(model),
+          ObserverView.view(model),
           AccountView.view(model),
         )
 

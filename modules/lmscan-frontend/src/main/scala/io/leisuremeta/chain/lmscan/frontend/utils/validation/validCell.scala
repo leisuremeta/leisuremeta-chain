@@ -154,7 +154,11 @@ object gen:
                   PageCase.AccountDetail(
                     name = PageCase.AccountDetail().name,
                     url = s"account/${plainStr(hash)}",
-                    pubs = List(PubCase.AccountDetailPub(hash = plainStr(hash))),
+                    pubs = List(
+                      PubCase.AccountDetailPub(hash = plainStr(hash)),
+                      PubCase
+                        .TxPub(accountAddr = plainStr(hash), sizePerRequest = 5),
+                    ),
                   ),
                 ),
               ),
@@ -230,7 +234,7 @@ object gen:
                 PageMsg.PreUpdate(
                   PageCase.TxDetail(
                     name = PageCase.Transactions().name,
-                    url = s"txDetail/${plainStr(hash)}",
+                    url = s"transaction/${plainStr(hash)}",
                     pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
                   ),
                 ),
@@ -247,7 +251,7 @@ object gen:
                 PageMsg.PreUpdate(
                   PageCase.TxDetail(
                     name = PageCase.Transactions().name,
-                    url = s"txDetail/${plainStr(hash)}",
+                    url = s"transaction/${plainStr(hash)}",
                     pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
                   ),
                 ),

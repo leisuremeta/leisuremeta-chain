@@ -70,15 +70,15 @@ object Builder:
   // #3-PubCase-function
   def in_PubCase_Page(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(page, _, _) => page
-      case PubCase.TxPub(page, _, _)    => page
-      case PubCase.BoardPub(page, _, _) => page
-      case _                            => 1 // TODO FIX
+      case PubCase.BlockPub(page, _, _)    => page
+      case PubCase.TxPub(page, _, _, _, _) => page
+      case PubCase.BoardPub(page, _, _)    => page
+      case _                               => 1 // TODO FIX
 
   def in_PubCase_pub_m1(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(_, pub_m1, _)         => pub_m1
-      case PubCase.TxPub(_, pub_m1, _)            => pub_m1
+      case PubCase.TxPub(_, _, _, pub_m1, _)      => pub_m1
       case PubCase.BoardPub(_, pub_m1, _)         => pub_m1
       case PubCase.BlockDetailPub(_, pub_m1, _)   => pub_m1
       case PubCase.TxDetailPub(_, pub_m1, _)      => pub_m1
@@ -87,7 +87,7 @@ object Builder:
   def in_PubCase_pub_m2(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(_, _, pub_m2)         => pub_m2
-      case PubCase.TxPub(_, _, pub_m2)            => pub_m2
+      case PubCase.TxPub(_, _, _, _, pub_m2)      => pub_m2
       case PubCase.BoardPub(_, _, pub_m2)         => pub_m2
       case PubCase.BlockDetailPub(_, _, pub_m2)   => pub_m2
       case PubCase.TxDetailPub(_, _, pub_m2)      => pub_m2
@@ -130,7 +130,7 @@ object Builder:
           case PubCase.BlockPub(_, _, pub_m2) =>
             resulte.blockInfo = pub_m2.payload.toList
 
-          case PubCase.TxPub(_, _, pub_m2) =>
+          case PubCase.TxPub(_, _, _, _, pub_m2) =>
             resulte.txInfo = pub_m2.payload.toList
 
           // case PubCase.AccountDetailPub(_, _, pub_m2) =>
@@ -154,7 +154,7 @@ object Builder:
           case PubCase.BlockPub(_, _, pub_m2) =>
             resulte.block = pub_m2
 
-          case PubCase.TxPub(_, _, pub_m2) =>
+          case PubCase.TxPub(_, _, _, _, pub_m2) =>
             resulte.tx = pub_m2
 
           case PubCase.BoardPub(_, _, pub_m2) =>
@@ -208,8 +208,13 @@ object Builder:
       case PubCase.BlockPub(page, _, _) =>
         s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
 
-      case PubCase.TxPub(page, _, _) =>
-        s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+      case PubCase.TxPub(page, sizePerRequest, accountAddr, _, _) =>
+        s"$base/tx/list?pageNo=${(page - 1)
+            .toString()}&sizePerRequest=${sizePerRequest}" ++ {
+          accountAddr match
+            case "" => ""
+            case _  => s"&accountAddr=${accountAddr}"
+        }
 
       case PubCase.BlockDetailPub(hash, _, _) =>
         s"$base/block/$hash/detail"
@@ -248,7 +253,7 @@ object Builder:
             .getOrElse(new PageResponse(0, 0, List())),
         )
 
-      case PubCase.TxPub(_, _, _) =>
+      case PubCase.TxPub(_, _, _, _, _) =>
         PubCase.TxPub(
           pub_m1 = data,
           pub_m2 = TxParser

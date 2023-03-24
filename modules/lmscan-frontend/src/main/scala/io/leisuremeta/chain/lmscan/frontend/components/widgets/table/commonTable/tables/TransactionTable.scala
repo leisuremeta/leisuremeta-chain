@@ -33,7 +33,7 @@ object TransactionTable:
       case PageCase.AccountDetail(_, _, _, _) =>
         div(`class` := "table-container")(
           Table.accountDetail_txtable(model),
-          // Search.search_tx(model),
+          Search.search_tx(model),
         )
 
       //   case PageName.NftDetail(_) =>

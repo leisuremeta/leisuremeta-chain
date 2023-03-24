@@ -6,6 +6,8 @@ import io.leisuremeta.chain.lmscan.common.model.*
 // def pub_m1: String
 // def pub_m2: PageResponse[BlockInfo]
 
+// case class (page:Int,)
+
 enum PubCase:
 
   case BlockPub(
@@ -15,8 +17,14 @@ enum PubCase:
         new PageResponse[BlockInfo](0, 0, List()),
   ) extends PubCase
 
+//   baseurl
+//   &pageNo=0
+//   &sizePerRequest=10
+//   &accountAddr=playnomm or hash
   case TxPub(
       page: Int = 1,
+      sizePerRequest: Int = 10,
+      accountAddr: String = "",
       pub_m1: String = "",
       pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
   ) extends PubCase

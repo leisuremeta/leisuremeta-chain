@@ -47,10 +47,13 @@ object Table:
 
   def accountDetail_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
-      Head.tx :: Body.accountDetail_txtable(
-        getOptionValue(getPubData(model).accountDetail.txHistory, List())
-          .asInstanceOf[List[TxInfo]],
+      Head.tx :: Body.txlist_txtable(
+        getViewCase(model).txInfo,
       ),
+      //   Body.accountDetail_txtable(
+      //   getOptionValue(getPubData(model).tx, List())
+      //     .asInstanceOf[List[TxInfo]],
+      // ),
     )
 
     //   Head.tx :: Body.blockDetail_txtable(
