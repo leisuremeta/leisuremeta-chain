@@ -39,7 +39,7 @@ object Body:
               model.observers,
               model.observers.length,
             )}_observer ${model.observerNumber == observer.number}_observer_click",
-          onClick(PageMsg.GotoObserver(observer.number)),
+          // onClick(PageMsg.GotoObserver(observer.number)),
         )(
           // #
           div(
@@ -89,35 +89,23 @@ object Body:
             ),
           ),
         ),
-        div(
-          `class` := s"${observer.number == in_Observer_Number(
-              model.observers,
-              model.observerNumber,
-            ) match
-              case true => ""
-              case _    => "hidden"
-            }",
-          // `class` := s"row table-body ${observer.number == in_Observer_Number(
-          //     model.observers,
-          //     model.observers.length,
-          //   )}_observer ${model.observerNumber == observer.number}_observer_click",
-        )(PageView.view2(model)),
       ),
     )
   def txlist_txtable = (payload: List[TxInfo]) =>
     payload
+      // List(new TxInfo)
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH10(v.hash),
-            // Cell.PlainInt(v.blockNumber),
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
-            // Cell.PlainStr(v.txType),
-            // Cell.PlainStr(v.tokenType),
             Cell.Tx_VALUE((v.tokenType, v.value)),
           ),
+          // Cell.PlainInt(v.blockNumber),
+          // Cell.PlainStr(v.txType),
+          // Cell.PlainStr(v.tokenType),
         ),
       )
   def dashboard_txtable = (payload: List[TxInfo]) =>

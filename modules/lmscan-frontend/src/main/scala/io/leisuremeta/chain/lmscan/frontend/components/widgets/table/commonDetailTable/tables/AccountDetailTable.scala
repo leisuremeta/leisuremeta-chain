@@ -24,9 +24,9 @@ object AccountDetailTable:
 
   val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
     val lmPrice = Math.floor(
-      getOptionValue(apiData.lmPrice, 0.0).asInstanceOf[Double] * 10000,
+      getOptionValue(apiData.lmPrice, 0.toDouble).asInstanceOf[Double] * 10000,
     ) / 10000
-    val balance = getOptionValue(data.balance, 0.0)
+    val balance = getOptionValue[BigDecimal](data.balance, 0)
       .asInstanceOf[BigDecimal] / Math.pow(10, 18).toDouble
     val value = (lmPrice * balance)
     // val value   = Math.floor((lmPrice * balance) * 10000) / 10000

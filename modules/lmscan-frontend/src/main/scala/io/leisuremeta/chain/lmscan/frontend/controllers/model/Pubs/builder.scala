@@ -113,8 +113,12 @@ object Builder:
     )
 
   // getViewCurPage
-  def getPage(model: Model) =
-    in_Observer_PageCase(model.observers, model.observerNumber)
+  def getPage(model: Model, find: Int = 0) =
+    val _find = find match
+      case 0 => model.observerNumber
+      case _ => find
+
+    in_Observer_PageCase(model.observers, _find)
 
   // def pipe_totalPage(model: Model) =
   // pipe_PageCase_ViewCase(model).blockInfo(0).

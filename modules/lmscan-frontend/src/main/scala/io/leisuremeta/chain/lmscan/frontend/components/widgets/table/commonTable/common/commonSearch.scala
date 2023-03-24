@@ -3,6 +3,9 @@ import tyrian.Html.*
 import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
+import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 
 object Search:
   val search_block = (model: Model) =>
@@ -114,7 +117,15 @@ object Search:
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = pipe_currentPage(model)
+    val curPage = in_PubCase_Page(
+      in_PageCase_PubCases(
+        in_Observer_PageCase(model.observers, model.observerNumber),
+      ).filter(pub =>
+        pub match
+          case pub: PubCase.TxPub => true
+          case _                  => false,
+      )(0),
+    )
 
     val totalPage = getPubData(model).tx.totalPages
 
@@ -171,10 +182,42 @@ object Search:
                 `class` := s"${_selectedPage[Int](curPage, idx)}",
                 onClick(
                   PageMsg.PreUpdate(
-                    PageCase.Transactions(
-                      url = s"transactions/${idx}",
-                      pubs = List(PubCase.TxPub(page = idx)),
-                    ),
+                    getPage(model) match
+                      case page: PageCase.Transactions =>
+                        page.copy(
+                          url = s"transactions/${idx}",
+                          pubs = List(PubCase.TxPub(page = idx)),
+                        )
+
+                      // TODO:: replaced with values ​​received from the cache.
+                      case page: PageCase.AccountDetail =>
+                        page.copy(
+                          url = s"account/${idx}",
+                          pubs = List(
+                            PubCase.BoardPub(1, "", SummaryModel()),
+                            PubCase.AccountDetailPub(hash =
+                              page.pubs.filter(pub =>
+                                pub match
+                                  case pub: PubCase.TxPub => true
+                                  case _                  => false,
+                              )(0) match
+                                case pub: PubCase.TxPub => pub.accountAddr
+                                case _                  => "",
+                            ),
+                            PubCase.TxPub(
+                              accountAddr = page.pubs.filter(pub =>
+                                pub match
+                                  case pub: PubCase.TxPub => true
+                                  case _                  => false,
+                              )(0) match
+                                case pub: PubCase.TxPub => pub.accountAddr
+                                case _                  => ""
+                              ,
+                              page = idx,
+                            ),
+                          ),
+                        )
+                      case _ => getPage(model),
                   ),
                 ),
               )(idx.toString()),

@@ -5,7 +5,7 @@ object V:
       "%,d",
       value.replace("-", "0"),
     )
-  def getOptionValue = (field: Option[Any], default: Any) =>
+  def getOptionValue[T] = (field: Option[T], default: T) =>
     field match
       case Some(value) => value
       case None        => default
@@ -19,7 +19,8 @@ object V:
     getOptionValue(data, 0).asInstanceOf[Int].toString
 
   def plainLong(data: Option[Long]) =
-    getOptionValue(data, 0).asInstanceOf[Long].toString
+    // fix 0 => 0.toLong
+    getOptionValue(data, 0.toLong).asInstanceOf[Long].toString
 
   def hash10(data: Option[Any]) =
     getOptionValue(data, "-").toString().take(10) + "..."

@@ -66,6 +66,7 @@ enum PageCase:
       url: String = "account/hash...",
       pubs: List[PubCase] = List(
         PubCase.TxDetailPub(),
+        PubCase.BoardPub(1, "", SummaryModel()),
       ),
       status: Boolean = false,
   ) extends PageCase

@@ -4,6 +4,9 @@ import tyrian.*
 import V.*
 import scala.util.matching.Regex
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.PageResponse
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 enum Cell:
   case Image(data: Option[String])                              extends Cell
@@ -155,9 +158,22 @@ object gen:
                     name = PageCase.AccountDetail().name,
                     url = s"account/${plainStr(hash)}",
                     pubs = List(
+                      PubCase.BoardPub(1, "", SummaryModel()),
                       PubCase.AccountDetailPub(hash = plainStr(hash)),
                       PubCase
-                        .TxPub(accountAddr = plainStr(hash), sizePerRequest = 5),
+                        .TxPub(
+                          page = 1,
+                          accountAddr = "playnomm",
+                          sizePerRequest = 5,
+                        ),
+
+                      // PubCase.TxPub(
+                      //   1,
+                      //   10,
+                      //   "",
+                      //   "",
+                      //   PageResponse[TxInfo](0, 0, List()),
+                      // ),
                     ),
                   ),
                 ),
