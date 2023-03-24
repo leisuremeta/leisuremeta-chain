@@ -163,17 +163,9 @@ object gen:
                       PubCase
                         .TxPub(
                           page = 1,
-                          accountAddr = "playnomm",
-                          sizePerRequest = 5,
+                          accountAddr = plainStr(hash),
+                          sizePerRequest = 20,
                         ),
-
-                      // PubCase.TxPub(
-                      //   1,
-                      //   10,
-                      //   "",
-                      //   "",
-                      //   PageResponse[TxInfo](0, 0, List()),
-                      // ),
                     ),
                   ),
                 ),
