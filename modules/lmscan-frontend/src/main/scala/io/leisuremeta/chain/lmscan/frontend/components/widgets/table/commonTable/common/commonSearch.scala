@@ -160,6 +160,9 @@ object Search:
                 ),
               ),
         )("<"),
+        // AccountDetail 일때는 현재페이지 정보를 복사한뒤, page 만 바꿔준다
+        // 현재페이지 가져온다 |> 현재페이지의 pubs 의 page 만 업데이트 한뒤 |> 페이지를 리턴한다
+
         div(`class` := s"type-text-btn")(
           List
             .range(btnFistPage, btnLastPage)
