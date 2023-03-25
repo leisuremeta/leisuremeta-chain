@@ -66,7 +66,7 @@ object Builder:
   // getViewCurPage
   def getPage(model: Model, find: Int = 0) =
     val _find = find match
-      case 0 => model.curAppState
+      case 0 => model.pointer
       case _ => find
 
     model.appStates

@@ -16,7 +16,7 @@ object Init:
             number = 1,
           ),
         ),
-        curAppState = 1,
+        pointer = 1,
       ),
       // Batch()
       Cmd.Emit(PageMsg.PreUpdate(PageCase.DashBoard())),

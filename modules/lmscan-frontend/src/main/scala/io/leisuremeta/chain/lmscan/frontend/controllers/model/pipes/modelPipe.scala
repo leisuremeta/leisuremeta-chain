@@ -11,11 +11,11 @@ object ModelPipe:
     model.appStates
 
   def in_curAppState(model: Model) =
-    model.curAppState
+    model.pointer
 
   def find_curent_State(model: Model) =
     model.appStates
-      .pipe(find_State(model.curAppState))
+      .pipe(find_State(model.pointer))
 
   def find_currentPage(model: Model) =
     model
@@ -26,17 +26,17 @@ object ModelPipe:
 
   def find_current_PageCase(model: Model, find: Int = 0) =
     val _find = find match
-      case 0 => model.curAppState
+      case 0 => model.pointer
       case _ => find
 
     // in_Observer_PageCase(model.appStates, _find)
 
   def find_last_PageCase(model: Model, find: Int = 0) =
     val _find = find match
-      case 0 => model.curAppState
+      case 0 => model.pointer
       case _ => find
 
   def find_cunrrent_PageCase(model: Model) =
-    find_PageCase(model.curAppState)(model.appStates)
+    find_PageCase(model.pointer)(model.appStates)
 
   // in_Observer_PageCase(model.appStates, _find)

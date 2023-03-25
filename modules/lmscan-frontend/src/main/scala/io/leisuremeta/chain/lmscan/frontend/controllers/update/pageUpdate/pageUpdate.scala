@@ -12,7 +12,7 @@ object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     // #flow1 ::
     // - Observers 에 새로운 StateCase 를 추가한다
-    // - curAppState 를 최신으로 업데이트 한다
+    // - pointer 를 최신으로 업데이트 한다
     // => #flow2
     case PageMsg.PreUpdate(page: PageCase) =>
       page match
@@ -23,7 +23,7 @@ object PageUpdate:
           )
           (
             model.copy(
-              curAppState = in_Observer_Number(model.appStates) + 1,
+              pointer = in_Observer_Number(model.appStates) + 1,
               appStates = model.appStates ++ Seq(
                 StateCase(
                   number = in_Observer_Number(model.appStates) + 1,
@@ -48,12 +48,12 @@ object PageUpdate:
       )
 
       (
-        model.copy(curAppState = page),
+        model.copy(pointer = page),
         Cmd.None,
       )
 
     case PageMsg.BackObserver =>
-      val safeNumber = Num.Int_Positive(model.curAppState - 1)
+      val safeNumber = Num.Int_Positive(model.pointer - 1)
 
       Window.History(
         in_PageCase_url(find_PageCase(safeNumber)(model.appStates)),
@@ -61,7 +61,7 @@ object PageUpdate:
       )
 
       (
-        model.copy(curAppState = safeNumber),
+        model.copy(pointer = safeNumber),
         Cmd.None,
       )
 
