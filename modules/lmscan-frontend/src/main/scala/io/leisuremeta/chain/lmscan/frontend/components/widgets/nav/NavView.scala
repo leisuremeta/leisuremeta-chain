@@ -5,6 +5,8 @@ import tyrian.*
 import Builder.*
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.find_cunrrent_PageCase
+import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object NavView:
 
   def view(model: Model): Html[Msg] =
@@ -16,7 +18,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageCase.Observer().name == in_PageCase_Name(find_cunrrent_PageCase(model))}",
+          `class` := s"${PageCase.Observer().name == find_name(model)}",
           onClick(PageMsg.PreUpdate(PageCase.Observer())),
         )(span()(PageCase.Observer().name)),
       ),
@@ -24,7 +26,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageCase.DashBoard().name == in_PageCase_Name(find_cunrrent_PageCase(model))}",
+          `class` := s"${PageCase.DashBoard().name == find_name(model)}",
           onClick(PageMsg.PreUpdate(PageCase.DashBoard())),
         )(span()(PageCase.DashBoard().name)),
       ),
@@ -32,7 +34,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageCase.Blocks().name == in_PageCase_Name(find_cunrrent_PageCase(model))}",
+          `class` := s"${PageCase.Blocks().name == find_name(model)}",
           onClick(PageMsg.PreUpdate(PageCase.Blocks())),
         )(span()(PageCase.Blocks().name)),
       ),
@@ -40,7 +42,7 @@ object NavView:
         id := "buttons",
       )(
         button(
-          `class` := s"${PageCase.Transactions().name == in_PageCase_Name(find_cunrrent_PageCase(model))}",
+          `class` := s"${PageCase.Transactions().name == find_name(model)}",
           onClick(PageMsg.PreUpdate(PageCase.Transactions())),
         )(span()(PageCase.Transactions().name)),
       ),

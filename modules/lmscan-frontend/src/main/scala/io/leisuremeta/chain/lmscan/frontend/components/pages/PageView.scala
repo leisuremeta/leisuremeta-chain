@@ -3,10 +3,10 @@ import tyrian.Html.*
 import tyrian.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
-
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object Pages:
   def render(model: Model): Html[Msg] =
-    getPage(model) match
+    get_PageCase(model) match
       case PageCase.Observer(_, _, _, _) =>
         ObserverView.view(model)
 
@@ -44,7 +44,7 @@ object Pages:
         )
 
   // def render2(model: Model): Html[Msg] =
-  //   getPage(model) match
+  //   get_PageCase(model) match
 
   //     case PageCase.DashBoard(_, _, _, _) =>
   //       div()(

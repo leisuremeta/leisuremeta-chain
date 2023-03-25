@@ -9,7 +9,7 @@ object BlockTable:
     div(`class` := "table-container")(
       Title.block(model),
       Table.block(model), {
-        find_PageCase(model.curAppState)(model.appStates) match
+        find_PageCase(model.pointer)(model.appStates) match
           case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
           case _                           => div()
       },

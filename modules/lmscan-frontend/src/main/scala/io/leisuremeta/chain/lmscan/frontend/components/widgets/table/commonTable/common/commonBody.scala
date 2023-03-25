@@ -17,6 +17,7 @@ import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 
 object Body:
   def block = (payload: List[BlockInfo]) =>
@@ -33,60 +34,60 @@ object Body:
         ),
       )
   def observer = (model: Model) =>
-    model.appStates.map(observer =>
+    model.appStates.map(state =>
       div()(
         div(
-          `class` := s"row table-body ${observer.number == in_Observer_Number(
+          `class` := s"row table-body ${state.number == in_Observer_Number(
               model.appStates,
               model.appStates.length,
-            )}_observer ${model.curAppState == observer.number}_observer_click",
-          onClick(PageMsg.GotoObserver(observer.number)),
+            )}_state ${model.pointer == state.number}_state_click",
+          onClick(PageMsg.GotoObserver(state.number)),
         )(
           // #
           div(
             `class` := s"cell type-3 ",
           )(
-            span()(observer.number.toString()),
+            span()(state.number.toString()),
           ),
           // name
           div(`class` := "cell type-3")(
             span()(
-              in_PageCase_Name(observer.pageCase),
+              in_Name(state.pageCase),
             ),
           ),
 
           // url
           div(`class` := "cell")(
             span(
-              in_PageCase_url(observer.pageCase),
+              in_url(state.pageCase),
             ),
           ),
 
           // pubs
           div(`class` := "cell")(
             span(
-              in_PageCase_PubCases(observer.pageCase).length.toString(),
+              in_PubCases(state.pageCase).length.toString(),
             ),
           ),
 
           // :page
           div(`class` := "cell")(
             span(
-              // pipe_PubCase_Page(observer.pageCase).toString(),
+              // pipe_PubCase_Page(state.pageCase).toString(),
             ),
           ),
 
           // : PubCases |> map - pipe_PubCase_Page |> reduce
           // div(`class` := "cell")(
           //   span(
-          //     pipe_PageCase_PubCase__Page_All(observer.pageCase).toString(),
+          //     pipe_PageCase_PubCase__Page_All(state.pageCase).toString(),
           //   ),
           // ),
 
           // : pub_m2
           // div(`class` := "cell")(
           //   span(
-          //     pipe_PageCase_PubCase__pub_m1_All(observer.pageCase).toString(),
+          //     pipe_PageCase_PubCase__pub_m1_All(state.pageCase).toString(),
           //   ),
           // ),
         ),

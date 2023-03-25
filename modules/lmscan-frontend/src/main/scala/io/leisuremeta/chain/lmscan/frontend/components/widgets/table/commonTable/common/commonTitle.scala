@@ -2,12 +2,13 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Title:
   def block = (model: Model) =>
     div(
       // TODO :: only show dashboard
-      `class` := s"table-title ${getPage(model) match
+      `class` := s"table-title ${get_PageCase(model) match
           case PageCase.Blocks(_, _, _, _) => "hidden"
           case _                           => ""
         }",
@@ -19,7 +20,7 @@ object Title:
         `class` := s"type-2",
       )(
         {
-          getPage(model) match
+          get_PageCase(model) match
             case PageCase.DashBoard(_, _, _, _) =>
               span(
                 onClick(PageMsg.PreUpdate(PageCase.Blocks())),
@@ -30,7 +31,7 @@ object Title:
     )
   def tx = (model: Model) =>
     div(
-      `class` := s"table-title ${getPage(model) match
+      `class` := s"table-title ${get_PageCase(model) match
           case PageCase.Transactions(_, _, _, _) => "hidden"
           case _                                 => ""
         }",
@@ -42,7 +43,7 @@ object Title:
         `class` := s"type-2",
       )(
         {
-          getPage(model) match
+          get_PageCase(model) match
             case PageCase.DashBoard(_, _, _, _) =>
               span(
                 onClick(PageMsg.PreUpdate(PageCase.Transactions())),

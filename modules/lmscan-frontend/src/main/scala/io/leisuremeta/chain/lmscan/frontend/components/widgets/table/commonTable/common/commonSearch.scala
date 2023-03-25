@@ -1,4 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
+import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
@@ -8,12 +9,14 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
+import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 
 object Search:
   val search_block = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = find_currentPage(model)
+    val curPage = find_current_PubPage(model)
 
     val totalPage = getPubData(model).block.totalPages
 
@@ -119,15 +122,7 @@ object Search:
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = in_PubCase_Page(
-      in_PageCase_PubCases(
-        find_PageCase(model.curAppState)(model.appStates),
-      ).filter(pub =>
-        pub match
-          case pub: PubCase.TxPub => true
-          case _                  => false,
-      )(0),
-    )
+    val curPage = find_tx_curpage(model)
 
     val totalPage = getPubData(model).tx.totalPages
 
@@ -184,7 +179,7 @@ object Search:
                 `class` := s"${_selectedPage[Int](curPage, idx)}",
                 onClick(
                   PageMsg.PreUpdate(
-                    getPage(model) match
+                    get_PageCase(model) match
                       case page: PageCase.Transactions =>
                         page.copy(
                           url = s"transactions/${idx}",
@@ -219,7 +214,7 @@ object Search:
                             ),
                           ),
                         )
-                      case _ => getPage(model),
+                      case _ => get_PageCase(model),
                   ),
                 ),
               )(idx.toString()),

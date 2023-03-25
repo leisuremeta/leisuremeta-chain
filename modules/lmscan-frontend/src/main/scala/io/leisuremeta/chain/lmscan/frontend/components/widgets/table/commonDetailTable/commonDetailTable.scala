@@ -3,12 +3,11 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
-import io.leisuremeta.chain.lmscan.frontend.Builder.getPage
 import io.leisuremeta.chain.lmscan.frontend.Log.log
-
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object DetailTables:
   def render(model: Model): Html[Msg] =
-    getPage(model) match
+    get_PageCase(model) match
       case PageCase.BlockDetail(_, _, _, _) =>
         BlockDetailTable.view(model)
 

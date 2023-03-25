@@ -5,13 +5,13 @@ import tyrian.*
 import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
-
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import Log.*
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =
-    getPage(model) match
+    get_PageCase(model) match
       case PageCase.Transactions(_, _, _, _) =>
         div(`class` := "table-container")(
           Table.txList_txtable(model),
