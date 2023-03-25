@@ -6,6 +6,7 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
+import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.in_Observer_PageCase
 
 object Search:
   val search_block = (model: Model) =>
@@ -119,7 +120,7 @@ object Search:
     // todo :: make as pipe
     val curPage = in_PubCase_Page(
       in_PageCase_PubCases(
-        in_Observer_PageCase(model.observers, model.observerNumber),
+        in_Observer_PageCase(model.appStates, model.curAppState),
       ).filter(pub =>
         pub match
           case pub: PubCase.TxPub => true
@@ -192,7 +193,7 @@ object Search:
                       // TODO:: replaced with values ​​received from the cache.
                       case page: PageCase.AccountDetail =>
                         page.copy(
-                          url = s"account/${idx}",
+                          url = s"account/${idx}/${page.pubs.length}",
                           pubs = List(
                             PubCase.BoardPub(1, "", SummaryModel()),
                             PubCase.AccountDetailPub(hash =

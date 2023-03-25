@@ -16,6 +16,7 @@ import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 
 object Body:
   def block = (payload: List[BlockInfo]) =>
@@ -32,14 +33,14 @@ object Body:
         ),
       )
   def observer = (model: Model) =>
-    model.observers.map(observer =>
+    model.appStates.map(observer =>
       div()(
         div(
           `class` := s"row table-body ${observer.number == in_Observer_Number(
-              model.observers,
-              model.observers.length,
-            )}_observer ${model.observerNumber == observer.number}_observer_click",
-          // onClick(PageMsg.GotoObserver(observer.number)),
+              model.appStates,
+              model.appStates.length,
+            )}_observer ${model.curAppState == observer.number}_observer_click",
+          onClick(PageMsg.GotoObserver(observer.number)),
         )(
           // #
           div(
@@ -76,18 +77,18 @@ object Body:
           ),
 
           // : PubCases |> map - pipe_PubCase_Page |> reduce
-          div(`class` := "cell")(
-            span(
-              pipe_PageCase_PubCase__Page_All(observer.pageCase).toString(),
-            ),
-          ),
+          // div(`class` := "cell")(
+          //   span(
+          //     pipe_PageCase_PubCase__Page_All(observer.pageCase).toString(),
+          //   ),
+          // ),
 
           // : pub_m2
-          div(`class` := "cell")(
-            span(
-              pipe_PageCase_PubCase__pub_m1_All(observer.pageCase).toString(),
-            ),
-          ),
+          // div(`class` := "cell")(
+          //   span(
+          //     pipe_PageCase_PubCase__pub_m1_All(observer.pageCase).toString(),
+          //   ),
+          // ),
         ),
       ),
     )

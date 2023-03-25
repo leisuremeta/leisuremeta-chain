@@ -55,7 +55,7 @@ object Subscriptions:
         // 1 보다 작을 경우 => 1로 보낸다
         // val page = state.toString().toIntOption.getOrElse(0) case
         log("model.observerNumber")
-        log(model.observerNumber)
+        log(model.curAppState)
         Some(PageMsg.BackObserver)
         // val page: PageCase = ValidPageName.getPageFromStr(state.toString)
 

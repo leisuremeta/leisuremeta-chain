@@ -6,20 +6,16 @@ import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
     // #flow1 ::
-    // - Observers 에 새로운 ObserverState 를 추가한다
-    // - observerNumber 를 최신으로 업데이트 한다
+    // - Observers 에 새로운 StateCase 를 추가한다
+    // - curAppState 를 최신으로 업데이트 한다
     // => #flow2
     case PageMsg.PreUpdate(page: PageCase) =>
       page match
-        // case PageCase.NoPage(_, _) =>
-        //   (
-        //     model.copy(),
-        //     Cmd.None,
-        //   )
         case _ =>
           Window.History(
             in_PageCase_url(page),
@@ -27,10 +23,10 @@ object PageUpdate:
           )
           (
             model.copy(
-              observerNumber = in_Observer_Number(model.observers) + 1,
-              observers = model.observers ++ Seq(
-                ObserverState(
-                  number = in_Observer_Number(model.observers) + 1,
+              curAppState = in_Observer_Number(model.appStates) + 1,
+              appStates = model.appStates ++ Seq(
+                StateCase(
+                  number = in_Observer_Number(model.appStates) + 1,
                   pageCase = page,
                 ),
               ),
@@ -47,34 +43,34 @@ object PageUpdate:
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(page)
       Window.History(
-        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
-        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
       )
 
       (
-        model.copy(observerNumber = page),
+        model.copy(curAppState = page),
         Cmd.None,
       )
 
     case PageMsg.BackObserver =>
-      val safeNumber = Num.Int_Positive(model.observerNumber - 1)
+      val safeNumber = Num.Int_Positive(model.curAppState - 1)
 
       Window.History(
-        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
-        in_PageCase_url(in_Observer_PageCase(model.observers, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
+        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
       )
 
       (
-        model.copy(observerNumber = safeNumber),
+        model.copy(curAppState = safeNumber),
         Cmd.None,
       )
 
     case PageMsg.DataUpdate(pub: PubCase) =>
       (
         // 가장최신의 데이터 상태를 검색하여 pubs 업데이트
-        model.copy(observers =
-          model.observers.map(observer =>
-            observer.number == model.observerNumber match
+        model.copy(appStates =
+          model.appStates.map(observer =>
+            observer.number == model.appStates.length match
               case true =>
                 observer.copy(pageCase =
                   update_PageCase_PubCases(observer.pageCase, pub),

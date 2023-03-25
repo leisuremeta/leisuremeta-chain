@@ -7,15 +7,16 @@ import org.scalajs.dom.window
 object Init:
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
+    log(Fx.view)
     (
       Model(
-        observers = List(
-          ObserverState(
+        appStates = List(
+          StateCase(
             pageCase = PageCase.DashBoard(),
             number = 1,
           ),
         ),
-        observerNumber = 1,
+        curAppState = 1,
       ),
       // Batch()
       Cmd.Emit(PageMsg.PreUpdate(PageCase.DashBoard())),

@@ -2,38 +2,24 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.scalajs.js
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.*
-
-case class ViewCase(
-    var blockInfo: List[BlockInfo] = List(new BlockInfo),
-    var txInfo: List[TxInfo] = List(new TxInfo),
-);
-
-case class PageResponseViewCase(
-    var block: PageResponse[BlockInfo] =
-      new PageResponse[BlockInfo](0, 0, List()),
-    var tx: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
-    var board: SummaryModel = new SummaryModel,
-    var blockDetail: BlockDetail = new BlockDetail,
-    var txDetail: TxDetail = new TxDetail,
-    var accountDetail: AccountDetail = new AccountDetail,
-);
+import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 
 // TODO:: go, pipe 함수로 redesign!
 object Builder:
   // #1-observer
-  def find_Observer(observers: List[ObserverState], find: Int) =
-    // find 가 0이면 가장 최신 옵져버로 검색할수 있게 해준다
-    val _find = find match
-      case 0 => observers.length
-      case _ => find
-    observers.filter(o => o.number == _find)(0)
+  // def find_State(states: List[StateCase], find: Int) =
+  //   // find 가 0이면 가장 최신 옵져버로 검색할수 있게 해준다
+  //   val _find = find match
+  //     case 0 => states.length
+  //     case _ => find
+  //   states.filter(o => o.number == _find)(0)
 
-  // #1-observer-function
-  def in_Observer_PageCase(observers: List[ObserverState], find: Int = 0) =
-    find_Observer(observers, find).pageCase
+  // // #1-observer-function
+  // def in_Observer_PageCase(states: List[StateCase], find: Int = 0) =
+  //   find_State(states, find).pageCase
 
-  def in_Observer_Number(observers: List[ObserverState], find: Int = 0) =
-    find_Observer(observers, find).number
+  // def in_Observer_Number(states: List[StateCase], find: Int = 0) =
+  //   find_State(states, find).number
 
   // #2-PageCase-function
   def in_PageCase_Name(pageCase: PageCase) =
@@ -107,17 +93,17 @@ object Builder:
   def pipe_currentPage(model: Model) =
     in_PubCase_Page(
       in_PageCase_PubCases(
-        in_Observer_PageCase(model.observers, model.observerNumber),
+        in_Observer_PageCase(model.appStates, model.curAppState),
       )(0),
     )
 
   // getViewCurPage
   def getPage(model: Model, find: Int = 0) =
     val _find = find match
-      case 0 => model.observerNumber
+      case 0 => model.curAppState
       case _ => find
 
-    in_Observer_PageCase(model.observers, _find)
+    in_Observer_PageCase(model.appStates, _find)
 
   // def pipe_totalPage(model: Model) =
   // pipe_PageCase_ViewCase(model).blockInfo(0).
@@ -177,11 +163,11 @@ object Builder:
   // api 함수 정리필요
   def getViewCase(model: Model): ViewCase =
     pipe_PageCase_ViewCase(
-      in_Observer_PageCase(model.observers, model.observerNumber),
+      in_Observer_PageCase(model.appStates, model.curAppState),
     )
   def getPubData(model: Model): PageResponseViewCase =
     pipe_PageCase_PageResponseViewCase(
-      in_Observer_PageCase(model.observers, model.observerNumber),
+      in_Observer_PageCase(model.appStates, model.curAppState),
     )
   def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
@@ -227,24 +213,6 @@ object Builder:
 
       case PubCase.AccountDetailPub(hash, _, _) =>
         s"$base/account/$hash/detail"
-
-      // case PageName.DashBoard =>
-      //   s"$base/summary/main"
-      // case PageName.Transactions(page) =>
-      //   s"$base/tx/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-      // case PageName.Blocks(page) =>
-      //   s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
-      // case PageName.BlockDetail(hash) =>
-      //   s"$base/block/$hash/detail"
-      // case PageName.TransactionDetail(hash) =>
-      //   s"$base/tx/$hash/detail"
-      // case PageName.AccountDetail(hash) =>
-      //   s"$base/account/$hash/detail"
-      // case PageName.NftDetail(hash) =>
-      //   s"$base/nft/$hash/detail"
-      // case PageName.Page64(hash) =>
-      //   log(s"#page64 $base/tx/$hash/detail")
-      //   s"$base/tx/$hash/detail"
 
   def update_PubCase_m1m2(pub: PubCase, data: String) =
     pub match

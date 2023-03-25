@@ -1,4 +1,23 @@
-# 파이프라인
+# app structure
+
+```scala
+init
+ob[
+    new_Page[pubs],
+    page[pubs],
+    page[pubs],
+    page[pubs],
+    page[pubs],
+    page[pubs],
+    page[pubs],
+    cur_page[pubs],<= 
+    page[pubs],
+    page[pubs],
+    init_page[pubs],
+]
+```
+
+# pipeline
 
 ```scala
  model.observers
@@ -26,8 +45,16 @@
 ```
 
 # 시나리오
-
 ```scala
-init
-ob[page[pubs]]
+
+onclick ( #pagecase{v_name,v_url, pubs})
+|> PreUpdate(
+#pagecase
+- Window.History(#pagecase.#url) :: page |> url |> window.histroy
+- Window.History(#page.url)
+)
+url(page,options..)
+|> urlParser
+|> api
+|> 
 ```
