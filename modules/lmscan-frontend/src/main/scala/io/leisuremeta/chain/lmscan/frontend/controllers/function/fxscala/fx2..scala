@@ -3,22 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.frontend.Products.*
 import scala.util.chaining.*
 
-case class ProductCase(name: String, price: Int)
-
-object Products:
-  val todayProducts = List(
-    ProductCase(name = "반팔티", price = 123),
-    ProductCase(name = "긴팔티", price = 15000),
-    ProductCase(name = "긴팔티", price = 15000),
-    ProductCase(name = "크롭티", price = 300),
-  )
-
-  val inName      = (a: ProductCase) => a.name
-  val inPrice     = (a: ProductCase) => a.price
-  val filterUp500 = (a: ProductCase) => a.price > 500
-  val filterName  = (a: ProductCase) => a.name == "긴팔티"
-
-object Fx:
+object Fx2:
   def map[A, B](f: (A) => B, xs: Seq[A]): Seq[B] =
     for x <- xs
     yield f(x)
