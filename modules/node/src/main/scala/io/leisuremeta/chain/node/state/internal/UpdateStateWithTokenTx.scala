@@ -641,6 +641,18 @@ trait UpdateStateWithTokenTx:
                                       .getOrElse(BigNat.Zero)
                                   case _ => BigNat.Zero
                               }
+                            case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
+                              EitherT.pure {
+                                txWithResult.result match
+                                  case Some(
+                                        Transaction.RewardTx
+                                          .ExecuteOwnershipRewardResult(outputs),
+                                      ) =>
+                                    outputs
+                                      .get(sig.account)
+                                      .getOrElse(BigNat.Zero)
+                                  case _ => BigNat.Zero
+                              }
                         case _ =>
                           EitherT.leftT[F, BigNat](
                             s"input tx $txHash is not a fungible balance",
@@ -938,6 +950,16 @@ trait UpdateStateWithTokenTx:
             tx.result match
               case Some(
                     Transaction.RewardTx.ExecuteRewardResult(outputs),
+                  ) =>
+                Either.fromOption(
+                  outputs.get(account),
+                  s"Account $account does not have output of tx $tx",
+                )
+              case _ => Either.left(s"Invalid transaction result: $tx")
+          case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
+            tx.result match
+              case Some(
+                    Transaction.RewardTx.ExecuteOwnershipRewardResult(outputs),
                   ) =>
                 Either.fromOption(
                   outputs.get(account),

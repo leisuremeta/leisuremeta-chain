@@ -273,6 +273,34 @@ final case class NodeApp[F[_]
         .value
     }
 
+  def getOwnershipSnapshotMapServerEndpoint =
+    Api.getOwnershipSnapshotMapEndpoint.serverLogic{
+      (from: Option[TokenId], limit: Option[Int]) =>
+        StateReadService
+          .getOwnershipSnapshotMap(from, limit.getOrElse(100))
+          .leftMap {
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          }
+          .value
+    }
+
+  def getOwnershipRewardedServerEndpoint =
+    Api.getOwnershipRewardedEndpoint.serverLogic { (tokenId: TokenId) =>
+      StateReadService
+        .getOwnershipRewarded(tokenId)
+        .leftMap {
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        }
+        .subflatMap {
+          case Some(log) => Right(log)
+          case None =>
+            Left(Right(Api.NotFound(s"No rewarded log of token $tokenId")))
+        }
+        .value
+    }
+
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -351,7 +379,9 @@ final case class NodeApp[F[_]
     getAccountSnapshotServerEndpoint,
     getTokenSnapshotServerEndpoint,
     getOwnershipSnapshotServerEndpoint,
+    getOwnershipSnapshotMapServerEndpoint,
 //    getRewardServerEndpoint,
+    getOwnershipRewardedServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )

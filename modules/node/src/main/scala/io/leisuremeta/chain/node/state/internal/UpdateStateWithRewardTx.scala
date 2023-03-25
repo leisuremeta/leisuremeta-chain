@@ -88,8 +88,6 @@ trait UpdateStateWithRewardTx:
             TransactionWithResult(Signed(sig, rd), None),
           )
         case ud: Transaction.RewardTx.UpdateDao => ???
-        case ra: Transaction.RewardTx.RecordActivity =>
-          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
 //          for
 //            userActivityState <- ra.userActivity.toList
 //              .traverse { case (account, activity) =>
@@ -227,6 +225,15 @@ trait UpdateStateWithRewardTx:
             ),
           )
 
+        case ra: Transaction.RewardTx.RecordActivity =>
+          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
+
+        case bs: Transaction.RewardTx.BuildSnapshot =>
+          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
+
+        case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
+          PlayNommDAppReward[F](tx, sig).run(ms).leftMap(_.msg)
+
   def getBalance[F[_]
     : Concurrent: TransactionRepository: GenericStateRepository.TokenState](
       account: Account,
@@ -309,6 +316,17 @@ trait UpdateStateWithRewardTx:
                             txWithResult.result match
                               case Some(
                                     Transaction.RewardTx.ExecuteRewardResult(
+                                      outputs,
+                                    ),
+                                  ) =>
+                                outputs.get(account).getOrElse(BigNat.Zero)
+                              case _ => BigNat.Zero
+                          }
+                        case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
+                          EitherT.pure {
+                            txWithResult.result match
+                              case Some(
+                                    Transaction.RewardTx.ExecuteOwnershipRewardResult(
                                       outputs,
                                     ),
                                   ) =>

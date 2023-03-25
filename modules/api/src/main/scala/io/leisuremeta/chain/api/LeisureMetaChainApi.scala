@@ -39,7 +39,7 @@ import api.model.api_model.{
   TxInfo,
 }
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
-import api.model.reward.{ActivitySnapshot, OwnershipSnapshot}
+import api.model.reward.{ActivitySnapshot, OwnershipSnapshot, OwnershipRewardLog}
 import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
@@ -67,7 +67,7 @@ object LeisureMetaChainApi:
         case Right(v) => DecodeResult.Value(Hash.Value(v))
     }(_.toUInt256Bytes.toBytes.toHex)
   given bignatCodec: Codec[String, BigNat, TextPlain] =
-    Codec.bigInt.mapDecode{ (n: BigInt) =>
+    Codec.bigInt.mapDecode { (n: BigInt) =>
       BigNat.fromBigInt(n) match
         case Left(e)  => DecodeResult.Error(n.toString(10), new Exception(e))
         case Right(v) => DecodeResult.Value(v)
@@ -226,14 +226,29 @@ object LeisureMetaChainApi:
       .out(jsonBody[OwnershipSnapshot])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOwnershipSnapshotMapEndpoint =
+    baseEndpoint.get
+      .in {
+        "snapshot" / "ownership" / query[Option[TokenId]]("from")
+          .and(query[Option[Int]]("limit"))
+      }
+      .out(jsonBody[Map[TokenId, OwnershipSnapshot]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOwnershipRewardedEndpoint =
+    baseEndpoint.get
+      .in("rewarded" / "ownership" / path[TokenId])
+      .out(jsonBody[OwnershipRewardLog])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getRewardEndpoint =
     baseEndpoint.get
-      .in("reward" / 
-        path[Account]
+      .in {
+        "reward" / path[Account]
           .and(query[Option[Instant]]("timestamp"))
           .and(query[Option[Account]]("dao-account"))
           .and(query[Option[BigNat]]("reward-amount"))
-      )
+      }
       .out(jsonBody[RewardInfo])
 
   enum Movable:

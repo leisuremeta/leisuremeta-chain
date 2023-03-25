@@ -1027,7 +1027,7 @@
 
   * Fields
 
-    * Timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
+    * timestamp: 보상 기준 시점. 이 시점 일주일 전부터 현재 시점까지의 자료를 모아 스냅샷을 생성한다.
     * accountAmount: 계정활동 총 보상량
     * tokenAmount: 토큰이 받을 총 보상량
     * ownershipAmount: 토큰 보유에 따르는 총 보상량
@@ -1074,6 +1074,7 @@
 
   * Fields
 
+    * definitionId 보상에 지급할 토큰 정의 ID. 일반적으로 LM.
     * inputs: Set[TxHash] 보상에 사용할 UTXO
     * targets: Set[TokenId] 보상할 개별 NFT 토큰 ID
     
