@@ -60,7 +60,8 @@ object Fx:
   def pipe2[A](df: A, functions: (A => A)*): A =
     functions.foldLeft(df) { (res, f) => f(res) }
 
-  // def pipe3[A, B](df: A, functions: (A => B)*): B =
+  // def pipe[B](f: A => B): B = f(self)
+  // def pipe3[A, B](df: A, functions: (A => B)*) =
   //   functions.foldLeft(df) { (res, f) => f(res) }
 
   val pipe_int = pipe[Int](1, Seq(a => a + 1))

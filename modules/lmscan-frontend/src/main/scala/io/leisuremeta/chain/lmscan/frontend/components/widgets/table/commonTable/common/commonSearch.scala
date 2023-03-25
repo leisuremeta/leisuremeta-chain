@@ -6,13 +6,14 @@ import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
-import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.in_Observer_PageCase
+import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Search:
   val search_block = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = pipe_currentPage(model)
+    val curPage = find_currentPage(model)
 
     val totalPage = getPubData(model).block.totalPages
 
@@ -120,7 +121,7 @@ object Search:
     // todo :: make as pipe
     val curPage = in_PubCase_Page(
       in_PageCase_PubCases(
-        in_Observer_PageCase(model.appStates, model.curAppState),
+        find_PageCase(model.curAppState)(model.appStates),
       ).filter(pub =>
         pub match
           case pub: PubCase.TxPub => true

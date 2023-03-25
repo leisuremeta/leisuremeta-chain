@@ -3,25 +3,10 @@ import scala.scalajs.js
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.*
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
+import scala.util.chaining.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.find_cunrrent_PageCase
 
-// TODO:: go, pipe 함수로 redesign!
 object Builder:
-  // #1-observer
-  // def find_State(states: List[StateCase], find: Int) =
-  //   // find 가 0이면 가장 최신 옵져버로 검색할수 있게 해준다
-  //   val _find = find match
-  //     case 0 => states.length
-  //     case _ => find
-  //   states.filter(o => o.number == _find)(0)
-
-  // // #1-observer-function
-  // def in_Observer_PageCase(states: List[StateCase], find: Int = 0) =
-  //   find_State(states, find).pageCase
-
-  // def in_Observer_Number(states: List[StateCase], find: Int = 0) =
-  //   find_State(states, find).number
-
-  // #2-PageCase-function
   def in_PageCase_Name(pageCase: PageCase) =
     pageCase match
       case PageCase.Blocks(name, _, _, _)        => name
@@ -78,32 +63,15 @@ object Builder:
       case PubCase.TxDetailPub(_, _, pub_m2)      => pub_m2
       case PubCase.AccountDetailPub(_, _, pub_m2) => pub_m2
 
-  // # PageCase |> [Pubcase] |> [in page] |> all page
-  def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
-    in_PageCase_PubCases(pageCase)
-      .map(d => in_PubCase_Page(d))
-      .reduce((a, b) => a + b)
-
-  // # PageCase |> [Pubcase] |> [in pub_m1] |> all page
-  def pipe_PageCase_PubCase__pub_m1_All(pageCase: PageCase) =
-    in_PageCase_PubCases(log(pageCase))
-      .map(d => in_PubCase_pub_m1(d))
-      .reduce((a, b) => a + b)
-
-  def pipe_currentPage(model: Model) =
-    in_PubCase_Page(
-      in_PageCase_PubCases(
-        in_Observer_PageCase(model.appStates, model.curAppState),
-      )(0),
-    )
-
   // getViewCurPage
   def getPage(model: Model, find: Int = 0) =
     val _find = find match
       case 0 => model.curAppState
       case _ => find
 
-    in_Observer_PageCase(model.appStates, _find)
+    model.appStates
+      .pipe(find_PageCase(_find))
+    // in_Observer_PageCase(model.appStates, _find)
 
   // def pipe_totalPage(model: Model) =
   // pipe_PageCase_ViewCase(model).blockInfo(0).
@@ -163,11 +131,11 @@ object Builder:
   // api 함수 정리필요
   def getViewCase(model: Model): ViewCase =
     pipe_PageCase_ViewCase(
-      in_Observer_PageCase(model.appStates, model.curAppState),
+      find_cunrrent_PageCase(model),
     )
   def getPubData(model: Model): PageResponseViewCase =
     pipe_PageCase_PageResponseViewCase(
-      in_Observer_PageCase(model.appStates, model.curAppState),
+      find_cunrrent_PageCase(model),
     )
   def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
@@ -262,8 +230,3 @@ object Builder:
             .decodeParser(data)
             .getOrElse(new AccountDetail),
         )
-
-      //        val data: BlockDetail = BlockDetailParser
-      //   .decodeParser(model.blockDetailData.get)
-      //   .getOrElse(new BlockDetail)
-      // getOptionValue(data.txs, List()).asInstanceOf[List[TxInfo]]

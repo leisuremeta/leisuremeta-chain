@@ -43,8 +43,8 @@ object PageUpdate:
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(page)
       Window.History(
-        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
-        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
+        in_PageCase_url(find_PageCase(safeNumber)(model.appStates)),
+        in_PageCase_url(find_PageCase(safeNumber)(model.appStates)),
       )
 
       (
@@ -56,8 +56,8 @@ object PageUpdate:
       val safeNumber = Num.Int_Positive(model.curAppState - 1)
 
       Window.History(
-        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
-        in_PageCase_url(in_Observer_PageCase(model.appStates, safeNumber)),
+        in_PageCase_url(find_PageCase(safeNumber)(model.appStates)),
+        in_PageCase_url(find_PageCase(safeNumber)(model.appStates)),
       )
 
       (
