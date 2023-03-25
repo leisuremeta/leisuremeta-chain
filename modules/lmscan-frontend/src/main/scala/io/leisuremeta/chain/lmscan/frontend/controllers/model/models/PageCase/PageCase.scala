@@ -1,6 +1,7 @@
 package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.common.model.*
 
+// enum PageCase(name: String = "", url: String = ""):
 enum PageCase:
   case Observer(
       name: String = "Observer",
