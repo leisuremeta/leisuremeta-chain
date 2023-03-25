@@ -14,6 +14,7 @@ import api.LeisureMetaChainApi
 import api.model.*
 import api.model.reward.*
 import api.model.token.*
+import api.model.TransactionWithResult.ops.*
 import lib.datatype.*
 import lib.crypto.*
 import lib.crypto.Hash.ops.*
@@ -93,8 +94,9 @@ object JvmClientMain extends IOApp:
   val tx2: Transaction = Transaction.RewardTx.ExecuteOwnershipReward(
     networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
     createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+    definitionId = LM,
     inputs = Set(
-      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"),
+      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611").toResultHashValue,
     ),
     targets = Set(TokenId(Utf8.unsafeFrom("1234567890")), TokenId(Utf8.unsafeFrom("1234567891"))),
   )
