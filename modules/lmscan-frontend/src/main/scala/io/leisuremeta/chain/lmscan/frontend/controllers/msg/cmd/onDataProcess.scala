@@ -14,8 +14,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import Builder.*
-// import io.leisuremeta.chain.lmscan.frontend.PubCase.blockPub.pub_m1
+import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 
 case class ApiPayload(page: String)
 
@@ -30,7 +29,7 @@ object UnderDataProcess:
         PageMsg.BackObserver
       case Right(json) => {
         PageMsg.DataUpdate(
-          update_PubCase_m1m2(pub, response.body),
+          update_PubCase_data(pub, response.body),
         )
 
       }
@@ -49,12 +48,6 @@ object UnderDataProcess:
     Decoder[Msg](onResponse(pub), onError)
 
 object OnDataProcess:
-  // val host = js.Dynamic.global.process.env.BACKEND_URL
-  // val port = js.Dynamic.global.process.env.BACKEND_PORT
-
-  // !FIX
-  // var base = js.Dynamic.global.process.env.BASE_API_URL_DEV
-  var base = js.Dynamic.global.process.env.BASE_API_URL
 
   def getData(
       pub: PubCase,
@@ -66,6 +59,6 @@ object OnDataProcess:
     //   .display = "block"
 
     Http.send(
-      Request.get(Builder.pipe_pubcase_apiUrl(pub)).withTimeout(30.seconds),
+      Request.get(get_api_link(pub)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(pub),
     )

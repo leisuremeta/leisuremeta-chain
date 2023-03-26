@@ -3,7 +3,7 @@ import tyrian.Html.*
 import tyrian.*
 import V.*
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Board:
   val LM_Price     = "LM PRICE"
@@ -13,7 +13,7 @@ object Board:
 
 object BoardView:
   def view(model: Model): Html[Msg] =
-    val data = getPubData(model).board
+    val data = get_PageResponseViewCase(model).board
 
     div(`class` := "board-area")(
       div(`class` := "board-list x")(

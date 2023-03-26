@@ -4,13 +4,12 @@ import scala.scalajs.js
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object ModelPipe:
   def in_appStates(model: Model) =
     model.appStates
 
-  def in_curAppState(model: Model) =
+  def in_pointer(model: Model) =
     model.pointer
 
   def find_curent_State(model: Model) =
@@ -42,7 +41,9 @@ object ModelPipe:
       .pipe(find_PageCase(model.appStates.length))
 
   def find_cunrrent_PageCase(model: Model) =
-    find_PageCase(model.pointer)(model.appStates)
+    model
+      .pipe(in_appStates)
+      .pipe(find_PageCase(model.pointer))
 
   def find_tx_curpage(model: Model) =
     model
@@ -61,3 +62,13 @@ object ModelPipe:
     model
       .pipe(find_cunrrent_PageCase)
       .pipe(in_Name)
+
+  def get_ViewCase(model: Model): ViewCase =
+    model
+      .pipe(find_cunrrent_PageCase)
+      .pipe(pipe_ViewCase)
+
+  def get_PageResponseViewCase(model: Model): PageResponseViewCase =
+    model
+      .pipe(find_cunrrent_PageCase)
+      .pipe(pipe_PageResponseViewCase)

@@ -7,7 +7,6 @@ import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import Log.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =

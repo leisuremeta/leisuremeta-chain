@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Title:

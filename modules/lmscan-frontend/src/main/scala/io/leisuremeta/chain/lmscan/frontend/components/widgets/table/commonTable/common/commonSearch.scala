@@ -3,7 +3,6 @@ import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
@@ -18,7 +17,7 @@ object Search:
     // todo :: make as pipe
     val curPage = find_current_PubPage(model)
 
-    val totalPage = getPubData(model).block.totalPages
+    val totalPage = get_PageResponseViewCase(model).block.totalPages
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2)                         => 1
@@ -124,7 +123,7 @@ object Search:
     // todo :: make as pipe
     val curPage = find_tx_curpage(model)
 
-    val totalPage = getPubData(model).tx.totalPages
+    val totalPage = get_PageResponseViewCase(model).tx.totalPages
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2)                         => 1

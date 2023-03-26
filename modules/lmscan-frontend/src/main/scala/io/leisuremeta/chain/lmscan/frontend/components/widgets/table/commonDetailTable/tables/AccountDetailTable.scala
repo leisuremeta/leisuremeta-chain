@@ -8,13 +8,13 @@ import V.*
 import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object AccountDetailTable:
   val view = (model: Model) =>
-    val apiData: SummaryModel = getPubData(model).board
+    val apiData: SummaryModel = get_PageResponseViewCase(model).board
 
-    val data: AccountDetail = getPubData(model).accountDetail
+    val data: AccountDetail = get_PageResponseViewCase(model).accountDetail
     genView(model, data, apiData)
 
     // val data: AccountDetail = AccountDetailParser

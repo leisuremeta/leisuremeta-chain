@@ -4,7 +4,6 @@ import scala.scalajs.js
 import org.scalajs.dom.window
 import tyrian.*
 import cats.effect.IO
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*

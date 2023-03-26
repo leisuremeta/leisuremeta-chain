@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import Builder.*
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.find_cunrrent_PageCase
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*

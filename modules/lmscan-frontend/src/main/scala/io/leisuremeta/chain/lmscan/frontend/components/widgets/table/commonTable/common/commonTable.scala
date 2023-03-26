@@ -5,38 +5,38 @@ import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
 import Log.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.frontend.OnDataProcess.getData
 import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 import io.leisuremeta.chain.lmscan.frontend.V.getOptionValue
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.block :: Body.block(
-        getViewCase(model).blockInfo,
+        get_ViewCase(model).blockInfo,
       ),
     )
   def txList_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.tx :: Body.txlist_txtable(
-        getViewCase(model).txInfo,
+        get_ViewCase(model).txInfo,
       ),
     )
 
   def accountDetail_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.tx :: Body.accountDetail_txtable(
-        getViewCase(model).txInfo,
+        get_ViewCase(model).txInfo,
       ),
     )
 
   def dashboard_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.tx_dashBoard :: Body.dashboard_txtable(
-        getViewCase(model).txInfo,
+        get_ViewCase(model).txInfo,
       ),
     )
   def observer_table = (model: Model) =>
@@ -52,7 +52,7 @@ object Table:
         // todo :: fix as pipe
         // getOptionValue(getPubData(model).blockDetail.txs, List())
         //   .asInstanceOf[List[TxInfo]],
-        getViewCase(model).txInfo,
+        get_ViewCase(model).txInfo,
       ),
     )
 

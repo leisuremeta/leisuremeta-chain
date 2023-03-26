@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
-import io.leisuremeta.chain.lmscan.frontend.Builder.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object Tables:
   def render(model: Model): Html[Msg] =

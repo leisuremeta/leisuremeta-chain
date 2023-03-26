@@ -8,11 +8,11 @@ import V.*
 import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.TxDetail
 import io.leisuremeta.chain.lmscan.common.model.TransferHist
-import io.leisuremeta.chain.lmscan.frontend.Builder.getPubData
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object TxDetailTable:
   val view = (model: Model) =>
-    val data: TxDetail = getPubData(model).txDetail
+    val data: TxDetail = get_PageResponseViewCase(model).txDetail
     genView(model, data)
 
   val input = (data: List[String], isModal: Boolean) =>
