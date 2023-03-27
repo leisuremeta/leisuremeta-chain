@@ -5,6 +5,7 @@ import java.math.{BigInteger, MathContext}
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.Instant
 import java.util.{ArrayList, Arrays, Collections}
+import java.util.concurrent.CompletableFuture
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.*
@@ -17,6 +18,7 @@ import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.eq.*
 import cats.syntax.traverse.*
 
+import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.Encoder
 import io.circe.generic.auto.*
@@ -35,11 +37,21 @@ import org.web3j.protocol.core.{
   Request as Web3jRequest,
   Response as Web3jResponse,
 }
+import org.web3j.protocol.core.methods.response.EthFeeHistory.FeeHistory
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.protocol.exceptions.TransactionException
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.response.PollingTransactionReceiptProcessor
+import scodec.bits.{ByteVector, hex}
+import software.amazon.awssdk.auth.credentials.{
+  AwsCredentials,
+  StaticCredentialsProvider,
+}
+import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.kms.KmsAsyncClient
+import software.amazon.awssdk.services.kms.model.DecryptRequest
 import sttp.client3.*
 import sttp.model.{MediaType, StatusCode}
 
@@ -51,8 +63,6 @@ import api.model.*
 import api.model.TransactionWithResult.ops.*
 import api.model.api_model.{AccountInfo, BalanceInfo, NftBalanceInfo}
 import api.model.token.*
-import org.web3j.protocol.core.methods.response.EthFeeHistory.FeeHistory
-import java.util.concurrent.CompletableFuture
 
 object EthGatewayWithdrawMain extends IOApp:
 
@@ -70,10 +80,20 @@ object EthGatewayWithdrawMain extends IOApp:
       ethChainId: Int,
       ethContract: String,
       ethNftContract: String,
-      ethPrivate: String,
       lmPrivate: String,
       lmAddress: String,
       gatewayEthAddress: String,
+      kmsKey: String,
+      awsKey: String,
+      awsSecret: String,
+      dbAccount: String,
+      dbPassword: String,
+      dbFrontEndpoint: String,
+      dbFrontPort: Int,
+      dbFrontDatabase: String,
+      dbBackEndpoint: String,
+      dbBackPort: Int,
+      dbBackDatabase: String,
   )
 
   object GatewayConf:
@@ -83,10 +103,20 @@ object EthGatewayWithdrawMain extends IOApp:
         ethChainId = config.getInt("eth-chain-id"),
         ethContract = config.getString("eth-contract"),
         ethNftContract = config.getString("eth-nft-contract"),
-        ethPrivate = config.getString("eth-private"),
         lmPrivate = config.getString("lm-private"),
         lmAddress = config.getString("lm-address"),
         gatewayEthAddress = config.getString("gateway-eth-address"),
+        kmsKey = config.getString("kms-key"),
+        awsKey = config.getString("aws-key"),
+        awsSecret = config.getString("aws-secret"),
+        dbAccount = config.getString("db-account"),
+        dbPassword = config.getString("db-password"),
+        dbFrontEndpoint = config.getString("db-front-endpoint"),
+        dbFrontPort = config.getInt("db-front-port"),
+        dbFrontDatabase = config.getString("db-front-database"),
+        dbBackEndpoint = config.getString("db-back-endpoint"),
+        dbBackPort = config.getInt("db-back-port"),
+        dbBackDatabase = config.getString("db-back-database"),
       )
 
   def web3Resource(url: String): Resource[IO, Web3j] = Resource.make {
@@ -583,6 +613,89 @@ object EthGatewayWithdrawMain extends IOApp:
 
     loop(None)
 
+  def getEthSecret(conf: GatewayConf): IO[String] =
+    for
+      cipherFrontBase64 <- getCipherText(
+          endpoint = conf.dbFrontEndpoint,
+          port = conf.dbFrontPort,
+          db = conf.dbFrontDatabase,
+          table = "TCCO_GTWY_BASS",
+          user = conf.dbAccount,
+          password = conf.dbPassword,
+          query = "SELECT GTWY_SE_CODE, GTWY_PRIVKY FROM TCCO_GTWY_BASS WHERE GTWY_SE_CODE='ETH'",
+        )
+      cipherBackBase64 <- getCipherText(
+          endpoint = conf.dbBackEndpoint,
+          port = conf.dbBackPort,
+          db = conf.dbBackDatabase,
+          table = "TPCO_GTWY_PRIVKY_BASS",
+          user = conf.dbAccount,
+          password = conf.dbPassword,
+          query = "SELECT GTWY_SN, GTWY_PART_PRIVKY FROM TPCO_GTWY_PRIVKY_BASS WHERE GTWY_SN=1",
+        )
+      client = kmsClient(conf)
+      plaintextFront <- kmsDecrypt(conf, client, cipherFrontBase64)
+      plaintextBack <- kmsDecrypt(conf, client, cipherBackBase64)
+    yield (plaintextFront ++ plaintextBack).toHex
+
+  def getCipherText(
+      endpoint: String,
+      db: String,
+      port: Int,
+      table: String,
+      user: String,
+      password: String,
+      query: String,
+  ): IO[String] = Resource
+    .make(IO {
+      MySQLConnectionBuilder.createConnectionPool(
+        s"jdbc:mysql://$endpoint:$port/$db?user=$user&password=$password",
+      )
+    }) { connection =>
+      IO.fromCompletableFuture(IO(connection.disconnect())).map(_ => ())
+    }
+    .use { connection =>
+      IO.fromCompletableFuture(IO{
+        connection.sendQuery(query)
+      }).map{ result =>
+        result.getRows().get(0).getString(1)
+      }
+    }
+
+  def kmsClient(conf: GatewayConf) = KmsAsyncClient
+    .builder()
+    .region(Region.AP_NORTHEAST_2)
+    .credentialsProvider(StaticCredentialsProvider.create {
+      new AwsCredentials:
+        override def accessKeyId: String     = conf.awsKey
+        override def secretAccessKey: String = conf.awsSecret
+    })
+    .build()
+
+  def kmsDecrypt(
+      conf: GatewayConf,
+      client: KmsAsyncClient,
+      cipherBase64: String,
+  ): IO[ByteVector] = IO
+    .fromCompletableFuture(IO {
+
+      val request: DecryptRequest = DecryptRequest
+        .builder()
+        .keyId(conf.kmsKey)
+        .encryptionAlgorithm("RSAES_OAEP_SHA_256")
+        .ciphertextBlob(
+          SdkBytes
+            .fromByteArray(ByteVector.fromValidBase64(cipherBase64).toArray),
+        )
+        .build()
+
+      client.decrypt(request)
+
+    })
+    .map { response =>
+      ByteVector(response.plaintext().asByteArray())
+    }
+
   def run(args: List[String]): IO[ExitCode] =
     for
       conf <- getConfig
@@ -591,34 +704,16 @@ object EthGatewayWithdrawMain extends IOApp:
         BigInt(gatewayConf.lmPrivate, 16),
       )
       _ <- web3Resource(gatewayConf.ethAddress).use { web3j =>
-//        requestToIO {
-//          web3j.ethGetTransactionCount(
-//            gatewayConf.gatewayEthAddress,
-//            DefaultBlockParameterName.PENDING,
-//          )
-//        }(_.getTransactionCount()).map{ nonce =>
-//          println(s"Nonce: ${nonce}")
-//        }
-
-//        transferEthLM(
-//            web3j = web3j,
-//            ethChainId = gatewayConf.ethChainId,
-//            ethLmContract = gatewayConf.ethContract,
-//            gatewayEthAddress = gatewayConf.gatewayEthAddress,
-//            ethPrivate = gatewayConf.ethPrivate,
-//            keyPair = keyPair,
-//            receiverEthAddress = "0xd84A65512fDc8d3bB98E76a7B8f27Fe411D44E71".toLowerCase(),
-//            amount = BigNat.unsafeFromBigInt(BigInt(10).pow(18)),
-//        )
-
-        checkLoop(
-          web3j = web3j,
-          ethChainId = gatewayConf.ethChainId,
-          lmAddress = gatewayConf.lmAddress,
-          ethContract = gatewayConf.ethContract,
-          gatewayEthAddress = gatewayConf.gatewayEthAddress,
-          ethPrivate = gatewayConf.ethPrivate,
-          keyPair = keyPair,
-        )
+        getEthSecret(gatewayConf).flatMap{ secret =>
+          checkLoop(
+            web3j = web3j,
+            ethChainId = gatewayConf.ethChainId,
+            lmAddress = gatewayConf.lmAddress,
+            ethContract = gatewayConf.ethContract,
+            gatewayEthAddress = gatewayConf.gatewayEthAddress,
+            ethPrivate = secret,
+            keyPair = keyPair,
+          )
+        }
       }
     yield ExitCode.Success

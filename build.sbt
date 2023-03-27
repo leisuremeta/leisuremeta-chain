@@ -20,6 +20,8 @@ val V = new {
   val okhttp3LoggingInterceptor = "4.11.0"
 
   val web3J = "4.9.6"
+  
+  val awsSdk = "2.20.32"
 
   val scribe          = "3.11.1"
   val hedgehog        = "0.10.1"
@@ -73,6 +75,7 @@ val Dependencies = new {
       "org.web3j"    % "contracts"    % V.web3J,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
       "com.github.jasync-sql" % "jasync-mysql" % V.jasync,
+      "software.amazon.awssdk" % "kms" % V.awsSdk,
     ),
   )
 
