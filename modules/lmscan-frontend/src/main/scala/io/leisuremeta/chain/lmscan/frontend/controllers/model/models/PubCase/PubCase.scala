@@ -18,7 +18,7 @@ enum PubCase:
       page: Int = 1,
       sizePerRequest: Int = 10,
       accountAddr: String = "",
-      blockAddr: String = "",
+      blockHash: String = "",
       pub_m1: String = "",
       pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
   ) extends PubCase

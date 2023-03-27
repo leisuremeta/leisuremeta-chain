@@ -2,6 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.*
 import scala.scalajs.js
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object PupCasePipe:
   def in_Page(pubCase: PubCase) =
@@ -87,17 +88,20 @@ object PupCasePipe:
       case PubCase.BlockPub(page, _, _) =>
         s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
 
-      case PubCase.TxPub(page, sizePerRequest, accountAddr, blockAddr, _, _) =>
+      case PubCase.TxPub(page, sizePerRequest, accountAddr, blockHash, _, _) =>
         s"$base/tx/list?pageNo=${(page - 1)
             .toString()}&sizePerRequest=${sizePerRequest}" ++ {
           accountAddr match
             case "" => ""
             case _  => s"&accountAddr=${accountAddr}"
         } ++ {
-          blockAddr match
+          blockHash match
             case "" => ""
-            case _  => s"&blockAddr=${blockAddr}"
+            case _  => s"&blockHash=${blockHash}"
         }
+
+      // /tx/list?useDataNav=true&pageNo=0&sizePerRequest=10&blockHash=32b677ded6d7a3243bbceee11d0b31e900580132f9bc0b2fa23e4bca7cb789a1
+      // /tx/list?pageNo=0&sizePerRequest=10&blockAddr=32b677ded6d7a3243bbceee11d0b31e900580132f9bc0b2fa23e4bca7cb789a1
 
       case PubCase.BlockDetailPub(hash, _, _) =>
         s"$base/block/$hash/detail"
