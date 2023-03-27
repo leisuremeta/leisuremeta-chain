@@ -45,11 +45,6 @@ object PageCasePipe:
       .map(pub =>
         pub match
           case PubCase.BlockPub(_, _, _, pub_m2) =>
-            log("pub_m2")
-            log("pub_m2")
-            log("pub_m2")
-            log("pub_m2")
-            log(pub_m2)
             resulte.blockInfo = pub_m2.payload.toList
 
           case PubCase.TxPub(_, _, _, _, _, pub_m2) =>
