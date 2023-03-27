@@ -2,11 +2,13 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import scala.scalajs.js
 import org.scalajs.dom.window
+import scala.util.chaining.*
 import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.in_appStates
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -67,16 +69,10 @@ object PageUpdate:
 
     case PageMsg.DataUpdate(pub: PubCase) =>
       (
-        // 가장최신의 데이터 상태를 검색하여 pubs 업데이트
-        model.copy(appStates =
-          model.appStates.map(observer =>
-            observer.number == model.appStates.length match
-              case true =>
-                observer.copy(pageCase =
-                  update_PageCase_PubCases(observer.pageCase, pub),
-                )
-              case _ => observer,
-          ),
+        model.copy(
+          appStates = model
+            .pipe(in_appStates)
+            .map(update_PubData(pub, model.appStates.length)),
         ),
         Cmd.None,
       )

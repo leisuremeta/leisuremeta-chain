@@ -188,7 +188,7 @@ object Search:
                       // TODO:: replaced with values ​​received from the cache.
                       case page: PageCase.AccountDetail =>
                         page.copy(
-                          url = s"account/${idx}/${page.pubs.length}",
+                          url = s"account/${idx}",
                           pubs = List(
                             PubCase.BoardPub(1, "", SummaryModel()),
                             PubCase.AccountDetailPub(hash =

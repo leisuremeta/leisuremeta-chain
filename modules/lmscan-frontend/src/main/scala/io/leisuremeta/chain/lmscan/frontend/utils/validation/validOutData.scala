@@ -66,6 +66,7 @@ object V:
 
           case _ =>
             plainStr(data)
+
   def accountHash_DETAIL(data: Option[String]) =
     plainStr(data).length match
       case 40 =>

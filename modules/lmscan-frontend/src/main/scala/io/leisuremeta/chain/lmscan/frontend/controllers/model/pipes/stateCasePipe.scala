@@ -3,6 +3,7 @@ import scala.scalajs.js
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.*
 import scala.util.chaining.*
+import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.update_PageCase_PubCases
 
 // TODO:: go, pipe 함수로 redesign!
 object StateCasePipe:
@@ -26,3 +27,9 @@ object StateCasePipe:
     states
       .pipe(find_State(find))
       .pipe(in_number)
+
+  def update_PubData(pub: PubCase, find: Int)(state: StateCase) =
+    state.number == find match
+      case true =>
+        state.copy(pageCase = update_PageCase_PubCases(state.pageCase, pub))
+      case _ => state

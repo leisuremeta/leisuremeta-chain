@@ -160,12 +160,11 @@ object gen:
                     pubs = List(
                       PubCase.BoardPub(1, "", SummaryModel()),
                       PubCase.AccountDetailPub(hash = plainStr(hash)),
-                      PubCase
-                        .TxPub(
-                          page = 1,
-                          accountAddr = plainStr(hash),
-                          sizePerRequest = 20,
-                        ),
+                      PubCase.TxPub(
+                        page = 1,
+                        accountAddr = plainStr(hash),
+                        sizePerRequest = 20,
+                      ),
                     ),
                   ),
                 ),
@@ -213,7 +212,14 @@ object gen:
                   PageCase.BlockDetail(
                     name = PageCase.Blocks().name,
                     url = s"block/${plainStr(hash)}",
-                    pubs = List(PubCase.BlockDetailPub(hash = plainStr(hash))),
+                    pubs = List(
+                      PubCase.BlockDetailPub(hash = plainStr(hash)),
+                      PubCase.TxPub(
+                        page = 1,
+                        accountAddr = plainStr(hash),
+                        sizePerRequest = 20,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -228,7 +234,14 @@ object gen:
                   PageCase.BlockDetail(
                     name = PageCase.Blocks().name,
                     url = s"block/${plainStr(hash)}",
-                    pubs = List(PubCase.BlockDetailPub(hash = plainStr(hash))),
+                    pubs = List(
+                      PubCase.BlockDetailPub(hash = plainStr(hash)),
+                      PubCase.TxPub(
+                        page = 1,
+                        accountAddr = plainStr(hash),
+                        sizePerRequest = 20,
+                      ),
+                    ),
                   ),
                 ),
               ),
