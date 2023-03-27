@@ -515,7 +515,7 @@ object EthGatewayWithdrawMain extends IOApp:
               ),
             )
             .sum / 10
-          val targetBaseFees = (mean + std + 0.5).toBigInt
+          val targetBaseFees = (mean * 2 + std + 0.5).toBigInt
 
           targetBaseFees.bigInteger
         }
@@ -595,16 +595,22 @@ object EthGatewayWithdrawMain extends IOApp:
                       scribe.info(s"Timeout: ${te.getMessage()}")
                       loop(Some(baseFee, maxPriorityFeePerGas, txId))
                     case _ =>
-                      scribe.error(
-                        s"Fail to send transaction: ${e.getMessage()}",
-                      )
+                      scribe.error{
+                        s"Fail to send transaction: ${e.getMessage()}"
+                      }
                       loop(Some(baseFee, maxPriorityFeePerGas, txId))
                 case Right(receipt) =>
-                  IO.delay {
-                    scribe.info(
-                      s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}",
-                    )
+                  if receipt.isStatusOK() then IO.delay {
+                    scribe.info{
+                      s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}"
+                    }
                     BigInt(receipt.getBlockNumber())
+                  }
+                  else {
+                    scribe.error{
+                      s"transaction ${receipt.getTransactionHash()} failed with receipt:${receipt}"
+                    }
+                    loop(None)
                   }
             yield blockNumber
           case None =>
