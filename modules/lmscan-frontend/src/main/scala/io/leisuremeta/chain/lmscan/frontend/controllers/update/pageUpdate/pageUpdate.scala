@@ -28,9 +28,7 @@ object PageUpdate:
               pointer = get_latest_number(model) + 1,
               appStates = model.appStates ++ Seq(
                 StateCase(
-                  number = model
-                    .pipe(in_appStates)
-                    .pipe(find_latest_Number) + 1,
+                  number = get_latest_number(model) + 1,
                   pageCase = page,
                 ),
               ),

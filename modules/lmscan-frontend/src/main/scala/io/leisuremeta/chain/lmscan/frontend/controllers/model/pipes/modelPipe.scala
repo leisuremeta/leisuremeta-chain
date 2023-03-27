@@ -28,7 +28,9 @@ object ModelPipe:
       case 0 => model.pointer
       case _ => find
 
-    model.pipe(in_appStates).pipe(find_PageCase(_find))
+    model
+      .pipe(in_appStates)
+      .pipe(find_PageCase(_find))
 
   def find_current_PageCase(model: Model) =
     model
