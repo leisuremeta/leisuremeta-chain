@@ -15,7 +15,7 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object Table:
   def block = (model: Model) =>
     div(`class` := "table w-[100%]")(
-      Head.block :: Body.block(
+      Head.block :: Body.blocks(
         get_ViewCase(model).blockInfo,
       ),
     )
@@ -42,16 +42,11 @@ object Table:
   def observer_table = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.observer :: Body.observer(model),
-      // Head.observer,
-      // div(),
     )
 
   def blockDetail_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.tx :: Body.blockDetail_txtable(
-        // todo :: fix as pipe
-        // getOptionValue(getPubData(model).blockDetail.txs, List())
-        //   .asInstanceOf[List[TxInfo]],
         get_ViewCase(model).txInfo,
       ),
     )

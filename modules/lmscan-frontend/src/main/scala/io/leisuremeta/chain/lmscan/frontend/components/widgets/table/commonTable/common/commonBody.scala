@@ -19,7 +19,7 @@ import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Body:
-  def block = (payload: List[BlockInfo]) =>
+  def blocks = (payload: List[BlockInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(

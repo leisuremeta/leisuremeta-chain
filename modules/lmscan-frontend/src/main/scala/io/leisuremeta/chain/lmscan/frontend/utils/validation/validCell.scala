@@ -213,7 +213,9 @@ object gen:
                     name = PageCase.Blocks().name,
                     url = s"block/${plainStr(hash)}",
                     pubs = List(
-                      PubCase.BlockDetailPub(hash = plainStr(hash)),
+                      PubCase.BlockDetailPub(
+                        hash = plainStr(hash),
+                      ),
                       PubCase.TxPub(
                         page = 1,
                         accountAddr = plainStr(hash),
