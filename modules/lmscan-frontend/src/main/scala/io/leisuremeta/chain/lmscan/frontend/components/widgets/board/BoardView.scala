@@ -4,6 +4,7 @@ import tyrian.*
 import V.*
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object Board:
   val LM_Price     = "LM PRICE"
@@ -14,6 +15,8 @@ object Board:
 object BoardView:
   def view(model: Model): Html[Msg] =
     val data = get_PageResponseViewCase(model).board
+    // val data = new SummaryModel
+    log(data)
 
     div(`class` := "board-area")(
       div(`class` := "board-list x")(
@@ -35,7 +38,13 @@ object BoardView:
               Board.Block_Number,
             ),
             div(`class` := "color-white font-bold")(
-              plainStr(get_ViewCase(model).blockInfo(0).number),
+              {
+                log("get_ViewCase(model).blockInfo")
+                log(get_ViewCase(model).blockInfo)
+                // log(get_ViewCase(model).blockInfo(0))
+                // plainStr(get_ViewCase(model).blockInfo(0).number), //조회 안될때 에러를 내뱉음
+                "as"
+              },
             ),
           ),
         ),
