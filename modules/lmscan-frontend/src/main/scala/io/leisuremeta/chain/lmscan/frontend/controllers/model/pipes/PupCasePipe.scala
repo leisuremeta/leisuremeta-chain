@@ -103,3 +103,10 @@ object PupCasePipe:
 
       case PubCase.AccountDetailPub(hash, _, _) =>
         s"$base/account/$hash/detail"
+
+  def filter_txPub(pubs: List[PubCase]) =
+    pubs.filter(pub =>
+      pub match
+        case pub: PubCase.TxPub => true
+        case _                  => false,
+    )

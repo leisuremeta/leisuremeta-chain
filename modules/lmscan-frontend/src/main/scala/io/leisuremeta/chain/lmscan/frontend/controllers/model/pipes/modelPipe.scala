@@ -49,13 +49,7 @@ object ModelPipe:
     model
       .pipe(find_current_PageCase)
       .pipe(in_PubCases)
-      .pipe(pubs =>
-        pubs.filter(pub =>
-          pub match
-            case pub: PubCase.TxPub => true
-            case _                  => false,
-        ),
-      )(0)
+      .pipe(filter_txPub)(0)
       .pipe(in_Page)
 
   def find_name(model: Model) =
