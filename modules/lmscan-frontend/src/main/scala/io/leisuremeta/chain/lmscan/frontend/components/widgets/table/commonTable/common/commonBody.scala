@@ -16,6 +16,7 @@ import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Body:
   def block = (payload: List[BlockInfo]) =>
@@ -35,10 +36,7 @@ object Body:
     model.appStates.map(state =>
       div()(
         div(
-          `class` := s"row table-body ${state.number == in_Observer_Number(
-              model.appStates,
-              model.appStates.length,
-            )}_state ${model.pointer == state.number}_state_click",
+          `class` := s"row table-body ${state.number == get_latest_number(model)}_state ${model.pointer == state.number}_state_click",
           onClick(PageMsg.GotoObserver(state.number)),
         )(
           // #

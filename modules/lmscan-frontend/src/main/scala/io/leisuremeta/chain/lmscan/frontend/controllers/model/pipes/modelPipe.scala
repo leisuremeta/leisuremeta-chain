@@ -66,3 +66,8 @@ object ModelPipe:
     model
       .pipe(find_cunrrent_PageCase)
       .pipe(pipe_PageResponseViewCase)
+
+  def get_latest_number(model: Model): Int =
+    model
+      .pipe(in_appStates)
+      .pipe(find_latest_Number)

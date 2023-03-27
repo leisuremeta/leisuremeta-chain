@@ -8,7 +8,7 @@ import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.in_appStates
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -25,10 +25,12 @@ object PageUpdate:
           )
           (
             model.copy(
-              pointer = in_Observer_Number(model.appStates) + 1,
+              pointer = get_latest_number(model) + 1,
               appStates = model.appStates ++ Seq(
                 StateCase(
-                  number = in_Observer_Number(model.appStates) + 1,
+                  number = model
+                    .pipe(in_appStates)
+                    .pipe(find_latest_Number) + 1,
                   pageCase = page,
                 ),
               ),
@@ -45,8 +47,14 @@ object PageUpdate:
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(page)
       Window.History(
-        in_url(find_PageCase(safeNumber)(model.appStates)),
-        in_url(find_PageCase(safeNumber)(model.appStates)),
+        model
+          .pipe(in_appStates)
+          .pipe(find_PageCase(safeNumber))
+          .pipe(in_url),
+        model
+          .pipe(in_appStates)
+          .pipe(find_PageCase(safeNumber))
+          .pipe(in_url),
       )
 
       (
@@ -58,8 +66,14 @@ object PageUpdate:
       val safeNumber = Num.Int_Positive(model.pointer - 1)
 
       Window.History(
-        in_url(find_PageCase(safeNumber)(model.appStates)),
-        in_url(find_PageCase(safeNumber)(model.appStates)),
+        model
+          .pipe(in_appStates)
+          .pipe(find_PageCase(safeNumber))
+          .pipe(in_url),
+        model
+          .pipe(in_appStates)
+          .pipe(find_PageCase(safeNumber))
+          .pipe(in_url),
       )
 
       (

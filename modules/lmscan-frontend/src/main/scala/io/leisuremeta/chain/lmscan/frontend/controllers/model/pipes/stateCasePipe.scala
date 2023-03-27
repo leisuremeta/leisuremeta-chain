@@ -23,9 +23,14 @@ object StateCasePipe:
       .pipe(find_State(find))
       .pipe(in_pageCase)
 
-  def in_Observer_Number(states: List[StateCase], find: Int = 0) =
+  def find_Number(find: Int = 0)(states: List[StateCase]) =
     states
       .pipe(find_State(find))
+      .pipe(in_number)
+
+  def find_latest_Number(states: List[StateCase]) =
+    states
+      .pipe(find_State(0))
       .pipe(in_number)
 
   def update_PubData(pub: PubCase, find: Int)(state: StateCase) =
