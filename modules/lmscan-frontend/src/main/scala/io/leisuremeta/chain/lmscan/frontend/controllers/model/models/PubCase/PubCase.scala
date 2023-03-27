@@ -9,9 +9,10 @@ enum PubCase:
 
   case BlockPub(
       page: Int = 1,
+      sizePerRequest: Int = 10,
       pub_m1: String = "",
       pub_m2: PageResponse[BlockInfo] =
-        new PageResponse[BlockInfo](0, 0, List()),
+        new PageResponse[BlockInfo](1, 1, Range(1, 10).map(d => new BlockInfo)),
   ) extends PubCase
 
   case TxPub(
@@ -20,7 +21,8 @@ enum PubCase:
       accountAddr: String = "",
       blockHash: String = "",
       pub_m1: String = "",
-      pub_m2: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
+      pub_m2: PageResponse[TxInfo] =
+        new PageResponse[TxInfo](1, 1, Range(1, 10).map(d => new TxInfo)),
   ) extends PubCase
 
   case BoardPub(

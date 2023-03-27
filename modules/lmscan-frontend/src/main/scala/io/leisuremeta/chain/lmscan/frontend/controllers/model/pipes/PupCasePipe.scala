@@ -7,14 +7,14 @@ import io.leisuremeta.chain.lmscan.frontend.Log.log
 object PupCasePipe:
   def in_Page(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(page, _, _)       => page
+      case PubCase.BlockPub(page, _, _, _)    => page
       case PubCase.TxPub(page, _, _, _, _, _) => page
       case PubCase.BoardPub(page, _, _)       => page
       case _                                  => 1
 
   def in_pub_m1(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(_, pub_m1, _)         => pub_m1
+      case PubCase.BlockPub(_, _, pub_m1, _)      => pub_m1
       case PubCase.TxPub(_, _, _, _, pub_m1, _)   => pub_m1
       case PubCase.BoardPub(_, pub_m1, _)         => pub_m1
       case PubCase.BlockDetailPub(_, pub_m1, _)   => pub_m1
@@ -23,7 +23,7 @@ object PupCasePipe:
 
   def in_pub_m2(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(_, _, pub_m2)         => pub_m2
+      case PubCase.BlockPub(_, _, _, pub_m2)      => pub_m2
       case PubCase.TxPub(_, _, _, _, _, pub_m2)   => pub_m2
       case PubCase.BoardPub(_, _, pub_m2)         => pub_m2
       case PubCase.BlockDetailPub(_, _, pub_m2)   => pub_m2
@@ -32,7 +32,7 @@ object PupCasePipe:
 
   def update_PubCase_data(pub: PubCase, data: String) =
     pub match
-      case PubCase.BlockPub(_, _, _) =>
+      case PubCase.BlockPub(_, _, _, _) =>
         PubCase.BlockPub(
           pub_m1 = data,
           pub_m2 = BlockParser
@@ -87,8 +87,8 @@ object PupCasePipe:
       case PubCase.BoardPub(page, _, _) =>
         s"$base/summary/main"
 
-      case PubCase.BlockPub(page, _, _) =>
-        s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
+      case PubCase.BlockPub(page, sizePerRequest, _, _) =>
+        s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=${sizePerRequest}"
 
       case PubCase.TxPub(page, sizePerRequest, accountAddr, blockHash, _, _) =>
         s"$base/tx/list?pageNo=${(page - 1)

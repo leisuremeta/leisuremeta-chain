@@ -40,10 +40,12 @@ object BoardView:
             div(`class` := "color-white font-bold")(
               {
                 log("get_ViewCase(model).blockInfo")
-                log(get_ViewCase(model).blockInfo)
+                log(get_ViewCase(model).blockInfo(0))
                 // log(get_ViewCase(model).blockInfo(0))
-                // plainStr(get_ViewCase(model).blockInfo(0).number), //조회 안될때 에러를 내뱉음
-                "as"
+                plainStr(
+                  get_ViewCase(model).blockInfo(0).number,
+                ) // 조회 안될때 에러를 내뱉음
+                // "as"
               },
             ),
           ),
