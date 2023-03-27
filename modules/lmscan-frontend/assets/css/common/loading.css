@@ -23,6 +23,7 @@
     -webkit-animation: spin 2s linear infinite; /* Safari */
     animation: spin 2s linear infinite;
     
+    
 }
 .loader-container .loader {
     width: 48px;
@@ -34,6 +35,12 @@
     border-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.35) rgba(255, 255, 255, 0.5);
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
+    
+    /* -webkit-transition: background-color 0.5s;
+    -moz-transition:    background-color 0.5s;
+    -ms-transition:     background-color 0.5s;
+    -o-transition:      background-color 0.5s;
+    transition:         background-color 0.5s; */
 }
 
   /* Safari */

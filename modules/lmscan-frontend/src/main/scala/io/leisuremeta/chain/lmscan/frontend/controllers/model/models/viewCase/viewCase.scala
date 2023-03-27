@@ -9,8 +9,9 @@ case class ViewCase(
 
 case class PageResponseViewCase(
     var block: PageResponse[BlockInfo] =
-      new PageResponse[BlockInfo](0, 0, List()),
-    var tx: PageResponse[TxInfo] = new PageResponse[TxInfo](0, 0, List()),
+      new PageResponse[BlockInfo](1, 1, Range(1, 10).map(d => new BlockInfo)),
+    var tx: PageResponse[TxInfo] =
+      new PageResponse[TxInfo](1, 1, Range(1, 10).map(d => new TxInfo)),
     var board: SummaryModel = new SummaryModel,
     var blockDetail: BlockDetail = new BlockDetail,
     var txDetail: TxDetail = new TxDetail,
