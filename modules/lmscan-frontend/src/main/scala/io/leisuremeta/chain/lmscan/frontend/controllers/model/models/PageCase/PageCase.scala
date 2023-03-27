@@ -17,7 +17,7 @@ enum PageCase:
       url: String = "dashboard",
       pubs: List[PubCase] = List(
         PubCase.BlockPub(1, "", PageResponse[BlockInfo](0, 0, List())),
-        PubCase.TxPub(1, 10, "", "", PageResponse[TxInfo](0, 0, List())),
+        PubCase.TxPub(1, 10, "", "", "", PageResponse[TxInfo](0, 0, List())),
         PubCase.BoardPub(1, "", SummaryModel()),
       ),
       status: Boolean = false,
@@ -36,7 +36,7 @@ enum PageCase:
       name: String = "Transactions",
       url: String = "transactions/1",
       pubs: List[PubCase] = List(
-        PubCase.TxPub(1, 10, "", "", PageResponse[TxInfo](0, 0, List())),
+        PubCase.TxPub(1, 10, "", "", "", PageResponse[TxInfo](0, 0, List())),
       ),
       status: Boolean = false,
   ) extends PageCase

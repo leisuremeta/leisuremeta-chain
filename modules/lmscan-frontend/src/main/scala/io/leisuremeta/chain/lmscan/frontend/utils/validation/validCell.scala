@@ -163,7 +163,7 @@ object gen:
                       PubCase.TxPub(
                         page = 1,
                         accountAddr = plainStr(hash),
-                        sizePerRequest = 20,
+                        sizePerRequest = 10,
                       ),
                     ),
                   ),
@@ -218,8 +218,8 @@ object gen:
                       ),
                       PubCase.TxPub(
                         page = 1,
-                        accountAddr = plainStr(hash),
-                        sizePerRequest = 20,
+                        blockAddr = plainStr(hash),
+                        sizePerRequest = 10,
                       ),
                     ),
                   ),
@@ -240,8 +240,8 @@ object gen:
                       PubCase.BlockDetailPub(hash = plainStr(hash)),
                       PubCase.TxPub(
                         page = 1,
-                        accountAddr = plainStr(hash),
-                        sizePerRequest = 20,
+                        blockAddr = plainStr(hash),
+                        sizePerRequest = 10,
                       ),
                     ),
                   ),

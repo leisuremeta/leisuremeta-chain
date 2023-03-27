@@ -6,15 +6,15 @@ import scala.scalajs.js
 object PupCasePipe:
   def in_Page(pubCase: PubCase) =
     pubCase match
-      case PubCase.BlockPub(page, _, _)    => page
-      case PubCase.TxPub(page, _, _, _, _) => page
-      case PubCase.BoardPub(page, _, _)    => page
-      case _                               => 1
+      case PubCase.BlockPub(page, _, _)       => page
+      case PubCase.TxPub(page, _, _, _, _, _) => page
+      case PubCase.BoardPub(page, _, _)       => page
+      case _                                  => 1
 
   def in_pub_m1(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(_, pub_m1, _)         => pub_m1
-      case PubCase.TxPub(_, _, _, pub_m1, _)      => pub_m1
+      case PubCase.TxPub(_, _, _, _, pub_m1, _)   => pub_m1
       case PubCase.BoardPub(_, pub_m1, _)         => pub_m1
       case PubCase.BlockDetailPub(_, pub_m1, _)   => pub_m1
       case PubCase.TxDetailPub(_, pub_m1, _)      => pub_m1
@@ -23,7 +23,7 @@ object PupCasePipe:
   def in_pub_m2(pubCase: PubCase) =
     pubCase match
       case PubCase.BlockPub(_, _, pub_m2)         => pub_m2
-      case PubCase.TxPub(_, _, _, _, pub_m2)      => pub_m2
+      case PubCase.TxPub(_, _, _, _, _, pub_m2)   => pub_m2
       case PubCase.BoardPub(_, _, pub_m2)         => pub_m2
       case PubCase.BlockDetailPub(_, _, pub_m2)   => pub_m2
       case PubCase.TxDetailPub(_, _, pub_m2)      => pub_m2
@@ -39,7 +39,7 @@ object PupCasePipe:
             .getOrElse(new PageResponse(0, 0, List())),
         )
 
-      case PubCase.TxPub(_, _, _, _, _) =>
+      case PubCase.TxPub(_, _, _, _, _, _) =>
         PubCase.TxPub(
           pub_m1 = data,
           pub_m2 = TxParser
@@ -87,12 +87,16 @@ object PupCasePipe:
       case PubCase.BlockPub(page, _, _) =>
         s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=10"
 
-      case PubCase.TxPub(page, sizePerRequest, accountAddr, _, _) =>
+      case PubCase.TxPub(page, sizePerRequest, accountAddr, blockAddr, _, _) =>
         s"$base/tx/list?pageNo=${(page - 1)
             .toString()}&sizePerRequest=${sizePerRequest}" ++ {
           accountAddr match
             case "" => ""
             case _  => s"&accountAddr=${accountAddr}"
+        } ++ {
+          blockAddr match
+            case "" => ""
+            case _  => s"&blockAddr=${blockAddr}"
         }
 
       case PubCase.BlockDetailPub(hash, _, _) =>
