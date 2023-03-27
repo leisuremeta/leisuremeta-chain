@@ -34,8 +34,9 @@ object BoardView:
             div(`class` := "font-16px color-white font-bold color-white")(
               Board.Block_Number,
             ),
-            // div(`class` := "color-white font-bold")(model.latestBlockNumber),
-            div(`class` := "color-white font-bold")("1111"),
+            div(`class` := "color-white font-bold")(
+              plainStr(get_ViewCase(model).blockInfo(0).number),
+            ),
           ),
         ),
       ),

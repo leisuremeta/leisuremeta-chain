@@ -79,7 +79,9 @@ object PupCasePipe:
         )
 
   def get_api_link(pub: PubCase) =
+    // var base = js.Dynamic.global.process.env.BASE_API_URL_DEV
     var base = js.Dynamic.global.process.env.BASE_API_URL
+
     pub match
 
       case PubCase.BoardPub(page, _, _) =>
@@ -99,9 +101,6 @@ object PupCasePipe:
             case "" => ""
             case _  => s"&blockHash=${blockHash}"
         }
-
-      // /tx/list?useDataNav=true&pageNo=0&sizePerRequest=10&blockHash=32b677ded6d7a3243bbceee11d0b31e900580132f9bc0b2fa23e4bca7cb789a1
-      // /tx/list?pageNo=0&sizePerRequest=10&blockAddr=32b677ded6d7a3243bbceee11d0b31e900580132f9bc0b2fa23e4bca7cb789a1
 
       case PubCase.BlockDetailPub(hash, _, _) =>
         s"$base/block/$hash/detail"
