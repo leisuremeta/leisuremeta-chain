@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 import scala.util.Try
 
-import cats.data.OptionT
+import cats.data.{EitherT, OptionT}
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.eq.*
 import cats.syntax.traverse.*
@@ -289,15 +289,26 @@ object EthGatewayWithdrawMain extends IOApp:
           txWithResult.signedTx.value match
             case tx: Transaction.TokenTx.TransferFungibleToken =>
               {
+                scribe.info(
+                  s"Try to handle ${txWithResult.signedTx.sig.account}'s tx: $tx",
+                )
                 for
-                  amount <- OptionT.fromOption[IO](
+                  amount <- EitherT.fromOption[IO](
                     tx.outputs.get(gatewayAccount),
+                    s"No output amount to send to gateway",
                   )
-                  accountInfo <- OptionT(
-                    getAccountInfo(lmAddress, txWithResult.signedTx.sig.account),
+                  accountInfo <- EitherT.fromOptionF(
+                    getAccountInfo(
+                      lmAddress,
+                      txWithResult.signedTx.sig.account,
+                    ),
+                    s"No account info of ${txWithResult.signedTx.sig.account}",
                   )
-                  ethAddress <- OptionT.fromOption[IO](accountInfo.ethAddress)
-                  _ <- OptionT.liftF {
+                  ethAddress <- EitherT.fromOption[IO](
+                    accountInfo.ethAddress,
+                    s"No eth address of ${txWithResult.signedTx.sig.account}",
+                  )
+                  _ <- EitherT.liftF {
                     transferEthLM(
                       web3j = web3j,
                       ethChainId = ethChainId,
@@ -319,10 +330,13 @@ object EthGatewayWithdrawMain extends IOApp:
                       s"After withdrawing of ${txWithResult.signedTx.sig.account}'s $amount"
                     }),
                   )
-                  _ <- OptionT.liftF(
+                  _ <- EitherT.liftF(
                     submitTx(lmAddress, gatewayAccount, keyPair, tx1),
                   )
                 yield ()
+              }.leftMap { msg =>
+                scribe.error(msg)
+                msg
               }.value
             case _ => IO.unit
         }
@@ -391,6 +405,8 @@ object EthGatewayWithdrawMain extends IOApp:
       receiverEthAddress: String,
       amount: BigNat,
   ): IO[Unit] =
+
+    scribe.info(s"Transfer eth LM to ${receiverEthAddress}")
 
     val mintParams = new ArrayList[Type[?]]()
     mintParams.add(new Address(receiverEthAddress))
@@ -481,7 +497,7 @@ object EthGatewayWithdrawMain extends IOApp:
         receiptProcessor,
       )
 
-    val GAS_LIMIT = 65_000
+    val GAS_LIMIT = 600_000
 
     def loop(lastTrial: Option[(BigInteger, BigInteger, String)]): IO[BigInt] =
 
@@ -515,7 +531,7 @@ object EthGatewayWithdrawMain extends IOApp:
               ),
             )
             .sum / 10
-          val targetBaseFees = (mean * 2 + std + 0.5).toBigInt
+          val targetBaseFees = (mean + std + 0.5).toBigInt
 
           targetBaseFees.bigInteger
         }
@@ -595,23 +611,23 @@ object EthGatewayWithdrawMain extends IOApp:
                       scribe.info(s"Timeout: ${te.getMessage()}")
                       loop(Some(baseFee, maxPriorityFeePerGas, txId))
                     case _ =>
-                      scribe.error{
+                      scribe.error {
                         s"Fail to send transaction: ${e.getMessage()}"
                       }
                       loop(Some(baseFee, maxPriorityFeePerGas, txId))
                 case Right(receipt) =>
-                  if receipt.isStatusOK() then IO.delay {
-                    scribe.info{
-                      s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}"
+                  if receipt.isStatusOK() then
+                    IO.delay {
+                      scribe.info {
+                        s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}"
+                      }
+                      BigInt(receipt.getBlockNumber())
                     }
-                    BigInt(receipt.getBlockNumber())
-                  }
-                  else {
-                    scribe.error{
+                  else
+                    scribe.error {
                       s"transaction ${receipt.getTransactionHash()} failed with receipt:${receipt}"
                     }
                     loop(None)
-                  }
             yield blockNumber
           case None =>
             IO.sleep(1.minute) *> loop(None)
@@ -622,26 +638,28 @@ object EthGatewayWithdrawMain extends IOApp:
   def getEthSecret(conf: GatewayConf): IO[String] =
     for
       cipherFrontBase64 <- getCipherText(
-          endpoint = conf.dbFrontEndpoint,
-          port = conf.dbFrontPort,
-          db = conf.dbFrontDatabase,
-          table = "TCCO_GTWY_BASS",
-          user = conf.dbAccount,
-          password = conf.dbPassword,
-          query = "SELECT GTWY_SE_CODE, GTWY_PRIVKY FROM TCCO_GTWY_BASS WHERE GTWY_SE_CODE='ETH'",
-        )
+        endpoint = conf.dbFrontEndpoint,
+        port = conf.dbFrontPort,
+        db = conf.dbFrontDatabase,
+        table = "TCCO_GTWY_BASS",
+        user = conf.dbAccount,
+        password = conf.dbPassword,
+        query =
+          "SELECT GTWY_SE_CODE, GTWY_PRIVKY FROM TCCO_GTWY_BASS WHERE GTWY_SE_CODE='ETH'",
+      )
       cipherBackBase64 <- getCipherText(
-          endpoint = conf.dbBackEndpoint,
-          port = conf.dbBackPort,
-          db = conf.dbBackDatabase,
-          table = "TPCO_GTWY_PRIVKY_BASS",
-          user = conf.dbAccount,
-          password = conf.dbPassword,
-          query = "SELECT GTWY_SN, GTWY_PART_PRIVKY FROM TPCO_GTWY_PRIVKY_BASS WHERE GTWY_SN=1",
-        )
+        endpoint = conf.dbBackEndpoint,
+        port = conf.dbBackPort,
+        db = conf.dbBackDatabase,
+        table = "TPCO_GTWY_PRIVKY_BASS",
+        user = conf.dbAccount,
+        password = conf.dbPassword,
+        query =
+          "SELECT GTWY_SN, GTWY_PART_PRIVKY FROM TPCO_GTWY_PRIVKY_BASS WHERE GTWY_SN=1",
+      )
       client = kmsClient(conf)
       plaintextFront <- kmsDecrypt(conf, client, cipherFrontBase64)
-      plaintextBack <- kmsDecrypt(conf, client, cipherBackBase64)
+      plaintextBack  <- kmsDecrypt(conf, client, cipherBackBase64)
     yield (plaintextFront ++ plaintextBack).toHex
 
   def getCipherText(
@@ -661,9 +679,9 @@ object EthGatewayWithdrawMain extends IOApp:
       IO.fromCompletableFuture(IO(connection.disconnect())).map(_ => ())
     }
     .use { connection =>
-      IO.fromCompletableFuture(IO{
+      IO.fromCompletableFuture(IO {
         connection.sendQuery(query)
-      }).map{ result =>
+      }).map { result =>
         result.getRows().get(0).getString(1)
       }
     }
@@ -710,7 +728,7 @@ object EthGatewayWithdrawMain extends IOApp:
         BigInt(gatewayConf.lmPrivate, 16),
       )
       _ <- web3Resource(gatewayConf.ethAddress).use { web3j =>
-        getEthSecret(gatewayConf).flatMap{ secret =>
+        getEthSecret(gatewayConf).flatMap { secret =>
           checkLoop(
             web3j = web3j,
             ethChainId = gatewayConf.ethChainId,
