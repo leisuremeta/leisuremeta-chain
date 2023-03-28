@@ -5,55 +5,38 @@ import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.get_ViewCase
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
+// = origin
+// object BlockTable:
+//   def view(model: Model): Html[Msg] =
+//     div(`class` := "table-container xy-center position-relative")(
+//       Title.block(model),
+//       Table.block(model), {
+//         find_PageCase(model.pointer)(model.appStates) match
+//           case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
+//           case _                           => div()
+//       },
+//       LoaderView.view(model),
+//       // {
+//       //   get_ViewCase(model).blockInfo(0) != new BlockInfo match
+//       //     case true =>
+//       //       LoaderView.view(model)
+
+//       //     case _ => div()
+//       // },
+//     )
+
 object BlockTable:
   def view(model: Model): Html[Msg] =
-    div(`class` := "table-container")(
-      Title.block(model),
-      div(`class` := "loader-container table w-[100%] ")({
-        get_ViewCase(model).blockInfo(0) != new BlockInfo match
-          case true => {
-            div()(
-              Table.block(model), {
-                find_PageCase(model.pointer)(model.appStates) match
-                  case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
-                  case _                           => div()
-              },
-            )
-          }
-          case _ =>
-            // TODO : size
-            div(`class` := "xy-center h-[100%]")(div(`class` := "loader")())
-
-          // div()(
-          //   Table.block(model), {
-          //     find_PageCase(model.pointer)(model.appStates) match
-          //       case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
-          //       case _                           => div()
-          //   },
-          // )
-      }),
-
-      // Table.block(model), {
-      //   find_PageCase(model.pointer)(model.appStates) match
-      //     case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
-      //     case _                           => div()
-      // },
+    // div(`class` := "position-relative table-container")(
+    div(`class` := "table-container x position-relative y-center  ")(
+      div(`class` := "  m-10px w-block-list h-[100%] ")(
+        Title.block(model),
+        Table.block(model),
+        // LoaderView.view(model),
+      ),
+      get_ViewCase(model).blockInfo(0) != new BlockInfo match
+        case false => LoaderView.view(model)
+        case _     => div(),
     )
-
-  // def view(model: Model): Html[Msg] =
-  //   div(`class` := "table-container")(
-  //     Title.block(model),
-  //     div(`class` := "loader-container w-[100%]")({
-  //       get_ViewCase(model).blockInfo(0) != new BlockInfo match
-  //         case true => {
-  //           div()(
-  //             Table.block(model), {
-  //               find_PageCase(model.pointer)(model.appStates) match
-  //                 case PageCase.Blocks(_, _, _, _) => Search.search_block(model)
-  //                 case _                           => div()
-  //             },
-  //           )
-  //         }
-  //         case _ => div(`class` := "loader")()
-  //     }),
-  //   )
+    // LoaderView.view(model))
+  // )
