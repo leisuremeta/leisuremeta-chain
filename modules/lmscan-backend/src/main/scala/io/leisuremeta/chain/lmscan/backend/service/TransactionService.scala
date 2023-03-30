@@ -103,8 +103,15 @@ object TransactionService:
   def convertToInfo(txs: Seq[Tx]): Seq[TxInfo] =
     txs.map { tx =>
       val latestOutValOpt = tx.outputVals match 
-        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case Some(seq) => {
+          val x = seq.map(_.split("/"))
+          x.headOption.map(x => {            
+            if x.isEmpty then ""
+            else x(1)
+          })
+        }
         case None      => None
+        
       TxInfo(
         tx.hash,
         tx.blockNumber,
@@ -119,9 +126,18 @@ object TransactionService:
 
   def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
     txs.map { tx =>
+      scribe.info("111")
       val latestOutValOpt = tx.outputVals match 
-        case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        // case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
+        case Some(seq) => {
+          val x = seq.map(_.split("/"))
+          x.headOption.map(x => {            
+            if x.isEmpty then ""
+            else x(1)
+          })
+        }
         case None      => None
+
       TxInfo(
         tx.hash,
         tx.blockNumber,
