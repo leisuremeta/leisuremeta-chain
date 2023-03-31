@@ -37,9 +37,9 @@ object Signature:
         .left.map(DecodingFailure(_))
     }
 
-  given sigEncoder: ByteEncoder[Signature] = ByteEncoder.genericEncoder
+  given sigEncoder: ByteEncoder[Signature] = ByteEncoder.derived
 
-  given sigDecoder: ByteDecoder[Signature] = ByteDecoder.genericDecoder
+  given sigDecoder: ByteDecoder[Signature] = ByteDecoder.derived
 
   given sigCirceEncoder: Encoder[Signature] = deriveEncoder[Signature]
 

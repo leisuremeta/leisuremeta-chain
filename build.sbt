@@ -1,7 +1,7 @@
 import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
-  val Scala      = "3.2.1"
-  val ScalaGroup = "3.2"
+  val Scala      = "3.3.0-RC3"
+  val ScalaGroup = "3.3"
 
   val catsEffect = "3.4.3"
   val tapir      = "1.2.4"
@@ -24,7 +24,7 @@ val V = new {
   val scribe          = "3.10.5"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
-  val zerowaste       = "0.2.1"
+  val zerowaste       = "0.2.5"
 
   val tyrian = "0.6.0"
 

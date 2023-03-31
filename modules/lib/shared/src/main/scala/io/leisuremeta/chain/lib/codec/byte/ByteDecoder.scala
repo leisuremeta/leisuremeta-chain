@@ -8,6 +8,7 @@ import scala.deriving.Mirror
 import scala.reflect.{ClassTag, classTag}
 
 import cats.syntax.eq.catsSyntaxEq
+import cats.syntax.either.*
 
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto.autoUnwrap
@@ -56,35 +57,47 @@ object ByteDecoder:
         )
       yield a
 
-  given ByteDecoder[EmptyTuple] = bytes =>
-    Right[DecodingFailure, DecodeResult[EmptyTuple]](
-      DecodeResult(EmptyTuple, bytes),
-    )
+  private def decoderProduct[A](
+      p: Mirror.ProductOf[A],
+      elems: => List[ByteDecoder[?]],
+  ): ByteDecoder[A] = (bytes: ByteVector) =>
 
-  given [H, T <: Tuple](using
-      bdh: ByteDecoder[H],
-      bdt: ByteDecoder[T],
-  ): ByteDecoder[H *: T] = bytes =>
-    for
-      decodedH <- bdh.decode(bytes)
-      decodedT <- bdt.decode(decodedH.remainder)
-    yield DecodeResult(decodedH.value *: decodedT.value, decodedT.remainder)
+    def reverse(tuple: Tuple): Tuple =
+      @SuppressWarnings(Array("org.wartremover.warts.Any"))
+      @annotation.tailrec
+      def loop(tuple: Tuple, acc: Tuple): Tuple = tuple match
+        case _: EmptyTuple => acc
+        case t *: ts       => loop(ts, t *: acc)
+      loop(tuple, EmptyTuple)
 
-  given genericDecoder[P <: Product](using
-      m: Mirror.ProductOf[P],
-      bd: ByteDecoder[m.MirroredElemTypes],
-  ): ByteDecoder[P] = bd map m.fromProduct
+    @annotation.tailrec
+    def loop(
+        elems: List[ByteDecoder[?]],
+        bytes: ByteVector,
+        acc: Tuple,
+    ): Either[DecodingFailure, DecodeResult[A]] = elems match
+      case Nil =>
+        (DecodeResult(p.fromProduct(reverse(acc)), bytes))
+          .asRight[DecodingFailure]
+      case decoder :: rest =>
+        scribe.info(s"Decoder: $decoder")
+        scribe.info(s"Bytes to decode: $bytes")
+        decoder.decode(bytes) match
+          case Left(failure) => failure.asLeft[DecodeResult[A]]
+          case Right(DecodeResult(value, remainder)) =>
+            scribe.info(s"Decoded: $value")
+            loop(rest, remainder, value *: acc)
+    loop(elems, bytes, EmptyTuple)
 
-  private inline def summonAll[T <: Tuple]: List[ByteDecoder[_]] = inline erasedValue[T] match
-    case _: EmptyTuple => Nil
-    case _: (t *: ts)  => summonInline[ByteDecoder[t]] :: summonAll[ts]
+  inline def summonAll[T <: Tuple]: List[ByteDecoder[?]] =
+    inline erasedValue[T] match
+      case _: EmptyTuple => Nil
+      case _: (t *: ts)  => summonInline[ByteDecoder[t]] :: summonAll[ts]
 
-  inline given sumDecoder[S](using s: Mirror.SumOf[S]): ByteDecoder[S] =
-    lazy val elemInstances = summonAll[s.MirroredElemTypes]
-
-    bignatByteDecoder
-      .flatMap(bignat => elemInstances(bignat.value.toInt))
-      .asInstanceOf[ByteDecoder[S]]
+  inline given derived[T](using p: Mirror.ProductOf[T]): ByteDecoder[T] =
+    lazy val elemInstances: List[ByteDecoder[?]] =
+      summonAll[p.MirroredElemTypes]
+    decoderProduct(p, elemInstances)
 
   given unitByteDecoder: ByteDecoder[Unit] = bytes =>
     Right[DecodingFailure, DecodeResult[Unit]](

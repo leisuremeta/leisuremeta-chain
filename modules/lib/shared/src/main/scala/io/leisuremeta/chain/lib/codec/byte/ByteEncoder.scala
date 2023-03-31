@@ -36,33 +36,24 @@ object ByteEncoder:
     case Right(nat) => nat
     case Left(e)    => throw new Exception(e)
 
-  given ByteEncoder[EmptyTuple] = _ => ByteVector.empty
+  @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
+  private def encoderProduct[A](
+      p: Mirror.ProductOf[A],
+      elems: => List[ByteEncoder[?]],
+  ): ByteEncoder[A] = (a: A) =>
+    a.asInstanceOf[Product].productIterator.zip(elems).map{
+     case (aElem, encoder) => encoder.asInstanceOf[ByteEncoder[Any]].encode(aElem)
+    }.foldLeft(ByteVector.empty)(_ ++ _)
 
-  given [H, T <: Tuple](using
-      beh: ByteEncoder[H],
-      bet: ByteEncoder[T],
-  ): ByteEncoder[H *: T] = { case h *: t =>
-    beh.encode(h) ++ bet.encode(t)
-  }
-
-  given genericEncoder[P <: Product](using
-      m: Mirror.ProductOf[P],
-      beb: ByteEncoder[m.MirroredElemTypes],
-  ): ByteEncoder[P] = beb contramap Tuple.fromProductTyped
-
-  private inline def summonAll[T <: Tuple]: List[ByteEncoder[?]] =
+  inline def summonAll[T <: Tuple]: List[ByteEncoder[?]] =
     inline erasedValue[T] match
       case _: EmptyTuple => Nil
       case _: (t *: ts)  => summonInline[ByteEncoder[t]] :: summonAll[ts]
 
-  inline given sumEncoder[S](using s: Mirror.SumOf[S]): ByteEncoder[S] =
-    lazy val elemInstances = summonAll[s.MirroredElemTypes]
-
-    (sv: S) =>
-      val ordinal = s.ordinal(sv)
-      bignatByteEncoder.encode(unsafeFromBigInt(ordinal)) ++ elemInstances(
-        ordinal,
-      ).asInstanceOf[ByteEncoder[S]].encode(sv)
+  inline given derived[T](using p: Mirror.ProductOf[T]): ByteEncoder[T] =
+    lazy val elemInstances: List[ByteEncoder[?]] =
+      summonAll[p.MirroredElemTypes]
+    encoderProduct(p, elemInstances)
 
   given unitByteEncoder: ByteEncoder[Unit] = _ => ByteVector.empty
 

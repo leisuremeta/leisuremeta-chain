@@ -21,7 +21,7 @@ object PublicKey:
   def fromByteArray(
       array: Array[Byte],
   ): Either[UInt256RefineFailure, PublicKey] =
-    if array.size =!= 64 then
+    if array.length =!= 64 then
       Left(
         UInt256RefineFailure(s"Public key array size are not 64: $array"),
       )
