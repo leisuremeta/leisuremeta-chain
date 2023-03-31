@@ -18,8 +18,6 @@ import sttp.tapir.EndpointIO
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 
-import common.LmscanApi
-
 import scala.collection.StringOps
 import io.leisuremeta.ExploreApi
 import io.leisuremeta.chain.lmscan.backend.service.*
