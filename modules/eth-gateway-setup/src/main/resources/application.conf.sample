@@ -1,0 +1,26 @@
+eth-private = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+lm-private = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+deposit-db {
+  host = "some.url1"
+  port = 3306
+  db = "some-db"
+  table = "SOME_TABLE"
+  value-column = "PRIVKY"
+  user = "user"
+  password = "password"
+}
+withdraw-db {
+  host = "some.url2"
+  port = 3306
+  db = "some-db"
+  table = "SOME_TABLE"
+  value-column = "PRIVKY"
+  user = "user"
+  password = "password"
+}
+db-write-account {
+  user = "writeuser"
+  password = "writepassword""
+}
+deposit-kms-alias = "deposit_kms"
+withdraw-kms-alias = "withdraw_kms"
