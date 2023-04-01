@@ -14,7 +14,7 @@ object BlockTable:
           Table.block(model),
         ),
         get_ViewCase(model).blockInfo(0) != new BlockInfo match
-          case true => LoaderView.view(model)
-          case _    => div(`class` := "")(),
+          case false => LoaderView.view(model)
+          case _     => div(`class` := "")(),
       ),
     )
