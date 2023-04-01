@@ -14,11 +14,14 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Table:
   def block = (model: Model) =>
-    div(`class` := "table w-[100%]")(
-      Head.block :: Body.blocks(
-        get_ViewCase(model).blockInfo,
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.block :: Body.blocks(
+          get_ViewCase(model).blockInfo,
+        ),
       ),
     )
+
   def txList_txtable = (model: Model) =>
     div(`class` := "table w-[100%]")(
       Head.tx :: Body.txlist_txtable(
