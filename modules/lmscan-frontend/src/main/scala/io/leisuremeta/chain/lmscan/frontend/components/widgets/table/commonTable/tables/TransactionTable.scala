@@ -7,41 +7,36 @@ import io.circe.syntax.*
 import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import Log.*
-import io.leisuremeta.chain.lmscan.common.model.BlockInfo
+import io.leisuremeta.chain.lmscan.common.model.*
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =
     get_PageCase(model) match
       case PageCase.Transactions(_, _, _, _) =>
-        //       div(`class` := "table-container x position-relative y-center  ")(
-        //   div(`class` := "  m-10px w-block-list h-[100%] ")(
-        //     Title.block(model),
-        //     Table.block(model),
-        //     // LoaderView.view(model),
-        //   ),
-        //   get_ViewCase(model).blockInfo(0) != new BlockInfo match
-        //     case false => LoaderView.view(model)
-        //     case _     => div(),
-        // )
-
-        // div(`class` := "table-container ")(
-        //   Table.txList_txtable(model),
-        //   Search.search_tx(model),
-        // )
         div(`class` := "table-container  position-relative y-center  ")(
-          div(`class` := "  m-10px w-block-list h-[100%] ")(
-            Table.txList_txtable(model),
-            Search.search_tx(model),
+          div(`class` := "m-10px w-[100%] ")(
+            div(`class` := "  ")(
+              div(`class` := "  m-10px w-block-list h-[100%] ")(
+                Table.txList_txtable(model),
+                Search.search_tx(model),
+              ),
+            ),
+            get_ViewCase(model).txInfo(0) != new TxInfo match
+              case false => LoaderView.view(model)
+              case _     => div(),
           ),
-          get_ViewCase(model).blockInfo(0) != new BlockInfo match
-            case false => LoaderView.view(model)
-            case _     => div(),
         )
       case PageCase.DashBoard(_, _, _, _) =>
-        div(`class` := "table-container")(
-          Title.tx(model),
-          Table.dashboard_txtable(model),
-          // Search.search_tx(model),
+        div(`class` := "table-container  position-relative y-center  ")(
+          div(`class` := "m-10px w-[100%] ")(
+            div(`class` := "  ")(
+              Title.tx(model),
+              Table.dashboard_txtable(model),
+            ),
+            get_ViewCase(model).txInfo(0) != new TxInfo match
+              case false => LoaderView.view(model)
+              case _     => div(`class` := "")(),
+          ),
         )
 
       case PageCase.BlockDetail(_, _, _, _) =>

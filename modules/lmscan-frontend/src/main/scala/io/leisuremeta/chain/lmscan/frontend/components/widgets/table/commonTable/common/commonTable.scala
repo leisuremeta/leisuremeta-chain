@@ -23,37 +23,44 @@ object Table:
     )
 
   def txList_txtable = (model: Model) =>
-    div(`class` := "table w-[100%]")(
-      Head.tx :: Body.txlist_txtable(
-        get_ViewCase(model).txInfo,
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.tx :: Body.txlist_txtable(
+          get_ViewCase(model).txInfo,
+        ),
       ),
     )
 
   def accountDetail_txtable = (model: Model) =>
-    div(`class` := "table w-[100%]")(
-      Head.tx :: Body.accountDetail_txtable(
-        get_ViewCase(model).txInfo,
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.tx :: Body.accountDetail_txtable(
+          get_ViewCase(model).txInfo,
+        ),
       ),
     )
-
   def dashboard_txtable = (model: Model) =>
-    div(`class` := "table w-[100%]")(
-      Head.tx_dashBoard :: Body.dashboard_txtable(
-        get_ViewCase(model).txInfo,
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.tx_dashBoard :: Body.dashboard_txtable(
+          get_ViewCase(model).txInfo,
+        ),
       ),
     )
   def observer_table = (model: Model) =>
-    div(`class` := "table w-[100%]")(
-      Head.observer :: Body.observer(model),
-    )
-
-  def blockDetail_txtable = (model: Model) =>
-    div(`class` := "table w-[100%]")(
-      Head.tx :: Body.blockDetail_txtable(
-        get_ViewCase(model).txInfo,
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.observer :: Body.observer(model),
       ),
     )
-
+  def blockDetail_txtable = (model: Model) =>
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.tx :: Body.blockDetail_txtable(
+          get_ViewCase(model).txInfo,
+        ),
+      ),
+    )
     //   Head.tx :: Body.blockDetail_txtable(
     //     // getPubData(model).blockDetail.txs.getOrElse(new BlockDetail),
 
