@@ -14,37 +14,46 @@ object BlockDetailTable:
     genView(model, data)
 
   val genView = (model: Model, data: BlockDetail) =>
-    div(`class` := "type-TableDetail table-container pt-16px")(
-      div(`class` := "table w-[100%]")(
-        div(`class` := "row")(
-          gen.cell(
-            Cell.Head("Block Number", "cell type-detail-head"),
-            Cell.PlainStr(data.number, "cell type-detail-body"),
+    div(
+      `class` := "type-TableDetail table-container position-relative pt-16px",
+    )(
+      div(`class` := "m-10px w-[100%] ")(
+        div()(
+          div(`class` := "table w-[100%]")(
+            div(`class` := "row")(
+              gen.cell(
+                Cell.Head("Block Number", "cell type-detail-head"),
+                Cell.PlainStr(data.number, "cell type-detail-body"),
+              ),
+            ),
+            div(`class` := "row")(
+              gen.cell(
+                Cell.Head("Timestamp", "cell type-detail-head"),
+                Cell.DATE(data.timestamp, "cell type-detail-body"),
+              ),
+            ),
+            div(`class` := "row")(
+              gen.cell(
+                Cell.Head("Block hash", "cell type-detail-head"),
+                Cell.PlainStr(data.hash, "cell type-detail-body"),
+              ),
+            ),
+            div(`class` := "row")(
+              gen.cell(
+                Cell.Head("Parent hash", "cell type-detail-head"),
+                Cell.PlainStr(data.parentHash, "cell type-detail-body"),
+              ),
+            ),
+            div(`class` := "row")(
+              gen.cell(
+                Cell.Head("Transcation count", "cell type-detail-head"),
+                Cell.PlainStr(data.txCount, "cell type-detail-body"),
+              ),
+            ),
           ),
         ),
-        div(`class` := "row")(
-          gen.cell(
-            Cell.Head("Timestamp", "cell type-detail-head"),
-            Cell.DATE(data.timestamp, "cell type-detail-body"),
-          ),
-        ),
-        div(`class` := "row")(
-          gen.cell(
-            Cell.Head("Block hash", "cell type-detail-head"),
-            Cell.PlainStr(data.hash, "cell type-detail-body"),
-          ),
-        ),
-        div(`class` := "row")(
-          gen.cell(
-            Cell.Head("Parent hash", "cell type-detail-head"),
-            Cell.PlainStr(data.parentHash, "cell type-detail-body"),
-          ),
-        ),
-        div(`class` := "row")(
-          gen.cell(
-            Cell.Head("Transcation count", "cell type-detail-head"),
-            Cell.PlainStr(data.txCount, "cell type-detail-body"),
-          ),
-        ),
+        data != new BlockDetail match
+          case false => LoaderView.view(model)
+          case _     => div(`class` := "")(),
       ),
     )
