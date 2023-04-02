@@ -11,8 +11,11 @@ object BlockTable:
       div(`class` := "m-10px w-[100%] ")(
         div(`class` := "  ")(
           Title.block(model),
-          Table.block(model),
-          Search.search_block(model),
+          Table.block(model), {
+            find_current_PageCase(model) match
+              case PageCase.DashBoard(_, _, _, _) => div(`class` := "hidden")()
+              case _                              => Search.search_block(model)
+          },
         ),
         current_ViewCase(model).blockInfo(0) != new BlockInfo match
           case false => LoaderView.view(model)
