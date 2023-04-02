@@ -75,4 +75,39 @@ states[
     pageCase[pubs],
     init_pageCase[pubs],
 ]
+
+
+
+
+// 성능 최적화를 위한 고안.. 한번 검색한 블록, tx 는 일정시간 이내에 다시 검색하지 않는다
+
+states[
+    page[pub-tx,pub-block],
+    page[pub-tx,pub-block],
+    page[pub-tx,pub-block],
+    page[pub-tx,pub-block],
+    page[pub-tx,pub-block],
+    page[pub-tx,pub-block],
+]
+
+pubBlockStates[
+    pub-block13,
+    pub-block14,
+    pub-block15,
+    pub-block16,
+    pub-block17,
+    pub-block18,
+    ...
+]
+
+pubTxStates[
+    pub-tx13,
+    pub-tx14,
+    pub-tx15,
+    pub-tx16,
+    pub-tx17,
+    pub-tx18,
+    ...
+]
+
 ```

@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.get_ViewCase
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object BlockTable:
@@ -14,7 +14,7 @@ object BlockTable:
           Table.block(model),
           Search.search_block(model),
         ),
-        get_ViewCase(model).blockInfo(0) != new BlockInfo match
+        current_ViewCase(model).blockInfo(0) != new BlockInfo match
           case false => LoaderView.view(model)
           case _     => div(`class` := "")(),
       ),

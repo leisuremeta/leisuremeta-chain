@@ -7,7 +7,7 @@ object Title:
   def block = (model: Model) =>
     div(
       // TODO :: only show dashboard
-      `class` := s"table-title ${get_PageCase(model) match
+      `class` := s"table-title ${find_current_PageCase(model) match
           case PageCase.Blocks(_, _, _, _) => "hidden"
           case _                           => ""
         }",
@@ -19,7 +19,7 @@ object Title:
         `class` := s"type-2",
       )(
         {
-          get_PageCase(model) match
+          find_current_PageCase(model) match
             case PageCase.DashBoard(_, _, _, _) =>
               span(
                 onClick(PageMsg.PreUpdate(PageCase.Blocks())),
@@ -30,7 +30,7 @@ object Title:
     )
   def tx = (model: Model) =>
     div(
-      `class` := s"table-title ${get_PageCase(model) match
+      `class` := s"table-title ${find_current_PageCase(model) match
           case PageCase.Transactions(_, _, _, _) => "hidden"
           case _                                 => ""
         }",
@@ -42,7 +42,7 @@ object Title:
         `class` := s"type-2",
       )(
         {
-          get_PageCase(model) match
+          find_current_PageCase(model) match
             case PageCase.DashBoard(_, _, _, _) =>
               span(
                 onClick(PageMsg.PreUpdate(PageCase.Transactions())),

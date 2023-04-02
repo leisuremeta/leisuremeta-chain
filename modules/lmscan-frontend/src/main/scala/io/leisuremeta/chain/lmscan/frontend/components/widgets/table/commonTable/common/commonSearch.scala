@@ -178,7 +178,7 @@ object Search:
                 `class` := s"${_selectedPage[Int](curPage, idx)}",
                 onClick(
                   PageMsg.PreUpdate(
-                    get_PageCase(model) match
+                    find_current_PageCase(model) match
                       case page: PageCase.Transactions =>
                         page.copy(
                           url = s"transactions/${idx}",
@@ -213,7 +213,7 @@ object Search:
                             ),
                           ),
                         )
-                      case _ => get_PageCase(model),
+                      case _ => find_current_PageCase(model),
                   ),
                 ),
               )(idx.toString()),

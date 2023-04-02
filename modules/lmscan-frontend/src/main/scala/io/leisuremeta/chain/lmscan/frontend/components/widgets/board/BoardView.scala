@@ -49,11 +49,11 @@ object BoardView:
             ),
             div(`class` := "color-white font-bold")(
               plainStr(
-                get_ViewCase(model).blockInfo(0).number,
+                current_ViewCase(model).blockInfo(0).number,
               ),
             ),
           ), {
-            get_ViewCase(model).blockInfo(0) != new BlockInfo match
+            current_ViewCase(model).blockInfo(0) != new BlockInfo match
               case false =>
                 LoaderView.view(model)
               case _ => div()

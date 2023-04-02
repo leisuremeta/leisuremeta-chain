@@ -23,14 +23,19 @@ object ModelPipe:
       .pipe(in_PubCases)(0) // 0 => find
       .pipe(in_Page)
 
-  def get_PageCase(model: Model, find: Int = 0) =
-    val _find = find match
-      case 0 => model.pointer
-      case _ => find
+    // def get_PageCase(find: Int = 0)(model: Model) =
+    //   val _find = find match
+    //     case 0 => model.pointer
+    //     case _ => find
 
-    model
-      .pipe(in_appStates)
-      .pipe(find_PageCase(_find))
+    //   model
+    //     .pipe(in_appStates)
+    //     .pipe(find_PageCase(_find))
+
+  // def find_current_PageCase(model: Model) =
+  //   model
+  //     .pipe(in_appStates)
+  //     .pipe(find_PageCase(model.pointer))
 
   def find_current_PageCase(model: Model) =
     model
@@ -42,11 +47,6 @@ object ModelPipe:
       .pipe(in_appStates)
       .pipe(find_PageCase(model.appStates.length))
 
-  def find_cunrrent_PageCase(model: Model) =
-    model
-      .pipe(in_appStates)
-      .pipe(find_PageCase(model.pointer))
-
   def find_tx_curpage(model: Model) =
     model
       .pipe(find_current_PageCase)
@@ -56,17 +56,23 @@ object ModelPipe:
 
   def find_name(model: Model) =
     model
-      .pipe(find_cunrrent_PageCase)
+      .pipe(find_current_PageCase)
       .pipe(in_Name)
 
-  def get_ViewCase(model: Model): ViewCase =
+  def current_ViewCase(model: Model): ViewCase =
     model
-      .pipe(find_cunrrent_PageCase)
+      .pipe(find_current_PageCase)
+      .pipe(pipe_ViewCase)
+
+  def find_ViewCase(find: Int)(model: Model): ViewCase =
+    model
+      .pipe(in_appStates)
+      .pipe(find_PageCase(find))
       .pipe(pipe_ViewCase)
 
   def get_PageResponseViewCase(model: Model): PageResponseViewCase =
     model
-      .pipe(find_cunrrent_PageCase)
+      .pipe(find_current_PageCase)
       .pipe(pipe_PageResponseViewCase)
 
   def get_latest_number(model: Model): Int =

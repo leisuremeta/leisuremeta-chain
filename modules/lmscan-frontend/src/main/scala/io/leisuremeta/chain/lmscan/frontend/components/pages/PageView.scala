@@ -5,7 +5,7 @@ import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object Pages:
   def render(model: Model): Html[Msg] =
-    get_PageCase(model) match
+    find_current_PageCase(model) match
       case PageCase.Observer(_, _, _, _) =>
         ObserverView.view(model)
 

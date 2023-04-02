@@ -4,7 +4,7 @@ import tyrian.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object Tables:
   def render(model: Model): Html[Msg] =
-    get_PageCase(model) match
+    find_current_PageCase(model) match
       case PageCase.DashBoard(_, _, _, _) =>
         div(`class` := "table-area")(
           div(id := "oop-table-blocks", `class` := "table-list x")(

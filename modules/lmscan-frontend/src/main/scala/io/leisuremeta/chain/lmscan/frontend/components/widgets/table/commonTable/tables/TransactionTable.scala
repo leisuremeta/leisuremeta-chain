@@ -11,7 +11,7 @@ import io.leisuremeta.chain.lmscan.common.model.*
 
 object TransactionTable:
   def view(model: Model): Html[Msg] =
-    get_PageCase(model) match
+    find_current_PageCase(model) match
       case PageCase.Transactions(_, _, _, _) =>
         div(`class` := "table-container  position-relative y-center  ")(
           div(`class` := "m-10px w-[100%] ")(
@@ -19,7 +19,7 @@ object TransactionTable:
               Table.txList_txtable(model),
               Search.search_tx(model),
             ),
-            get_ViewCase(model).txInfo(0) != new TxInfo match
+            current_ViewCase(model).txInfo(0) != new TxInfo match
               case false => LoaderView.view(model)
               case _     => div(),
           ),
@@ -31,7 +31,7 @@ object TransactionTable:
               Title.tx(model),
               Table.dashboard_txtable(model),
             ),
-            get_ViewCase(model).txInfo(0) != new TxInfo match
+            current_ViewCase(model).txInfo(0) != new TxInfo match
               case false => LoaderView.view(model)
               case _     => div(`class` := "")(),
           ),
@@ -46,7 +46,7 @@ object TransactionTable:
               // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
               // Search.search_tx(model),
             ),
-            get_ViewCase(model).txInfo(0) != new TxInfo match
+            current_ViewCase(model).txInfo(0) != new TxInfo match
               case false => LoaderView.view(model)
               case _     => div(`class` := "")(),
           ),
