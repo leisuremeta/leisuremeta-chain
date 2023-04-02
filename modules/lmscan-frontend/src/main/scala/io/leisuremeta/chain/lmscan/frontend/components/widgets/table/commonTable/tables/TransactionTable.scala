@@ -40,9 +40,18 @@ object TransactionTable:
         )
 
       case PageCase.BlockDetail(_, _, _, _) =>
-        div(`class` := "table-container")(
-          Table.blockDetail_txtable(model),
-          // Search.search_tx(model),
+        div(`class` := "table-container  position-relative y-center  ")(
+          div(`class` := "m-10px w-[100%] ")(
+            div(`class` := "  ")(
+              Table.blockDetail_txtable(model),
+
+              // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
+              // Search.search_tx(model),
+            ),
+            get_ViewCase(model).txInfo(0) != new TxInfo match
+              case false => LoaderView.view(model)
+              case _     => div(`class` := "")(),
+          ),
         )
 
       case PageCase.AccountDetail(_, _, _, _) =>
