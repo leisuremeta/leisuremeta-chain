@@ -16,10 +16,8 @@ object TransactionTable:
         div(`class` := "table-container  position-relative y-center  ")(
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
-              div(`class` := "  m-10px w-block-list h-[100%] ")(
-                Table.txList_txtable(model),
-                Search.search_tx(model),
-              ),
+              Table.txList_txtable(model),
+              Search.search_tx(model),
             ),
             get_ViewCase(model).txInfo(0) != new TxInfo match
               case false => LoaderView.view(model)

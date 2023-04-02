@@ -12,6 +12,7 @@ object BlockTable:
         div(`class` := "  ")(
           Title.block(model),
           Table.block(model),
+          Search.search_block(model),
         ),
         get_ViewCase(model).blockInfo(0) != new BlockInfo match
           case false => LoaderView.view(model)
