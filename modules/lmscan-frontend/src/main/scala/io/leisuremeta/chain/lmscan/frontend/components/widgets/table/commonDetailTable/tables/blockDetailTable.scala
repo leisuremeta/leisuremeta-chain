@@ -15,7 +15,7 @@ object BlockDetailTable:
 
   val genView = (model: Model, data: BlockDetail) =>
     div(
-      `class` := "type-TableDetail table-container position-relative pt-16px",
+      `class` := "type-TableDetail table-container position-relative",
     )(
       div(`class` := "m-10px w-[100%] ")(
         div()(

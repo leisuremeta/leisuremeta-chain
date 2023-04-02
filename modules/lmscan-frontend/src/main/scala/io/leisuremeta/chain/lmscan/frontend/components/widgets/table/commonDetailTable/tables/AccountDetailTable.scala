@@ -17,11 +17,6 @@ object AccountDetailTable:
     val data: AccountDetail = get_PageResponseViewCase(model).accountDetail
     genView(model, data, apiData)
 
-    // val data: AccountDetail = AccountDetailParser
-    //   .decodeParser(model.accountDetailData.get)
-    //   .getOrElse(new AccountDetail)
-    // genView(model, data, apiData)
-
   val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
     val lmPrice = Math.floor(
       getOptionValue(apiData.lmPrice, 0.toDouble).asInstanceOf[Double] * 10000,
@@ -42,32 +37,41 @@ object AccountDetailTable:
 
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
-        div(`class` := "type-TableDetail  table-container")(
-          div(`class` := "table w-[100%] ")(
-            div(`class` := "row")(
-              gen.cell(
-                Cell.Head("Account", "cell type-detail-head"),
-                Cell.PlainStr(data.address, "cell type-detail-body"),
-              ),
-            ),
-            div(`class` := "row")(
-              gen.cell(
-                Cell.Head("Balance", "cell type-detail-head"),
-                Cell.Any(
-                  formattedBalance.toString() + " LM",
-                  "cell type-detail-body",
+        div(
+          `class` := "type-TableDetail table-container position-relative",
+        )(
+          div(`class` := "m-10px w-[100%] ")(
+            div()(
+              div(`class` := "table w-[100%] ")(
+                div(`class` := "row")(
+                  gen.cell(
+                    Cell.Head("Account", "cell type-detail-head"),
+                    Cell.PlainStr(data.address, "cell type-detail-body"),
+                  ),
+                ),
+                div(`class` := "row")(
+                  gen.cell(
+                    Cell.Head("Balance", "cell type-detail-head"),
+                    Cell.Any(
+                      formattedBalance.toString() + " LM",
+                      "cell type-detail-body",
+                    ),
+                  ),
+                ),
+                div(`class` := "row")(
+                  gen.cell(
+                    Cell.Head("Value", "cell type-detail-head"),
+                    Cell.Any(
+                      "$ " + formattedValue.toString(),
+                      "cell type-detail-body",
+                    ),
+                  ),
                 ),
               ),
             ),
-            div(`class` := "row")(
-              gen.cell(
-                Cell.Head("Value", "cell type-detail-head"),
-                Cell.Any(
-                  "$ " + formattedValue.toString(),
-                  "cell type-detail-body",
-                ),
-              ),
-            ),
+            data != new AccountDetail match
+              case false => LoaderView.view(model)
+              case _     => div(`class` := "")(),
           ),
         ),
       ),
