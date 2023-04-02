@@ -58,3 +58,21 @@ url(page,options..)
 |> api
 |> 
 ```
+
+
+# 동형 상태 검색 모델
+```scala
+states[
+    new_PageCase[pubs],
+    pageCase[pubs],
+    pageCase[pubs],
+    pageCase[pubs],
+    pageCase[pubs],
+    pageCase[pubs],
+    pageCase[pubs],
+    cur_pageCase[pubs],<= 
+    pageCase[pubs],
+    pageCase[pubs],
+    init_pageCase[pubs],
+]
+```
