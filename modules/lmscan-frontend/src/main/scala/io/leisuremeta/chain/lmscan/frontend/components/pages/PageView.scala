@@ -46,6 +46,7 @@ object PageView:
   def view(model: Model): Html[Msg] =
     div(id := "page", `class` := "")(
       div()(
+        SearchView.view(model),
         div(`class` := "pb-32px")(Pages.render(model)),
       ),
     )
