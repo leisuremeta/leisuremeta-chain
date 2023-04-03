@@ -1,21 +1,22 @@
-// case class PageCase ex:
-//   def DashBoard(name: String = "DashBoard", url: String = "DashBoard")
-//   def Observer(name: String = "Observer", url: String = "Observer")
-//   def Blocks(page: Int, name: String = "Blocks", url: String = "Blocks")
-//       extends PageName
-//   def Transactions(
-//       page: Int,
-//       name: String = "Transactions",
-//       url: String = "Transactions",
-//   ) extends PageName
-// case TransactionDetail(hash: String) extends PageName
-// case BlockDetail(hash: String)       extends PageName
-// case NftDetail(hash: String)         extends PageName
-// case AccountDetail(hash: String)     extends PageName
-// case Page64(hash: String)            extends PageName
-// case NoPage                          extends PageName
+package io.leisuremeta.chain.lmscan.frontend
 
-// object ValidPageName:
+import io.circe.*, io.circe.generic.semiauto.*
+import io.circe.syntax.*
+import io.circe.parser.*
+import io.leisuremeta.chain.lmscan.frontend.Log.log
+
+// enum PageName:
+//   case DashBoard
+//   case Blocks(page: Int)               extends PageName
+//   case Transactions(page: Int)         extends PageName
+//   case TransactionDetail(hash: String) extends PageName
+//   case BlockDetail(hash: String)       extends PageName
+//   case NftDetail(hash: String)         extends PageName
+//   case AccountDetail(hash: String)     extends PageName
+//   case Page64(hash: String)            extends PageName
+//   case NoPage                          extends PageName
+
+object ValidPageName:
 //   def getPage(search: PageName): PageName =
 //     search match
 //       case PageName.DashBoard            => search
@@ -34,11 +35,15 @@
 //             PageName.NoPage
 
 //   def getPageString(search: String): PageName =
-//     search.length() match
-//       case 40 => PageName.AccountDetail(search.toString())
-//       case 25 => PageName.NftDetail(search.toString())
-//       case 64 => PageName.Page64(search.toString())
-//       case _  => PageName.NoPage
+//     search match
+//       // case "playnomm"    => PageName.AccountDetail(search.toString())
+//       // case "eth-gateway" => PageName.AccountDetail(search.toString())
+//       case _ =>
+//         search.length() match
+//           case 40 => PageName.AccountDetail(search.toString())
+//           case 25 => PageName.NftDetail(search.toString())
+//           case 64 => PageName.Page64(search.toString())
+//           case _  => PageName.AccountDetail(search.toString())
 
 //   def getPageFromStr(search: String): PageName =
 //     search match
@@ -56,17 +61,44 @@
 //           case 64 => PageName.Page64(search)
 //           case _  => PageName.NoPage
 
-//   def getPageFromUrl(url: String): PageName =
-//     url match
-//       case s"/dashboard"            => PageName.DashBoard
-//       case s"/blocks"               => PageName.Blocks(1)
-//       case s"/blocks/${page}"       => PageName.Blocks(page.toInt)
-//       case s"/transactions"         => PageName.Transactions(1)
-//       case s"/transactions/${page}" => PageName.Transactions(page.toInt)
-//       case s"/block/${hash}"        => PageName.BlockDetail(hash)
-//       case s"/tx/${hash}"           => PageName.TransactionDetail(hash)
-//       case s"/transaction/${hash}"  => PageName.TransactionDetail(hash)
-//       case s"/account/${hash}"      => PageName.AccountDetail(hash)
-//       case s"/nft/${hash}"          => PageName.NftDetail(hash)
+  def getPageCaseFromUrl(url: String): PageCase =
+    url match
+      case s"/dashboard" => PageCase.DashBoard()
+      case s"/blocks"    => PageCase.Blocks()
+      case s"/blocks/${page}" =>
+        PageCase.Blocks(
+          url = s"blocks/${page}",
+          pubs = List(PubCase.BlockPub(page = page.toInt)),
+        )
+      case s"/transactions" => PageCase.Transactions()
+      case s"/transactions/${page}" =>
+        PageCase.Transactions(
+          url = s"transactions/${page}",
+          pubs = List(PubCase.TxPub(page = page.toInt)),
+        )
+      case s"/txs" => PageCase.Transactions()
+      case s"/txs/${page}" =>
+        PageCase.Transactions(
+          url = s"transactions/${page}",
+          pubs = List(PubCase.TxPub(page = page.toInt)),
+        )
 
-//       case _ => PageName.NoPage
+      case s"/transaction/${hash}" =>
+        PageCase.TxDetail(
+          name = PageCase.Transactions().name,
+          url = s"transaction/${hash}",
+          pubs = List(PubCase.TxDetailPub(hash = hash)),
+        )
+
+      // case s"/dashboard"            => PageName.DashBoard
+      // case s"/blocks"               => PageName.Blocks(1)
+      // case s"/blocks/${page}"       => PageName.Blocks(page.toInt)
+      // case s"/transactions"         => PageName.Transactions(1)
+      // case s"/transactions/${page}" => PageName.Transactions(page.toInt)
+      // case s"/block/${hash}"        => PageName.BlockDetail(hash)
+      // case s"/tx/${hash}"           => PageName.TransactionDetail(hash)
+      // case s"/transaction/${hash}"  => PageName.TransactionDetail(hash)
+      // case s"/account/${hash}"      => PageName.AccountDetail(hash)
+      // case s"/nft/${hash}"          => PageName.NftDetail(hash)
+
+      case _ => PageCase.DashBoard()

@@ -4,10 +4,18 @@ import cats.effect.IO
 import scala.scalajs.js
 import Log.*
 import org.scalajs.dom.window
+import io.leisuremeta.chain.lmscan.frontend.ValidPageName.*
 object Init:
 
+  val setProtocol =
+    if window.location.href
+        .contains("http:") && !window.location.href.contains("local")
+    then window.location.href = window.location.href.replace("http:", "https:")
+
+  val path     = window.location.pathname
+  val pageCase = getPageCaseFromUrl(path)
+
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
-    log(Fx.view)
     (
       Model(
         appStates = List(
@@ -18,6 +26,5 @@ object Init:
         ),
         pointer = 1,
       ),
-      // Batch()
-      Cmd.Emit(PageMsg.PreUpdate(PageCase.DashBoard())),
+      Cmd.Emit(PageMsg.PreUpdate(pageCase)),
     )
