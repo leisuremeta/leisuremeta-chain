@@ -217,6 +217,7 @@ trait UpdateStateWithAccountTx:
           }
 
         case ap: Transaction.AccountTx.AddPublicKeySummaries =>
+          inline val MaxKeySize = 20
           getAccount
             .flatMap {
               case None => EitherT.leftT("Account does not exist")
@@ -232,10 +233,10 @@ trait UpdateStateWithAccountTx:
                   )
                   keyList <- getKeyList(ap.account)
                   toRemove: Vector[(PublicKeySummary, PublicKeySummary.Info)] =
-                    if keyList.size > 9 then
+                    if keyList.size > MaxKeySize then
                       keyList.toVector
                         .sortBy(_._2.addedAt.toEpochMilli)
-                        .dropRight(9)
+                        .dropRight(MaxKeySize)
                     else Vector.empty
                   keyState <- {
                     for
