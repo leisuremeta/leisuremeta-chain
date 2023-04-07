@@ -8,6 +8,7 @@ import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
 import account.EthAddress
+import agenda.AgendaId
 import reward.DaoActivity
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
@@ -30,6 +31,8 @@ object TransactionResult:
           ByteVector.fromByte(3) ++ r.toBytes
         case r: Transaction.RewardTx.ExecuteOwnershipRewardResult =>
           ByteVector.fromByte(4) ++ r.toBytes
+        case r: Transaction.AgendaTx.VoteSimpleAgendaResult =>
+          ByteVector.fromByte(5) ++ r.toBytes
 
   given txResultByteDecoder: ByteDecoder[TransactionResult] =
     ByteDecoder.byteDecoder.flatMap {
@@ -43,6 +46,8 @@ object TransactionResult:
         ByteDecoder[Transaction.RewardTx.ExecuteRewardResult].widen
       case 4 =>
         ByteDecoder[Transaction.RewardTx.ExecuteOwnershipRewardResult].widen
+      case 5 =>
+        ByteDecoder[Transaction.AgendaTx.VoteSimpleAgendaResult].widen
     }
 
   given txResultCirceEncoder: Encoder[TransactionResult] =
@@ -411,6 +416,46 @@ object Transaction:
 
   end RewardTx
 
+  sealed trait AgendaTx extends Transaction
+  object AgendaTx:
+    final case class SuggestSimpleAgenda(
+        networkId: NetworkId,
+        createdAt: Instant,
+        title: Utf8,
+        votingToken: TokenDefinitionId,
+        voteStart: Instant,
+        voteEnd: Instant,
+        voteOptions: Map[Utf8, Utf8],
+    ) extends AgendaTx
+
+    final case class VoteSimpleAgenda(
+        networkId: NetworkId,
+        createdAt: Instant,
+        agendaTxHash: Hash.Value[TransactionWithResult],
+        selectedOption: Utf8,
+    ) extends AgendaTx
+
+    final case class VoteSimpleAgendaResult(
+        votingAmount: BigNat,
+    ) extends TransactionResult
+
+    given txByteDecoder: ByteDecoder[AgendaTx] = ByteDecoder[BigNat].flatMap {
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[SuggestSimpleAgenda].widen
+          case 1 => ByteDecoder[VoteSimpleAgenda].widen
+    }
+
+    given txByteEncoder: ByteEncoder[AgendaTx] = (rtx: AgendaTx) =>
+      rtx match
+        case tx: SuggestSimpleAgenda => build(0)(tx)
+        case tx: VoteSimpleAgenda    => build(1)(tx)
+
+    given txCirceDecoder: Decoder[AgendaTx] = deriveDecoder
+    given txCirceEncoder: Encoder[AgendaTx] = deriveEncoder
+
+  end AgendaTx
+
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
       BigNat.unsafeFromLong(discriminator),
@@ -423,13 +468,16 @@ object Transaction:
         case 1 => ByteDecoder[GroupTx].widen
         case 2 => ByteDecoder[TokenTx].widen
         case 3 => ByteDecoder[RewardTx].widen
+        case 4 => ByteDecoder[AgendaTx].widen
   }
+  
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
       case tx: AccountTx => build(0)(tx)
       case tx: GroupTx   => build(1)(tx)
       case tx: TokenTx   => build(2)(tx)
       case tx: RewardTx  => build(3)(tx)
+      case tx: AgendaTx  => build(4)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 
@@ -439,27 +487,6 @@ object Transaction:
 
   given txCirceDecoder: Decoder[Transaction] = deriveDecoder
   given txCirceEncoder: Encoder[Transaction] = deriveEncoder
-
-  /*
-  sealed trait AgendaTx extends Transaction
-  object AgendaTx:
-    final case class Suggest(
-        networkId: NetworkId,
-        createdAt: Instant,
-    ) extends AgendaTx
-
-    final case class Vote(
-        networkId: NetworkId,
-        createdAt: Instant,
-    ) extends AgendaTx
-
-    final case class Finalize(
-        networkId: NetworkId,
-        createdAt: Instant,
-    ) extends AgendaTx
-  end AgendaTx
-
-   */
 
   sealed trait FungibleBalance
 

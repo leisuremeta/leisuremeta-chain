@@ -27,7 +27,8 @@ object UpdateState
     extends UpdateStateWithAccountTx
     with UpdateStateWithGroupTx
     with UpdateStateWithTokenTx
-    with UpdateStateWithRewardTx:
+    with UpdateStateWithRewardTx
+    with UpdateStateWithAgendaTx:
       
   def apply[F[_], T <: Transaction](using
       ev: UpdateState[F, T],

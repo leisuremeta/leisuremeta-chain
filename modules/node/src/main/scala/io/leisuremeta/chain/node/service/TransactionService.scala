@@ -85,6 +85,8 @@ object TransactionService:
                 UpdateState[F, Transaction.TokenTx](ms, tx.sig, txv)
               case txv: Transaction.RewardTx =>
                 UpdateState[F, Transaction.RewardTx](ms, tx.sig, txv)
+              case txv: Transaction.AgendaTx =>
+                UpdateState[F, Transaction.AgendaTx](ms, tx.sig, txv)
         }
       }
       .run(baseState)
@@ -184,6 +186,7 @@ object TransactionService:
             case tx: Transaction.GroupTx   => "Group"
             case tx: Transaction.TokenTx   => "Token"
             case tx: Transaction.RewardTx  => "Reward"
+            case tx: Transaction.AgendaTx  => "Agenda"
 
           TxInfo(
             txHash = txHash,

@@ -52,56 +52,76 @@ object JvmClientMain extends IOApp:
 
   val like = Utf8.unsafeFrom("like")
 
-  val tx: Transaction = Transaction.RewardTx.RecordActivity(
+//  val tx: Transaction = Transaction.RewardTx.RecordActivity(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-10T18:01:00.00Z"),
+//    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
+//    userActivity = Map(
+//      bob -> Seq(
+//        DaoActivity(BigInt(3), like),
+//      ),
+//      carol -> Seq(
+//        DaoActivity(BigInt(3), like),
+//      ),
+//    ),
+//    tokenReceived = Map(
+//      TokenId(Utf8.unsafeFrom("text-20230109-0000")) -> Seq(
+//        DaoActivity(BigInt(2), like),
+//      ),
+//      TokenId(Utf8.unsafeFrom("text-20230109-0001")) -> Seq(
+//        DaoActivity(BigInt(2), like),
+//      ),
+//      TokenId(Utf8.unsafeFrom("text-20230109-0002")) -> Seq(
+//        DaoActivity(BigInt(2), like),
+//      ),
+//    ),
+//  )
+//
+//  val tx: Transaction = Transaction.RewardTx.BuildSnapshot(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+//    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
+//  )
+
+//  val lm = TokenDefinitionId(Utf8.unsafeFrom("LM"))
+//
+//  def txHash(bytes: ByteVector): Signed.TxHash =
+//    Hash.Value[Signed.Tx](UInt256.from(bytes).toOption.get)
+//
+//  val tx: Transaction = Transaction.RewardTx.ExecuteAccountReward(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+//    inputDefinitionId = lm,
+//    inputs = Set(
+//      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"),
+//    ),
+//    targets = Set(alice, bob, carol),
+//    amountPerPoint = BigNat.unsafeFromLong(10),
+//  )
+  
+//  val tx: Transaction = Transaction.AgendaTx.SuggestSimpleAgenda(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+//    title = Utf8.unsafeFrom("Let the world know about LeisureMeta!"),
+//    votingToken = TokenDefinitionId(Utf8.unsafeFrom("LM")),
+//    voteStart = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
+//    voteEnd = java.time.Instant.parse("2023-01-12T18:01:00.00Z"),
+//    voteOptions = Map(
+//      Utf8.unsafeFrom("1") -> Utf8.unsafeFrom("Yes"),
+//      Utf8.unsafeFrom("2") -> Utf8.unsafeFrom("No"),
+//    ),
+//  )
+
+  val tx: Transaction = Transaction.AgendaTx.VoteSimpleAgenda(
     networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-    createdAt = java.time.Instant.parse("2023-01-10T18:01:00.00Z"),
-    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
-    userActivity = Map(
-      bob -> Seq(
-        DaoActivity(BigInt(3), like),
-      ),
-      carol -> Seq(
-        DaoActivity(BigInt(3), like),
-      ),
-    ),
-    tokenReceived = Map(
-      TokenId(Utf8.unsafeFrom("text-20230109-0000")) -> Seq(
-        DaoActivity(BigInt(2), like),
-      ),
-      TokenId(Utf8.unsafeFrom("text-20230109-0001")) -> Seq(
-        DaoActivity(BigInt(2), like),
-      ),
-      TokenId(Utf8.unsafeFrom("text-20230109-0002")) -> Seq(
-        DaoActivity(BigInt(2), like),
-      ),
-    ),
+    createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
+    agendaTxHash = Hash.Value[TransactionWithResult]{
+      UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get
+    },
+    selectedOption = Utf8.unsafeFrom(s"1"),
   )
 
-  val tx1: Transaction = Transaction.RewardTx.BuildSnapshot(
-    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
-    accountAmount = BigNat.Zero,
-    tokenAmount = BigNat.Zero,
-    ownershipAmount = BigNat.unsafeFromBigInt(BigInt(100000) * BigInt(10).pow(18)),
-  )
-
-  val LM = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-
-  def txHash(bytes: ByteVector): Signed.TxHash =
-    Hash.Value[Signed.Tx](UInt256.from(bytes).toOption.get)
-
-  val tx2: Transaction = Transaction.RewardTx.ExecuteOwnershipReward(
-    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-    definitionId = LM,
-    inputs = Set(
-      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611").toResultHashValue,
-    ),
-    targets = Set(TokenId(Utf8.unsafeFrom("1234567890")), TokenId(Utf8.unsafeFrom("1234567891"))),
-  )
-
-  val signedTx = signAlice(tx2)
+  val signedTx = signAlice(tx)
 
   val json = Seq(signedTx).asJson.spaces2
 
