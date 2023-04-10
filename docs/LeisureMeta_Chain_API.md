@@ -1119,6 +1119,96 @@
     ```
   
 
+### AgendaTx
+
+* SuggestSimpleAgenda 투표 의제 제안.
+
+  * >  투표 의제를 제안할 계정. 일반적으로 playNomm
+
+  * Fields
+
+		* title(string)
+    * votingToken: TokenDefinitionId(string) 일반적으로 LM
+    * voteStart: Instant
+    * voteEnd: Instant
+    * voteOption: Map[String, String]
+
+  * Example
+
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "dc6e9660b33fdc71b14675e7a7a888fe32e4b3bb6264a3a4e90f572518e53aa8",
+            "s" : "069a1c0c2c602f2342384d545aab17e5dd2629efc9f8605dead14df599b5fc96"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "AgendaTx" : {
+            "SuggestSimpleAgenda" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-11T18:01:00Z",
+              "title" : "Let the world know about LeisureMeta!",
+              "votingToken" : "LM",
+              "voteStart" : "2023-01-11T18:01:00Z",
+              "voteEnd" : "2023-01-12T18:01:00Z",
+              "voteOptions" : {
+                "1" : "Yes",
+                "2" : "No"
+              }
+            }
+          }
+        }
+      }
+    ]
+    ```
+    
+    ```json
+    ["2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84"]
+    ```
+
+* VoteSimpleAgenda 투표.
+
+  * >  투표하는 사용자계정
+
+  * Fields
+
+		* agendaTxHash: 투표할 SuggestSimpleAgenda 트랜잭션의 tx hash
+    * selectedOption: 투표내용
+    
+  * Example
+  
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 28,
+            "r" : "89a108a5a933a8d04486384dc90521d0ca5faba1d3a09524068c22936aa2b5ea",
+            "s" : "2347e77fa7d1a4f6d10712bb7c5cfb1746f0aef65825dbf03f201fe5e594ee2f"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "AgendaTx" : {
+            "VoteSimpleAgenda" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-11T19:01:00Z",
+              "agendaTxHash" : "2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84",
+              "selectedOption" : "1"
+            }
+          }
+        }
+      }
+    ]
+    ```
+    
+    ```json
+    ["07dd86c19884881e1ef037eac4553b735545c03612c5fe368a07189464ad154b"]
+    ```
 
 ## Other API
 

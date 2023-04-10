@@ -28,3 +28,6 @@ object StateService:
         UpdateState[F, Transaction.TokenTx](state, signedTx.sig, tx)
       case tx: Transaction.RewardTx =>
         UpdateState[F, Transaction.RewardTx](state, signedTx.sig, tx)
+      case tx: Transaction.AgendaTx =>
+        UpdateState[F, Transaction.AgendaTx](state, signedTx.sig, tx)
+
