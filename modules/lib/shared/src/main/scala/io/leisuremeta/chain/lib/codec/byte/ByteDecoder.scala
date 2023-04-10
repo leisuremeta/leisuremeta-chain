@@ -80,12 +80,12 @@ object ByteDecoder:
         (DecodeResult(p.fromProduct(reverse(acc)), bytes))
           .asRight[DecodingFailure]
       case decoder :: rest =>
-        scribe.info(s"Decoder: $decoder")
-        scribe.info(s"Bytes to decode: $bytes")
+        scribe.debug(s"Decoder: $decoder")
+        scribe.debug(s"Bytes to decode: $bytes")
         decoder.decode(bytes) match
           case Left(failure) => failure.asLeft[DecodeResult[A]]
           case Right(DecodeResult(value, remainder)) =>
-            scribe.info(s"Decoded: $value")
+            scribe.debug(s"Decoded: $value")
             loop(rest, remainder, value *: acc)
     loop(elems, bytes, EmptyTuple)
 

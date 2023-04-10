@@ -140,7 +140,7 @@ object JvmClientMain extends IOApp:
           )
 
           println(json)
-          println(Seq(tx2.toHash).asJson.noSpaces)
+          println(Seq(tx.toHash).asJson.noSpaces)
 
           IO.unit.as(ExitCode.Success)
 
