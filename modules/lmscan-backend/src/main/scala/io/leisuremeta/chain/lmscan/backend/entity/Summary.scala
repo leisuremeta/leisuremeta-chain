@@ -4,7 +4,7 @@ final case class Summary(
   id: Long,
   lmPrice: Double,
   blockNumber: Long,
-  txCountInLatest24h: Long,
+  totalTxSize: Long,
   totalAccounts: Long,
   createdAt: Long,
 )
