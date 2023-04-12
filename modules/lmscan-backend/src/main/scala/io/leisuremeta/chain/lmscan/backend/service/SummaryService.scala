@@ -7,9 +7,7 @@ import cats.effect.kernel.Async
 import cats.data.EitherT
 
 object SummaryService:
-  // def get[F[_]: Async]: EitherT[F, String, Option[Summary]] =
   def get[F[_]: Async]: EitherT[F, String, Option[SummaryModel]] =
-    // SummaryRepository.get
     for
       summary <- SummaryRepository.get
       model = summary.map(s =>
@@ -17,9 +15,9 @@ object SummaryService:
           Some(s.id),
           Some(s.lmPrice),
           Some(s.blockNumber),
-          Some(s.txCountInLatest24h),
+          Some(s.totalTxSize),
           Some(s.totalAccounts),
           Some(s.createdAt),
-        )
+        ),
       )
     yield model
