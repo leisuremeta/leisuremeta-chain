@@ -30,19 +30,28 @@ import cats.effect.*
 import cats.effect.Async
 import cats.effect.std.Semaphore
 import cats.effect.std.AtomicCell
-import cats.syntax.all._
+import cats.effect.Ref
 import cats.effect.kernel.Async
+import cats.syntax.all._
+import cats.syntax.functor._
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
-import cats.effect.Ref
 
+object InternalApiService:
+  def apply[F[_]: Async](
+    backend: SttpBackend[F, Any],
+    blocker: Ref[F, Boolean],
+    baseUrlLock: Ref[F, List[String]]
+  ): F[InternalApiService[F]] =
+    Async[F].pure(new InternalApiService[F](backend, blocker, baseUrlLock))
 
 class InternalApiService[F[_]: Async](
-  backend: SttpBackend[F, Any],
-  blocker: Ref[F, Boolean],
+  backend:      SttpBackend[F, Any],
+  blocker:      Ref[F, Boolean],
+  baseUrlsLock: Ref[F, List[String]]
 ):
-  // val BASE_URL = "http://lmc.leisuremeta.io"
-  val BASE_URL = "http://test.chain.leisuremeta.io"
+  // val baseUrl = "http://lmc.leisuremeta.io"
+  // val baseUrl = "http://test.chain.leisuremeta.io"
   
   // def backend[F[_]: Async]: SttpBackend[F, Any] = 
   //   ArmeriaCatsBackend.usingClient[F](webClient(SttpBackendOptions.Default))
@@ -50,19 +59,17 @@ class InternalApiService[F[_]: Async](
   // given runtime: IORuntime = cats.effect.unsafe.implicits.global
 
   def getAsString(
-    uri: Uri /*, backend: SttpBackend[F, Any] */,
-    // flag: F[Ref[F, Boolean]]
+    uri: Uri 
   ): F[String] = 
-    // blocker.flatMap { ref =>
-      for {
-        _ <- jobOrBlock
-        result <- basicRequest
-          .response(asStringAlways)
-          .get(uri)
-          .send(backend)
-          .map(_.body)
-      } yield result
-    // }
+    for {
+      _ <- jobOrBlock
+      result <- basicRequest
+        .response(asStringAlways)
+        .get(uri)
+        .send(backend)
+        .map(_.body)
+    } yield result
+
 
   def postAsString(
     uri: Uri,
@@ -130,153 +137,237 @@ class InternalApiService[F[_]: Async](
   def getBlock(
     blockHash: String,
   ): F[String] =
-    getAsString(uri"$BASE_URL/block/$blockHash")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/block/$blockHash")
+      }
+    }.map(_.head)
 
 
   def getAccount(
     account: Account
-  ): F[String] = 
-    getAsString(uri"$BASE_URL/account/${account.utf8.value}") 
+  ): F[String] =
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/account/${account.utf8.value}") 
+      }
+    }.map(_.head)
     
   def getEthAccount(
     ethAddress: EthAddress
   ): F[String] =
-    getAsString(uri"$BASE_URL/eth/$ethAddress")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/eth/$ethAddress")
+      }
+    }.map(_.head)
   
   def getGroupInfo(
     groupId: GroupId
   ): F[String] =
-    getAsString(uri"$BASE_URL/group/$groupId")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/group/$groupId")
+      }
+    }.map(_.head)
 
 
   def getBlockList(
     fromOption: Option[String],
     limitOption: Option[String],
   ): F[String] =
-    getAsString(uri"$BASE_URL/block?from=${fromOption.getOrElse("")}&limit=${limitOption.getOrElse("")}")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/block?from=${fromOption.getOrElse("")}&limit=${limitOption.getOrElse("")}")
+      }
+    }.map(_.head)
 
-  def getStatus:
-     F[String] =
-    getAsString(uri"$BASE_URL/status")
+  def getStatus: F[String] =
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/status")
+      }
+    }.map(_.head)
 
   def getTokenDef(
     tokenDefinitionId: TokenDefinitionId
   ): F[String] =
-    getAsString(uri"$BASE_URL/token-def/$tokenDefinitionId")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/token-def/$tokenDefinitionId")
+      }
+    }.map(_.head)
 
   def getBalance(
     account: Account,
     movable: String
   ): F[String] =
-    getAsString(uri"$BASE_URL/balance/$account?movable=${movable}")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/balance/$account?movable=${movable}")
+      }
+    }.map(_.head)
 
   def getNftBalance(
     account: Account,
     movable: Option[String]
   ): F[String] =
-    getAsString(uri"$BASE_URL/nft-balance/$account?movable=${movable}")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/nft-balance/$account?movable=${movable}")
+      }
+    }.map(_.head)
 
 
   def getToken(
     tokenId: TokenId
   ): F[String] =
-    getAsString(uri"$BASE_URL/token/$tokenId")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/token/$tokenId")
+      }
+    }.map(_.head)
 
   def getOwners(
     tokenDefinitionId: TokenDefinitionId
   ): F[String] =
-    getAsString(uri"$BASE_URL/owners/$tokenDefinitionId")
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/owners/$tokenDefinitionId")
+      }
+    }.map(_.head)
 
   def getAccountActivity(
     account: Account
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/activity/account/$account"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/activity/account/$account")
+      }
+    }.map(_.head)
 
   def getTokenActivity(
     tokenId: TokenId
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/activity/token/$tokenId"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/activity/token/$tokenId")
+      }
+    }.map(_.head)
+      
+    
 
   def getAccountSnapshot(
     account: Account
-  ): F[String] = 
-    getAsString(
-      uri"$BASE_URL/snapshot/account/$account"
-    )
+  ): F[String] =
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/snapshot/account/$account")
+      }
+    }.map(_.head)
+    
 
   def getTokenSnapshot(
     tokenId: TokenId
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/snapshot/token/$tokenId"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/snapshot/token/$tokenId")
+      }
+    }.map(_.head)
 
   def getStatusEndpoint: F[String] =
-    getAsString(
-      uri"$BASE_URL/status"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/status")
+      }
+    }.map(_.head)
 
   def getOwnershipSnapshot(
     tokenId: TokenId
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/snapshot/ownership/$tokenId"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/snapshot/ownership/$tokenId")
+      }
+    }.map(_.head)
 
   def getOwnershipSnapshotMap(
     tokenId: Option[String],
     limit:   Option[String]
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/snapshot/ownership?from=$tokenId&limit=$limit"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/snapshot/ownership?from=$tokenId&limit=$limit")
+      }
+    }.map(_.head)
 
   def getOwnershipRewarded(
     tokenId: TokenId,
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/rewarded/ownership/$tokenId"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/rewarded/ownership/$tokenId")
+      }
+    }.map(_.head)
 
   def getReward(
     tokenId: TokenId,
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/rewarded/ownership/$tokenId"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/rewarded/ownership/$tokenId")
+      }
+    }.map(_.head)
 
   def getTx(
     txHash: String,
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/tx/$txHash"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/tx/$txHash")
+      }
+    }.map(_.head)
+
+  def getTxFromOld(
+    txHash: String,
+  ): F[String] =
+    baseUrlsLock.get.map(_.head).flatMap { baseUrl =>
+      getAsString(uri"$baseUrl/tx/$txHash")
+    }
+
 
   def getTxSet(
     txHash: String,
   ): F[String] =
-    getAsString(
-      uri"$BASE_URL/tx/$txHash"
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/tx/$txHash")
+      }
+    }.map(_.head)
 
   def postTx(
     txs: String,
   ): F[String] =
-    postAsString(
-      uri"$BASE_URL/tx", txs
-    )
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        postAsString(
+          uri"$baseUrl/tx", txs
+        )
+      }
+    }.map(_.head)
 
   def postTxHash(
     txs: String,
   ): F[String] =
-    postAsString(
-      uri"$BASE_URL/txHash", txs
-    )
-  
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        postAsString(
+          uri"$baseUrl/txHash", txs
+        )    
+      }
+    }.map(_.head)
+
 
   def jobOrBlock: F[Unit] = 
     blocker.get.flatMap { value =>
@@ -288,4 +379,44 @@ class InternalApiService[F[_]: Async](
         case true  => Async[F].unit
     }
   
-    
+  
+  def bestBlock(baseUri: String): F[Block] = 
+    for 
+      nodeStatus <- get[NodeStatus](uri"$baseUri/status")
+      bestBlock  <- block(baseUri, nodeStatus.bestHash.toUInt256Bytes.toHex)
+    yield bestBlock
+
+  def block(baseUri: String, blockHash: String): F[Block] =
+    get[Block](uri"$baseUri/block/$blockHash")
+
+  def postTxs(baseUri: String, body: String): F[String] =
+    postAsString(uri"$baseUri/tx", body)
+
+      
+  def getAsOption[A: io.circe.Decoder](uri: Uri): F[Option[A]] =
+    basicRequest
+      .get(uri)
+      .send(backend)
+      .map { response =>
+        response.body.toOption.flatMap { body =>
+          decode[A](body).toOption
+        }
+      }
+
+  def get[A: io.circe.Decoder](uri: Uri): F[A] =
+    basicRequest
+      .get(uri)
+      .send(backend)
+      .flatMap { response =>
+        response.body match 
+          case Right(body) => 
+            decode[A](body) match 
+            case Right(a) => Async[F].pure(a)
+            case Left(error) => Async[F].raiseError(error)
+          case Left(error) => Async[F].raiseError[A](new Exception(s"Error in response body: $error"))
+      }
+
+
+
+
+  

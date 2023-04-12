@@ -237,6 +237,7 @@ val Dependencies = new {
       "io.circe"                      %% "circe-refined"        % V.circe,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
       "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
+      "co.fs2"                        %%% "fs2-core"            % V.fs2,
     ),
   )
 }
