@@ -12,6 +12,7 @@ object SummaryRepository extends CommonQuery:
   def get[F[_]: Async]: EitherT[F, String, Option[Summary]] =
     inline def detailQuery =
       quote { 
+        // sql"""SELECT * FROM summary order by created_at desc limit 1""".as[Query[Summary]]
         query[Summary].sortBy(t => t.createdAt)(Ord.desc).take(1)
       }
     optionQuery(detailQuery)

@@ -135,13 +135,13 @@ object BackendMain extends IOApp:
         }
       result.value
     }
-  
+
   // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
   //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
-  //     scribe.info(s"search type request target: $target")  
+  //     scribe.info(s"search type request target: $target")
   //     val len = target.length()
 
-  //     val targetType = len match 
+  //     val targetType = len match
   //       case 40 => for a <- AccountService.get(target) yield if a.nonEmpty then Some("account")   // account
   //       case 25 => for n <-NftService.getNftDetail(target) yield if n.nonEmpty then Some("nft")   // token
   //       case 64 => {
@@ -155,8 +155,7 @@ object BackendMain extends IOApp:
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
       scribe.info(s"summary request")
-      val result = SummaryService
-        .get
+      val result = SummaryService.get
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
