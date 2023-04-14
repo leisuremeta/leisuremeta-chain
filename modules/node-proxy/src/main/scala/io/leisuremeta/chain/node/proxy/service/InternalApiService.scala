@@ -357,6 +357,14 @@ class InternalApiService[F[_]: Async](
       }
     }.map(_.head)
 
+  def postTx(
+    baseUrl: String,
+    txs: String,
+  ): F[String] =    
+    postAsString(
+      uri"$baseUrl/tx", txs
+    )
+    
   def postTxHash(
     txs: String,
   ): F[String] =
@@ -368,7 +376,6 @@ class InternalApiService[F[_]: Async](
       }
     }.map(_.head)
 
-
   def jobOrBlock: F[Unit] = 
     blocker.get.flatMap { value =>
       value match 
@@ -378,7 +385,6 @@ class InternalApiService[F[_]: Async](
         }
         case true  => Async[F].unit
     }
-  
   
   def bestBlock(baseUri: String): F[Block] = 
     for 
@@ -391,7 +397,6 @@ class InternalApiService[F[_]: Async](
 
   def postTxs(baseUri: String, body: String): F[String] =
     postAsString(uri"$baseUri/tx", body)
-
       
   def getAsOption[A: io.circe.Decoder](uri: Uri): F[Option[A]] =
     basicRequest
@@ -415,8 +420,3 @@ class InternalApiService[F[_]: Async](
             case Left(error) => Async[F].raiseError(error)
           case Left(error) => Async[F].raiseError[A](new Exception(s"Error in response body: $error"))
       }
-
-
-
-
-  

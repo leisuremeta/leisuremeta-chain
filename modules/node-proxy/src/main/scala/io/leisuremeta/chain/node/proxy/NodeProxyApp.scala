@@ -17,15 +17,12 @@ import sttp.tapir.server.armeria.cats.{
 import sttp.tapir.server.ServerEndpoint
 import sttp.capabilities.fs2.Fs2Streams
 
-
 import io.leisuremeta.chain.node.proxy.{NodeProxyApi as Api}
 import io.leisuremeta.chain.api.LeisureMetaChainApi.ServerError
 import io.leisuremeta.chain.api.model.account.EthAddress
 import io.leisuremeta.chain.api.model.*
 import io.leisuremeta.chain.api.model.api_model.{AccountInfo, BalanceInfo}
 import io.leisuremeta.chain.api.model.token.*
-
-import util.GlobalFlag
 import service.InternalApiService
 
 
@@ -43,7 +40,6 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.getAccount(a).map(Right(_))
   }
   
-
   def getEthServerEndpoint = Api.getEthEndpoint.serverLogic {
     (ethAddress: EthAddress) =>
       apiService.getEthAccount(ethAddress).map(Right(_))
@@ -59,12 +55,9 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.getBlockList(fromOption, limitOption).map(Right(_))
   }
 
-
   def getStatusServerEndpoint = Api.getStatusEndpoint.serverLogic { _ =>
     apiService.getStatus.map(Right(_))
   }
-
-  
 
   def getTokenDefServerEndpoint = Api.getTokenDefinitionEndpoint.serverLogic {
     (tokenDefinitionId: TokenDefinitionId) =>
@@ -75,15 +68,11 @@ final case class NodeProxyApp[F[_]: Async](
     (account, movable) =>
       apiService.getBalance(account, movable).map(Right(_))
   }
-
-
-  
     
   def getNftBalanceServerEndpoint = Api.getNftBalanceEndpoint.serverLogic {
     (account, movable) =>
       apiService.getNftBalance(account, movable).map(Right(_))
   }
-
   
   def getTokenServerEndpoint = Api.getTokenEndpoint.serverLogic {
     (tokenId: TokenId) =>
@@ -123,14 +112,11 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.getOwnershipSnapshot(tokenId).map(Right(_))
     }
 
-
-
   def getOwnershipSnapshotMapServerEndpoint =
     Api.getOwnershipSnapshotMapEndpoint.serverLogic{
       (from: Option[String], limit: Option[String]) =>
         apiService.getOwnershipSnapshotMap(from, limit).map(Right(_))
     }
-
     
   def getOwnershipRewardedServerEndpoint =
     Api.getOwnershipRewardedEndpoint.serverLogic { (tokenId: TokenId) =>
@@ -147,12 +133,10 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.postTxHash(txs).map(Right(_))
     }
 
-
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
     (txHash: String) =>
       apiService.getTx(txHash).map(Right(_))
     }
-
 
   def getTxSetServerEndpoint = Api.getTxSetEndpoint.serverLogic {
     (block: String) =>
@@ -173,12 +157,10 @@ final case class NodeProxyApp[F[_]: Async](
 
   def proxyNodeEndpoints = List(
     getAccountServerEndpoint,
-
     getEthServerEndpoint,
     getBlockListServerEndpoint,
     getGroupServerEndpoint,
     getBlockServerEndpoint,
-    
     getStatusServerEndpoint,
     getTokenDefServerEndpoint,
     getBalanceServerEndpoint,
@@ -188,7 +170,6 @@ final case class NodeProxyApp[F[_]: Async](
     getTokenActivityServerEndpoint,
     getAccountSnapshotServerEndpoint,
     getTokenSnapshotServerEndpoint,
-   
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,
     getTxServerEndpoint,
@@ -198,7 +179,6 @@ final case class NodeProxyApp[F[_]: Async](
     getOwnershipRewardedServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
-
   )
 
   def getServer[IO](
@@ -216,7 +196,7 @@ final case class NodeProxyApp[F[_]: Async](
         )
       val serverLog = DefaultServerLog(
         doLogWhenReceived = log(scribe.Level.Info)(_, None),
-        doLogWhenHandled = log(scribe.Level.Info),
+        doLogWhenHandled  = log(scribe.Level.Info),
         doLogAllDecodeFailures = log(scribe.Level.Info),
         doLogExceptions =
           (msg: String, ex: Throwable) => Async[F].delay(scribe.warn(msg, ex)),
@@ -231,7 +211,7 @@ final case class NodeProxyApp[F[_]: Async](
       val server = Server.builder
         .maxRequestLength(128 * 1024 * 1024)
         .requestTimeout(java.time.Duration.ofMinutes(10))
-        .http(8080)
+        .http(8081)
         .service(tapirService)
         .build
       server.start.handle[Unit] {
@@ -240,7 +220,6 @@ final case class NodeProxyApp[F[_]: Async](
       }
     }
   yield server
-
 
   def resource: F[Resource[F, Server]] = Async[F].delay {
     for 
