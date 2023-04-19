@@ -48,13 +48,13 @@ object NodeProxyMain extends IOApp:
 
   def run[F[_]: Async]: F[ExitCode] =
     ArmeriaCatsBackend
-      .resourceUsingClient[F](webClient(SttpBackendOptions.Default))
-      .use { backend =>
+    .resourceUsingClient[F](webClient(SttpBackendOptions.Default))
+    .use { backend =>
         for 
-          blocker        <- Ref.of[F, Boolean](false)
+          blocker        <- Ref.of[F, Boolean](true)
           blockchainUrls <- Ref.of[F, List[String]](List.empty)
           internalApiSvc <- InternalApiService[F](backend, blocker, blockchainUrls)
-          _              <- NodeWatchService.newNodeWatchLoop(internalApiSvc, blocker, blockchainUrls)
+          _              <- NodeWatchService.start(internalApiSvc, blocker, blockchainUrls) 
           appResource    <- NodeProxyApp[F](internalApiSvc)
                                            .resource
           exitcode       <- appResource.useForever.as(ExitCode.Success)

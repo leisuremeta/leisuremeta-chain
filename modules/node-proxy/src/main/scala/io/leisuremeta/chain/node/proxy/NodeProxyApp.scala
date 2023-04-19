@@ -211,7 +211,7 @@ final case class NodeProxyApp[F[_]: Async](
       val server = Server.builder
         .maxRequestLength(128 * 1024 * 1024)
         .requestTimeout(java.time.Duration.ofMinutes(10))
-        .http(8081)
+        .http(8082)
         .service(tapirService)
         .build
       server.start.handle[Unit] {

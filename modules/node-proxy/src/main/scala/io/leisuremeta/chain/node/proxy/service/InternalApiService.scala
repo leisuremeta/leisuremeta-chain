@@ -14,7 +14,6 @@ import com.linecorp.armeria.client.encoding.DecodingClient
 import com.linecorp.armeria.client.ClientFactory
 import cats.effect.IO
 import cats.implicits.*
-import cats.syntax.functor._
 import cats.syntax.*
 import cats.{~>, Monad}
 import cats.data.EitherT
@@ -36,6 +35,10 @@ import cats.syntax.all._
 import cats.syntax.functor._
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
+import sttp.model.MediaType
+import sttp.tapir.stringBody
+import io.leisuremeta.chain.node.proxy.model.TxModel
+import io.circe.generic.auto._
 
 object InternalApiService:
   def apply[F[_]: Async](
@@ -43,7 +46,7 @@ object InternalApiService:
     blocker: Ref[F, Boolean],
     baseUrlLock: Ref[F, List[String]]
   ): F[InternalApiService[F]] =
-    Async[F].pure(new InternalApiService[F](backend, blocker, baseUrlLock))
+    Async[F].delay(new InternalApiService[F](backend, blocker, baseUrlLock))
 
 class InternalApiService[F[_]: Async](
   backend:      SttpBackend[F, Any],
@@ -56,27 +59,69 @@ class InternalApiService[F[_]: Async](
   // def backend[F[_]: Async]: SttpBackend[F, Any] = 
   //   ArmeriaCatsBackend.usingClient[F](webClient(SttpBackendOptions.Default))
   
-  // given runtime: IORuntime = cats.effect.unsafe.implicits.global
-
   def getAsString(
     uri: Uri 
   ): F[String] = 
     for {
-      _ <- jobOrBlock
+      _      <- jobOrBlock
       result <- basicRequest
         .response(asStringAlways)
         .get(uri)
         .send(backend)
         .map(_.body)
-    } yield result
+    } yield 
+      scribe.info(s"getAsString result: $result")
+      result
 
+  def getAsResponse(
+    uri: Uri 
+  ): F[Response[String]] = 
+    for {
+      _      <- jobOrBlock
+      result <- basicRequest
+        .response(asStringAlways)
+        .get(uri)
+        .send(backend)
+    } yield 
+      scribe.info(s"getAsString result: $result")
+      result
+  
+
+
+  def getTxAsResponse[A: io.circe.Decoder](
+    uri: Uri 
+  ): F[Either[String, A]] = 
+    for {
+      _      <- jobOrBlock
+      result <- basicRequest
+        .get(uri)
+        .send(backend)
+        .map { response =>
+          for 
+            body <- response.body
+            _    <- Either.right(scribe.info(s"zzzz- $body"))
+            // a    <- decode[A](body).leftMap(_.getMessage())
+            a <- decode[A](body).leftMap { error =>
+              val errorMessage = s"Decoding failed with error: $error"
+              scribe.error(errorMessage)
+              errorMessage
+            }
+          // _    <- Either.right(scribe.info(s"ssss- $a"))
+          yield a
+        }
+        // .contentType(MediaType.ApplicationJson)
+        // .out(stringBody)
+        // .out(header("Content-Type", jsonType))
+    } yield 
+      scribe.info(s"getAsString result: $result")
+      result
 
   def postAsString(
     uri: Uri,
     body: String,
   ): F[String] =
     for
-      _ <- jobOrBlock
+      _      <- jobOrBlock
       result <- basicRequest
         .response(asStringAlways)
         .post(uri)
@@ -85,6 +130,20 @@ class InternalApiService[F[_]: Async](
         .map(_.body)
     yield result
 
+  def postAsResponse(
+    uri: Uri,
+    body: String,
+  ): F[Response[String]] =
+    for
+      _      <- jobOrBlock
+      result <- basicRequest
+        .response(asStringAlways)
+        .post(uri)
+        .contentType(MediaType.ApplicationJson)
+        .body(body)
+        .send(backend)
+        // .map(_.body)
+    yield result
 
   /*
   def get[F[_]: Async, A: io.circe.Decoder](
@@ -184,7 +243,9 @@ class InternalApiService[F[_]: Async](
 
   def getStatus: F[String] =
     baseUrlsLock.get.flatMap { urls =>
+      println(s"baseUrl---")
       urls.traverse { baseUrl =>
+        println(s"baseUrl: ${baseUrl}")
         getAsString(uri"$baseUrl/status")
       }
     }.map(_.head)
@@ -331,11 +392,10 @@ class InternalApiService[F[_]: Async](
 
   def getTxFromOld(
     txHash: String,
-  ): F[String] =
+  ): F[Either[String, TxModel]] =
     baseUrlsLock.get.map(_.head).flatMap { baseUrl =>
-      getAsString(uri"$baseUrl/tx/$txHash")
+      getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
     }
-
 
   def getTxSet(
     txHash: String,
@@ -360,8 +420,8 @@ class InternalApiService[F[_]: Async](
   def postTx(
     baseUrl: String,
     txs: String,
-  ): F[String] =    
-    postAsString(
+  ): F[Response[String]] =    
+    postAsResponse(
       uri"$baseUrl/tx", txs
     )
     
@@ -418,5 +478,5 @@ class InternalApiService[F[_]: Async](
             decode[A](body) match 
             case Right(a) => Async[F].pure(a)
             case Left(error) => Async[F].raiseError(error)
-          case Left(error) => Async[F].raiseError[A](new Exception(s"Error in response body: $error"))
+          case Left(error) => Async[F].raiseError(new Exception(s"Error in response body: $error"))
       }
