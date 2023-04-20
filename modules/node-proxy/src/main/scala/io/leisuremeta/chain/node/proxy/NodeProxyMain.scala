@@ -20,6 +20,7 @@ import cats.syntax.flatMap.toFlatMapOps
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import model.NodeConfig
 import service.*
+import dotty.tools.dotc.util.SimpleIdentitySet.empty
 
 object NodeProxyMain extends IOApp:
   
@@ -52,9 +53,19 @@ object NodeProxyMain extends IOApp:
     .use { backend =>
         for 
           blocker        <- Ref.of[F, Boolean](true)
-          blockchainUrls <- Ref.of[F, List[String]](List.empty)
-          internalApiSvc <- InternalApiService[F](backend, blocker, blockchainUrls)
-          _              <- NodeWatchService.start(internalApiSvc, blocker, blockchainUrls) 
+          nodeConfg      <- NodeWatchService.defaultNodeCfg.flatMap (
+                              _.fold(Async[F].raiseError[NodeConfig], Async[F].pure))
+          blockchainUrls <- Ref.of[F, List[String]](List(nodeConfg.oldNodeAddress))
+          _              <- blockchainUrls.get.flatMap { list =>
+                              list.traverse{ elem =>
+                                Async[F].delay(scribe.info(s"elem : $elem"))
+                              }
+                            }
+          internalApiSvc =  InternalApiService[F](backend, blocker, blockchainUrls)
+          // res            <- internalApiSvc.getTxFromOld("11111")
+          // _              <- Async[F].delay(scribe.info("result : " + res))
+          _              <- NodeWatchService.startOnNew(internalApiSvc, blocker, blockchainUrls) 
+          _              <- Async[F].delay(scribe.info(s"2. blockchainUrls : $blockchainUrls"))
           appResource    <- NodeProxyApp[F](internalApiSvc)
                                            .resource
           exitcode       <- appResource.useForever.as(ExitCode.Success)
@@ -63,4 +74,5 @@ object NodeProxyMain extends IOApp:
   override def run(args: List[String]): IO[ExitCode] = {
     run[IO]
   }
+  
 

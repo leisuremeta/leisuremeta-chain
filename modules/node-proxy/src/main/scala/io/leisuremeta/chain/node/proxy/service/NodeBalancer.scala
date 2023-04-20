@@ -31,29 +31,34 @@ import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.lib.crypto.Hash.Value
 import io.leisuremeta.chain.api.model.Signed.Tx
 import io.leisuremeta.chain.node.proxy.model.TxModel
+import fs2.Pull
+import fs2.Chunk
+import java.nio.charset.StandardCharsets
+import java.io.RandomAccessFile
+import java.io.InputStreamReader
+import java.nio.charset.Charset
+import java.nio.channels.Channels
+import java.io.{RandomAccessFile, InputStreamReader}
+import cats.effect.Concurrent
 
-
+import fs2.{Stream, text}
+import fs2.{Chunk, Pipe, Stream}
 
 case class NodeBalancer[F[_]: Async] (
   apiService: InternalApiService[F],
   blocker:    Ref[F, Boolean],
   nodeConfig: NodeConfig,
-  blcUrls:    Ref[F, List[String]]
 ):
   def logDiffTxsLoop(startBlock: Block, endBlockNumber: BigNat): F[Unit] =
     def getTxWithExponentialRetry(txHash: String, retries: Int, delay: FiniteDuration): F[Option[String]] =
-      apiService.getTxFromOld(txHash).flatMap { (res: Either[String, TxModel]) =>
+      println("111111")
+      apiService.getTxFromOld(txHash).flatMap { res =>
+        println("22222")
         res match
           case Right(txModel) => Async[F].pure(Some(txModel.signedTx))
-          case Left(err) if retries > 0 => Async[F].sleep(delay) *> getTxWithExponentialRetry(txHash, retries - 1, delay * 2)
+          case Left(err) if retries > 0 => Async[F].sleep(delay) 
+                                            *> getTxWithExponentialRetry(txHash, retries - 1, delay * 2)
           case _ => Async[F].pure(None)
-        
-        // if code.isSuccess 
-        //   then Async[F].pure(Some(res.body))
-        // else if code.isServerError && retries > 0
-        //   then Async[F].sleep(delay) 
-        //         *> getTxWithExponentialRetry(txHash, retries - 1, delay * 2)
-        // else Async[F].pure(None)
       }
       
     def loop(currBlock: Block): F[Unit] = 
@@ -61,16 +66,17 @@ case class NodeBalancer[F[_]: Async] (
         val parentHash = currBlock.header.parentHash.toUInt256Bytes.toBytes.toHex
         for 
           txList    <- currBlock.transactionHashes.toList.traverse { txHash => 
+                         println(s"---txHash: $txHash")
                          getTxWithExponentialRetry(txHash.toUInt256Bytes.toBytes.toHex, 10, 1.second) }
+          _         <- Async[F].delay{scribe.info(txList.toString())}
           _         <- txList.traverse { txOpt =>
                          txOpt match 
                            case Some(tx) => appendLog("diff-txs.json", tx.trim)
                            case None     => Async[F].unit
                        }
-          // _         <- appendLog("diff-txs.json", txList.asJson.spaces2)
           prevBlock <- apiService.block(nodeConfig.oldNodeAddress, parentHash)
           _         <- loop(prevBlock)
-        yield () 
+        yield ()
       } else {
         apiService.bestBlock(nodeConfig.oldNodeAddress).flatMap { newBestBlock =>
           val newBestHashInOld = newBestBlock.toHash.toUInt256Bytes.toBytes.toHex
@@ -84,7 +90,7 @@ case class NodeBalancer[F[_]: Async] (
     loop(startBlock)
 
   def appendLog(path: String, json: String): F[Unit] = Async[F].blocking {
-    Files.write(
+    java.nio.file.Files.write(
       Paths.get(path),
       (json + "\n").getBytes,
       StandardOpenOption.CREATE,
@@ -94,7 +100,9 @@ case class NodeBalancer[F[_]: Async] (
   }
 
   def createTxsToNewBlockchain: F[Unit] = 
-    val path = Path("diff-txs.json")
+    val path = Paths.get("diff-txs.json")
+    val charset = Charset.forName("UTF-8")
+
     def postTxWithExponentialRetry(line: String, retries: Int, delay: FiniteDuration): F[String] =
       println(s"line: $line")
       apiService.postTx(nodeConfig.newNodeAddress.get, line).flatMap { res =>
@@ -106,27 +114,45 @@ case class NodeBalancer[F[_]: Async] (
           then Async[F].sleep(delay) 
                 *> postTxWithExponentialRetry(line, retries - 1, delay * 2)
         else Async[F].raiseError(new RuntimeException(s"post tx $retries times failure: ${res.code} ${res.body}"))
-
-        // if (res.isEmpty && retries > 0) 
-        //   scribe.error(s"error occured while submiting tx(${line}) from old blockhain to new blockchain")
-        //   Async[F].sleep(delay) 
-        //    *> postTxWithExponentialRetry(line, retries - 1, delay * 2)
-        // else 
-        //   Async[F].pure(res)
       }
-      
-    fs2.io.file.Files[F]
-      .readAll(path)
-      .through(utf8.decode)
-      .through(text.lines)
-      .evalMap(line => postTxWithExponentialRetry(s"[$line]", 100, 1.second))
-      .compile
-      .drain
+
+          
+    def processLinesReversed(): F[Unit] = 
+      def reverseLines(): F[Unit] = 
+        def reversePipe: Pipe[F, String, String] = _.flatMap { s =>
+          Stream.chunk(Chunk.vector(s.split('\n').toVector.reverse))
+        }.fold(Vector.empty[String]) { (acc, line) =>
+          line +: acc
+        }.flatMap(Stream.emits)
+
+        fs2.io.file.Files[F]
+          .readAll(fs2.io.file.Path.fromNioPath(path))
+          .through(fs2.text.utf8.decode)
+          .through(text.lines)
+          .through(reversePipe)
+          .evalMap(line => 
+            if !line.isBlank() 
+              then postTxWithExponentialRetry(s"[$line]", 5, 1.second) >> Async[F].unit
+            else 
+              Async[F].unit
+          )
+          .compile
+          .drain
+
+      reverseLines()
+    processLinesReversed()
+
+    // fs2.io.file.Files[F]
+    //   .readAll(path)
+    //   .through(utf8.decode)
+    //   .through(text.lines)
+    //   .evalMap(line => postTxWithExponentialRetry(s"[$line]", 100, 1.second))
+    //   .compile
+    //   .drain
 
   def deleteAllFiles: F[Unit] = Async[F].blocking {
     val diffTxs = Paths.get("diff-txs.json")
     Files.deleteIfExists(diffTxs)
-
     // val diffBlocks = Paths.get("diff-blocks.json")
     // Files.deleteIfExists(diffBlocks)    
   }
@@ -145,15 +171,15 @@ case class NodeBalancer[F[_]: Async] (
         _          <- if startBlock.header.number == endBlockNumber
                         then blocker.set(true) // TODO: Lock 을 언제 푸는지?
                       else 
-                        println("NodeBalancer.loop() else branch")
                         scribe.info("NodeBalancer.loop() else branch")
                         // logDiffTxsLoop(startBlock, endBlockNumber)
-                        //  *> createTxsToNewBlockchain
                         createTxsToNewBlockchain
+                        //  >> deleteAllFiles
+                        //  >> loop(startBlock.header.number)
+                        // createTxsToNewBlockchain
                         //  *> deleteAllFiles
                         //  *> loop(startBlock.header.number)
       yield ()
-
     loop(nodeConfig.blockNumber)
 
   

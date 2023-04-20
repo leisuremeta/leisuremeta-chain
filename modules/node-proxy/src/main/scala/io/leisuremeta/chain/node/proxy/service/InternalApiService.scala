@@ -44,9 +44,10 @@ object InternalApiService:
   def apply[F[_]: Async](
     backend: SttpBackend[F, Any],
     blocker: Ref[F, Boolean],
-    baseUrlLock: Ref[F, List[String]]
-  ): F[InternalApiService[F]] =
-    Async[F].delay(new InternalApiService[F](backend, blocker, baseUrlLock))
+    baseUrlsLock: Ref[F, List[String]]
+  ): InternalApiService[F] =
+    // Async[F].delay(new InternalApiService[F](backend, blocker, baseUrlsLock))
+    new InternalApiService[F](backend, blocker, baseUrlsLock)
 
 class InternalApiService[F[_]: Async](
   backend:      SttpBackend[F, Any],
@@ -85,8 +86,6 @@ class InternalApiService[F[_]: Async](
     } yield 
       scribe.info(s"getAsString result: $result")
       result
-  
-
 
   def getTxAsResponse[A: io.circe.Decoder](
     uri: Uri 
@@ -100,18 +99,14 @@ class InternalApiService[F[_]: Async](
           for 
             body <- response.body
             _    <- Either.right(scribe.info(s"zzzz- $body"))
-            // a    <- decode[A](body).leftMap(_.getMessage())
-            a <- decode[A](body).leftMap { error =>
-              val errorMessage = s"Decoding failed with error: $error"
-              scribe.error(errorMessage)
-              errorMessage
-            }
-          // _    <- Either.right(scribe.info(s"ssss- $a"))
+            a    <- decode[A](body).leftMap(_.getMessage())
+            // a <- decode[A](body).leftMap { error =>
+            //   val errorMessage = s"Decoding failed with error: $error"
+            //   scribe.error(errorMessage)
+            //   errorMessage
+            // }
           yield a
         }
-        // .contentType(MediaType.ApplicationJson)
-        // .out(stringBody)
-        // .out(header("Content-Type", jsonType))
     } yield 
       scribe.info(s"getAsString result: $result")
       result
@@ -393,9 +388,25 @@ class InternalApiService[F[_]: Async](
   def getTxFromOld(
     txHash: String,
   ): F[Either[String, TxModel]] =
+    println("333333")
+    // baseUrlsLock.get.flatMap { list =>
+    //   Async[F].delay(scribe.info(s"zzzzz")) *>
+    //   list.traverse{ elem =>
+    //     Async[F].delay(scribe.info(s"2 - elem : $elem"))
+    //   }
+    // }
+
     baseUrlsLock.get.map(_.head).flatMap { baseUrl =>
       getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
     }
+
+    // baseUrlsLock.get.map{lock =>
+    //   scribe.info(s"lock: $lock")
+    //   lock.head
+    // }.flatMap { baseUrl =>
+    //   scribe.info(s"baseUrl: $baseUrl")
+    //   getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
+    // }
 
   def getTxSet(
     txHash: String,
