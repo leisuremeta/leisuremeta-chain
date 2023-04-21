@@ -23,20 +23,6 @@ object ModelPipe:
       .pipe(in_PubCases)(0) // 0 => find
       .pipe(in_Page)
 
-    // def get_PageCase(find: Int = 0)(model: Model) =
-    //   val _find = find match
-    //     case 0 => model.pointer
-    //     case _ => find
-
-    //   model
-    //     .pipe(in_appStates)
-    //     .pipe(find_PageCase(_find))
-
-  // def find_current_PageCase(model: Model) =
-  //   model
-  //     .pipe(in_appStates)
-  //     .pipe(find_PageCase(model.pointer))
-
   def find_current_PageCase(model: Model) =
     model
       .pipe(in_appStates)
