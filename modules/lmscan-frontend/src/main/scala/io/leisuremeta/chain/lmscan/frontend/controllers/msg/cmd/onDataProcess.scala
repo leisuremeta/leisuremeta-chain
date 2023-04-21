@@ -25,26 +25,15 @@ object UnderDataProcess:
     val parseResult: Either[ParsingFailure, Json] = parse(response.body)
     parseResult match
       case Left(parsingError) =>
-        // PageMsg.GetError(s"Invalid JSON object: ${parsingError.message}", page)
-        PageMsg.BackObserver
-      case Right(json) => {
+        PageMsg.DeleteObserver
+      case Right(json) =>
         PageMsg.DataUpdate(
           update_PubCase_data(pub, response.body),
         )
 
-      }
-
-  private val onError: HttpError => Msg = e =>
-    // dom.document
-    //   .querySelector("#loader-container")
-    //   .asInstanceOf[HTMLElement]
-    //   .style
-    //   .display = "none"
-    // ApiMsg.GetError(e.toString)
-    PageMsg.BackObserver
+  private val onError: HttpError => Msg = e => PageMsg.BackObserver
 
   def fromHttpResponse(pub: PubCase): Decoder[Msg] =
-    // dom.document.querySelector("#loader-container").asInstanceOf[HTMLElement].style.display = "none"
     Decoder[Msg](onResponse(pub), onError)
 
 object OnDataProcess:
@@ -52,12 +41,6 @@ object OnDataProcess:
   def getData(
       pub: PubCase,
   ): Cmd[IO, Msg] =
-    // dom.document
-    //   .querySelector("#loader-container")
-    //   .asInstanceOf[HTMLElement]
-    //   .style
-    //   .display = "block"
-
     Http.send(
       Request.get(get_api_link(pub)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(pub),

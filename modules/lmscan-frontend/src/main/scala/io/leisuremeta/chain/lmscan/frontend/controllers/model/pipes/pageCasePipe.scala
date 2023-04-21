@@ -13,6 +13,7 @@ object PageCasePipe:
       case PageCase.TxDetail(name, _, _, _)      => name
       case PageCase.AccountDetail(name, _, _, _) => name
       case PageCase.Observer(name, _, _, _)      => name
+      case PageCase.NoPage(name, _, _, _)        => name
 
   def in_url(pageCase: PageCase) =
     pageCase match
@@ -23,8 +24,9 @@ object PageCasePipe:
       case PageCase.TxDetail(_, url, _, _)      => url
       case PageCase.AccountDetail(_, url, _, _) => url
       case PageCase.Observer(_, url, _, _)      => url
+      case PageCase.NoPage(_, url, _, _)        => url
 
-  def in_PubCases(pageCase: PageCase): List[PubCase] =
+  def in_PubCases(pageCase: PageCase) =
     pageCase match
       case PageCase.Blocks(_, _, pubs, _)        => pubs
       case PageCase.Transactions(_, _, pubs, _)  => pubs
@@ -33,6 +35,7 @@ object PageCasePipe:
       case PageCase.TxDetail(_, _, pubs, _)      => pubs
       case PageCase.AccountDetail(_, _, pubs, _) => pubs
       case PageCase.Observer(_, _, pubs, _)      => pubs
+      case PageCase.NoPage(_, _, pubs, _)        => pubs
 
   // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
   // todo :: 리팩토링 필요
@@ -111,4 +114,6 @@ object PageCasePipe:
       case pageCase: PageCase.AccountDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
       case pageCase: PageCase.Observer =>
+        pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.NoPage =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))

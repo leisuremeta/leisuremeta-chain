@@ -63,6 +63,14 @@ enum PageCase:
       status: Boolean = false,
   ) extends PageCase
 
+  case NoPage(
+      name: String = "NoPage",
+      url: String = "nopage",
+      pubs: List[PubCase] = List(
+      ),
+      status: Boolean = false,
+  ) extends PageCase
+
   // case DashBoard
   // case Transactions(page: Int)         extends PageCase
   // case TransactionDetail(hash: String) extends PageCase

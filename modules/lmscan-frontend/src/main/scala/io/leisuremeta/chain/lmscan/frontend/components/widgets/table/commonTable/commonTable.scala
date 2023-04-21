@@ -59,6 +59,8 @@ object Tables:
             ObserverView.view(model),
           ),
         )
+      case PageCase.NoPage(_, _, _, _) =>
+        div()
 
       //   case PageName.BlockDetail(_) =>
 

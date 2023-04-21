@@ -78,6 +78,27 @@ object PageUpdate:
         model.copy(pointer = safeNumber),
         Cmd.None,
       )
+    case PageMsg.DeleteObserver =>
+      val safeNumber = Num.Int_Positive(model.pointer - 1)
+
+      Window.History(
+        model
+          .pipe(in_appStates)
+          .pipe(find_PageCase(safeNumber))
+          .pipe(in_url),
+        model
+          .pipe(in_appStates)
+          .pipe(find_PageCase(safeNumber))
+          .pipe(in_url),
+      )
+
+      (
+        model.copy(
+          pointer = safeNumber,
+          appStates = model.appStates.dropRight(1),
+        ),
+        Cmd.emit(PageMsg.PreUpdate(PageCase.NoPage())),
+      )
 
     case PageMsg.DataUpdate(pub: PubCase) =>
       log("pub")

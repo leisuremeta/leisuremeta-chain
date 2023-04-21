@@ -41,6 +41,8 @@ object Pages:
           // ObserverView.view(model),
           AccountView.view(model),
         )
+      case PageCase.NoPage(_, _, _, _) =>
+        NoPageView.view(model)
 
 object PageView:
   def view(model: Model): Html[Msg] =
