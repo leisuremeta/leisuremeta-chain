@@ -78,9 +78,7 @@ object PageUpdate:
         model.copy(pointer = safeNumber),
         Cmd.None,
       )
-    case PageMsg.DeleteObserver =>
-      log("find_name(model)")
-      log(find_name(model))
+    case PageMsg.RolloBack =>
       val safeNumber = Num.Int_Positive(model.pointer - 1)
 
       Window.History(

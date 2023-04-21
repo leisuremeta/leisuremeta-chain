@@ -42,7 +42,7 @@ object UnderDataProcess:
                 ),
               ),
             )
-          case _ => PageMsg.DeleteObserver
+          case _ => PageMsg.RolloBack
 
       case Right(json) =>
         PageMsg.DataUpdate(
