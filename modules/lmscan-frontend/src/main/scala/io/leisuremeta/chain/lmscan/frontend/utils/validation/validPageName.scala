@@ -59,9 +59,10 @@ object ValidPageName:
               pubs = List(PubCase.BlockPub(page = search.toInt)),
             )
           case 64 =>
-            PageCase.Blocks(
-              url = s"blocks/${search}",
-              pubs = List(PubCase.BlockPub(page = search.toInt)),
+            PageCase.TxDetail(
+              name = PageCase.Transactions().name,
+              url = s"transaction/${search}",
+              pubs = List(PubCase.TxDetailPub(hash = search)),
             )
           case _ =>
             PageCase.AccountDetail(
@@ -116,6 +117,12 @@ object ValidPageName:
         )
 
       case s"/transaction/${hash}" =>
+        PageCase.TxDetail(
+          name = PageCase.Transactions().name,
+          url = s"transaction/${hash}",
+          pubs = List(PubCase.TxDetailPub(hash = hash)),
+        )
+      case s"/tx/${hash}" =>
         PageCase.TxDetail(
           name = PageCase.Transactions().name,
           url = s"transaction/${hash}",

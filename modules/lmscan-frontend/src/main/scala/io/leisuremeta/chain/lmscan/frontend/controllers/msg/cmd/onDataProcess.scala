@@ -22,10 +22,28 @@ object UnderDataProcess:
 
   private def onResponse(pub: PubCase): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
-    val parseResult: Either[ParsingFailure, Json] = parse(response.body)
-    parseResult match
+    parse(response.body) match
       case Left(parsingError) =>
-        PageMsg.DeleteObserver
+        pub match
+          case PubCase.TxDetailPub(hash, _, _) =>
+            PageMsg.PreUpdate(
+              PageCase.BlockDetail(
+                name = PageCase.Blocks().name,
+                url = s"block/${hash}",
+                pubs = List(
+                  PubCase.BlockDetailPub(
+                    hash = hash,
+                  ),
+                  PubCase.TxPub(
+                    page = 1,
+                    blockHash = hash,
+                    sizePerRequest = 10,
+                  ),
+                ),
+              ),
+            )
+          case _ => PageMsg.DeleteObserver
+
       case Right(json) =>
         PageMsg.DataUpdate(
           update_PubCase_data(pub, response.body),
