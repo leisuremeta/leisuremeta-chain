@@ -34,16 +34,48 @@ object ValidPageName:
 //           case _ =>
 //             PageName.NoPage
 
-//   def getPageString(search: String): PageName =
-//     search match
-//       // case "playnomm"    => PageName.AccountDetail(search.toString())
-//       // case "eth-gateway" => PageName.AccountDetail(search.toString())
-//       case _ =>
-//         search.length() match
-//           case 40 => PageName.AccountDetail(search.toString())
-//           case 25 => PageName.NftDetail(search.toString())
-//           case 64 => PageName.Page64(search.toString())
-//           case _  => PageName.AccountDetail(search.toString())
+  def getPageString(search: String): PageCase =
+    search match
+      // case "playnomm"    => PageName.AccountDetail(search.toString())
+      // case "eth-gateway" => PageName.AccountDetail(search.toString())
+      case _ =>
+        search.length() match
+          case 40 =>
+            PageCase.AccountDetail(
+              name = PageCase.AccountDetail().name,
+              url = s"account/${search}",
+              pubs = List(
+                PubCase.AccountDetailPub(hash = search),
+                PubCase.TxPub(
+                  page = 1,
+                  accountAddr = search,
+                  sizePerRequest = 10,
+                ),
+              ),
+            )
+          case 25 =>
+            PageCase.Blocks(
+              url = s"blocks/${search}",
+              pubs = List(PubCase.BlockPub(page = search.toInt)),
+            )
+          case 64 =>
+            PageCase.Blocks(
+              url = s"blocks/${search}",
+              pubs = List(PubCase.BlockPub(page = search.toInt)),
+            )
+          case _ =>
+            PageCase.AccountDetail(
+              name = PageCase.AccountDetail().name,
+              url = s"account/${search}",
+              pubs = List(
+                PubCase.AccountDetailPub(hash = search),
+                PubCase.TxPub(
+                  page = 1,
+                  accountAddr = search,
+                  sizePerRequest = 10,
+                ),
+              ),
+            )
 
 //   def getPageFromStr(search: String): PageName =
 //     search match

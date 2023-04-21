@@ -4,4 +4,7 @@ import io.circe.Json
 final case class Model(
     appStates: List[StateCase],
     pointer: Int,
+
+    // input search string
+    searchValue: String,
 )
