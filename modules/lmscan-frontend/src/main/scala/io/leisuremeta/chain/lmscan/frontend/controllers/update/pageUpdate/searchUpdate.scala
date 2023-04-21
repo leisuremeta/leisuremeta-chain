@@ -12,7 +12,7 @@ object SearchUpdate:
 
     case InputMsg.Patch =>
       (
-        model,
+        model.copy(searchValue = ""),
         Cmd.emit(
           PageMsg.PreUpdate(ValidPageName.getPageString(model.searchValue)),
         ),

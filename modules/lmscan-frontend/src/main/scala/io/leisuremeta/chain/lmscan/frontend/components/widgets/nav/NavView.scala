@@ -8,6 +8,14 @@ import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object NavView:
 
+  // def isCurPageisDashBoard = (model: Model) =>
+  // DashBoardPageList.contains(model.curPage.toString())
+
+  // def isCurPageisBlock = (model: Model) =>
+  //   BlockPageList
+  //     .reduce((a, b) => a + b)
+  //     .contains(Log.log(model.curPage.toString().take(5))) // TODO :: A
+
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
       div(id := "title", onClick(PageMsg.PreUpdate(PageCase.Blocks())))(

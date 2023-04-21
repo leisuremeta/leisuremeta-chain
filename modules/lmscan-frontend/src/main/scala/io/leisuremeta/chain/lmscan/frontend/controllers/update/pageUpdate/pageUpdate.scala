@@ -79,6 +79,8 @@ object PageUpdate:
         Cmd.None,
       )
     case PageMsg.DeleteObserver =>
+      log("find_name(model)")
+      log(find_name(model))
       val safeNumber = Num.Int_Positive(model.pointer - 1)
 
       Window.History(
@@ -97,7 +99,9 @@ object PageUpdate:
           pointer = safeNumber,
           appStates = model.appStates.dropRight(1),
         ),
-        Cmd.emit(PageMsg.PreUpdate(PageCase.NoPage())),
+        Cmd.emit(
+          PageMsg.PreUpdate(PageCase.NoPage(name = find_name(model))),
+        ),
       )
 
     case PageMsg.DataUpdate(pub: PubCase) =>

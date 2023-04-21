@@ -28,6 +28,11 @@ object ModelPipe:
       .pipe(in_appStates)
       .pipe(find_PageCase(model.pointer))
 
+  def find_prev_PageCase(model: Model) =
+    model
+      .pipe(in_appStates)
+      .pipe(find_PageCase(model.pointer - 1))
+
   def find_last_PageCase(model: Model) =
     model
       .pipe(in_appStates)
@@ -43,6 +48,11 @@ object ModelPipe:
   def find_name(model: Model) =
     model
       .pipe(find_current_PageCase)
+      .pipe(in_Name)
+
+  def find_prev_name(model: Model) =
+    model
+      .pipe(find_prev_PageCase)
       .pipe(in_Name)
 
   def current_ViewCase(model: Model): ViewCase =
