@@ -3,39 +3,39 @@ val V = new {
   val Scala      = "3.3.0-RC4"
   val ScalaGroup = "3.3"
 
-  val catsEffect = "3.4.3"
-  val tapir      = "1.2.4"
-  val sttp       = "3.8.5"
+  val catsEffect = "3.4.9"
+  val tapir      = "1.2.12"
+  val sttp       = "3.8.15"
   val circe      = "0.15.0-M1"
-  val refined    = "0.10.1"
-  val scodecBits = "1.1.34"
+  val refined    = "0.10.3"
+  val scodecBits = "1.1.37"
   val shapeless  = "3.3.0"
-  val fs2        = "3.4.0"
+  val fs2        = "3.6.1"
 
   val typesafeConfig = "1.4.2"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
-  val jasync         = "2.1.8"
+  val jasync         = "2.1.24"
 
-  val okhttp3LoggingInterceptor = "4.10.0"
+  val okhttp3LoggingInterceptor = "4.11.0"
 
   val web3J = "4.9.6"
 
-  val scribe          = "3.10.5"
+  val scribe          = "3.11.1"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
   val zerowaste       = "0.2.6"
 
-  val tyrian = "0.6.0"
+  val tyrian = "0.6.2"
 
   val scalaJavaTime = "2.3.0"
   val jsSha3        = "0.8.0"
   val elliptic      = "6.5.4"
   val typesElliptic = "6.4.12"
   val pgEmbedded    = "1.0.1"
-  val quill         = "4.6.0"
-  val postgres      = "42.5.1"
-  val flywayCore    = "9.11.0"
+  val quill         = "4.6.0.1"
+  val postgres      = "42.6.0"
+  val flywayCore    = "9.16.3"
 }
 
 val Dependencies = new {
@@ -167,7 +167,8 @@ val Dependencies = new {
 
   lazy val lmscanFrontend = Seq(
     libraryDependencies ++= Seq(
-      "io.indigoengine" %%% "tyrian-io" % V.tyrian,
+      "io.indigoengine" %%% "tyrian-io"      % V.tyrian,
+      "qa.hedgehog"     %%% "hedgehog-munit" % V.hedgehog % Test,
     ),
   )
 
@@ -371,7 +372,6 @@ lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
   .enablePlugins(ScalaJSPlugin)
   .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(Dependencies.lmscanFrontend)
-  .settings(Dependencies.tests)
   .settings(
     name := "leisuremeta-chain-lmscan-frontend",
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
