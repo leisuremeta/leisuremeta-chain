@@ -96,6 +96,9 @@ object PageCasePipe:
           case PubCase.TxDetailPub(_, _, pub_m2) =>
             resulte.txDetail = pub_m2
 
+          case PubCase.NftDetailPub(_, _, pub_m2) =>
+            resulte.nftDetail = pub_m2
+
           case PubCase.AccountDetailPub(_, _, pub_m2) =>
             resulte.accountDetail = pub_m2,
       )

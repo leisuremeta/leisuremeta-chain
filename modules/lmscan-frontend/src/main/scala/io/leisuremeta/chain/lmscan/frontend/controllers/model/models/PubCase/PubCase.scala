@@ -43,6 +43,12 @@ enum PubCase:
       pub_m2: TxDetail = new TxDetail,
   ) extends PubCase
 
+  case NftDetailPub(
+      hash: String = "",
+      pub_m1: String = "",
+      pub_m2: NftDetail = new NftDetail,
+  ) extends PubCase
+
   case AccountDetailPub(
       hash: String = "",
       pub_m1: String = "",

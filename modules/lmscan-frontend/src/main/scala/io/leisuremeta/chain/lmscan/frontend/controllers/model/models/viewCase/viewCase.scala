@@ -17,4 +17,5 @@ case class PageResponseViewCase(
     var blockDetail: BlockDetail = new BlockDetail,
     var txDetail: TxDetail = new TxDetail,
     var accountDetail: AccountDetail = new AccountDetail,
+    var nftDetail: NftDetail = new NftDetail,
 );

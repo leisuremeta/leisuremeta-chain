@@ -11,6 +11,7 @@ import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 import io.leisuremeta.chain.lmscan.frontend.V.getOptionValue
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
+import io.leisuremeta.chain.lmscan.common.model.NftActivity
 
 object Table:
   def block = (model: Model) =>
@@ -96,13 +97,22 @@ object Table:
         ),
       ),
     )
+
+    //     val data: NftDetail = NftDetailParser
+    //   .decodeParser(model.nftDetailData.get)
+    //   .getOrElse(new NftDetail)
+    // getOptionValue(data.activities, List()).asInstanceOf[List[NftActivity]]
+
   def nftDetail_txtable = (model: Model) =>
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
         Head.nft :: Body.nft(
           {
+
+            // Head.nft :: Body.nft(DataProcess.nft(model)),
+
             // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
-            new TxInfo == current_ViewCase(model).txInfo(0) match
+            new NftActivity == current_ViewCase(model).nftInfo(0) match
               case true =>
                 find_ViewCase(model.pointer - 1)(model).nftInfo
               case _ =>

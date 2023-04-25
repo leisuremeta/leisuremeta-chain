@@ -20,6 +20,7 @@ object PupCasePipe:
       case PubCase.BlockDetailPub(_, pub_m1, _)   => pub_m1
       case PubCase.TxDetailPub(_, pub_m1, _)      => pub_m1
       case PubCase.AccountDetailPub(_, pub_m1, _) => pub_m1
+      case PubCase.NftDetailPub(_, pub_m1, _)     => pub_m1
 
   def in_pub_m2(pubCase: PubCase) =
     pubCase match
@@ -29,6 +30,7 @@ object PupCasePipe:
       case PubCase.BlockDetailPub(_, _, pub_m2)   => pub_m2
       case PubCase.TxDetailPub(_, _, pub_m2)      => pub_m2
       case PubCase.AccountDetailPub(_, _, pub_m2) => pub_m2
+      case PubCase.NftDetailPub(_, _, pub_m2)     => pub_m2
 
   def update_PubCase_data(pub: PubCase, data: String) =
     pub match
@@ -63,6 +65,7 @@ object PupCasePipe:
             .decodeParser(data)
             .getOrElse(new BlockDetail),
         )
+
       case PubCase.TxDetailPub(_, _, _) =>
         PubCase.TxDetailPub(
           pub_m1 = data,
@@ -70,6 +73,15 @@ object PupCasePipe:
             .decodeParser(data)
             .getOrElse(new TxDetail),
         )
+
+      case PubCase.NftDetailPub(_, _, _) =>
+        PubCase.NftDetailPub(
+          pub_m1 = data,
+          pub_m2 = NftDetailParser
+            .decodeParser(data)
+            .getOrElse(new NftDetail),
+        )
+
       case PubCase.AccountDetailPub(_, _, _) =>
         PubCase.AccountDetailPub(
           pub_m1 = data,
@@ -107,6 +119,9 @@ object PupCasePipe:
 
       case PubCase.TxDetailPub(hash, _, _) =>
         s"$base/tx/$hash/detail"
+
+      case PubCase.NftDetailPub(hash, _, _) =>
+        s"$base/nft/$hash/detail"
 
       case PubCase.AccountDetailPub(hash, _, _) =>
         s"$base/account/$hash/detail"

@@ -136,28 +136,26 @@ object gen:
                 case "NFT" =>
                   onClick(
                     PageMsg.PreUpdate(
-                      PageCase.AccountDetail(
+                      PageCase.NftDetail(
                         name = PageCase.AccountDetail().name,
                         url = s"nft/${plainStr(value)}",
                         pubs = List(
                           // PubCase.BoardPub(1, "", SummaryModel()),
                           // PubCase.AccountDetailPub(hash = plainStr(hash)),
-                          PubCase.TxPub(
-                            page = 1,
-                            // accountAddr = plainStr(hash),
-                            sizePerRequest = 10,
+                          PubCase.NftDetailPub(
+                            hash = plainStr(value),
                           ),
+
+                          // // TODO:: nft detail 에 대한 tx 값이 따로 오도록 해야할듯 .. backend 수정 .. (account, block 에 따른 값은 처리된 상태 but nft 처리되지 않음)
+                          // PubCase.TxPub(
+                          //   page = 1,
+                          //   accountAddr = plainStr(value),
+                          //   sizePerRequest = 10,
+                          // ),
                         ),
                       ),
                     ),
                   )
-                //   onClick(
-                //     PageMsg.PreUpdate(
-                //       PageName.NftDetail(
-                //         plainStr(value),
-                //       ),
-                //     ),
-                //   )
                 case _ => EmptyAttribute,
             )(
               plainStr(tokeyType) match

@@ -14,10 +14,11 @@ object DetailTables:
       case PageCase.TxDetail(_, _, _, _) =>
         TxDetailTable.view(model)
 
+      case PageCase.NftDetail(_, _, _, _) =>
+        NftDetailTable.view(model)
+
       case PageCase.AccountDetail(_, _, _, _) =>
         AccountDetailTable.view(model)
-      //   case PageName.NftDetail(_) =>
-      //     NftDetailTable.view(model)
 
       case _ =>
         div(`class` := "row")(
