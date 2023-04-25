@@ -188,9 +188,14 @@ object gen:
                 Dom.yyyy_mm_dd_time(plainLong(data).toInt),
               ),
             )(
-              Dom.timeAgo(
-                plainLong(data).toInt,
-              ),
+              {
+                val age = Dom.timeAgo(
+                  plainLong(data).toInt,
+                )
+                age match
+                  case x if x.contains("53") => "-"
+                  case _                     => age
+              },
             ),
           )
 
@@ -198,9 +203,15 @@ object gen:
           div(`class` := s"$css")(
             span(
             )(
-              Dom.yyyy_mm_dd_time(
-                plainLong(data).toInt,
-              ) + " +UTC",
+              {
+                val date = Dom.yyyy_mm_dd_time(
+                  plainLong(data).toInt,
+                ) + " +UTC"
+                date match
+                  case x if x.contains("1970") => "-"
+                  case _                       => date
+
+              },
             ),
           )
 
