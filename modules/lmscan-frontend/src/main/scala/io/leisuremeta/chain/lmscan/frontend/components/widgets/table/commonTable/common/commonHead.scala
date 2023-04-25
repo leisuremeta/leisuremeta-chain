@@ -24,15 +24,15 @@ object Head:
     ),
   )
 
-//   val nft = div(`class` := "row table-head")(
-//     gen.cell(
-//       Cell.Head("Tx Hash"),
-//       Cell.Head("Timestamp"),
-//       Cell.Head("Action"),
-//       Cell.Head("From"),
-//       Cell.Head("To"),
-//     ),
-//   )
+  val nft = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head("Tx Hash"),
+      Cell.Head("Timestamp"),
+      Cell.Head("Action"),
+      Cell.Head("From"),
+      Cell.Head("To"),
+    ),
+  )
 
   val tx = div(`class` := "row table-head")(
     gen.cell(

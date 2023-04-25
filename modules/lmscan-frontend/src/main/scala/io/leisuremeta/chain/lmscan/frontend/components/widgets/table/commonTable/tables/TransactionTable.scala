@@ -67,12 +67,20 @@ object TransactionTable:
           ),
         )
 
-      //   case PageName.NftDetail(_) =>
-      //     div(`class` := "table-container")(
-      //       Table.nftDetail_txtable(model),
-      //       // Search.search_tx(model),
-      //     )
+      case PageCase.NftDetail(_, _, _, _) =>
+        div(`class` := "table-container  position-relative y-center  ")(
+          div(`class` := "m-10px w-[100%] ")(
+            div(`class` := "  ")(
+              Table.nftDetail_txtable(model),
 
+              // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
+              // Search.search_tx(model),
+            ),
+            current_ViewCase(model).txInfo(0) != new TxInfo match
+              case false => LoaderView.view(model)
+              case _     => div(`class` := "")(),
+          ),
+        )
       case _ => div()
       // div(`class` := "table-container")(
       //   Table.blockDetail_txtable(model),

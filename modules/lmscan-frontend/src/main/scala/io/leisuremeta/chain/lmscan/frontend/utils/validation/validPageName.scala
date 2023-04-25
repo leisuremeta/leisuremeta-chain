@@ -53,6 +53,19 @@ object ValidPageName:
                 ),
               ),
             )
+          case 42 =>
+            PageCase.AccountDetail(
+              name = PageCase.AccountDetail().name,
+              url = s"account/${search}",
+              pubs = List(
+                PubCase.AccountDetailPub(hash = search),
+                PubCase.TxPub(
+                  page = 1,
+                  accountAddr = search,
+                  sizePerRequest = 10,
+                ),
+              ),
+            )
           case 25 =>
             PageCase.Blocks(
               url = s"blocks/${search}",

@@ -96,6 +96,21 @@ object Table:
         ),
       ),
     )
+  def nftDetail_txtable = (model: Model) =>
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.nft :: Body.nft(
+          {
+            // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
+            new TxInfo == current_ViewCase(model).txInfo(0) match
+              case true =>
+                find_ViewCase(model.pointer - 1)(model).nftInfo
+              case _ =>
+                current_ViewCase(model).nftInfo
+          },
+        ),
+      ),
+    )
     //   Head.tx :: Body.blockDetail_txtable(
     //     // getPubData(model).blockDetail.txs.getOrElse(new BlockDetail),
 

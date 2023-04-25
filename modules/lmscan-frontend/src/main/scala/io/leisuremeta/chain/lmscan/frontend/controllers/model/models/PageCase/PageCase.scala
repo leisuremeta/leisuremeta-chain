@@ -53,6 +53,15 @@ enum PageCase:
       status: Boolean = false,
   ) extends PageCase
 
+  case NftDetail(
+      name: String = "Transactions",
+      url: String = "nft/hash...",
+      pubs: List[PubCase] = List(
+        PubCase.TxDetailPub(),
+      ),
+      status: Boolean = false,
+  ) extends PageCase
+
   case AccountDetail(
       name: String = "Transactions",
       url: String = "account/hash...",

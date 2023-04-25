@@ -118,21 +118,21 @@ object Body:
         ),
       )
 
-//   def nft = (payload: List[NftActivity]) =>
-//     payload
-//       .map(v =>
-//         div(
-//           `class` := "row table-body",
-//         )(
-//           gen.cell(
-//             Cell.TX_HASH(v.txHash),
-//             Cell.AGE(v.createdAt),
-//             Cell.PlainStr(v.action),
-//             Cell.ACCOUNT_HASH(v.fromAddr),
-//             Cell.ACCOUNT_HASH(v.toAddr),
-//           ),
-//         ),
-//       )
+  def nft = (payload: List[NftActivity]) =>
+    payload
+      .map(v =>
+        div(
+          `class` := "row table-body",
+        )(
+          gen.cell(
+            Cell.TX_HASH(v.txHash),
+            Cell.AGE(v.createdAt),
+            Cell.PlainStr(v.action),
+            Cell.ACCOUNT_HASH(v.fromAddr),
+            Cell.ACCOUNT_HASH(v.toAddr),
+          ),
+        ),
+      )
   def blockDetail_txtable = (payload: List[TxInfo]) =>
     payload
       .map(v =>

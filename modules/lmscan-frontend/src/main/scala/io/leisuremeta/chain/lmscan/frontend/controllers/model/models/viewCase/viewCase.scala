@@ -5,6 +5,7 @@ import io.leisuremeta.chain.lmscan.common.model.*
 case class ViewCase(
     var blockInfo: List[BlockInfo] = List(new BlockInfo),
     var txInfo: List[TxInfo] = List(new TxInfo),
+    var nftInfo: List[NftActivity] = List(new NftActivity),
 );
 
 case class PageResponseViewCase(

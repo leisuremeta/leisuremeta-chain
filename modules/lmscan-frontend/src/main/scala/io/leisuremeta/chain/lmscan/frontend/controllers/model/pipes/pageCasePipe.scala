@@ -13,6 +13,7 @@ object PageCasePipe:
       case PageCase.TxDetail(name, _, _, _)      => name
       case PageCase.AccountDetail(name, _, _, _) => name
       case PageCase.Observer(name, _, _, _)      => name
+      case PageCase.NftDetail(name, _, _, _)     => name
       case PageCase.NoPage(name, _, _, _)        => name
 
   def in_url(pageCase: PageCase) =
@@ -24,6 +25,7 @@ object PageCasePipe:
       case PageCase.TxDetail(_, url, _, _)      => url
       case PageCase.AccountDetail(_, url, _, _) => url
       case PageCase.Observer(_, url, _, _)      => url
+      case PageCase.NftDetail(_, url, _, _)     => url
       case PageCase.NoPage(_, url, _, _)        => url
 
   def in_PubCases(pageCase: PageCase) =
@@ -35,6 +37,7 @@ object PageCasePipe:
       case PageCase.TxDetail(_, _, pubs, _)      => pubs
       case PageCase.AccountDetail(_, _, pubs, _) => pubs
       case PageCase.Observer(_, _, pubs, _)      => pubs
+      case PageCase.NftDetail(_, _, pubs, _)     => pubs
       case PageCase.NoPage(_, _, pubs, _)        => pubs
 
   // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
@@ -114,6 +117,8 @@ object PageCasePipe:
       case pageCase: PageCase.AccountDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
       case pageCase: PageCase.Observer =>
+        pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
+      case pageCase: PageCase.NftDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
       case pageCase: PageCase.NoPage =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))

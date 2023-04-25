@@ -132,16 +132,33 @@ object gen:
                   )(plainStr(inout))
             },
             span(
-              //   plainStr(tokeyType) match
-              //     case "NFT" =>
-              //     //   onClick(
-              //     //     PageMsg.PreUpdate(
-              //     //       PageName.NftDetail(
-              //     //         plainStr(value),
-              //     //       ),
-              //     //     ),
-              //     //   )
-              //     case _ => EmptyAttribute,
+              plainStr(tokeyType) match
+                case "NFT" =>
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageCase.AccountDetail(
+                        name = PageCase.AccountDetail().name,
+                        url = s"nft/${plainStr(value)}",
+                        pubs = List(
+                          // PubCase.BoardPub(1, "", SummaryModel()),
+                          // PubCase.AccountDetailPub(hash = plainStr(hash)),
+                          PubCase.TxPub(
+                            page = 1,
+                            // accountAddr = plainStr(hash),
+                            sizePerRequest = 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                //   onClick(
+                //     PageMsg.PreUpdate(
+                //       PageName.NftDetail(
+                //         plainStr(value),
+                //       ),
+                //     ),
+                //   )
+                case _ => EmptyAttribute,
             )(
               plainStr(tokeyType) match
                 case "NFT" =>
@@ -193,8 +210,8 @@ object gen:
                   plainLong(data).toInt,
                 )
                 age match
-                  case x if x.contains("53") => "-"
-                  case _                     => age
+                  case x if x.contains("53 years") => "-"
+                  case _                           => age
               },
             ),
           )
