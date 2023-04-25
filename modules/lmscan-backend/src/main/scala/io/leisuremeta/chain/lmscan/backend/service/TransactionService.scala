@@ -121,7 +121,6 @@ object TransactionService:
 
   def convertToInfoForAccount(txs: Seq[Tx], address: String): Seq[TxInfo] =
     txs.map { tx =>
-      scribe.info("111")
       val latestOutValOpt = tx.outputVals match
         // case Some(seq) => seq.map(_.split("/")).headOption.map(_(1))
         case Some(seq) =>
