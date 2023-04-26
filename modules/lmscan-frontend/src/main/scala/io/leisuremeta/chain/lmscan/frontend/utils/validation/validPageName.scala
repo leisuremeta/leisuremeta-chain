@@ -6,8 +6,12 @@ import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object ValidPageName:
-  def getPageFromString(search: String): PageCase =
+  def getPageFromString(search: String): PageCase | CommandCase =
     search match
+      case ":development" => CommandCase.Development
+      case ":d"           => CommandCase.Development
+      case ":production"  => CommandCase.Production
+      case ":p"           => CommandCase.Production
       case _ =>
         search.length() match
           case 40 =>

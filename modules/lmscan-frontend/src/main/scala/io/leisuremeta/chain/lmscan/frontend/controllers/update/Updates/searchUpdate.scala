@@ -14,6 +14,14 @@ object SearchUpdate:
       (
         model.copy(searchValue = ""),
         Cmd.emit(
-          PageMsg.PreUpdate(ValidPageName.getPageFromString(model.searchValue)),
+          ValidPageName.getPageFromString(model.searchValue) match
+            case pagecase: PageCase =>
+              PageMsg.PreUpdate(
+                pagecase,
+              )
+            case commandcase: CommandCase =>
+              CommandMsg.OnClick(
+                commandcase,
+              ),
         ),
       )

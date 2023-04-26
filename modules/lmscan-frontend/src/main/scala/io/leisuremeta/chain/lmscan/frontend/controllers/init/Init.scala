@@ -28,6 +28,7 @@ object Init:
         searchValue = "",
         toggle = false,
         temp = "",
+        command = CommandCase.Production,
       ),
       Cmd.Emit(PageMsg.PreUpdate(pageCase)),
     )

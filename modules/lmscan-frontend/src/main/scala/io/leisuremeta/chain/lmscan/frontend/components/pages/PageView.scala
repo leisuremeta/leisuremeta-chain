@@ -63,7 +63,12 @@ object PageView:
   def view(model: Model): Html[Msg] =
     div(id := "page", `class` := "")(
       div()(
-        div(`class` := "x")(SearchView.view(model), Toggle.view(model)), {
+        div(`class` := "x")(
+          SearchView.view(model),
+          model.command match
+            case CommandCase.Development => Toggle.view(model)
+            case CommandCase.Production  => div(),
+        ), {
           model.toggle match
             case true  => div(`class` := "pb-32px")(JsonPages.render(model))
             case false => div(`class` := "pb-32px")(Pages.render(model))
