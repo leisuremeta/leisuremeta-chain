@@ -87,7 +87,7 @@
     transform: translateX(20px);
   }
   
-  @media screen and (max-width: 800px) {
+@media screen and (max-width: 800px) {
     .toggle-area {
         display: none !important;
     }
