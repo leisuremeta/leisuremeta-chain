@@ -21,14 +21,14 @@ object NavView:
       div(id := "title", onClick(PageMsg.PreUpdate(PageCase.Blocks())))(
         span(id := "head")(img(id := "head-logo")),
       ),
-      div(
-        id := "buttons",
-      )(
-        button(
-          `class` := s"${PageCase.Observer().name == find_name(model)}",
-          onClick(PageMsg.PreUpdate(PageCase.Observer())),
-        )(span()(PageCase.Observer().name)),
-      ),
+      // div(
+      //   id := "buttons",
+      // )(
+      //   button(
+      //     `class` := s"${PageCase.Observer().name == find_name(model)}",
+      //     onClick(PageMsg.PreUpdate(PageCase.Observer())),
+      //   )(span()(PageCase.Observer().name)),
+      // ),
       div(
         id := "buttons",
       )(
