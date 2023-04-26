@@ -28,6 +28,12 @@ object ModelPipe:
       .pipe(in_appStates)
       .pipe(find_PageCase(model.pointer))
 
+  def find_current_Pub_m1s(model: Model) =
+    model
+      .pipe(find_current_PageCase)
+      .pipe(in_PubCases)
+      .pipe(pubs => pubs.map(in_pub_m1))
+
   def find_prev_PageCase(model: Model) =
     model
       .pipe(in_appStates)

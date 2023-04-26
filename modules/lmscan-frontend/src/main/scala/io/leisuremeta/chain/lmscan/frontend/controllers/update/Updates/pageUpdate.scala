@@ -99,8 +99,6 @@ object PageUpdate:
       )
 
     case PageMsg.DataUpdate(pub: PubCase) =>
-      log("pub")
-      log(pub)
       (
         model.copy(
           appStates = model
