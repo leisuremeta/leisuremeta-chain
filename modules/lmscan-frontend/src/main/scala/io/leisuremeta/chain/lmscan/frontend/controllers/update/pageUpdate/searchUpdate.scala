@@ -14,6 +14,6 @@ object SearchUpdate:
       (
         model.copy(searchValue = ""),
         Cmd.emit(
-          PageMsg.PreUpdate(ValidPageName.getPageString(model.searchValue)),
+          PageMsg.PreUpdate(ValidPageName.getPageFromString(model.searchValue)),
         ),
       )

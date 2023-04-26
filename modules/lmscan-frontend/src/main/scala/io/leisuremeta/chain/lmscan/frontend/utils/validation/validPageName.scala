@@ -6,7 +6,7 @@ import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 object ValidPageName:
-  def getPageString(search: String): PageCase =
+  def getPageFromString(search: String): PageCase =
     search match
       case _ =>
         search.length() match
@@ -110,6 +110,21 @@ object ValidPageName:
           name = PageCase.Transactions().name,
           url = s"transaction/${hash}",
           pubs = List(PubCase.TxDetailPub(hash = hash)),
+        )
+      case s"/block/${hash}" if hash.length() == 64 =>
+        PageCase.BlockDetail(
+          name = PageCase.Blocks().name,
+          url = s"block/${hash}",
+          pubs = List(
+            PubCase.BlockDetailPub(
+              hash = hash,
+            ),
+            PubCase.TxPub(
+              page = 1,
+              blockHash = hash,
+              sizePerRequest = 10,
+            ),
+          ),
         )
 
       case s"/nft/${hash}" if hash.length() == 25 =>

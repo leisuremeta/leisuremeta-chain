@@ -51,12 +51,3 @@ object Title:
         },
       ),
     )
-
-  // def nft = (model: Model) =>
-  //   div(
-  //     `class` := s"table-title ",
-  //   )(
-  //     div(
-  //       `class` := s"type-1",
-  //     )(span()("Item Activity")),
-  //   )
