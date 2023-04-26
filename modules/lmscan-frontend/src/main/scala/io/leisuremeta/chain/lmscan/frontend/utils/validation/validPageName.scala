@@ -142,15 +142,4 @@ object ValidPageName:
           pubs = List(PubCase.TxDetailPub(hash = hash)),
         )
 
-      // case s"/dashboard"            => PageName.DashBoard
-      // case s"/blocks"               => PageName.Blocks(1)
-      // case s"/blocks/${page}"       => PageName.Blocks(page.toInt)
-      // case s"/transactions"         => PageName.Transactions(1)
-      // case s"/transactions/${page}" => PageName.Transactions(page.toInt)
-      // case s"/block/${hash}"        => PageName.BlockDetail(hash)
-      // case s"/tx/${hash}"           => PageName.TransactionDetail(hash)
-      // case s"/transaction/${hash}"  => PageName.TransactionDetail(hash)
-      // case s"/account/${hash}"      => PageName.AccountDetail(hash)
-      // case s"/nft/${hash}"          => PageName.NftDetail(hash)
-
       case _ => PageCase.DashBoard()

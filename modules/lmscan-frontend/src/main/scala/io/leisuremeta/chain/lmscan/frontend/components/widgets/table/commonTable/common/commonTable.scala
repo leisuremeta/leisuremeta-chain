@@ -98,25 +98,19 @@ object Table:
       ),
     )
 
-    //     val data: NftDetail = NftDetailParser
-    //   .decodeParser(model.nftDetailData.get)
-    //   .getOrElse(new NftDetail)
-    // getOptionValue(data.activities, List()).asInstanceOf[List[NftActivity]]
-
   def nftDetail_txtable = (model: Model) =>
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
         Head.nft :: Body.nft(
           {
-
-            // Head.nft :: Body.nft(DataProcess.nft(model)),
-
+            val nftList = get_PageResponseViewCase(model).nftDetail.activities
+              .getOrElse(List(new NftActivity))
+              .toList
             // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
-            new NftActivity == current_ViewCase(model).nftInfo(0) match
-              case true =>
-                find_ViewCase(model.pointer - 1)(model).nftInfo
-              case _ =>
-                current_ViewCase(model).nftInfo
+            List(new NftActivity)(0) == nftList(0) match
+              // TODO :: 처리
+              case true => nftList
+              case _    => nftList
           },
         ),
       ),

@@ -76,7 +76,11 @@ object TransactionTable:
               // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
               // Search.search_tx(model),
             ),
-            current_ViewCase(model).txInfo(0) != new TxInfo match
+            List(new NftActivity)(0) != get_PageResponseViewCase(
+              model,
+            ).nftDetail.activities
+              .getOrElse(List(new NftActivity))
+              .toList(0) match
               case false => LoaderView.view(model)
               case _     => div(`class` := "")(),
           ),

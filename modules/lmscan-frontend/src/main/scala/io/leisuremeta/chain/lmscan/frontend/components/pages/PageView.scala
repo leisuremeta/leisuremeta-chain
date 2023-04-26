@@ -44,7 +44,7 @@ object Pages:
       case PageCase.NftDetail(_, _, _, _) =>
         div()(
           // ObserverView.view(model),
-          AccountView.view(model),
+          NftView.view(model),
         )
       case PageCase.NoPage(_, _, _, _) =>
         NoPageView.view(model)
