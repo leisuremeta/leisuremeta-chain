@@ -14,7 +14,10 @@ object SearchView:
             "block hash, tx hash, account ... "
           ),
         ),
-        div(`class` := "search-icon xy-center material-symbols-outlined")(
+        div(
+          onClick(InputMsg.Patch),
+          `class` := "search-icon xy-center material-symbols-outlined",
+        )(
           "search",
         ),
       ),
