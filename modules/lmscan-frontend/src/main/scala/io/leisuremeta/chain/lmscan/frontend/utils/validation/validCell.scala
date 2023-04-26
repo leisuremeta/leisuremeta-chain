@@ -77,21 +77,27 @@ object gen:
             `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
           )(
             span(
-              //   plainStr(tokeyType) match
-              //     case "NFT" =>
-              //       onClick(
-              //         PageMsg.PreUpdate(
-              //           PageName.NftDetail(
-              //             plainStr(value),
-              //           ),
-              //         ),
-              //       )
-              //     case _ => EmptyAttribute,
+              plainStr(tokeyType) match
+                case "NFT" =>
+                  onClick(
+                    PageMsg.PreUpdate(
+                      PageCase.NftDetail(
+                        name = PageCase.AccountDetail().name,
+                        url = s"nft/${plainStr(value)}",
+                        pubs = List(
+                          PubCase.NftDetailPub(
+                            hash = plainStr(value),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                case _ => EmptyAttribute,
             )(
-              //   plainStr(tokeyType) match
-              //     case "NFT" =>
-              //       plainStr(value)
-              //     case _ => txValue(value),
+              plainStr(tokeyType) match
+                case "NFT" =>
+                  plainStr(value)
+                case _ => txValue(value),
             ),
           )
         case Cell.Tx_VALUE2(tokeyType, value, inout) =>
@@ -140,18 +146,9 @@ object gen:
                         name = PageCase.AccountDetail().name,
                         url = s"nft/${plainStr(value)}",
                         pubs = List(
-                          // PubCase.BoardPub(1, "", SummaryModel()),
-                          // PubCase.AccountDetailPub(hash = plainStr(hash)),
                           PubCase.NftDetailPub(
                             hash = plainStr(value),
                           ),
-
-                          // // TODO:: nft detail 에 대한 tx 값이 따로 오도록 해야할듯 .. backend 수정 .. (account, block 에 따른 값은 처리된 상태 but nft 처리되지 않음)
-                          // PubCase.TxPub(
-                          //   page = 1,
-                          //   accountAddr = plainStr(value),
-                          //   sizePerRequest = 10,
-                          // ),
                         ),
                       ),
                     ),
