@@ -4,7 +4,7 @@ package model
 import io.leisuremeta.chain.lib.datatype.BigNat
 
 final case class NodeConfig(
-  blockNumber: BigNat,
+  blockNumber: Option[BigNat],
   oldNodeAddress: String,
   newNodeAddress: Option[String],
 )

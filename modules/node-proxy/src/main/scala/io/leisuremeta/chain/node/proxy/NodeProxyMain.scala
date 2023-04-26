@@ -53,21 +53,15 @@ object NodeProxyMain extends IOApp:
     .use { backend =>
         for 
           blocker        <- Ref.of[F, Boolean](true)
-          nodeConfg      <- NodeWatchService.defaultNodeCfg.flatMap (
+          queue          <- PostTxQueue[F]
+          nodeConfg      <- NodeWatchService.nodeConfig.flatMap (
                               _.fold(Async[F].raiseError[NodeConfig], Async[F].pure))
           blockchainUrls <- Ref.of[F, List[String]](List(nodeConfg.oldNodeAddress))
-          _              <- blockchainUrls.get.flatMap { list =>
-                              list.traverse{ elem =>
-                                Async[F].delay(scribe.info(s"elem : $elem"))
-                              }
-                            }
           internalApiSvc =  InternalApiService[F](backend, blocker, blockchainUrls)
-          // res            <- internalApiSvc.getTxFromOld("11111")
-          // _              <- Async[F].delay(scribe.info("result : " + res))
-          _              <- NodeWatchService.startOnNew(internalApiSvc, blocker, blockchainUrls) 
-          _              <- Async[F].delay(scribe.info(s"2. blockchainUrls : $blockchainUrls"))
-          appResource    <- NodeProxyApp[F](internalApiSvc)
-                                           .resource
+          _              <- NodeWatchService.startOnNew(internalApiSvc, blockchainUrls, blocker, queue) 
+
+          _              <- NodeWatchService.startQueueWatch(queue)
+          appResource    <- NodeProxyApp[F](internalApiSvc).resource
           exitcode       <- appResource.useForever.as(ExitCode.Success)
         yield exitcode
       }

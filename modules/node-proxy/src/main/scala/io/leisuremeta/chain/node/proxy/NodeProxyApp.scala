@@ -151,6 +151,7 @@ final case class NodeProxyApp[F[_]: Async](
 
   def postTxServerEndpoint =
     Api.postTxEndpoint.serverLogic {
+      scribe.info("postTx 생성요청")
       (txs: String) =>
         apiService.postTx(txs).map(Right(_))
     }

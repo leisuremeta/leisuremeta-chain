@@ -40,25 +40,29 @@ import sttp.tapir.stringBody
 import io.leisuremeta.chain.node.proxy.model.TxModel
 import io.circe.generic.auto._
 
+
 object InternalApiService:
   def apply[F[_]: Async](
-    backend: SttpBackend[F, Any],
-    blocker: Ref[F, Boolean],
-    baseUrlsLock: Ref[F, List[String]]
+    backend:      SttpBackend[F, Any],
+    blocker:      Ref[F, Boolean],
+    baseUrlsLock: Ref[F, List[String]],
   ): InternalApiService[F] =
     // Async[F].delay(new InternalApiService[F](backend, blocker, baseUrlsLock))
-    new InternalApiService[F](backend, blocker, baseUrlsLock)
+    new InternalApiService[F](backend, blocker, baseUrlsLock, None)
 
 class InternalApiService[F[_]: Async](
   backend:      SttpBackend[F, Any],
   blocker:      Ref[F, Boolean],
-  baseUrlsLock: Ref[F, List[String]]
+  baseUrlsLock: Ref[F, List[String]],
+  var queue:    Option[PostTxQueue[F]]
 ):
   // val baseUrl = "http://lmc.leisuremeta.io"
   // val baseUrl = "http://test.chain.leisuremeta.io"
   
   // def backend[F[_]: Async]: SttpBackend[F, Any] = 
   //   ArmeriaCatsBackend.usingClient[F](webClient(SttpBackendOptions.Default))
+  def injectQueue(postQueue: PostTxQueue[F]) = 
+    queue = Some(postQueue)
   
   def getAsString(
     uri: Uri 
@@ -71,7 +75,7 @@ class InternalApiService[F[_]: Async](
         .send(backend)
         .map(_.body)
     } yield 
-      scribe.info(s"getAsString result: $result")
+      // scribe.info(s"getAsString result: $result")
       result
 
   def getAsResponse(
@@ -84,7 +88,6 @@ class InternalApiService[F[_]: Async](
         .get(uri)
         .send(backend)
     } yield 
-      scribe.info(s"getAsString result: $result")
       result
 
   def getTxAsResponse[A: io.circe.Decoder](
@@ -98,17 +101,11 @@ class InternalApiService[F[_]: Async](
         .map { response =>
           for 
             body <- response.body
-            _    <- Either.right(scribe.info(s"zzzz- $body"))
             a    <- decode[A](body).leftMap(_.getMessage())
-            // a <- decode[A](body).leftMap { error =>
-            //   val errorMessage = s"Decoding failed with error: $error"
-            //   scribe.error(errorMessage)
-            //   errorMessage
-            // }
           yield a
         }
     } yield 
-      scribe.info(s"getAsString result: $result")
+      // scribe.info(s"getAsString result: $result")
       result
 
   def postAsString(
@@ -137,56 +134,7 @@ class InternalApiService[F[_]: Async](
         .contentType(MediaType.ApplicationJson)
         .body(body)
         .send(backend)
-        // .map(_.body)
     yield result
-
-  /*
-  def get[F[_]: Async, A: io.circe.Decoder](
-    uri: Uri /*, backend: SttpBackend[F, Any] */
-  ): F[Option[A]] = 
-    basicRequest
-      .response(asStringAlways)
-      .get(uri)
-      .send(backend)
-      .map { response =>
-        if response.code.isSuccess then
-          decode[A](response.body) match
-            case Right(value) => Some(value)
-            case Left(error) =>
-              scribe.error(s"data is not found: ${response.body}")
-              None
-        else if response.code.code == StatusCode.NotFound.code then
-          scribe.info(s"data is not found: ${response.body}")
-          None
-        else 
-          scribe.error(s"Error getting data: ${response.body}")
-          None
-      }
-
-  def getAsEither[F[_]: Async, A: io.circe.Decoder](
-    uri: Uri /*, backend: SttpBackend[F, Any] */
-  ): F[Either[String, A]] = 
-    basicRequest
-      .response(asStringAlways)
-      .get(uri)
-      .send(backend)
-      .map { response =>
-        if response.code.isSuccess then
-          decode[A](response.body) match
-            case Right(value) => Right(value)
-            case Left(error) =>
-              scribe.error(s"data is not found: ${response.body}")
-              Left(response.body)
-        else if response.code.code == StatusCode.NotFound.code then
-          scribe.info(s"data is not found: ${response.body}")
-          Left(response.body)
-        else 
-          scribe.error(s"Error getting data: ${response.body}")
-          Left(response.statusText)
-      }
-  */
-  
-  
 
   def getBlock(
     blockHash: String,
@@ -196,7 +144,6 @@ class InternalApiService[F[_]: Async](
         getAsString(uri"$baseUrl/block/$blockHash")
       }
     }.map(_.head)
-
 
   def getAccount(
     account: Account
@@ -310,8 +257,6 @@ class InternalApiService[F[_]: Async](
         getAsString(uri"$baseUrl/activity/token/$tokenId")
       }
     }.map(_.head)
-      
-    
 
   def getAccountSnapshot(
     account: Account
@@ -388,25 +333,9 @@ class InternalApiService[F[_]: Async](
   def getTxFromOld(
     txHash: String,
   ): F[Either[String, TxModel]] =
-    println("333333")
-    // baseUrlsLock.get.flatMap { list =>
-    //   Async[F].delay(scribe.info(s"zzzzz")) *>
-    //   list.traverse{ elem =>
-    //     Async[F].delay(scribe.info(s"2 - elem : $elem"))
-    //   }
-    // }
-
     baseUrlsLock.get.map(_.head).flatMap { baseUrl =>
       getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
     }
-
-    // baseUrlsLock.get.map{lock =>
-    //   scribe.info(s"lock: $lock")
-    //   lock.head
-    // }.flatMap { baseUrl =>
-    //   scribe.info(s"baseUrl: $baseUrl")
-    //   getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
-    // }
 
   def getTxSet(
     txHash: String,
@@ -420,6 +349,9 @@ class InternalApiService[F[_]: Async](
   def postTx(
     txs: String,
   ): F[String] =
+    // if queue.isDefined
+    //   queue.get.push(txs)
+    queue.map (q => q.push(txs))
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         postAsString(
