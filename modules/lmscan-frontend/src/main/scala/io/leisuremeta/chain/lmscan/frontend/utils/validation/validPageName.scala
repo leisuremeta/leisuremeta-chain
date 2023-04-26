@@ -109,35 +109,54 @@ object ValidPageName:
     url match
       case s"/dashboard" => PageCase.DashBoard()
       case s"/blocks"    => PageCase.Blocks()
-      case s"/blocks/${page}" =>
+      case s"/blocks/${page}" if page.toInt < 50000 =>
         PageCase.Blocks(
           url = s"blocks/${page}",
           pubs = List(PubCase.BlockPub(page = page.toInt)),
         )
       case s"/transactions" => PageCase.Transactions()
-      case s"/transactions/${page}" =>
+      case s"/transactions/${page}" if page.toInt < 50000 =>
         PageCase.Transactions(
           url = s"transactions/${page}",
           pubs = List(PubCase.TxPub(page = page.toInt)),
         )
       case s"/txs" => PageCase.Transactions()
-      case s"/txs/${page}" =>
+      case s"/txs/${page}" if page.toInt < 50000 =>
         PageCase.Transactions(
           url = s"transactions/${page}",
           pubs = List(PubCase.TxPub(page = page.toInt)),
         )
 
-      case s"/transaction/${hash}" =>
+      case s"/transaction/${hash}" if hash.length() == 64 =>
         PageCase.TxDetail(
           name = PageCase.Transactions().name,
           url = s"transaction/${hash}",
           pubs = List(PubCase.TxDetailPub(hash = hash)),
         )
-      case s"/tx/${hash}" =>
+      case s"/tx/${hash}" if hash.length() == 64 =>
         PageCase.TxDetail(
           name = PageCase.Transactions().name,
           url = s"transaction/${hash}",
           pubs = List(PubCase.TxDetailPub(hash = hash)),
+        )
+
+      case s"/nft/${hash}" if hash.length() == 25 =>
+        PageCase.NftDetail(
+          url = s"nft/${hash}",
+          pubs = List(PubCase.NftDetailPub(hash = hash)),
+        )
+      case s"/account/${hash}" =>
+        PageCase.AccountDetail(
+          name = PageCase.AccountDetail().name,
+          url = s"account/${hash}",
+          pubs = List(
+            PubCase.AccountDetailPub(hash = hash),
+            PubCase.TxPub(
+              page = 1,
+              accountAddr = hash,
+              sizePerRequest = 10,
+            ),
+          ),
         )
 
       case _ => PageCase.DashBoard()
