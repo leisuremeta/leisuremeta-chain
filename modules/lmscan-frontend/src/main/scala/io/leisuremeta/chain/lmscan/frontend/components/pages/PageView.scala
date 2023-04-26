@@ -49,13 +49,23 @@ object Pages:
       case PageCase.NoPage(_, _, _, _) =>
         NoPageView.view(model)
 
+object JsonPages:
+  def render(model: Model): Html[Msg] =
+    find_current_PageCase(model) match
+
+      case PageCase.NoPage(_, _, _, _) =>
+        NoPageView.view(model)
+
+      case _ =>
+        JsonView.view(model)
+
 object PageView:
   def view(model: Model): Html[Msg] =
     div(id := "page", `class` := "")(
       div()(
         div(`class` := "x")(SearchView.view(model), Toggle.view(model)), {
           model.toggle match
-            case true  => div()
+            case true  => div(`class` := "pb-32px")(JsonPages.render(model))
             case false => div(`class` := "pb-32px")(Pages.render(model))
         },
       ),
