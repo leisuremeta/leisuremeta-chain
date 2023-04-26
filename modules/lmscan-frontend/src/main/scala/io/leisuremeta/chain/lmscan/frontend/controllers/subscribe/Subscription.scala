@@ -1,10 +1,12 @@
 package io.leisuremeta.chain.lmscan.frontend
 import cats.effect.IO
 import org.scalajs.dom.window
+import org.scalajs.dom
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.PopStateEvent
 import tyrian.*
 import Log.*
+import org.scalajs.dom.MouseEvent
 
 object Subscriptions:
   def subscriptions(model: Model): Sub[IO, Msg] =
@@ -47,24 +49,6 @@ object Subscriptions:
           }
       ,
       Sub.fromEvent("popstate", window) { e =>
-        val state = e.asInstanceOf[PopStateEvent].state
-        log("#state " + state)
-        // Some(PageMsg.PreUpdate(PageCase.NoPage()))
-        // log(model.observerNumber)
-
-        // 1 보다 작을 경우 => 1로 보낸다
-        // val page = state.toString().toIntOption.getOrElse(0) case
-        log("model.observerNumber")
-        log(model.pointer)
         Some(PageMsg.BackObserver)
-        // val page: PageCase = ValidPageName.getPageFromStr(state.toString)
-
-        // // PageMoveMsg.Get(value)
-        // page match
-        //   case PageName.Transactions(page1) =>
-        //     Some(PageMoveMsg.Goto(page))
-        //   case PageName.Blocks(page1) =>
-        //     Some(PageMoveMsg.Goto(page))
-        //   case _ => Some(PageMsg.PreUpdate(page))
       },
     )

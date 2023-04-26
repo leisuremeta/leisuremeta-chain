@@ -26,6 +26,8 @@ object Init:
         ),
         pointer = 1,
         searchValue = "",
+        toggle = false,
+        temp = "",
       ),
       Cmd.Emit(PageMsg.PreUpdate(pageCase)),
     )

@@ -16,3 +16,6 @@ enum PageMsg extends Msg:
 enum InputMsg extends Msg:
   case Get(value: String) extends InputMsg
   case Patch              extends InputMsg
+
+enum ToggleMsg extends Msg:
+  case OnClick(value: Boolean) extends ToggleMsg

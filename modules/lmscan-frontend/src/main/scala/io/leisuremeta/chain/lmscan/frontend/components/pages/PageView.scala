@@ -53,7 +53,10 @@ object PageView:
   def view(model: Model): Html[Msg] =
     div(id := "page", `class` := "")(
       div()(
-        div(`class` := "x")(SearchView.view(model), Toggle.view(model)),
-        div(`class` := "pb-32px")(Pages.render(model)),
+        div(`class` := "x")(SearchView.view(model), Toggle.view(model)), {
+          model.toggle match
+            case true  => div()
+            case false => div(`class` := "pb-32px")(Pages.render(model))
+        },
       ),
     )

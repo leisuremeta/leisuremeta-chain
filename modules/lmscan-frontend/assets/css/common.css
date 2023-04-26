@@ -67,7 +67,11 @@
     display: none;
   }
   
-  input[type="checkbox"]:checked + label {
+  /* input[type="checkbox"]:checked + label {
+    background-color: #00c853;
+  } */
+  
+  input[type="checkbox"].true + label {
     background-color: #00c853;
   }
   
@@ -83,7 +87,7 @@
     transition: all 0.3s ease;
   }
   
-  input[type="checkbox"]:checked + label:before {
+  input[type="checkbox"].true + label:before {
     transform: translateX(20px);
   }
   

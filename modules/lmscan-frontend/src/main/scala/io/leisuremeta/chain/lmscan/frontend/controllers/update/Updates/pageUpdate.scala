@@ -12,10 +12,6 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
-    // #flow1 ::
-    // - Observers 에 새로운 StateCase 를 추가한다
-    // - pointer 를 최신으로 업데이트 한다
-    // => #flow2
     case PageMsg.PreUpdate(page: PageCase) =>
       page match
         case _ =>
