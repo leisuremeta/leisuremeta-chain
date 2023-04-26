@@ -45,6 +45,55 @@
     color: black;
     font-weight: bold;
 }
+
+.toggle-area{
+    position: absolute;
+    right: 30px;
+    padding-top: 30px;
+    color: white;
+}
+
+
+  label {
+    display: inline-block;
+    height: 20px;
+    width: 40px;
+    background-color: #ddd;
+    border-radius: 10px;
+    position: relative;
+  }
+  
+  input[type="checkbox"] {
+    display: none;
+  }
+  
+  input[type="checkbox"]:checked + label {
+    background-color: #00c853;
+  }
+  
+  input[type="checkbox"] + label:before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    top: 2px;
+    left: 2px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+  
+  input[type="checkbox"]:checked + label:before {
+    transform: translateX(20px);
+  }
+  
+  @media screen and (max-width: 800px) {
+    .toggle-area {
+        display: none !important;
+    }
+}
+
+
 .board-area {
     padding: 0;
     /* padding: 25px; */
