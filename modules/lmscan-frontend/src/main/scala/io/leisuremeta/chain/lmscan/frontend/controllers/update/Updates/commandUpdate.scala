@@ -9,14 +9,37 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.find_current_Pub_m1s
 
 object CommandUpdate:
   def update(model: Model): CommandMsg => (Model, Cmd[IO, Msg]) =
-    case CommandMsg.OnClick(msg: CommandCase) =>
+    case CommandMsg.OnClick(msg) =>
       log((find_current_Pub_m1s(model) ::: List("")).filter(d => d != ""))
-      (
-        model.copy(
-          command = msg,
-          toggle = msg match
-            case CommandCase.Development => true
-            case CommandCase.Production  => false,
-        ),
-        Cmd.None,
-      )
+      msg match
+        case m: CommandCaseMode =>
+          (
+            model.copy(
+              commandMode = m,
+              toggle = msg match
+                case CommandCaseMode.Development => true
+                case CommandCaseMode.Production  => false
+                case _                           => model.toggle,
+              //   commandLink =
+            ),
+            Cmd.None,
+          )
+        case m: CommandCaseLink =>
+          (
+            model.copy(
+              commandLink = m,
+              commandMode = msg match
+                case CommandCaseLink.Development => CommandCaseMode.Development
+                case CommandCaseLink.Production  => CommandCaseMode.Production
+                case _                           => model.commandMode
+              ,
+              toggle = msg match
+                case CommandCaseLink.Development => true
+                case CommandCaseLink.Production  => false
+                case _                           => model.toggle,
+              //   commandLink =
+            ),
+            Cmd.emit(
+              PageMsg.PreUpdate(PageCase.DashBoard()),
+            ),
+          )

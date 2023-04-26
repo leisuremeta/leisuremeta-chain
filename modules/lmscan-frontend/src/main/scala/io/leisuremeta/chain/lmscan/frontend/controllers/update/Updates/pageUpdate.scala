@@ -33,6 +33,7 @@ object PageUpdate:
               in_PubCases(page).map(pub =>
                 OnDataProcess.getData(
                   pub,
+                  model,
                 ),
               ),
             ),

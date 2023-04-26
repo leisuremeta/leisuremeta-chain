@@ -58,8 +58,9 @@ object OnDataProcess:
 
   def getData(
       pub: PubCase,
+      model: Model,
   ): Cmd[IO, Msg] =
     Http.send(
-      Request.get(get_api_link(pub)).withTimeout(30.seconds),
+      Request.get(get_api_link(pub, model)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(pub),
     )

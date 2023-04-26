@@ -7,5 +7,6 @@ final case class Model(
     searchValue: String,
     toggle: Boolean,
     temp: String,
-    command: CommandCase = CommandCase.Production,
+    commandMode: CommandCaseMode = CommandCaseMode.Production,
+    commandLink: CommandCaseLink = CommandCaseLink.Production,
 )

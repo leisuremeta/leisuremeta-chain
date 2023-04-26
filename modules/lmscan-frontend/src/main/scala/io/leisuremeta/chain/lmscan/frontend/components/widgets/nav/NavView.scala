@@ -18,7 +18,7 @@ object NavView:
 
   def view(model: Model): Html[Msg] =
     nav(`class` := "")(
-      div(id := "title", onClick(PageMsg.PreUpdate(PageCase.Blocks())))(
+      div(id := "title", onClick(PageMsg.PreUpdate(PageCase.DashBoard())))(
         span(id := "head")(img(id := "head-logo")),
       ),
       // div(

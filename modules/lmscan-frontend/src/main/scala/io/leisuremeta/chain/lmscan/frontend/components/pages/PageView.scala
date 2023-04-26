@@ -65,9 +65,9 @@ object PageView:
       div()(
         div(`class` := "x")(
           SearchView.view(model),
-          model.command match
-            case CommandCase.Development => Toggle.view(model)
-            case CommandCase.Production  => div(),
+          model.commandMode match
+            case CommandCaseMode.Development => Toggle.view(model)
+            case CommandCaseMode.Production  => div(),
         ), {
           model.toggle match
             case true  => div(`class` := "pb-32px")(JsonPages.render(model))

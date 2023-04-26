@@ -90,9 +90,14 @@ object PupCasePipe:
             .getOrElse(new AccountDetail),
         )
 
-  def get_api_link(pub: PubCase) =
+  def get_api_link(pub: PubCase, model: Model) =
     // var base = js.Dynamic.global.process.env.BASE_API_URL_DEV
-    var base = js.Dynamic.global.process.env.BASE_API_URL
+    var base =
+      model.commandLink match
+        case CommandCaseLink.Development =>
+          js.Dynamic.global.process.env.BASE_API_URL_DEV
+        case CommandCaseLink.Production =>
+          js.Dynamic.global.process.env.BASE_API_URL_PROD
 
     pub match
 

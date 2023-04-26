@@ -19,7 +19,11 @@ object SearchUpdate:
               PageMsg.PreUpdate(
                 pagecase,
               )
-            case commandcase: CommandCase =>
+            case commandcase: CommandCaseMode =>
+              CommandMsg.OnClick(
+                commandcase,
+              )
+            case commandcase: CommandCaseLink =>
               CommandMsg.OnClick(
                 commandcase,
               ),
