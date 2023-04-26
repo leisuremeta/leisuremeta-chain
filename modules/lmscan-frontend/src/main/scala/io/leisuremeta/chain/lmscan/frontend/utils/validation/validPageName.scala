@@ -36,8 +36,6 @@ object ValidPageName:
 
   def getPageString(search: String): PageCase =
     search match
-      // case "playnomm"    => PageName.AccountDetail(search.toString())
-      // case "eth-gateway" => PageName.AccountDetail(search.toString())
       case _ =>
         search.length() match
           case 40 =>
@@ -67,9 +65,9 @@ object ValidPageName:
               ),
             )
           case 25 =>
-            PageCase.Blocks(
-              url = s"blocks/${search}",
-              pubs = List(PubCase.BlockPub(page = search.toInt)),
+            PageCase.NftDetail(
+              url = s"nft/${search}",
+              pubs = List(PubCase.NftDetailPub(hash = search)),
             )
           case 64 =>
             PageCase.TxDetail(
