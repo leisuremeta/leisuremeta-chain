@@ -16,10 +16,10 @@ object CommandUpdate:
           (
             model.copy(
               commandMode = m,
-              toggle = msg match
-                case CommandCaseMode.Development => true
-                case CommandCaseMode.Production  => false
-                case _                           => model.toggle,
+              // toggle = msg match
+              //   case CommandCaseMode.Development => true
+              //   case CommandCaseMode.Production  => false
+              //   case _                           => model.toggle,
               //   commandLink =
             ),
             Cmd.None,
@@ -28,15 +28,15 @@ object CommandUpdate:
           (
             model.copy(
               commandLink = m,
-              commandMode = msg match
-                case CommandCaseLink.Development => CommandCaseMode.Development
-                case CommandCaseLink.Production  => CommandCaseMode.Production
-                case _                           => model.commandMode
-              ,
-              toggle = msg match
-                case CommandCaseLink.Development => true
-                case CommandCaseLink.Production  => false
-                case _                           => model.toggle,
+              // commandMode = msg match
+              //   case CommandCaseLink.Development => CommandCaseMode.Development
+              //   case CommandCaseLink.Production  => CommandCaseMode.Production
+              //   case _                           => model.commandMode,
+              // ,
+              // toggle = msg match
+              //   case CommandCaseLink.Development => true
+              //   case CommandCaseLink.Production  => false
+              //   case _                           => model.toggle,
               //   commandLink =
             ),
             Cmd.emit(

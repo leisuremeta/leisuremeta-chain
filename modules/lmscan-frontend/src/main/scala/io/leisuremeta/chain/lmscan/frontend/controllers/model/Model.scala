@@ -8,5 +8,5 @@ final case class Model(
     toggle: Boolean,
     temp: String,
     commandMode: CommandCaseMode = CommandCaseMode.Production,
-    commandLink: CommandCaseLink = CommandCaseLink.Production,
+    commandLink: CommandCaseLink,
 )
