@@ -31,22 +31,23 @@ object Init:
         searchValue = "",
         toggle = false,
         temp = "",
-        commandLink = window.location.href.contains("scan.leisuremeta.io") match
-          case true => CommandCaseLink.Production
-          case _    => CommandCaseLink.Development,
+        commandLink =
+          window.location.href.contains("https://scan.leisuremeta.io") match
+            case true => CommandCaseLink.Production
+            case _    => CommandCaseLink.Development,
       ),
       Cmd.Batch(
         Cmd.Emit(PageMsg.PreUpdate(pageCase)),
         Cmd.Emit(
           CommandMsg.OnClick(
-            window.location.href.contains("scan.leisuremeta.io") match
+            window.location.href.contains("https://scan.leisuremeta.io") match
               case true => CommandCaseLink.Production
               case _    => CommandCaseLink.Development,
           ),
         ),
         Cmd.Emit(
           CommandMsg.OnClick(
-            window.location.href.contains("scan.leisuremeta.io") match
+            window.location.href.contains("https://scan.leisuremeta.io") match
               case true => CommandCaseMode.Production
               case _    => CommandCaseMode.Development,
           ),
