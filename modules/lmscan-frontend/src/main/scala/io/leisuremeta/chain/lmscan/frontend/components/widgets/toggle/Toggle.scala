@@ -1,6 +1,9 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.current_ViewCase
+import dotty.tools.dotc.reporting.trace.log
+import io.leisuremeta.chain.lmscan.frontend.ModelPipe.get_PageResponseViewCase
 
 object Toggle:
   def view(model: Model): Html[Msg] =
@@ -31,10 +34,16 @@ object Toggle:
         `class` := s"type-2 pt-32px",
       )(
         {
-          span(
-            `class` := s"${model.detail_button}",
-            onClick(DetailButtonMsg.OnClick(model.detail_button)),
-          )("details")
+
+          get_PageResponseViewCase(model).txDetail.txType
+            .getOrElse("") == "Agenda" match // true == is agenda?
+
+            case true =>
+              span(
+                `class` := s"${model.detail_button}",
+                onClick(DetailButtonMsg.OnClick(model.detail_button)),
+              )("details")
+            case false => div()
         },
       ),
     )
