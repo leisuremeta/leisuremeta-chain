@@ -2,6 +2,8 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import cats.instances.seq
 
 object PageCasePipe:
   def in_Name(pageCase: PageCase) =
@@ -54,7 +56,11 @@ object PageCasePipe:
             resulte.blockInfo = pub_m2.payload.toList
 
           case PubCase.TxPub(_, _, _, _, _, pub_m2) =>
-            resulte.txInfo = pub_m2.payload.toList
+            resulte.txInfo =
+              val txInfoList = pub_m2.payload.toList
+              txInfoList.length == 0 match
+                case true  => List(new TxInfo)
+                case false => txInfoList
 
           case _ =>
             "no",

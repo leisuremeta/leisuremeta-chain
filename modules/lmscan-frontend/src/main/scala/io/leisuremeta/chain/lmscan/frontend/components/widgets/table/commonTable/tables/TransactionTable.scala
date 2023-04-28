@@ -62,7 +62,7 @@ object TransactionTable:
               // Search.search_tx(model),
             ),
             current_ViewCase(model).txInfo(0) != new TxInfo match
-              case false => LoaderView.view(model)
+              case false => div(`class` := "")()
               case _     => div(`class` := "")(),
           ),
         )

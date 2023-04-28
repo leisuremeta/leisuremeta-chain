@@ -47,18 +47,22 @@ object Table:
     )
 
   def accountDetail_txtable = (model: Model) =>
+    log(current_ViewCase(model).txInfo)
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
-        Head.tx :: Body.accountDetail_txtable(
-          {
-            // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
-            new TxInfo == current_ViewCase(model).txInfo(0) match
-              case true =>
-                find_ViewCase(model.pointer - 1)(model).txInfo
-              case _ =>
+        new TxInfo == current_ViewCase(model).txInfo(0) match
+          case true => Head.tx :: List(div())
+          case _ =>
+            Head.tx :: Body.accountDetail_txtable(
+              {
+                // // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
+                // new TxInfo == current_ViewCase(model).txInfo(0) match
+                //   case true =>
+                //   find_ViewCase(model.pointer - 1)(model).txInfo
+                // case _ =>
                 current_ViewCase(model).txInfo
-          },
-        ),
+              },
+            ),
       ),
     )
   def dashboard_txtable = (model: Model) =>
