@@ -13,9 +13,7 @@ object Init:
     then window.location.href = window.location.href.replace("http:", "https:")
 
   val path = window.location.pathname
-  log("path")
-  log(window.location.href)
-  log(path)
+
   val pageCase = getPageCaseFromUrl(path)
 
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
@@ -31,6 +29,11 @@ object Init:
         searchValue = "",
         toggle = false,
         temp = "",
+        commandMode =
+          window.location.href.contains("https://scan.leisuremeta.io") match
+            case true => CommandCaseMode.Production
+            case _    => CommandCaseMode.Development
+        ,
         commandLink =
           window.location.href.contains("https://scan.leisuremeta.io") match
             case true => CommandCaseLink.Production
@@ -38,19 +41,5 @@ object Init:
       ),
       Cmd.Batch(
         Cmd.Emit(PageMsg.PreUpdate(pageCase)),
-        Cmd.Emit(
-          CommandMsg.OnClick(
-            window.location.href.contains("https://scan.leisuremeta.io") match
-              case true => CommandCaseLink.Production
-              case _    => CommandCaseLink.Development,
-          ),
-        ),
-        Cmd.Emit(
-          CommandMsg.OnClick(
-            window.location.href.contains("https://scan.leisuremeta.io") match
-              case true => CommandCaseMode.Production
-              case _    => CommandCaseMode.Development,
-          ),
-        ),
       ),
     )
