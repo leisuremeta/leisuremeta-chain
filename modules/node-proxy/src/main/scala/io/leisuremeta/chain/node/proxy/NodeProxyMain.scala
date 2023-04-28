@@ -59,8 +59,7 @@ object NodeProxyMain extends IOApp:
           blockchainUrls <- Ref.of[F, List[String]](List(nodeConfg.oldNodeAddress))
           internalApiSvc =  InternalApiService[F](backend, blocker, blockchainUrls)
           _              <- NodeWatchService.startOnNew(internalApiSvc, blockchainUrls, blocker, queue) 
-
-          _              <- NodeWatchService.startQueueWatch(queue)
+          // _              <- NodeWatchService.startQueueWatch(queue)
           appResource    <- NodeProxyApp[F](internalApiSvc).resource
           exitcode       <- appResource.useForever.as(ExitCode.Success)
         yield exitcode
