@@ -34,7 +34,7 @@ object Toggle:
           span(
             `class` := s"${model.detail_button}",
             onClick(DetailButtonMsg.OnClick(model.detail_button)),
-          )("detail")
+          )("details")
         },
       ),
     )
