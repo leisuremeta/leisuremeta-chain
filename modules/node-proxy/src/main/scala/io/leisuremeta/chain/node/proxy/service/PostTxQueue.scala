@@ -27,9 +27,9 @@ class PostTxQueue[F[_]: Async](
     lastTxOpt match
       case None => Async[F].pure(List.empty)
       case Some(lastTx) => 
-        queue.tryTakeN(Some(5)).map {  
+        queue.tryTakeN(None).map {  
           _.dropWhile(_ != lastTx)
-          .drop(1)
+           .drop(1)
         }
 
   def peek(): F[Unit] =
