@@ -10,4 +10,9 @@ object TransactionDetailView:
         "Transaction details",
       ),
       div(`class` := "x")(CommonDetailTable.view(model)),
+      div(Toggle.detail_button(model)), {
+        model.detail_button match
+          case true  => JsonView.view(model)
+          case false => div()
+      },
     )

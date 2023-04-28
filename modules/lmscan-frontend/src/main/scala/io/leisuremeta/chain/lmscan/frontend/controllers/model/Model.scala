@@ -9,4 +9,5 @@ final case class Model(
     temp: String,
     commandMode: CommandCaseMode = CommandCaseMode.Production,
     commandLink: CommandCaseLink,
+    detail_button: Boolean = false,
 )

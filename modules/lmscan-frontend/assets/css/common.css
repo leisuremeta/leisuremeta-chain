@@ -65,6 +65,12 @@
     padding-top: 30px;
     color: white;
 }
+.detail-button-area{
+    /* position: absolute; */
+    /* right: 30px; */
+    padding-top: 30px;
+    color: white;
+}
 
 
   label {
@@ -509,6 +515,7 @@
     color: white;
     font-weight: bold;
 }
+
 
 .type-3{
     color: green;

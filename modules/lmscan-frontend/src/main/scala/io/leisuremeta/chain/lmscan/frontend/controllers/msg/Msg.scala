@@ -20,6 +20,9 @@ enum InputMsg extends Msg:
 enum ToggleMsg extends Msg:
   case OnClick(value: Boolean) extends ToggleMsg
 
+enum DetailButtonMsg extends Msg:
+  case OnClick(value: Boolean) extends DetailButtonMsg
+
 enum CommandMsg extends Msg:
   case OnClick(commandCase: CommandCaseMode | CommandCaseLink)
       extends CommandMsg

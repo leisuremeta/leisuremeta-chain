@@ -9,3 +9,5 @@ object Update:
     case inputMsg: InputMsg     => SearchUpdate.update(model)(inputMsg)
     case toggleMsg: ToggleMsg   => ToggleUpdate.update(model)(toggleMsg)
     case commandMsg: CommandMsg => CommandUpdate.update(model)(commandMsg)
+    case detailButtonMsg: DetailButtonMsg =>
+      DetailButtonUpdate.update(model)(detailButtonMsg)

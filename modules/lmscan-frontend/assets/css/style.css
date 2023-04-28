@@ -38,7 +38,9 @@ nav #buttons button.false:hover{background-color: #51ff00;color:#000;}
 .table-area .row:nth-child(even):hover{background-color: rgba(81, 255, 0, 0.1);}
 
 .type-2 span{background-color: rgb(81, 255, 0, 0.5); border:none;color:#ffffff;}
-.type-2 span:hover{background-color: rgb(81, 255, 0,1);border:none;color:#000000;}
+.type-2 span:hover{background-color: rgba(81, 255, 0, 0.744);border:none;color:#000000;}
+.type-2 span.true {background-color: rgba(81, 255, 0, 0.744);border:none;color:#000000 ;font-weight: bold;}
+
 /* .type-3{color:#51ff00;} */
 .type-3{color:#51ff00b8;}
 
