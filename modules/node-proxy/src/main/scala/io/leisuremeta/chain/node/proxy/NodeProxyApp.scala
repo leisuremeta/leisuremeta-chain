@@ -114,7 +114,7 @@ final case class NodeProxyApp[F[_]: Async](
 
   def getOwnershipSnapshotMapServerEndpoint =
     Api.getOwnershipSnapshotMapEndpoint.serverLogic{
-      (from: Option[String], limit: Option[String]) =>
+      (from: Option[String], limit: Option[Int]) =>
         apiService.getOwnershipSnapshotMap(from, limit).map(Right(_))
     }
     

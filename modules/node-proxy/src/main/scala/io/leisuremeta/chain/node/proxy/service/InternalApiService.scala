@@ -295,7 +295,7 @@ class InternalApiService[F[_]: Async](
 
   def getOwnershipSnapshotMap(
     tokenId: Option[String],
-    limit:   Option[String]
+    limit:   Option[Int]
   ): F[String] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>

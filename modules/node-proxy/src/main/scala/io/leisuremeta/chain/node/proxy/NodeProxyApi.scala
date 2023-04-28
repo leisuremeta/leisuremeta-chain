@@ -139,7 +139,7 @@ object NodeProxyApi:
       .out(header("Content-Type", jsonType))
   
   val getTxSetEndpoint = endpoint.get
-    .in("tx" / path[String]("block"))
+    .in("tx" / query[String]("block"))
     .out(stringBody)
     .out(header("Content-Type", jsonType))
 
@@ -195,7 +195,7 @@ object NodeProxyApi:
     endpoint.get
       .in {
         "snapshot" / "ownership" / query[Option[String]]("from")
-          .and(query[Option[String]]("limit"))
+          .and(query[Option[Int]]("limit"))
       }
       .out(stringBody)
       .out(header("Content-Type", jsonType))
