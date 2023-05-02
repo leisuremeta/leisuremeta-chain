@@ -10,7 +10,12 @@ import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.{TxDetail, TxInfo, BlockInfo, BlockDetail}
+import io.leisuremeta.chain.lmscan.common.model.{
+  TxDetail,
+  TxInfo,
+  BlockInfo,
+  BlockDetail,
+}
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 import io.circe.*

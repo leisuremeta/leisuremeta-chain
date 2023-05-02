@@ -2,13 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import _root_.io.circe.Decoder.state
-import Dom.*
-import V.*
-import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.TxDetail
-import io.leisuremeta.chain.lmscan.common.model.TransferHist
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 // TODO :: 콤포넌트를 더 잘게 분리
 object TxDetailTableMain:
