@@ -20,37 +20,10 @@ object TxDetailTable:
     val data: TxDetail = get_PageResponseViewCase(model).txDetail
     genView(data)
 
-  val input = (data: List[String]) =>
-    data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }
-
   val output = (data: List[TransferHist]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput(output, i + 1) }
   val output_NFT = (data: List[TransferHist]) =>
     data.zipWithIndex.map { case ((output), i) => genOutput_NFT(output, i + 1) }
-
-  val genInput = (data: String, i: Any) =>
-    div(`class` := "row")(
-      div(`class` := "cell type-detail-body")(i.toString()),
-      div(`class` := "cell type-3 type-detail-body")(
-        span(
-          onClick(
-            PageMsg.PreUpdate(
-              PageCase.TxDetail(
-                name = PageCase.Transactions().name,
-                url = s"txDetail/${plainStr(Some(data))}",
-                pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
-              ),
-            ),
-          ),
-        )(data),
-      ),
-    )
-
-  val genInputForModal = (data: String, i: Any) =>
-    div(`class` := "row")(
-      div(`class` := "cell type-detail-body")(i.toString()),
-      div(`class` := "cell type-detail-body")(data),
-    )
 
   val genOutput = (data: TransferHist, i: Any) =>
     val formatter = java.text.NumberFormat.getNumberInstance()
@@ -104,18 +77,7 @@ object TxDetailTable:
 
     div(`class` := "y-start gap-10px w-[100%] ")(
       TxDetailTableMain.view(data),
-      div(`class` := "x")(
-        div(`class` := "type-TableDetail table-container ")(
-          div(`class` := "table w-[100%]")(
-            div(`class` := "row")(
-              div(`class` := "cell type-detail-head")("Input"),
-              div(`class` := "cell type-detail-body font-bold")(
-                "Transaction Hash",
-              ),
-            ) :: input(inputHashs),
-          ),
-        ),
-      ),
+      TxDetailTableInput.view(inputHashs),
       div(`class` := "x")(
         div(`class` := "type-TableDetail table-container")(
           div(`class` := "table w-[100%]")(
