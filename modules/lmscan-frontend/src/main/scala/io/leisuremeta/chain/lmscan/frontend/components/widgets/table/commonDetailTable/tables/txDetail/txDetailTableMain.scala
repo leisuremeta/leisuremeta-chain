@@ -34,10 +34,16 @@ object TxDetailTableMain:
               Cell.PlainStr(data.txType, "cell type-detail-body"),
             ),
           ),
+          // div(`class` := "row")(
+          //   gen.cell(
+          //     Cell.Head("Token Type", "cell type-detail-head"),
+          //     Cell.PlainStr(data.tokenType, "cell type-detail-body"),
+          //   ),
+          // ),
           div(`class` := "row")(
             gen.cell(
-              Cell.Head("Token Type", "cell type-detail-head"),
-              Cell.PlainStr(data.tokenType, "cell type-detail-body"),
+              Cell.Head("SubType", "cell type-detail-head"),
+              Cell.PlainStr(data.subType, "cell type-detail-body"),
             ),
           ),
         ),
