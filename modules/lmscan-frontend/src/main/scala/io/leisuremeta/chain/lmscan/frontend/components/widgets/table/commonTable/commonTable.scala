@@ -69,28 +69,6 @@ object Tables:
       case PageCase.NoPage(_, _, _, _) =>
         div()
 
-      //   case PageName.BlockDetail(_) =>
-
-      //   case PageName.TransactionDetail(_) =>
-      //     TransactionDetailView.view(model)
-
-      //   case PageName.NoPage =>
-      //     NoPageView.view(model)
-
-      //   case PageName.AccountDetail(_) =>
-      //     div(`class` := "table-area")(
-      //       div(id := "oop-table-blocks", `class` := "table-list x")(
-      //         TransactionTable.view(model),
-      //       ),
-      //     )
-      //   case PageName.NftDetail(_) =>
-      //     div(`class` := "table-area")(
-      //       div(id := "oop-table-blocks", `class` := "table-list x")(
-      //         TransactionTable.view(model),
-      //       ),
-      //     )
-      // case _ => div()
-
 object CommonTableView:
   def view(model: Model): Html[Msg] =
     Tables.render(model)

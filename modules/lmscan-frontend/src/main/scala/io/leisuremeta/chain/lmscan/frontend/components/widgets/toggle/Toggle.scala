@@ -23,24 +23,20 @@ object Toggle:
       div(
         `class` := s"type-2 pt-32px",
       )(
-        {
+        get_PageResponseViewCase(model).txDetail.txType
+          .getOrElse("") == "Agenda" match
 
-          get_PageResponseViewCase(model).txDetail.txType
-            .getOrElse("") == "Agenda" match // true == is agenda?
-
-            case true =>
-              span(
-                `class` := s"${model.detail_button}",
-                onClick(DetailButtonMsg.OnClick(model.detail_button)),
-              )("details")
-            case false => div()
-        },
+          case true =>
+            span(
+              `class` := s"${model.detail_button}",
+              onClick(DetailButtonMsg.OnClick(model.detail_button)),
+            )("details")
+          case false => div(),
       ),
     )
   def detail_view(model: Model): Html[Msg] =
     get_PageResponseViewCase(model).txDetail.txType
-      .getOrElse("") == "Agenda" match // true == is agenda?
-
+      .getOrElse("") == "Agenda" match
       case true =>
         model.detail_button match
           case true  => JsonView.view(model)

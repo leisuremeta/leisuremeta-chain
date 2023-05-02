@@ -117,7 +117,6 @@ object Search:
         ),
       ),
     )
-// val s_s = 1
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe

@@ -119,36 +119,3 @@ object Table:
         ),
       ),
     )
-    //   Head.tx :: Body.blockDetail_txtable(
-    //     // getPubData(model).blockDetail.txs.getOrElse(new BlockDetail),
-
-    //     //     BlockDetailParser
-    //     //   .decodeParser(model.blockDetailData.get)
-    //     //   .getOrElse(new BlockDetail)
-    //     // getOptionValue(data.txs, List()).asInstanceOf[List[TxInfo]]
-
-    //   //   {
-    //   //     val data = BlockDetailParser
-    //   // .decodeParser(model.blockDetailData.get)
-    //   // .getOrElse(new BlockDetail)
-    //   //   }
-    //   //   getOptionValue(
-    //   //     getPubData(model).blockDetail.txs
-    //   //       .getOrElse(new BlockDetail),
-    //   //   ).txs,
-    //   //   List(),
-    //   //   // data.txs, List()).asInstanceOf[List[TxInfo]],
-    //   // ),
-    // )
-
-//   def dashboard_txtable = (model: Model) =>
-//     div(`class` := "table w-[100%]")(
-//       Head.tx_dashBoard :: Body.dashboard_txtable(
-//         DataProcess.dashboard_tx(model),
-//       ),
-//     )
-
-//   def nftDetail_txtable = (model: Model) =>
-//     div(`class` := "table w-[100%]")(
-//       Head.nft :: Body.nft(DataProcess.nft(model)),
-//     )

@@ -19,7 +19,6 @@ object V:
     getOptionValue(data, 0).asInstanceOf[Int].toString
 
   def plainLong(data: Option[Long]) =
-    // fix 0 => 0.toLong
     getOptionValue(data, 0.toLong).asInstanceOf[Long].toString
 
   def plainDouble(data: Option[Double]) =
