@@ -5,13 +5,8 @@ import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
 import Log.*
-import io.leisuremeta.chain.lmscan.common.model.BlockInfo
-import io.leisuremeta.chain.lmscan.frontend.OnDataProcess.getData
-import io.leisuremeta.chain.lmscan.common.model.BlockDetail
-import io.leisuremeta.chain.lmscan.frontend.V.getOptionValue
-import io.leisuremeta.chain.lmscan.common.model.TxInfo
+import io.leisuremeta.chain.lmscan.common.model.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
-import io.leisuremeta.chain.lmscan.common.model.NftActivity
 
 object Table:
   def block = (model: Model) =>
