@@ -2,6 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import V.*
+import io.leisuremeta.chain.lmscan.common.model.TxDetail
 
 object TxDetailTableInput:
   val input = (data: List[String]) =>
@@ -25,15 +26,19 @@ object TxDetailTableInput:
       ),
     )
 
-  def view(inputHashs: List[String]) = div(`class` := "x")(
-    div(`class` := "type-TableDetail table-container ")(
-      div(`class` := "table w-[100%]")(
-        div(`class` := "row")(
-          div(`class` := "cell type-detail-head")("Input"),
-          div(`class` := "cell type-detail-body font-bold")(
-            "Transaction Hash",
-          ),
-        ) :: input(inputHashs),
+  def view(data: TxDetail) =
+    val inputHashs = getOptionValue(data.inputHashs, List())
+      .asInstanceOf[List[String]]
+
+    div(`class` := "x")(
+      div(`class` := "type-TableDetail table-container ")(
+        div(`class` := "table w-[100%]")(
+          div(`class` := "row")(
+            div(`class` := "cell type-detail-head")("Input"),
+            div(`class` := "cell type-detail-body font-bold")(
+              "Transaction Hash",
+            ),
+          ) :: input(inputHashs),
+        ),
       ),
-    ),
-  )
+    )
