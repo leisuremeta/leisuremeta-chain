@@ -20,16 +20,6 @@ object Toggle:
 
   def detail_button(model: Model): Html[Msg] =
     div(
-      // div(onClick(ToggleMsg.OnClick(model.toggle)))(
-      //   div(`class` := "detail-button-area xy-center")(
-      //     input(
-      //       `class` := s"${model.toggle}",
-      //       `type` := "checkbox", // checked attribute 대신에 class 로 대신하는게 더 자유도가 높다.
-      //       id := "toggle",
-      //     ),
-      //     label(_for := "toggle")(),
-      //   ),
-      // ),
       div(
         `class` := s"type-2 pt-32px",
       )(
@@ -47,3 +37,13 @@ object Toggle:
         },
       ),
     )
+  def detail_view(model: Model): Html[Msg] =
+    get_PageResponseViewCase(model).txDetail.txType
+      .getOrElse("") == "Agenda" match // true == is agenda?
+
+      case true =>
+        model.detail_button match
+          case true  => JsonView.view(model)
+          case false => div()
+      case false =>
+        div()

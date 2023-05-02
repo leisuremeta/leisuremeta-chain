@@ -13,17 +13,5 @@ object TransactionDetailView:
       ),
       div(`class` := "x")(CommonDetailTable.view(model)),
       div(Toggle.detail_button(model)),
-      // agenda 일때만 보여주도록 수정
-      {
-
-        get_PageResponseViewCase(model).txDetail.txType
-          .getOrElse("") == "Agenda" match // true == is agenda?
-
-          case true =>
-            model.detail_button match
-              case true  => JsonView.view(model)
-              case false => div()
-          case false =>
-            div()
-      },
+      Toggle.detail_view(model),
     )
