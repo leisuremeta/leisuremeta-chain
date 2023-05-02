@@ -23,6 +23,8 @@ import sttp.tapir.Codec.PlainCodec
 import sttp.model.MediaType
 import sttp.tapir.Codec.JsonCodec
 import io.circe.Json
+import sttp.tapir.EndpointIO.annotations.jsonbody
+
 
 // import lib.crypto.{Hash, Signature}
 // import lib.datatype.{BigNat, UInt256, UInt256BigInt, UInt256Bytes, Utf8}
@@ -53,100 +55,17 @@ import io.circe.Json
 
 object NodeProxyApi:
   val jsonType = MediaType.ApplicationJson.toString
-  
-  val getAccountEndpoint =
-    endpoint.get
-      .in("account" / path[Account])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getEthEndpoint =
-    endpoint.get
-      .in("eth" / path[EthAddress])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getGroupEndpoint =
-    endpoint.get
-      .in("group" / path[GroupId])
-      .out(stringBody)
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getBlockListEndpoint =
-    endpoint.get
-      .in(
-        "block" / query[Option[String]]("from")
-          .and(query[Option[String]]("limit")),
-      )
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getBlockEndpoint =
-    endpoint.get
-      .in("block" / path[String])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTokenDefinitionEndpoint =
-    endpoint.get
-      .in("token-def" / path[TokenDefinitionId])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getBalanceEndpoint =
-    endpoint.get
-      .in("balance" / path[Account].and(query[String]("movable")))
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getNftBalanceEndpoint =
-    endpoint.get
-      .in("nft-balance" / path[Account].and(query[Option[String]]("movable")))
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTokenEndpoint =
-    endpoint.get
-      .in("token" / path[TokenId])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getOwnersEndpoint =
-    endpoint.get
-      .in("owners" / path[TokenDefinitionId])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getAccountActivityEndpoint =
-    endpoint.get
-      .in("activity" / "account" / path[Account])
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getStatusEndpoint =
-    endpoint.get.in("status")
-      .out(stringBody)
-      .out(header("Content-Type", jsonType))
-  
   val getTxSetEndpoint = endpoint.get
     .in("tx" / query[String]("block"))
-    .out(stringBody)
+    .out(stringJsonBody)
     .out(header("Content-Type", jsonType))
-
+  
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxEndpoint = endpoint.get
     .in("tx" / path[String])
-    .out(stringBody)
+    .out(stringJsonBody)
     .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -154,57 +73,144 @@ object NodeProxyApi:
     endpoint.post
       .in("tx")
       .in(stringBody)
-      .out(stringBody)
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val postTxHashEndpoint = endpoint.post
     .in("txhash")
     .in(stringBody)
-    .out(stringBody)
+    .out(stringJsonBody)
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getStatusEndpoint =
+    endpoint.get.in("status")
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountEndpoint =
+    endpoint.get
+      .in("account" / path[Account])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getEthEndpoint =
+    endpoint.get
+      .in("eth" / path[EthAddress])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getGroupEndpoint =
+    endpoint.get
+      .in("group" / path[GroupId])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBlockListEndpoint =
+    endpoint.get
+      .in(
+        "block" / query[Option[String]]("from")
+          .and(query[Option[Int]]("limit")),
+      )
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBlockEndpoint =
+    endpoint.get
+      .in("block" / path[String])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenDefinitionEndpoint =
+    endpoint.get
+      .in("token-def" / path[TokenDefinitionId])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getBalanceEndpoint =
+    endpoint.get
+      .in("balance" / path[Account].and(query[String]("movable")))
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftBalanceEndpoint =
+    endpoint.get
+      .in("nft-balance" / path[Account].and(query[Option[String]]("movable")))
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenEndpoint =
+    endpoint.get
+      .in("token" / path[TokenId])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getOwnersEndpoint =
+    endpoint.get
+      .in("owners" / path[TokenDefinitionId])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountActivityEndpoint =
+    endpoint.get
+      .in("activity" / "account" / path[Account])
+      .out(stringJsonBody)
+      .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTokenActivityEndpoint =
     endpoint.get
       .in("activity" / "token" / path[TokenId])
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountSnapshotEndpoint =
     endpoint.get
       .in("snapshot" / "account" / path[Account])
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTokenSnapshotEndpoint =
     endpoint.get
       .in("snapshot" / "token" / path[TokenId])
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getOwnershipSnapshotEndpoint =
     endpoint.get
       .in("snapshot" / "ownership" / path[TokenId])
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getOwnershipSnapshotMapEndpoint =
     endpoint.get
       .in {
-        "snapshot" / "ownership" / query[Option[String]]("from")
+        "snapshot" / "ownership" / query[Option[TokenId]]("from")
           .and(query[Option[Int]]("limit"))
       }
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getOwnershipRewardedEndpoint =
     endpoint.get
       .in("rewarded" / "ownership" / path[TokenId])
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -216,7 +222,7 @@ object NodeProxyApi:
           .and(query[Option[Account]]("dao-account"))
           .and(query[Option[String]]("reward-amount"))
       }
-      .out(stringBody)
+      .out(stringJsonBody)
       .out(header("Content-Type", jsonType))
 
   // enum Movable:

@@ -46,23 +46,24 @@ object InternalApiService:
     backend:      SttpBackend[F, Any],
     blocker:      Ref[F, Boolean],
     baseUrlsLock: Ref[F, List[String]],
+    queue:        PostTxQueue[F]
   ): InternalApiService[F] =
     // Async[F].delay(new InternalApiService[F](backend, blocker, baseUrlsLock))
-    new InternalApiService[F](backend, blocker, baseUrlsLock, None)
+    new InternalApiService[F](backend, blocker, baseUrlsLock, queue)
 
 class InternalApiService[F[_]: Async](
   backend:      SttpBackend[F, Any],
   blocker:      Ref[F, Boolean],
   baseUrlsLock: Ref[F, List[String]],
-  var queue:    Option[PostTxQueue[F]]
+  queue:        PostTxQueue[F]
 ):
   // val baseUrl = "http://lmc.leisuremeta.io"
   // val baseUrl = "http://test.chain.leisuremeta.io"
   
   // def backend[F[_]: Async]: SttpBackend[F, Any] = 
   //   ArmeriaCatsBackend.usingClient[F](webClient(SttpBackendOptions.Default))
-  def injectQueue(postQueue: PostTxQueue[F]) = 
-    queue = Some(postQueue)
+  // def injectQueue(postQueue: PostTxQueue[F]) = 
+  //   queue = Some(postQueue)
   
   def getAsString(
     uri: Uri 
@@ -175,7 +176,7 @@ class InternalApiService[F[_]: Async](
 
   def getBlockList(
     fromOption: Option[String],
-    limitOption: Option[String],
+    limitOption: Option[Int],
   ): F[String] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
@@ -294,7 +295,7 @@ class InternalApiService[F[_]: Async](
     }.map(_.head)
 
   def getOwnershipSnapshotMap(
-    tokenId: Option[String],
+    tokenId: Option[TokenId],
     limit:   Option[Int]
   ): F[String] =
     baseUrlsLock.get.flatMap { urls =>
@@ -349,9 +350,7 @@ class InternalApiService[F[_]: Async](
   def postTx(
     txs: String,
   ): F[String] =
-    // if queue.isDefined
-    //   queue.get.push(txs)
-    queue.map (q => q.push(txs))
+    queue.push(txs)
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         postAsString(

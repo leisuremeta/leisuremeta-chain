@@ -57,7 +57,7 @@ object NodeProxyMain extends IOApp:
           nodeConfg      <- NodeWatchService.nodeConfig.flatMap (
                               _.fold(Async[F].raiseError[NodeConfig], Async[F].pure))
           blockchainUrls <- Ref.of[F, List[String]](List(nodeConfg.oldNodeAddress))
-          internalApiSvc =  InternalApiService[F](backend, blocker, blockchainUrls)
+          internalApiSvc =  InternalApiService[F](backend, blocker, blockchainUrls, queue)
           _              <- NodeWatchService.startOnNew(internalApiSvc, blockchainUrls, blocker, queue) 
           // _              <- NodeWatchService.startQueueWatch(queue)
           appResource    <- NodeProxyApp[F](internalApiSvc).resource

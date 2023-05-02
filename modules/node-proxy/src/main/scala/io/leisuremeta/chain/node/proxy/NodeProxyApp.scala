@@ -114,7 +114,7 @@ final case class NodeProxyApp[F[_]: Async](
 
   def getOwnershipSnapshotMapServerEndpoint =
     Api.getOwnershipSnapshotMapEndpoint.serverLogic{
-      (from: Option[String], limit: Option[Int]) =>
+      (from: Option[TokenId], limit: Option[Int]) =>
         apiService.getOwnershipSnapshotMap(from, limit).map(Right(_))
     }
     
@@ -151,8 +151,8 @@ final case class NodeProxyApp[F[_]: Async](
 
   def postTxServerEndpoint =
     Api.postTxEndpoint.serverLogic {
-      scribe.info("postTx 생성요청")
       (txs: String) =>
+        scribe.info(s"postTx '$txs' 생성요청")
         apiService.postTx(txs).map(Right(_))
     }
 
