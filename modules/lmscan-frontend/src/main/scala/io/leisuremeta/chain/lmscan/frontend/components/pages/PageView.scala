@@ -14,6 +14,7 @@ object Pages:
           // ObserverView.view(model),
           DashboardView.view(model),
         )
+
       case PageCase.Blocks(_, _, _, _) =>
         div()(
           // ObserverView.view(model),
@@ -25,6 +26,7 @@ object Pages:
           // ObserverView.view(model),
           TransactionsView.view(model),
         )
+
       case PageCase.BlockDetail(_, _, _, _) =>
         div()(
           // ObserverView.view(model),
@@ -36,16 +38,19 @@ object Pages:
           // ObserverView.view(model),
           TransactionDetailView.view(model),
         )
+
       case PageCase.AccountDetail(_, _, _, _) =>
         div()(
           // ObserverView.view(model),
           AccountView.view(model),
         )
+
       case PageCase.NftDetail(_, _, _, _) =>
         div()(
           // ObserverView.view(model),
           NftView.view(model),
         )
+
       case PageCase.NoPage(_, _, _, _) =>
         NoPageView.view(model)
 
