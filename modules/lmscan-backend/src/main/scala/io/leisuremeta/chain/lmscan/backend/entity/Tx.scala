@@ -15,5 +15,7 @@ final case class Tx(
     json: String,
     blockNumber: Long,
     inputHashs: Option[Seq[String]],
+
     // amount: Double,
+    subType: String,
 )

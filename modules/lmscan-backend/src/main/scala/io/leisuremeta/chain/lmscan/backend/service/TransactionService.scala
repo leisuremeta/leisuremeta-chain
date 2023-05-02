@@ -49,6 +49,7 @@ object TransactionService:
           tx.inputHashs,
           outputValsOpt,
           Some(tx.json),
+          Some(tx.subType),
         )
       }
     yield detail

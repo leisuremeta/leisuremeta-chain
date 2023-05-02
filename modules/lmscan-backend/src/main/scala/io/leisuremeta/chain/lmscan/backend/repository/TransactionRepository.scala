@@ -62,6 +62,7 @@ object TransactionRepository extends CommonQuery:
     inline def detailQuery =
       quote { (hash: String) =>
         query[Tx].filter(tx => tx.hash == hash).take(1)
+      // query[Tx].filter(tx => tx.subType == "CreateAccount").take(1)
       }
 
     optionQuery(detailQuery(lift(hash)))
@@ -145,7 +146,6 @@ object TransactionRepository extends CommonQuery:
 
 // inline def run[T](inline quoted: Quoted[Query[T]]): Future[Seq[T]]
 //   = InternalApi.runQueryDefault(quoted)
-
 
 /*
     처음 10개의 게시글(ROW)를 가져온다.
