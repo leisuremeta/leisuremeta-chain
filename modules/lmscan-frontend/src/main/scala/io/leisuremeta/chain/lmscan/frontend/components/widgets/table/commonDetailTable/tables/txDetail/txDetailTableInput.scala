@@ -10,7 +10,8 @@ import io.leisuremeta.chain.lmscan.common.model.TxDetail
 import io.leisuremeta.chain.lmscan.common.model.TransferHist
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
-object TxDetailTable:
+// TODO :: 콤포넌트를 더 잘게 분리
+object TxDetailTableInput:
   val view = (model: Model) =>
     val data: TxDetail = get_PageResponseViewCase(model).txDetail
     genView(model, data)
@@ -101,6 +102,8 @@ object TxDetailTable:
     val inputHashs = getOptionValue(data.inputHashs, List())
       .asInstanceOf[List[String]]
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
         div(`class` := "type-TableDetail  table-container")(
@@ -138,6 +141,8 @@ object TxDetailTable:
           ),
         ),
       ),
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       div(`class` := "x")(
         div(`class` := "type-TableDetail table-container ")(
           div(`class` := "table w-[100%]")(
