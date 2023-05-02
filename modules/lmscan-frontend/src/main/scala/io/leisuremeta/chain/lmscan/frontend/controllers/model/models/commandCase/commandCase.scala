@@ -7,3 +7,4 @@ enum CommandCaseMode:
 enum CommandCaseLink:
   case Development extends CommandCaseLink
   case Production  extends CommandCaseLink
+  case Local       extends CommandCaseLink

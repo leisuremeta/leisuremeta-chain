@@ -98,6 +98,8 @@ object PupCasePipe:
           js.Dynamic.global.process.env.BASE_API_URL_DEV
         case CommandCaseLink.Production =>
           js.Dynamic.global.process.env.BASE_API_URL_PROD
+        case CommandCaseLink.Local =>
+          js.Dynamic.global.process.env.BASE_API_URL_LOCAL
 
     pub match
 

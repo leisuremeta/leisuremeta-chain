@@ -9,10 +9,11 @@ object ValidPageName:
   def getPageFromString(search: String): PageCase | CommandCaseMode |
     CommandCaseLink =
     search match
-      case ":on"   => CommandCaseMode.Development
-      case ":off"  => CommandCaseMode.Production
-      case ":prod" => CommandCaseLink.Production
-      case ":dev"  => CommandCaseLink.Development
+      case ":on"    => CommandCaseMode.Development
+      case ":off"   => CommandCaseMode.Production
+      case ":prod"  => CommandCaseLink.Production
+      case ":dev"   => CommandCaseLink.Development
+      case ":local" => CommandCaseLink.Local
       case _ =>
         search.length() match
           case 40 =>
