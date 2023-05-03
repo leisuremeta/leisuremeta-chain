@@ -115,6 +115,7 @@ object TransactionService:
         Some(tx.txType),
         Some(tx.tokenType),
         Some(tx.fromAddr),
+        Some(tx.subType),
         None,
         latestOutValOpt,
       )
