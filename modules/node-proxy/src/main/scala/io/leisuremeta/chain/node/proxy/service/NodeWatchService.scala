@@ -23,8 +23,8 @@ import cats.instances.queue
 
 object NodeWatchService:
   def nodeConfig[F[_]: Async]: F[Either[Throwable, NodeConfig]] = Async[F].blocking {
-    // val path = Paths.get("/Users/user/playnomm/source_code/leisuremeta-chain/migration-node.json")
-    val path = Paths.get("/home/rocky/nodeproxy/migration-node.json")
+    val path = Paths.get("/Users/user/playnomm/source_code/leisuremeta-chain/migration-node.json")
+    // val path = Paths.get("/home/rocky/nodeproxy/migration-node.json")
       for 
         json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
         nodeConfig <- decode[NodeConfig](json)

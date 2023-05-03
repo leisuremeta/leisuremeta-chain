@@ -81,6 +81,7 @@ object NodeProxyApi:
     .in("txhash")
     .in(stringBody)
     .out(stringJsonBody)
+    .out(header("Content-Type", jsonType))
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getStatusEndpoint =

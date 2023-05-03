@@ -123,16 +123,6 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.getOwnershipRewarded(tokenId).map(Right(_))
     }
 
-  def postTxEndpoint =
-    Api.postTxEndpoint.serverLogic { (txs: String) =>
-      apiService.postTx(txs).map(Right(_))
-    }
-
-  def postTxHashEndpoint = Api.postTxHashEndpoint.serverLogic {
-    (txs: String) =>
-      apiService.postTxHash(txs).map(Right(_))
-    }
-
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
     (txHash: String) =>
       apiService.getTx(txHash).map(Right(_))
@@ -144,36 +134,35 @@ final case class NodeProxyApp[F[_]: Async](
     }
 
   def postTxHashServerEndpoint =
-    Api.postTxHashEndpoint.serverLogic { 
-      (txs: String) =>
-        apiService.postTxHash(txs).map(Right(_))
+    Api.postTxHashEndpoint.serverLogic { (txs: String) =>
+      scribe.info(s"received postTxHash request: $txs")
+      apiService.postTxHash(txs).map(Right(_))
     }
 
   def postTxServerEndpoint =
-    Api.postTxEndpoint.serverLogic {
-      (txs: String) =>
-        scribe.info(s"postTx '$txs' 생성요청")
-        apiService.postTx(txs).map(Right(_))
+    Api.postTxEndpoint.serverLogic { (txs: String) =>
+      scribe.info(s"received postTx request: $txs")
+      apiService.postTx(txs).map(Right(_))
     }
 
   def proxyNodeEndpoints = List(
     getAccountServerEndpoint,
     getEthServerEndpoint,
     getBlockListServerEndpoint,
-    getGroupServerEndpoint,
     getBlockServerEndpoint,
+    getGroupServerEndpoint,
     getStatusServerEndpoint,
+    getTxServerEndpoint,
     getTokenDefServerEndpoint,
     getBalanceServerEndpoint,
     getNftBalanceServerEndpoint,
     getTokenServerEndpoint,
     getOwnersServerEndpoint,
+    getTxSetServerEndpoint,
+    getAccountActivityServerEndpoint,
     getTokenActivityServerEndpoint,
     getAccountSnapshotServerEndpoint,
     getTokenSnapshotServerEndpoint,
-    getTxSetServerEndpoint,
-    getAccountActivityServerEndpoint,
-    getTxServerEndpoint,
     getOwnershipSnapshotServerEndpoint,
     getOwnershipSnapshotMapServerEndpoint,
 //    getRewardServerEndpoint,

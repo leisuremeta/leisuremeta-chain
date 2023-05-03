@@ -373,7 +373,7 @@ class InternalApiService[F[_]: Async](
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         postAsString(
-          uri"$baseUrl/txHash", txs
+          uri"$baseUrl/txhash", txs
         )    
       }
     }.map(_.head)
