@@ -14,6 +14,9 @@ trait GatewayKmsClient[F[_]]:
   ): EitherT[F, String, Resource[F, Array[Byte]]]
 
 object GatewayKmsClient:
+
+  def apply[F[_]: GatewayKmsClient]: GatewayKmsClient[F] = summon
+
   def make[F[_]: Async](alias: String): Resource[F, GatewayKmsClient[F]] =
     Resource
       .fromAutoCloseable(Async[F].delay(KmsAsyncClient.create()))
@@ -35,9 +38,8 @@ object GatewayKmsClient:
                 .map: decryptResponse =>
                   Resource
                     .make:
-                      Async[F].delay(
-                        decryptResponse.plaintext().asByteArrayUnsafe(),
-                      )
+                      Async[F].delay:
+                        decryptResponse.plaintext().asByteArrayUnsafe()
                     .apply: byteArray =>
                       Async[F].delay:
                         val emptyArray =

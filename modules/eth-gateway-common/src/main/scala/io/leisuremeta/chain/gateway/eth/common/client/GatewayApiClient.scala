@@ -12,12 +12,15 @@ import sttp.tapir.DecodeResult
 import sttp.tapir.client.sttp.SttpClientInterpreter
 
 trait GatewayApiClient[F[_]]:
-  def apply(
+  def get(
       key: String,
       doublyEncryptedFrontPartBase64: String,
   ): EitherT[F, String, String]
 
 object GatewayApiClient:
+
+  def apply[F[_]: GatewayApiClient]: GatewayApiClient[F] = summon
+
   def make[F[_]: Async](uri: Uri): Resource[F, GatewayApiClient[F]] =
     ArmeriaCatsBackend
       .resource[F]()
@@ -35,7 +38,7 @@ object GatewayApiClient:
             case f: DecodeResult.Failure => Left(s"Fail: ${f.toString()}")
 
         new GatewayApiClient[F]:
-          override def apply(
+          override def get(
               key: String,
               doublyEncryptedFrontPartBase64: String,
           ): EitherT[F, String, String] =

@@ -15,6 +15,9 @@ trait GatewayDatabaseClient[F[_]]:
   ): EitherT[F, String, Option[String]]
 
 object GatewayDatabaseClient:
+
+  def apply[F[_]: GatewayDatabaseClient]: GatewayDatabaseClient[F] = summon
+
   def make[F[_]: Async](
       host: String,
       db: String,
