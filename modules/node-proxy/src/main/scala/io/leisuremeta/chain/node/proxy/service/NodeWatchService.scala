@@ -23,8 +23,10 @@ import cats.instances.queue
 
 object NodeWatchService:
   def nodeConfig[F[_]: Async]: F[Either[Throwable, NodeConfig]] = Async[F].blocking {
-    val path = Paths.get("/Users/user/playnomm/source_code/leisuremeta-chain/migration-node.json")
-    // val path = Paths.get("/home/rocky/nodeproxy/migration-node.json")
+    // val path = Paths.get("/Users/jichangho/playnomm/leisuremeta-chain/migration-node.json")
+    // val path = Paths.get("/Users/user/playnomm/source_code/leisuremeta-chain/migration-node.json")
+    val path = Paths.get("/home/rocky/nodeproxy/migration-node.json")
+    
       for 
         json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
         nodeConfig <- decode[NodeConfig](json)
@@ -96,18 +98,3 @@ object NodeWatchService:
             loop
       }
     loop
-
-  def startQueueWatch[F[_]: Async](
-    queue: PostTxQueue[F]
-  ): F[Unit] =
-    def loop(queue: PostTxQueue[F]): F[Unit] =
-      queue.peek()
-      >> Async[F].sleep(3.second)
-      >> loop(queue)
-
-    Async[F].executionContext.flatMap { executionContext =>
-      Async[F].startOn(
-        loop(queue),
-        executionContext
-      ) *> Async[F].unit
-    }

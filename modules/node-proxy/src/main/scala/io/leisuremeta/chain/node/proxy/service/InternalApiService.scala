@@ -186,9 +186,7 @@ class InternalApiService[F[_]: Async](
 
   def getStatus: F[String] =
     baseUrlsLock.get.flatMap { urls =>
-      println(s"baseUrl---")
       urls.traverse { baseUrl =>
-        println(s"baseUrl: ${baseUrl}")
         getAsString(uri"$baseUrl/status")
       }
     }.map(_.head)
