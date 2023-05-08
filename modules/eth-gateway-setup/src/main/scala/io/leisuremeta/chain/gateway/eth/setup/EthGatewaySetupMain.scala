@@ -235,14 +235,36 @@ object EthGatewaySetupMain extends IOApp:
       )
     yield (kmsClient, depositDb, withdrawDb)
 
-    resources.use: (kmsClient, depositDb, withdrawDb) =>
-      allEncryptAndDivide[IO](config, kmsClient)
-        .map: (keys: Map[String, (String, String)]) =>
-          keys.foreach:
-            case (key, (front, back)) =>
-              println(s""""${key}" -> ("${front}", "${back}")""")
-              ()
-        .as(ExitCode.Success)
+    connectKms[IO].use: kmsClient =>
+      def dbEndpoint(conf: EthGatewaySetupConfig.DbConfig): Array[Byte] =
+        s"jdbc:mysql://${conf.host}/${conf.db}?user=${conf.user}&password=${conf.password}".getBytes("UTF-8")
+
+      val depositEndpoint = dbEndpoint(config.depositDb)
+      val withdrawEndpoint = dbEndpoint(config.withdrawDb)
+
+      def toBase64(bytes: Array[Byte]): String =
+        ByteVector.view(bytes).toBase64
+
+      for
+        encryptedDepositDb <- encrypt[IO](kmsClient, config.depositKmsAlias)(depositEndpoint)
+        decryptedDepositDb <- decrypt[IO](kmsClient, config.depositKmsAlias)(encryptedDepositDb)
+        encryptedWithdrawDb <- encrypt[IO](kmsClient, config.withdrawKmsAlias)(withdrawEndpoint)
+        decryptedWithdrawDb <- decrypt[IO](kmsClient, config.withdrawKmsAlias)(encryptedWithdrawDb)
+      yield
+        println(s"Deposit DB: ${toBase64(depositEndpoint)}")
+        println(s"Decrypted Deposit DB: ${String(decryptedDepositDb, "UTF-8")}")
+        println(s"Withdraw DB: ${toBase64(withdrawEndpoint)}")
+        println(s"Decrypted Withdraw DB: ${String(decryptedWithdrawDb, "UTF-8")}")
+        ExitCode.Success
+
+//    resources.use: (kmsClient, depositDb, withdrawDb) =>
+//      allEncryptAndDivide[IO](config, kmsClient)
+//        .map: (keys: Map[String, (String, String)]) =>
+//          keys.foreach:
+//            case (key, (front, back)) =>
+//              println(s""""${key}" -> ("${front}", "${back}")""")
+//              ()
+//        .as(ExitCode.Success)
 
 //      val keys = Map(
 //        "LM-D" -> ("", ""),
