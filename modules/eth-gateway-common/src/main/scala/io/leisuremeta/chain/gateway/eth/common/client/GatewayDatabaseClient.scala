@@ -19,19 +19,14 @@ object GatewayDatabaseClient:
   def apply[F[_]: GatewayDatabaseClient]: GatewayDatabaseClient[F] = summon
 
   def make[F[_]: Async](
-      host: String,
-      db: String,
-      table: String,
-      user: String,
-      password: String,
+      dbEndpoint: String,
       tableName: String,
       valueColumn: String,
   ): Resource[F, GatewayDatabaseClient[F]] =
     Resource
       .make:
         Async[F].blocking:
-          MySQLConnectionBuilder.createConnectionPool:
-            s"jdbc:mysql://${host}:3306/${db}?user=${user}&password=${password}"
+          MySQLConnectionBuilder.createConnectionPool(dbEndpoint)
       .apply: connection =>
         Async[F]
           .fromCompletableFuture:
