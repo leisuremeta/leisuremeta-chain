@@ -7,6 +7,8 @@ final case class GatewayConf(
     ethChainId: Int,
     ethContractAddress: String,
     gatewayEthAddress: String,
+    gatewayEndpoint: String,
+    localServerPort: Int,
     lmEndpoint: String,
     kmsAlias: String,
     encryptedEthEndpoint: String,
@@ -16,6 +18,5 @@ final case class GatewayConf(
 ) derives ConfigReader
 
 object GatewayConf:
-
   def apply(): GatewayConf =
     ConfigSource.default.loadOrThrow[GatewayConf]

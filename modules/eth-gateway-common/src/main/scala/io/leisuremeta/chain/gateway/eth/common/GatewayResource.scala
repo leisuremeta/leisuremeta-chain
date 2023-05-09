@@ -9,6 +9,7 @@ import sttp.client3.*
 import sttp.client3.armeria.cats.ArmeriaCatsBackend
 
 import client.*
+import cats.effect.std.Dispatcher
 
 object GatewayResource:
   def getAllResource[F[_]: Async](conf: GatewayConf): Resource[
@@ -37,4 +38,8 @@ object GatewayResource:
       .make[F](dbEndpoint, conf.databaseTableName, conf.databaseValueColumn)
       .mapK(EitherT.liftK[F, String])
     sttp <- ArmeriaCatsBackend.resource[F]().mapK(EitherT.liftK[F, String])
+    dispatcher <- Dispatcher.parallel[F].mapK(EitherT.liftK[F, String])
+    server <- GatewayServer
+      .make[F](dispatcher, conf.localServerPort, db, kms)
+      .mapK(EitherT.liftK[F, String])
   yield (kms, web3j, db, sttp)

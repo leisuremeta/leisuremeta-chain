@@ -24,3 +24,4 @@ db-write-account {
 }
 deposit-kms-alias = "deposit_kms"
 withdraw-kms-alias = "withdraw_kms"
+eth-endpoint = "https://goerli.infura.io/v3/1234567890abcdef1234567890abcdef"
