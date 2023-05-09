@@ -250,11 +250,23 @@ object EthGatewaySetupMain extends IOApp:
         decryptedDepositDb <- decrypt[IO](kmsClient, config.depositKmsAlias)(encryptedDepositDb)
         encryptedWithdrawDb <- encrypt[IO](kmsClient, config.withdrawKmsAlias)(withdrawEndpoint)
         decryptedWithdrawDb <- decrypt[IO](kmsClient, config.withdrawKmsAlias)(encryptedWithdrawDb)
+        encryptedEthEndpointWithDepositKey <- encrypt[IO](kmsClient, config.depositKmsAlias):
+          config.ethEndpoint.getBytes("UTF-8")
+        encryptedEthEndpointWithWithdrawKey <- encrypt[IO](kmsClient, config.withdrawKmsAlias):
+          config.ethEndpoint.getBytes("UTF-8")
+        decryptedEthEndpointWithDepositKey <- decrypt[IO](kmsClient, config.depositKmsAlias):
+          encryptedEthEndpointWithDepositKey
+        decryptedEthEndpointWithWithdrawKey <- decrypt[IO](kmsClient, config.withdrawKmsAlias):
+          encryptedEthEndpointWithWithdrawKey
       yield
         println(s"Deposit DB: ${toBase64(depositEndpoint)}")
         println(s"Decrypted Deposit DB: ${String(decryptedDepositDb, "UTF-8")}")
         println(s"Withdraw DB: ${toBase64(withdrawEndpoint)}")
         println(s"Decrypted Withdraw DB: ${String(decryptedWithdrawDb, "UTF-8")}")
+        println(s"ETH Endpoint with Deposit Key: ${toBase64(encryptedEthEndpointWithDepositKey)}")
+        println(s"ETH Endpoint with Withdraw Key: ${toBase64(encryptedEthEndpointWithWithdrawKey)}")
+        println(s"Decrypted ETH Endpoint with Deposit Key: ${String(decryptedEthEndpointWithDepositKey, "UTF-8")}")
+        println(s"Decrypted ETH Endpoint with Withdraw Key: ${String(decryptedEthEndpointWithWithdrawKey, "UTF-8")}")
         ExitCode.Success
 
 //    resources.use: (kmsClient, depositDb, withdrawDb) =>

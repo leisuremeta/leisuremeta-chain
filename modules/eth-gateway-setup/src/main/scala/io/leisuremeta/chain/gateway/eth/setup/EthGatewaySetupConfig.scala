@@ -13,6 +13,7 @@ final case class EthGatewaySetupConfig(
     dbWriteAccount: DbWriteAccountConfig,
     depositKmsAlias: String,
     withdrawKmsAlias: String,
+    ethEndpoint: String,
 ) derives ConfigReader
 
 object EthGatewaySetupConfig:
