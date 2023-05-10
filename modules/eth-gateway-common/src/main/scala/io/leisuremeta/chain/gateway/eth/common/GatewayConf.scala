@@ -18,5 +18,5 @@ final case class GatewayConf(
 ) derives ConfigReader
 
 object GatewayConf:
-  def apply(): GatewayConf =
+  def loadOrThrow(): GatewayConf =
     ConfigSource.default.loadOrThrow[GatewayConf]

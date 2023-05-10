@@ -76,6 +76,7 @@ object GatewayServer:
     val serverEndpoint = gatewayServerEndpoint[F](dbClient, kmsClient)
     Resource.fromAutoCloseable(getServer(dispatcher, port, serverEndpoint))
 
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
   def getServer[F[_]: Async](
       dispatcher: Dispatcher[F],
       port: Int,

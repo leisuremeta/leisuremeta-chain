@@ -30,6 +30,7 @@ object GatewayApiClient:
       Some(uri),
       backend,
     )
+    @SuppressWarnings(Array("org.wartremover.warts.ToString"))
     def sanitize[A, B](
         result: DecodeResult[Either[A, B]],
     ): Either[String, B] =

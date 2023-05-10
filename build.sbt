@@ -269,6 +269,8 @@ lazy val ethGatewayCommon = (project in file("modules/eth-gateway-common"))
   .settings(Dependencies.catsEffectTests)
   .settings(
     name := "leisuremeta-chain-eth-gateway-common",
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
   )
   .dependsOn(api.jvm)
 
@@ -293,6 +295,8 @@ lazy val ethGatewayDeposit = (project in file("modules/eth-gateway-deposit"))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
   )
   .dependsOn(ethGatewayCommon)
 
@@ -309,6 +313,8 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
   )
   .dependsOn(ethGatewayCommon)
 

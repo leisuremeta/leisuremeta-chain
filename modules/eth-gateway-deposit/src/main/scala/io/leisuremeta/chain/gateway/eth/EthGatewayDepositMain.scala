@@ -2,8 +2,9 @@ package io.leisuremeta.chain
 package gateway.eth
 
 import java.math.BigInteger
+import java.nio.charset.StandardCharsets 
 import java.nio.file.{Files, Paths, StandardOpenOption}
-import java.util.{Arrays, ArrayList, Collections}
+import java.util.{Arrays, ArrayList, Collections, Locale}
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import scala.jdk.CollectionConverters.*
@@ -82,7 +83,7 @@ object EthGatewayDepositMain extends IOApp:
       val typeRefUint256: TypeReference[Type[?]] =
         (new TypeReference[Uint256]() {}).asInstanceOf[TypeReference[Type[?]]]
 
-      val topics = log.getTopics.asScala
+      val topics = log.getTopics.asScala.toVector
       val from: Address = FunctionReturnDecoder
         .decodeIndexedValue[Address](topics(1), typeRefAddress)
         .asInstanceOf[Address]
@@ -92,16 +93,18 @@ object EthGatewayDepositMain extends IOApp:
       val amount = FunctionReturnDecoder
         .decode(log.getData, List(typeRefUint256).asJava)
         .asScala
-        .head
-        .asInstanceOf[Uint256]
-        .getValue
+        .headOption.map: amount =>
+          amount
+            .asInstanceOf[Uint256]
+            .getValue
+        .fold(BigInt(0))(BigInt(_))
 
       TransferTokenEvent(
         blockNumber = BigInt(log.getBlockNumber),
         txHash = log.getTransactionHash,
         from = from.getValue,
         to = to.getValue,
-        value = BigInt(amount),
+        value = amount,
       )
 
   def writeUnsentDeposits[F[_]: Async](
@@ -111,7 +114,7 @@ object EthGatewayDepositMain extends IOApp:
     val json = deposits.asJson.spaces2
     Files.write(
       path,
-      json.getBytes,
+      json.getBytes(StandardCharsets.UTF_8),
       StandardOpenOption.CREATE,
       StandardOpenOption.WRITE,
       StandardOpenOption.TRUNCATE_EXISTING,
@@ -139,10 +142,10 @@ object EthGatewayDepositMain extends IOApp:
       Async[F].blocking:
         val path = Paths.get("sent-deposits.logs")
         val jsons =
-          deposits.toSeq.map(_.asJson.noSpaces).mkString("", "\n", "\n")
+          deposits.map(_.asJson.noSpaces).mkString("", "\n", "\n")
         Files.write(
           path,
-          jsons.getBytes,
+          jsons.getBytes(StandardCharsets.UTF_8),
           StandardOpenOption.CREATE,
           StandardOpenOption.WRITE,
           StandardOpenOption.APPEND,
@@ -154,7 +157,7 @@ object EthGatewayDepositMain extends IOApp:
       val json = blockNumber.asJson.spaces2
       Files.write(
         path,
-        json.getBytes,
+        json.getBytes(StandardCharsets.UTF_8),
         StandardOpenOption.CREATE,
         StandardOpenOption.WRITE,
         StandardOpenOption.TRUNCATE_EXISTING,
@@ -306,7 +309,7 @@ object EthGatewayDepositMain extends IOApp:
       )
       _ <- Async[F].delay(scribe.info(s"events: $events"))
       depositEvents = events.filter:
-        _.to.toLowerCase === gatewayEthAddress.toLowerCase
+        _.to.toLowerCase(Locale.ENGLISH) === gatewayEthAddress.toLowerCase(Locale.ENGLISH)
       _ <- Async[F].delay:
         scribe.info(s"current deposit events: $depositEvents")
       oldEvents <- readUnsentDeposits[F]()
@@ -323,11 +326,11 @@ object EthGatewayDepositMain extends IOApp:
               s"eth address ${event.from}'s LM account: $accountOption"
             (event, accountOption)
       (known, unknown) = eventAndAccountOptions.partition(_._2.nonEmpty)
-      toMints = known.map:
-        case (event, Some(account)) => (account, event)
+      toMints = known.flatMap:
+        case (event, Some(account)) => List((account, event))
         case (event, None) =>
-          throw new Exception:
-            s"Internal error: Account ${event.from} not found"
+          scribe.error(s"Internal error: Account ${event.from} not found")
+          Nil
       _ <- Async[F].delay(scribe.info(s"toMints: $toMints"))
       _ <- toMints.traverse: (account, event) =>
         mintLM[F](sttp, lmEndpoint, account, event.value)
@@ -438,7 +441,7 @@ object EthGatewayDepositMain extends IOApp:
           None
 
   def run(args: List[String]): IO[ExitCode] =
-    val conf = GatewayConf()
+    val conf = GatewayConf.loadOrThrow()
     GatewayResource
       .getAllResource[IO](conf)
       .use: (kms, web3j, db, sttp) =>

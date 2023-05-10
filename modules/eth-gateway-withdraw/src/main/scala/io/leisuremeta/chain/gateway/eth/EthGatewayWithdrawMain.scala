@@ -4,7 +4,7 @@ package gateway.eth
 import java.math.{BigInteger, MathContext}
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.Instant
-import java.util.{ArrayList, Arrays, Collections}
+import java.util.{ArrayList, Arrays, Collections, Locale}
 import java.util.concurrent.CompletableFuture
 
 import scala.collection.mutable.ArrayBuffer
@@ -232,7 +232,7 @@ object EthGatewayWithdrawMain extends IOApp:
 
       balanceMap
         .get(LM)
-        .toSeq
+        .toList
         .flatMap(_.unused.toSeq)
         .filterNot(_._2.signedTx.sig.account === gatewayAccount)
         .traverse { case (txHash, txWithResult) =>
@@ -306,7 +306,7 @@ object EthGatewayWithdrawMain extends IOApp:
       balanceMap.toSeq.traverse { case (tokenId, balanceInfo) =>
         balanceInfo.tx.signedTx.value match
           case tx: Transaction.TokenTx.TransferNFT
-              if balanceInfo.tx.signedTx.sig.account != gatewayAccount =>
+              if balanceInfo.tx.signedTx.sig.account =!= gatewayAccount =>
             {
               for
                 info <- OptionT:
@@ -439,7 +439,7 @@ object EthGatewayWithdrawMain extends IOApp:
           val ethPrivate = ByteVector.view(ethPrivateByteArray).toHex
           val credential = Credentials.create(ethPrivate)
           assert(
-            credential.getAddress() === gatewayEthAddress.toLowerCase(),
+            credential.getAddress() === gatewayEthAddress.toLowerCase(Locale.ENGLISH),
             s"invalid gateway eth address: ${credential.getAddress} vs $gatewayEthAddress",
           )
           val TX_END_CHECK_DURATION = 20000
@@ -479,7 +479,7 @@ object EthGatewayWithdrawMain extends IOApp:
               }.apply: response =>
                 val history = response.getFeeHistory()
 
-                val baseFees = history.getBaseFeePerGas().asScala
+                val baseFees = history.getBaseFeePerGas().asScala.toList
 
                 val mean = BigDecimal(baseFees.map(BigInt(_)).sum) / 10
                 val std = baseFees
@@ -587,7 +587,7 @@ object EthGatewayWithdrawMain extends IOApp:
           loop(None)
 
   def run(args: List[String]): IO[ExitCode] =
-    val conf = GatewayConf()
+    val conf = GatewayConf.loadOrThrow()
     GatewayResource
       .getAllResource[IO](conf)
       .use: (kms, web3j, db, sttp) =>
