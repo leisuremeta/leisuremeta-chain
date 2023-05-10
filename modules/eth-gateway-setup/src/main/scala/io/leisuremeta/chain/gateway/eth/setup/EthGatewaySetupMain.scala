@@ -259,9 +259,9 @@ object EthGatewaySetupMain extends IOApp:
         decryptedEthEndpointWithWithdrawKey <- decrypt[IO](kmsClient, config.withdrawKmsAlias):
           encryptedEthEndpointWithWithdrawKey
       yield
-        println(s"Deposit DB: ${toBase64(depositEndpoint)}")
+        println(s"Deposit DB: ${toBase64(encryptedDepositDb)}")
         println(s"Decrypted Deposit DB: ${String(decryptedDepositDb, "UTF-8")}")
-        println(s"Withdraw DB: ${toBase64(withdrawEndpoint)}")
+        println(s"Withdraw DB: ${toBase64(encryptedWithdrawDb)}")
         println(s"Decrypted Withdraw DB: ${String(decryptedWithdrawDb, "UTF-8")}")
         println(s"ETH Endpoint with Deposit Key: ${toBase64(encryptedEthEndpointWithDepositKey)}")
         println(s"ETH Endpoint with Withdraw Key: ${toBase64(encryptedEthEndpointWithWithdrawKey)}")
