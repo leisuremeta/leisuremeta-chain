@@ -605,4 +605,7 @@ object EthGatewayWithdrawMain extends IOApp:
             gatewayEthAddress = conf.gatewayEthAddress,
           )
       .value
+      .map:
+        case Left(error) => scribe.error(s"Error: $error")
+        case Right(result) => scribe.info(s"Result: $result")
       .as(ExitCode.Success)

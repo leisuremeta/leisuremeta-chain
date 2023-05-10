@@ -288,6 +288,7 @@ lazy val ethGatewayDeposit = (project in file("modules/eth-gateway-deposit"))
   .settings(
     name := "leisuremeta-chain-eth-gateway-deposit",
     assemblyMergeStrategy := {
+      case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
@@ -306,6 +307,7 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
   .settings(
     name := "leisuremeta-chain-eth-gateway-withdraw",
     assemblyMergeStrategy := {
+      case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard

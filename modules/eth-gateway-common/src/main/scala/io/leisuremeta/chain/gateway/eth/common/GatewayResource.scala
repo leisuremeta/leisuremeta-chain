@@ -21,7 +21,7 @@ object GatewayResource:
       .mapK(EitherT.liftK[F, String])
     web3jBytes <- Resource.eval:
       EitherT.fromEither:
-        ByteVector.fromHexDescriptive(conf.encryptedEthEndpoint)
+        ByteVector.fromBase64Descriptive(conf.encryptedEthEndpoint)
     web3jPlaintextResource <- Resource.eval(kms.decrypt(web3jBytes.toArray))
     web3jPlaintext <- web3jPlaintextResource.mapK(EitherT.liftK[F, String])
     web3jEndpoint = String(web3jPlaintext, "UTF-8")
@@ -30,7 +30,7 @@ object GatewayResource:
       .mapK(EitherT.liftK[F, String])
     dbBytes <- Resource.eval:
       EitherT.fromEither:
-        ByteVector.fromHexDescriptive(conf.encryptedDatabaseEndpoint)
+        ByteVector.fromBase64Descriptive(conf.encryptedDatabaseEndpoint)
     dbPlaintextResource <- Resource.eval(kms.decrypt(dbBytes.toArray))
     dbPlaintext         <- dbPlaintextResource.mapK(EitherT.liftK[F, String])
     dbEndpoint = String(dbPlaintext, "UTF-8")
