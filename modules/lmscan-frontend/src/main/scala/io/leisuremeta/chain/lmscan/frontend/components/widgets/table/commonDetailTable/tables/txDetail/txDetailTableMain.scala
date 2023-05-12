@@ -3,6 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import io.leisuremeta.chain.lmscan.common.model.TxDetail
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 // TODO :: 콤포넌트를 더 잘게 분리
 object TxDetailTableMain:
@@ -43,7 +44,14 @@ object TxDetailTableMain:
           div(`class` := "row")(
             gen.cell(
               Cell.Head("SubType", "cell type-detail-head"),
-              Cell.PlainStr(data.subType, "cell type-detail-body"),
+              Cell.PlainStr(
+                {
+                  log("서브타입")
+                  log(data.subType)
+                  data.subType
+                },
+                "cell type-detail-body",
+              ),
             ),
           ),
         ),
