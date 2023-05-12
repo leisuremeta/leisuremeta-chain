@@ -13,6 +13,7 @@ val V = new {
   val fs2        = "3.6.1"
 
   val typesafeConfig = "1.4.2"
+  val pureconfig     = "0.17.3"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
   val jasync         = "2.1.24"
@@ -21,10 +22,13 @@ val V = new {
 
   val web3J = "4.9.6"
 
+  val awsSdk = "2.20.32"
+
   val scribe          = "3.11.1"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
   val zerowaste       = "0.2.6"
+  val munitCatsEffect = "2.0.0-M3"
 
   val tyrian = "0.6.2"
 
@@ -67,12 +71,18 @@ val Dependencies = new {
 
   lazy val ethGateway = Seq(
     libraryDependencies ++= Seq(
-      "com.outr"    %% "scribe-slf4j" % V.scribe,
-      "com.typesafe" % "config"       % V.typesafeConfig,
-      "org.web3j"    % "core"         % V.web3J,
-      "org.web3j"    % "contracts"    % V.web3J,
+      "com.softwaremill.sttp.tapir"   %% "tapir-armeria-server-cats" % V.tapir,
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"          % V.tapir,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats"      % V.sttp,
+      "com.softwaremill.sttp.tapir"   %% "tapir-sttp-client"         % V.tapir,
+      "com.outr"                      %% "scribe-slf4j"              % V.scribe,
+      "com.github.pureconfig" %% "pureconfig-core" % V.pureconfig,
+      "com.typesafe"           % "config"          % V.typesafeConfig,
+      "org.web3j"              % "core"            % V.web3J,
+      "org.web3j"              % "contracts"       % V.web3J,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
-      "com.github.jasync-sql" % "jasync-mysql" % V.jasync,
+      "com.github.jasync-sql"  % "jasync-mysql" % V.jasync,
+      "software.amazon.awssdk" % "kms"          % V.awsSdk,
     ),
   )
 
@@ -126,6 +136,13 @@ val Dependencies = new {
       "elliptic"        -> V.elliptic,
       "@types/elliptic" -> V.typesElliptic,
     ),
+  )
+
+  lazy val catsEffectTests = Def.settings(
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "munit-cats-effect" % V.munitCatsEffect % Test,
+    ),
+    Test / fork := true,
   )
 
   lazy val tests = Def.settings(
@@ -221,7 +238,8 @@ lazy val root = (project in file("."))
     api.js,
     lib.jvm,
     lib.js,
-    ethGateway,
+    ethGatewayCommon,
+    ethGatewayDeposit,
     ethGatewayWithdraw,
     lmscanCommon.jvm,
     lmscanCommon.js,
@@ -246,12 +264,31 @@ lazy val node = (project in file("modules/node"))
   )
   .dependsOn(api.jvm)
 
-lazy val ethGateway = (project in file("modules/eth-gateway"))
+lazy val ethGatewayCommon = (project in file("modules/eth-gateway-common"))
+  .settings(Dependencies.ethGateway)
+  .settings(Dependencies.catsEffectTests)
+  .settings(
+    name := "leisuremeta-chain-eth-gateway-common",
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
+  )
+  .dependsOn(api.jvm)
+
+lazy val ethGatewaySetup = (project in file("modules/eth-gateway-setup"))
+  .settings(Dependencies.ethGateway)
+  .settings(Dependencies.catsEffectTests)
+  .settings(
+    name := "leisuremeta-chain-eth-gateway-setup",
+  )
+  .dependsOn(ethGatewayCommon)
+
+lazy val ethGatewayDeposit = (project in file("modules/eth-gateway-deposit"))
   .settings(Dependencies.ethGateway)
   .settings(Dependencies.tests)
   .settings(
     name := "leisuremeta-chain-eth-gateway-deposit",
     assemblyMergeStrategy := {
+      case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
@@ -259,8 +296,10 @@ lazy val ethGateway = (project in file("modules/eth-gateway"))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
   )
-  .dependsOn(api.jvm)
+  .dependsOn(ethGatewayCommon)
 
 lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
   .settings(Dependencies.ethGateway)
@@ -268,6 +307,7 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
   .settings(
     name := "leisuremeta-chain-eth-gateway-withdraw",
     assemblyMergeStrategy := {
+      case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
@@ -275,8 +315,10 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
   )
-  .dependsOn(api.jvm)
+  .dependsOn(ethGatewayCommon)
 
 lazy val archive = (project in file("modules/archive"))
   .settings(Dependencies.archive)
