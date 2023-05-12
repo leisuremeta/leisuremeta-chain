@@ -176,17 +176,16 @@ object BackendMain extends IOApp:
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
-
-    def corsService =
-      CorsService
-        .builder("*")
-        .allowCredentials()
-        .allowNullOrigin() // 'Origin: null' will be accepted.
-        .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
-        .allowRequestHeaders("allow_request_header")
-        .exposeHeaders("expose_header_1", "expose_header_2")
-        .preflightResponseHeader("x-preflight-cors", "CORS")
-        .newDecorator();
+    // def corsService =
+    //   CorsService
+    //     .builder("*")
+    //     .allowCredentials()
+    //     .allowNullOrigin() // 'Origin: null' will be accepted.
+    //     .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
+    //     .allowRequestHeaders("allow_request_header")
+    //     .exposeHeaders("expose_header_1", "expose_header_2")
+    //     .preflightResponseHeader("x-preflight-cors", "CORS")
+    //     .newDecorator();
 
     for
       dispatcher <- Dispatcher.parallel[F]
