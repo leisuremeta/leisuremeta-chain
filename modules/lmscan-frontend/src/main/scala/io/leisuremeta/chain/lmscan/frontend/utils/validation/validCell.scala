@@ -7,6 +7,7 @@ import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 enum Cell:
   case Image(data: Option[String])                              extends Cell
@@ -105,7 +106,13 @@ object gen:
             `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
           )(
             {
-              txValue(value) == "-" match
+              txValue(value) == "-" || {
+                log("value")
+                log(value)
+                log(value)
+                log(value)
+                plainStr(value) == "-"
+              } match
                 case true => span()
                 case false =>
                   span(
@@ -157,7 +164,7 @@ object gen:
             )(
               plainStr(tokeyType) match
                 case "NFT" =>
-                  plainStr(value)
+                  plainStr(value).replace("-", "")
                 case _ => txValue(value),
             ),
           )

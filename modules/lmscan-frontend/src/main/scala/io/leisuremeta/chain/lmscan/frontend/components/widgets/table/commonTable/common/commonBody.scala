@@ -99,7 +99,7 @@ object Body:
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
-            Cell.Tx_VALUE((v.tokenType, v.value)),
+            Cell.Tx_VALUE((v.tokenType, V.validNull(v.value))),
           ),
           // Cell.PlainInt(v.blockNumber),
           // Cell.PlainStr(v.txType),
@@ -117,7 +117,7 @@ object Body:
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             Cell.PlainStr(v.subType), // subtype 추가
-            Cell.Tx_VALUE((v.tokenType, v.value)),
+            Cell.Tx_VALUE((v.tokenType, V.validNull(v.value))),
           ),
           // Cell.PlainInt(v.blockNumber),
           // Cell.PlainStr(v.txType),
@@ -163,7 +163,7 @@ object Body:
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
             // Cell.PlainStr(v.tokenType),
-            Cell.Tx_VALUE((v.tokenType, v.value)),
+            Cell.Tx_VALUE((v.tokenType, V.validNull(v.value))),
           ),
         ),
       )
@@ -180,7 +180,13 @@ object Body:
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
             // Cell.PlainStr(v.tokenType),
-            Cell.Tx_VALUE2((v.tokenType, v.value, v.inOut)),
+            Cell.Tx_VALUE2(
+              (
+                v.tokenType,
+                V.validNull(v.value),
+                v.inOut,
+              ),
+            ),
           ),
         ),
       )

@@ -1,5 +1,10 @@
 package io.leisuremeta.chain.lmscan.frontend
 object V:
+  def validNull = (value: Option[String]) =>
+    value match
+      case Some("") => None
+      case _        => value
+
   def commaNumber = (value: String) =>
     String.format(
       "%,d",
