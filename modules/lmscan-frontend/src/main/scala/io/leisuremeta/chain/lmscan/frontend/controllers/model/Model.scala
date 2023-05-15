@@ -10,4 +10,6 @@ final case class Model(
     commandMode: CommandCaseMode = CommandCaseMode.Production,
     commandLink: CommandCaseLink,
     detail_button: Boolean = false,
+    tx_total_page: Int = 1,
+    block_total_page: Int = 1,
 )

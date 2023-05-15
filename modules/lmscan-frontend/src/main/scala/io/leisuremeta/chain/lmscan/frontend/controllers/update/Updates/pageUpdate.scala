@@ -21,6 +21,16 @@ object PageUpdate:
           )
           (
             model.copy(
+              tx_total_page =
+                get_PageResponseViewCase(model).tx.totalPages match
+                  case 1 => model.tx_total_page
+                  case _ => get_PageResponseViewCase(model).tx.totalPages
+              ,
+              block_total_page =
+                get_PageResponseViewCase(model).block.totalPages match
+                  case 1 => model.block_total_page
+                  case _ => get_PageResponseViewCase(model).block.totalPages
+              ,
               pointer = get_latest_number(model) + 1,
               appStates = model.appStates ++ Seq(
                 StateCase(

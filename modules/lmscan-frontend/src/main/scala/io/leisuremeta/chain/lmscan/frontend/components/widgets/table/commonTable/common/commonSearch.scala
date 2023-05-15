@@ -17,7 +17,7 @@ object Search:
     // todo :: make as pipe
     val curPage = find_current_PubPage(model)
 
-    val totalPage = get_PageResponseViewCase(model).block.totalPages
+    val totalPage = model.block_total_page
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2)                         => 1
@@ -113,16 +113,22 @@ object Search:
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
-          div(`class` := "type-plain-text margin-right")(totalPage.toString()),
+          div(`class` := "type-plain-text margin-right")({
+            totalPage match
+              case 1 =>
+                get_PageResponseViewCase(model).block.totalPages.toString()
+              case _ => totalPage.toString()
+
+          }),
         ),
       ),
     )
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = find_tx_curpage(model)
+    val curPage = find_current_PubPage(model)
 
-    val totalPage = get_PageResponseViewCase(model).tx.totalPages
+    val totalPage = model.tx_total_page
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2)                         => 1
@@ -253,7 +259,11 @@ object Search:
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
-          div(`class` := "type-plain-text margin-right")(totalPage.toString()),
+          div(`class` := "type-plain-text margin-right")({
+            totalPage match
+              case 1 => get_PageResponseViewCase(model).tx.totalPages.toString()
+              case _ => totalPage.toString()
+          }),
         ),
       ),
     )
