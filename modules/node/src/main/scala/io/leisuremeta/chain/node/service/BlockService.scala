@@ -61,9 +61,9 @@ object BlockService:
     _ <- EitherT.right[String](
       List(
         resultList.traverse(txRepo.put).map(_ => ()),
-        GenericStateRepository.AccountState[F].name.put(state.account.namesState),
-        GenericStateRepository.AccountState[F].key.put(state.account.keyState),
-        GenericStateRepository.AccountState[F].eth.put(state.account.ethState),
+//        GenericStateRepository.AccountState[F].name.put(state.account.namesState),
+//        GenericStateRepository.AccountState[F].key.put(state.account.keyState),
+//        GenericStateRepository.AccountState[F].eth.put(state.account.ethState),
         GenericStateRepository.GroupState[F].group.put(state.group.groupState),
         GenericStateRepository.GroupState[F].groupAccount.put(state.group.groupAccountState),
         GenericStateRepository.TokenState[F].definition.put(state.token.tokenDefinitionState),

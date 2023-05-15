@@ -249,7 +249,8 @@
     * account: Account 계정 이름
     * summaries: Map[PublicKeySummary, String]
       * 추가할 공개키요약과 간단한 설명
-  
+      * 만약 설명이 `"permanant"` 인 경우 해당 public key summary 는 유효기간 없이 무제한 사용
+    
   * Result
     * Removed: Map[PublicKeySummary, Descrption(string)]
   

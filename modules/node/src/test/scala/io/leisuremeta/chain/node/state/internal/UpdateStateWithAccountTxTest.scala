@@ -20,6 +20,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
+import dapp.PlayNommState
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.CryptoOps
 import lib.crypto.Hash.ops.*
@@ -29,6 +30,7 @@ import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState, MerkleTrieState}
 import lib.failure.DecodingFailure
 import repository.GenericStateRepository
 import repository.GenericStateRepository.{*, given}
+import repository.StateRepository.{*, given}
 
 import hedgehog.munit.HedgehogSuite
 import hedgehog.*
@@ -50,6 +52,8 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
 
   given testStateRepo[K, V]: GenericStateRepository[IO, K, V] =
     GenericStateRepository.fromStores[IO, K, V]
+
+  given PlayNommState[IO] = PlayNommState.build[IO]
 
   test("create account") {
     withMunitAssertions { assertions =>
@@ -82,8 +86,8 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
 
       val baseState = GossipDomain.MerkleState(
         main = MerkleTrieState.empty,
-        account = GossipDomain.MerkleState.AccountMerkleState
-          .from(StateRoot.AccountStateRoot.empty),
+//        account = GossipDomain.MerkleState.AccountMerkleState
+//          .from(StateRoot.AccountStateRoot.empty),
         group = GossipDomain.MerkleState.GroupMerkleState
           .from(StateRoot.GroupStateRoot.empty),
         token = GossipDomain.MerkleState.TokenMerkleState.from(
@@ -101,11 +105,9 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
           tx.asInstanceOf[Transaction.AccountTx],
         ).value.unsafeRunSync(): @unchecked
 
-      val result = GenericMerkleTrie
-        .get[IO, (Account, PublicKeySummary), PublicKeySummary.Info](
-          (account, pubKeySummary).toBytes.bits,
-        )
-        .runA(state.account.keyState)
+      val result = PlayNommState[IO].account.key
+        .get((account, pubKeySummary))
+        .runA(state.main)
         .value
         .unsafeRunSync()
 
@@ -173,8 +175,8 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
 
       val baseState = GossipDomain.MerkleState(
         main = MerkleTrieState.empty,
-        account = GossipDomain.MerkleState.AccountMerkleState
-          .from(StateRoot.AccountStateRoot.empty),
+//        account = GossipDomain.MerkleState.AccountMerkleState
+//          .from(StateRoot.AccountStateRoot.empty),
         group = GossipDomain.MerkleState.GroupMerkleState
           .from(StateRoot.GroupStateRoot.empty),
         token = GossipDomain.MerkleState.TokenMerkleState.from(
@@ -202,9 +204,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       ): StateT[EitherT[IO, String, *], GossipDomain.MerkleState, Option[
         Account,
       ]] = StateT.inspectF { (ms: GossipDomain.MerkleState) =>
-        GenericMerkleTrie
-          .get[IO, EthAddress, Account](ethAddress.toBytes.bits)
-          .runA(ms.account.ethState)
+        PlayNommState[IO].account.eth.get(ethAddress).runA(ms.main)
       }
 
       val testProgram = for
@@ -215,7 +215,7 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       yield account
 
       val result = testProgram.runA(baseState).value.unsafeRunSync()
-      
+
       assertions.assertEquals(result, Right(Some(alice)))
     }
   }

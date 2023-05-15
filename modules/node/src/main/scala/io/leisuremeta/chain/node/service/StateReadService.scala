@@ -64,7 +64,7 @@ import io.leisuremeta.chain.node.dapp.PlayNommState
 import scodec.bits.ByteVector
 object StateReadService:
   def getAccountInfo[F[_]
-    : Concurrent: BlockRepository: GenericStateRepository.AccountState](
+    : Concurrent: BlockRepository: GenericStateRepository.AccountState: PlayNommState](
       account: Account,
   ): F[Option[AccountInfo]] = for
     bestHeaderEither <- BlockRepository[F].bestHeader.value
@@ -74,36 +74,18 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    accountStateEither <- GenericMerkleTrie
-      .get[F, Account, AccountData](account.toBytes.bits)
-      .runA(merkleState.account.namesState)
+    accountStateEither <- PlayNommState[F].account.name
+      .get(account)
+      .runA(merkleState.main)
       .value
     accountStateOption <- accountStateEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(accountStateOption) => Concurrent[F].pure(accountStateOption)
-    keyListEither <- GenericMerkleTrie
-      .from[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-        account.toBytes.bits,
-      )
-      .runA(merkleState.account.keyState)
-      .flatMap(
-        _.takeWhile(_._1.startsWith(account.toBytes.bits)).compile.toList
-          .flatMap { (list) =>
-            list.traverse { case (bits, v) =>
-              EitherT.fromEither[F] {
-                ByteDecoder[(Account, PublicKeySummary)]
-                  .decode(bits.bytes) match
-                  case Left(err) => Left(err.msg)
-                  case Right(
-                        DecodeResult((account, publicKeySummary), remainder),
-                      ) =>
-                    if remainder.isEmpty then Right((publicKeySummary, v))
-                    else
-                      Left(s"non-empty remainder in decoding $publicKeySummary")
-              }
-            }
-          },
-      )
+    keyListEither <- PlayNommState[F].account.key
+      .from(account.toBytes)
+      .runA(merkleState.main)
+      .flatMap(_.compile.toList)
+      .map(_.map { case ((_, pks), info) => (pks, info) })
       .value
     keyList <- keyListEither match
       case Left(err)      => Concurrent[F].raiseError(new Exception(err))
@@ -117,7 +99,7 @@ object StateReadService:
   )
 
   def getEthAccount[F[_]
-    : Concurrent: BlockRepository: GenericStateRepository.AccountState](
+    : Concurrent: BlockRepository: GenericStateRepository.AccountState: PlayNommState](
       ethAddress: EthAddress,
   ): F[Option[Account]] = for
     bestHeaderEither <- BlockRepository[F].bestHeader.value
@@ -127,9 +109,9 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    ethStateEither <- GenericMerkleTrie
-      .get[F, EthAddress, Account](ethAddress.toBytes.bits)
-      .runA(merkleState.account.ethState)
+    ethStateEither <- PlayNommState[F].account.eth
+      .get(ethAddress)
+      .runA(merkleState.main)
       .value
     ethStateOption <- ethStateEither match
       case Left(err)             => Concurrent[F].raiseError(new Exception(err))

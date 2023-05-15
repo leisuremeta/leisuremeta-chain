@@ -38,27 +38,25 @@ import GossipDomain.MerkleState
 
 object TransactionService:
   def submit[F[_]
-    : Concurrent: Clock: BlockRepository: TransactionRepository: PlayNommState: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
+    : Concurrent: Clock: BlockRepository: TransactionRepository: PlayNommState: StateRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
       semaphore: Semaphore[F],
       txs: Seq[Signed.Tx],
       localKeyPair: KeyPair,
   ): EitherT[F, String, Seq[Hash.Value[TransactionWithResult]]] =
     Resource
-      .make {
-        EitherT.pure(semaphore.acquire).map { _ =>
+      .make:
+        EitherT.pure(semaphore.acquire).map: _ =>
           scribe.info(s"Lock Acquired: $txs")
           ()
-        }
-      } { _ =>
-        scribe.info(s"Lock Released: $txs")
-        EitherT.pure(semaphore.release)
-      }
-      .use { _ =>
+      .apply: _ =>
+        EitherT.pure:
+          scribe.info(s"Lock Released: $txs")
+          semaphore.release
+      .use: _ =>
         submit0[F](txs, localKeyPair)
-      }
 
   private def submit0[F[_]
-    : Concurrent: Clock: BlockRepository: TransactionRepository: PlayNommState: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
+    : Concurrent: Clock: BlockRepository: TransactionRepository: PlayNommState: StateRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState](
       txs: Seq[Signed.Tx],
       localKeyPair: KeyPair,
   ): EitherT[F, String, Seq[Hash.Value[TransactionWithResult]]] = for
@@ -124,13 +122,10 @@ object TransactionService:
       votes = Set(sig),
     )
     _ <- BlockRepository[F].put(block).leftMap(_.msg)
-
+    _ <- StateRepository[F].put(finalState.main).leftMap(_.msg)
     _ <- EitherT.right[String] {
       import GenericStateRepository.*
       List(
-        AccountState[F].name.put { finalState.account.namesState },
-        AccountState[F].key.put { finalState.account.keyState },
-        AccountState[F].eth.put { finalState.account.ethState },
         GroupState[F].group.put { finalState.group.groupState },
         GroupState[F].groupAccount.put { finalState.group.groupAccountState },
         TokenState[F].definition.put { finalState.token.tokenDefinitionState },

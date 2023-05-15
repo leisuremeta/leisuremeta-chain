@@ -23,6 +23,8 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
+import dapp.PlayNommState
+import dapp.submodule.PlayNommDAppAccount
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
@@ -31,10 +33,11 @@ import repository.GenericStateRepository
 import repository.GenericStateRepository.given
 
 trait UpdateStateWithAccountTx:
-  given updateStateWithAccountTx[F[_]: Concurrent: GenericStateRepository.AccountState]
+  given updateStateWithAccountTx[F[_]: Concurrent: GenericStateRepository.AccountState: PlayNommState]
       : UpdateState[F, Transaction.AccountTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.AccountTx) =>
-
+      PlayNommDAppAccount[F](tx, sig).run(ms).leftMap(_.msg)
+/*
       def getAccount: EitherT[F, String, Option[AccountData]] = GenericMerkleTrie
         .get[F, Account, AccountData](tx.account.toBytes.bits)
         .runA(ms.account.namesState)
@@ -325,3 +328,4 @@ trait UpdateStateWithAccountTx:
                   s"Account does not match signature: ${ap.account} vs ${sig.account}",
                 )
             }
+*/

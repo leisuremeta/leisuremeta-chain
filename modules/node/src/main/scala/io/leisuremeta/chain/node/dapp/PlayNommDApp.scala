@@ -16,6 +16,8 @@ object PlayNommDApp:
       signedTx: Signed.Tx,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleState, TransactionWithResult] =
     signedTx.value match
+      case accountTx: Transaction.AccountTx =>
+        PlayNommDAppAccount(accountTx, signedTx.sig)
       case rewardTx: Transaction.RewardTx =>
         PlayNommDAppReward(rewardTx, signedTx.sig)
 

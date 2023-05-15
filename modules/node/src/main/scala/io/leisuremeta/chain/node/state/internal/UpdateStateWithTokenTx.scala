@@ -29,6 +29,7 @@ import api.model.{
 }
 import api.model.token.*
 import api.model.TransactionWithResult.ops.*
+import dapp.PlayNommState
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
@@ -42,7 +43,7 @@ import io.leisuremeta.chain.node.service.StateReadService
 trait UpdateStateWithTokenTx:
 
   given updateStateWithTokenTx[F[_]
-    : Concurrent: GenericStateRepository.TokenState: GenericStateRepository.GroupState: GenericStateRepository.AccountState: TransactionRepository]
+    : Concurrent: GenericStateRepository.TokenState: GenericStateRepository.GroupState: GenericStateRepository.AccountState: TransactionRepository: PlayNommState]
       : UpdateState[F, Transaction.TokenTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.TokenTx) =>
       tx match
@@ -110,11 +111,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(mf, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.cond(
               accountPubKeyOption.nonEmpty,
               (),
@@ -193,11 +192,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(mn, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.cond(
               accountPubKeyOption.nonEmpty,
               (),
@@ -272,11 +269,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(tf, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -340,11 +335,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(tn, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -400,11 +393,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(bf, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -470,11 +461,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(bn, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -489,13 +478,12 @@ trait UpdateStateWithTokenTx:
               inputTxOption,
               s"input ${bn.input} does not exist",
             )
-            tokenId <- {
+            tokenId <-
               inputTx.signedTx.value match
                 case nftBalance: Transaction.NftBalance =>
                   EitherT.pure(nftBalance.tokenId)
                 case _ =>
                   EitherT.leftT(s"input ${bn.input} is not an NFT balance")
-            }
             nftBalanceState <- GenericMerkleTrie
               .remove[F, NftBalance, Unit] {
                 (sig.account, tokenId, bn.input).toBytes.bits
@@ -563,11 +551,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(ef, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -721,11 +707,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(en, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -772,11 +756,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(de, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -844,11 +826,9 @@ trait UpdateStateWithTokenTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(dn, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",

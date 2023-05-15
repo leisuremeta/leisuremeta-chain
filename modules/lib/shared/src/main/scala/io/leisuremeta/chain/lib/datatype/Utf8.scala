@@ -4,6 +4,8 @@ package datatype
 import java.nio.charset.{CharacterCodingException, StandardCharsets}
 import scala.util.Try
 
+import cats.Eq
+
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import scodec.bits.ByteVector
 
@@ -21,6 +23,8 @@ object Utf8:
   extension (u: Utf8)
     def value: String = u
     def bytes: ByteVector = ByteVector.view(u.getBytes(StandardCharsets.UTF_8))
+
+  given eq: Eq[Utf8] = Eq.fromUniversalEquals
 
   given utf8CirceDecoder: Decoder[Utf8] =
     Decoder.decodeString.emap(from(_).left.map(_.getMessage))

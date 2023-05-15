@@ -23,6 +23,7 @@ object PublicKeySummary:
   final case class Info(
     description: Utf8,
     addedAt: Instant,
+    expiresAt: Option[Instant],
   )
 
   def apply(bytes: ByteVector): Either[String, PublicKeySummary] =

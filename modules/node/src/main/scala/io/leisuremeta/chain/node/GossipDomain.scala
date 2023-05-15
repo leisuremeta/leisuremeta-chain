@@ -40,14 +40,14 @@ object GossipDomain:
 
   case class MerkleState(
       main: MerkleTrieState,
-      account: MerkleState.AccountMerkleState,
+//      account: MerkleState.AccountMerkleState,
       group: MerkleState.GroupMerkleState,
       token: MerkleState.TokenMerkleState,
       reward: MerkleState.RewardMerkleState,
   ):
     def toStateRoot: StateRoot = StateRoot(
       main = main.root,
-      account = account.toStateRoot,
+//      account = account.toStateRoot,
       group = group.toStateRoot,
       token = token.toStateRoot,
       reward = reward.toStateRoot,
@@ -57,32 +57,32 @@ object GossipDomain:
     def from(header: Block.Header): MerkleState = MerkleState(
       main = header.stateRoot.main
         .fold(MerkleTrieState.empty)(MerkleTrieState.fromRoot),
-      account = AccountMerkleState.from(header.stateRoot.account),
+//      account = AccountMerkleState.from(header.stateRoot.account),
       group = GroupMerkleState.from(header.stateRoot.group),
       token = TokenMerkleState.from(header.stateRoot.token),
       reward = RewardMerkleState.from(header.stateRoot.reward),
     )
 
-    case class AccountMerkleState(
-        namesState: GenericMerkleTrieState[Account, AccountData],
-        keyState: GenericMerkleTrieState[
-          (Account, PublicKeySummary),
-          PublicKeySummary.Info,
-        ],
-        ethState: GenericMerkleTrieState[EthAddress, Account],
-    ):
-      def toStateRoot: StateRoot.AccountStateRoot = StateRoot.AccountStateRoot(
-        namesRoot = namesState.root,
-        keyRoot = keyState.root,
-        ethRoot = ethState.root,
-      )
-    object AccountMerkleState:
-      def from(root: StateRoot.AccountStateRoot): AccountMerkleState =
-        AccountMerkleState(
-          namesState = buildMerkleTrieState(root.namesRoot),
-          keyState = buildMerkleTrieState(root.keyRoot),
-          ethState = buildMerkleTrieState(root.ethRoot),
-        )
+//    case class AccountMerkleState(
+//        namesState: GenericMerkleTrieState[Account, AccountData],
+//        keyState: GenericMerkleTrieState[
+//          (Account, PublicKeySummary),
+//          PublicKeySummary.Info,
+//        ],
+//        ethState: GenericMerkleTrieState[EthAddress, Account],
+//    ):
+//      def toStateRoot: StateRoot.AccountStateRoot = StateRoot.AccountStateRoot(
+//        namesRoot = namesState.root,
+//        keyRoot = keyState.root,
+//        ethRoot = ethState.root,
+//      )
+//    object AccountMerkleState:
+//      def from(root: StateRoot.AccountStateRoot): AccountMerkleState =
+//        AccountMerkleState(
+//          namesState = buildMerkleTrieState(root.namesRoot),
+//          keyState = buildMerkleTrieState(root.keyRoot),
+//          ethState = buildMerkleTrieState(root.ethRoot),
+//        )
 
     case class GroupMerkleState(
         groupState: GenericMerkleTrieState[GroupId, GroupData],
@@ -746,9 +746,9 @@ object GossipDomain:
   ): Either[String, MerkleState] =
     for
       mainState <- state.main.rebase(newBase.main)
-      namesState <- state.account.namesState.rebase(newBase.account.namesState)
-      keyState   <- state.account.keyState.rebase(newBase.account.keyState)
-      ethState   <- state.account.ethState.rebase(newBase.account.ethState)
+//      namesState <- state.account.namesState.rebase(newBase.account.namesState)
+//      keyState   <- state.account.keyState.rebase(newBase.account.keyState)
+//      ethState   <- state.account.ethState.rebase(newBase.account.ethState)
       groupState <- state.group.groupState.rebase(newBase.group.groupState)
       groupAccountState <- state.group.groupAccountState.rebase(
         newBase.group.groupAccountState,
@@ -780,7 +780,7 @@ object GossipDomain:
       )
     yield MerkleState(
       mainState,
-      MerkleState.AccountMerkleState(namesState, keyState, ethState),
+//      MerkleState.AccountMerkleState(namesState, keyState, ethState),
       MerkleState.GroupMerkleState(groupState, groupAccountState),
       MerkleState.TokenMerkleState(
         tokenDefinitionState,

@@ -27,6 +27,7 @@ import lib.crypto.Hash.ops.*
 import repository.{
   BlockRepository,
   GenericStateRepository,
+  StateRepository,
   TransactionRepository,
 }
 import repository.StateRepository.given
@@ -43,7 +44,7 @@ import service.{
 import service.interpreter.LocalGossipServiceInterpreter
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
+  : Async: BlockRepository: StateRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
     config: NodeConfig,
 ):
 

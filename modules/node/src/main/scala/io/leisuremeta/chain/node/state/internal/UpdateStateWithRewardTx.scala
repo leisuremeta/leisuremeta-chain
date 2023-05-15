@@ -66,13 +66,12 @@ trait UpdateStateWithRewardTx:
             daoInfoOption <- GenericMerkleTrie
               .get[F, GroupId, DaoInfo](rd.groupId.toBytes.bits)
               .runA(ms.reward.daoState)
-            _ <- {
+            _ <-
               daoInfoOption match
                 case Some(daoInfo) =>
                   EitherT.leftT(s"Group ${rd.groupId} exists already: $daoInfo")
                 case None =>
                   EitherT.pure(())
-            }
             daoInfo = DaoInfo(
               moderators = rd.moderators,
             )
@@ -160,11 +159,9 @@ trait UpdateStateWithRewardTx:
             pubKeySummary <- EitherT.fromEither[F](
               recoverSignature(tf, sig.sig),
             )
-            accountPubKeyOption <- GenericMerkleTrie
-              .get[F, (Account, PublicKeySummary), PublicKeySummary.Info](
-                (sig.account, pubKeySummary).toBytes.bits,
-              )
-              .runA(ms.account.keyState)
+            accountPubKeyOption <- PlayNommState[F].account.key
+              .get((sig.account, pubKeySummary))
+              .runA(ms.main)
             _ <- EitherT.fromOption[F](
               accountPubKeyOption,
               s"Account ${sig.account} does not have public key summary $pubKeySummary",
@@ -326,9 +323,10 @@ trait UpdateStateWithRewardTx:
                           EitherT.pure {
                             txWithResult.result match
                               case Some(
-                                    Transaction.RewardTx.ExecuteOwnershipRewardResult(
-                                      outputs,
-                                    ),
+                                    Transaction.RewardTx
+                                      .ExecuteOwnershipRewardResult(
+                                        outputs,
+                                      ),
                                   ) =>
                                 outputs.get(account).getOrElse(BigNat.Zero)
                               case _ => BigNat.Zero

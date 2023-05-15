@@ -14,7 +14,7 @@ import token.*
 
 final case class StateRoot(
     main: Option[MerkleRoot],
-    account: StateRoot.AccountStateRoot,
+//    account: StateRoot.AccountStateRoot,
     group: StateRoot.GroupStateRoot,
     token: StateRoot.TokenStateRoot,
     reward: StateRoot.RewardStateRoot,
@@ -24,20 +24,20 @@ object StateRoot:
 
   def empty: StateRoot = StateRoot(
     main = None,
-    account = StateRoot.AccountStateRoot.empty,
+//    account = StateRoot.AccountStateRoot.empty,
     group = StateRoot.GroupStateRoot.empty,
     token = StateRoot.TokenStateRoot.empty,
     reward = StateRoot.RewardStateRoot.empty,
   )
-  case class AccountStateRoot(
-      namesRoot: Option[GenericMerkleRoot[Account, AccountData]],
-      keyRoot: Option[
-        GenericMerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
-      ],
-      ethRoot: Option[GenericMerkleRoot[EthAddress, Account]]
-  )
-  object AccountStateRoot:
-    def empty: AccountStateRoot = AccountStateRoot(None, None, None)
+//  case class AccountStateRoot(
+//      namesRoot: Option[GenericMerkleRoot[Account, AccountData]],
+//      keyRoot: Option[
+//        GenericMerkleRoot[(Account, PublicKeySummary), PublicKeySummary.Info],
+//      ],
+//      ethRoot: Option[GenericMerkleRoot[EthAddress, Account]]
+//  )
+//  object AccountStateRoot:
+//    def empty: AccountStateRoot = AccountStateRoot(None, None, None)
 
   case class GroupStateRoot(
       groupRoot: Option[GenericMerkleRoot[GroupId, GroupData]],
