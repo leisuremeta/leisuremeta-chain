@@ -108,21 +108,29 @@ object Search:
           style(Style("margin-left" -> "10px")),
         )(
           input(
-            // onInput(s => PageMoveMsg.Get(s)), // todo :: input 함수 추가
+            onInput(s => PageMsg.GetFromBlockSearch(s)),
+            onKeyUp(e =>
+              e.key == "Enter" match
+                case true =>
+                  PageMsg.PreUpdate(
+                    PageCase.Blocks(
+                      url = s"blocks/${model.block_current_page}",
+                      pubs =
+                        List(PubCase.BlockPub(page = model.block_current_page)),
+                    ),
+                  )
+                case false =>
+                  PageMsg.None,
+            ),
             value := s"${curPage}",
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
-          div(`class` := "type-plain-text margin-right")({
-            totalPage match
-              case 1 =>
-                get_PageResponseViewCase(model).block.totalPages.toString()
-              case _ => totalPage.toString()
-
-          }),
+          div(`class` := "type-plain-text margin-right")(totalPage.toString()),
         ),
       ),
     )
+    // )
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe
@@ -254,7 +262,19 @@ object Search:
           style(Style("margin-left" -> "10px")),
         )(
           input(
-            // onInput(s => PageMoveMsg.Get(s)), // todo :: input 함수 추가
+            onInput(s => PageMsg.GetFromTxSearch(s)),
+            onKeyUp(e =>
+              e.key == "Enter" match
+                case true =>
+                  PageMsg.PreUpdate(
+                    PageCase.Transactions(
+                      url = s"transactions/${model.tx_current_page}",
+                      pubs = List(PubCase.TxPub(page = model.tx_current_page)),
+                    ),
+                  )
+                case false =>
+                  PageMsg.None,
+            ),
             value := s"${curPage}",
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),

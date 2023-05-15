@@ -6,7 +6,7 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object BlockTable:
-  def view(model: Model): Html[Msg] =
+  def view(model: Model) =
     div(`class` := "table-container  position-relative y-center  ")(
       div(`class` := "m-10px w-[100%] ")(
         div(`class` := "  ")(

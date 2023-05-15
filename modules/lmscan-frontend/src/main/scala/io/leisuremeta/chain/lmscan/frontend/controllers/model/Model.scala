@@ -11,5 +11,7 @@ final case class Model(
     commandLink: CommandCaseLink,
     detail_button: Boolean = false,
     tx_total_page: Int = 1,
+    tx_current_page: Int = 1,
     block_total_page: Int = 1,
+    block_current_page: Int = 1,
 )

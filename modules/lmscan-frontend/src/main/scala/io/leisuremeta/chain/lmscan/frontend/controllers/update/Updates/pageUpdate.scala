@@ -118,3 +118,8 @@ object PageUpdate:
         ),
         Cmd.None,
       )
+    case PageMsg.None => (model, Cmd.None)
+    case PageMsg.GetFromBlockSearch(s) =>
+      (model.copy(block_current_page = s.toInt), Cmd.None)
+    case PageMsg.GetFromTxSearch(s) =>
+      (model.copy(tx_current_page = s.toInt), Cmd.None)
