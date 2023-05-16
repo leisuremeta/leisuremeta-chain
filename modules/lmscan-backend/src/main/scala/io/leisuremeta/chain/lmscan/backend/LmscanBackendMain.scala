@@ -45,6 +45,8 @@ import sttp.tapir.server.interceptor.cors.CORSConfig
 
 object BackendMain extends IOApp:
 
+  def bff = ""
+
   def txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxPageEndPoint.serverLogic {
       (
