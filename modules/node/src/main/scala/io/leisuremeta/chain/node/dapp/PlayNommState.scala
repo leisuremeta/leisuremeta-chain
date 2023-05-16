@@ -17,6 +17,7 @@ import java.time.Instant
 
 trait PlayNommState[F[_]]:
   def account: PlayNommState.Account[F]
+  def group: PlayNommState.Group[F]
   def reward: PlayNommState.Reward[F]
 
 object PlayNommState:
@@ -41,6 +42,11 @@ object PlayNommState:
       ownershipRewarded: DAppState[F, TokenId, OwnershipRewardLog],
   )
 
+  case class Group[F[_]](
+    group: DAppState[F, GroupId, GroupData],
+    groupAccount: DAppState[F, (GroupId, AccountM), Unit],
+  )
+
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
     scribe.info(s"Building PlayNommState... ")
 
@@ -51,6 +57,11 @@ object PlayNommState:
         name = playNommState.ofName("name"),
         key = playNommState.ofName("key"),
         eth = playNommState.ofName("eth"),
+      )
+
+      val group: Group[F] = Group[F](
+        group = playNommState.ofName("group"),
+        groupAccount = playNommState.ofName("group-account"),
       )
 
       val reward: Reward[F] = Reward[F](

@@ -98,11 +98,9 @@ trait UpdateStateWithTokenTx:
               tokenDefinition.adminGroup,
               s"Admin group does not exist in token $tokenDefinition",
             )
-            groupAccountOption <- GenericMerkleTrie
-              .get[F, (GroupId, Account), Unit](
-                (adminGroupId, sig.account).toBytes.bits,
-              )
-              .runA(ms.group.groupAccountState)
+            groupAccountOption <- PlayNommState[F].group.groupAccount
+              .get((adminGroupId, sig.account))
+              .runA(ms.main)
             _ <- EitherT.cond(
               groupAccountOption.nonEmpty,
               (),
@@ -179,11 +177,9 @@ trait UpdateStateWithTokenTx:
               tokenDefinition.adminGroup,
               s"Admin group does not exist in token $tokenDefinition",
             )
-            groupAccountOption <- GenericMerkleTrie
-              .get[F, (GroupId, Account), Unit](
-                (adminGroupId, sig.account).toBytes.bits,
-              )
-              .runA(ms.group.groupAccountState)
+            groupAccountOption <- PlayNommState[F].group.groupAccount
+              .get((adminGroupId, sig.account))
+              .runA(ms.main)
             _ <- EitherT.cond(
               groupAccountOption.nonEmpty,
               (),

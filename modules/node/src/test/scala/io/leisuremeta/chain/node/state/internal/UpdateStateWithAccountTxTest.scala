@@ -88,8 +88,8 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
         main = MerkleTrieState.empty,
 //        account = GossipDomain.MerkleState.AccountMerkleState
 //          .from(StateRoot.AccountStateRoot.empty),
-        group = GossipDomain.MerkleState.GroupMerkleState
-          .from(StateRoot.GroupStateRoot.empty),
+//        group = GossipDomain.MerkleState.GroupMerkleState
+//          .from(StateRoot.GroupStateRoot.empty),
         token = GossipDomain.MerkleState.TokenMerkleState.from(
           StateRoot.TokenStateRoot.empty,
         ),
@@ -177,8 +177,8 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
         main = MerkleTrieState.empty,
 //        account = GossipDomain.MerkleState.AccountMerkleState
 //          .from(StateRoot.AccountStateRoot.empty),
-        group = GossipDomain.MerkleState.GroupMerkleState
-          .from(StateRoot.GroupStateRoot.empty),
+//        group = GossipDomain.MerkleState.GroupMerkleState
+//          .from(StateRoot.GroupStateRoot.empty),
         token = GossipDomain.MerkleState.TokenMerkleState.from(
           StateRoot.TokenStateRoot.empty,
         ),

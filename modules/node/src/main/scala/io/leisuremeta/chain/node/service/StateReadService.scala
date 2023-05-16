@@ -119,7 +119,7 @@ object StateReadService:
   yield ethStateOption
 
   def getGroupInfo[F[_]
-    : Concurrent: BlockRepository: GenericStateRepository.GroupState](
+    : Concurrent: BlockRepository: GenericStateRepository.GroupState: PlayNommState](
       groupId: GroupId,
   ): F[Option[GroupInfo]] = for
     bestHeaderEither <- BlockRepository[F].bestHeader.value
@@ -129,35 +129,17 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleState.from(bestHeader)
-    groupDataEither <- GenericMerkleTrie
-      .get[F, GroupId, GroupData](groupId.toBytes.bits)
-      .runA(merkleState.group.groupState)
+    groupDataEither <- PlayNommState[F].group.group
+      .get(groupId)
+      .runA(merkleState.main)
       .value
     groupDataOption <- groupDataEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(groupDataOption) => Concurrent[F].pure(groupDataOption)
-    accountListEither <- GenericMerkleTrie
-      .from[F, (GroupId, Account), Unit](
-        groupId.toBytes.bits,
-      )
-      .runA(merkleState.group.groupAccountState)
-      .flatMap(
-        _.takeWhile(_._1.startsWith(groupId.toBytes.bits)).compile.toList
-          .flatMap { (list) =>
-            list.traverse { case (bits, _) =>
-              EitherT.fromEither[F] {
-                ByteDecoder[(GroupId, Account)]
-                  .decode(bits.bytes) match
-                  case Left(err) => Left(err.msg)
-                  case Right(
-                        DecodeResult((groupId, account), remainder),
-                      ) =>
-                    if remainder.isEmpty then Right(account)
-                    else Left(s"non-empty remainder in decoding $account")
-              }
-            }
-          },
-      )
+    accountListEither <- PlayNommState[F].group.groupAccount.from(groupId.toBytes)
+      .runA(merkleState.main)
+      .flatMap(_.compile.toList)
+      .map(_.map(_._1._2))
       .value
     accountList <- accountListEither match
       case Left(err)          => Concurrent[F].raiseError(new Exception(err))

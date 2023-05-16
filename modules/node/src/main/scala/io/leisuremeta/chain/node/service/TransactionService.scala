@@ -126,8 +126,8 @@ object TransactionService:
     _ <- EitherT.right[String] {
       import GenericStateRepository.*
       List(
-        GroupState[F].group.put { finalState.group.groupState },
-        GroupState[F].groupAccount.put { finalState.group.groupAccountState },
+//        GroupState[F].group.put { finalState.group.groupState },
+//        GroupState[F].groupAccount.put { finalState.group.groupAccountState },
         TokenState[F].definition.put { finalState.token.tokenDefinitionState },
         TokenState[F].fungibleBalance.put {
           finalState.token.fungibleBalanceState

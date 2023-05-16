@@ -56,9 +56,9 @@ trait UpdateStateWithRewardTx:
       tx match
         case rd: Transaction.RewardTx.RegisterDao =>
           for
-            groupDataOption <- GenericMerkleTrie
-              .get[F, GroupId, GroupData](rd.groupId.toBytes.bits)
-              .runA(ms.group.groupState)
+            groupDataOption <- PlayNommState[F].group.group
+              .get(rd.groupId)
+              .runA(ms.main)
             groupData <- EitherT.fromOption[F](
               groupDataOption,
               s"Group does not exist: ${rd.groupId}",

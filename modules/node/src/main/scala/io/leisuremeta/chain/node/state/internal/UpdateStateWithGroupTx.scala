@@ -21,6 +21,8 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
+import dapp.PlayNommState
+import dapp.submodule.PlayNommDAppGroup
 import lib.merkle.GenericMerkleTrie
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
@@ -30,53 +32,54 @@ import repository.GenericStateRepository.given
 
 trait UpdateStateWithGroupTx:
 
-  given updateStateWithGroupTx[F[_]: Concurrent: GenericStateRepository.GroupState]
+  given updateStateWithGroupTx[F[_]: Concurrent: GenericStateRepository.GroupState: PlayNommState]
       : UpdateState[F, Transaction.GroupTx] =
     (ms: MerkleState, sig: AccountSignature, tx: Transaction.GroupTx) =>
-      tx match
-        case cg: Transaction.GroupTx.CreateGroup =>
-          if cg.coordinator === sig.account then
-            for groupState <- GenericMerkleTrie
-                .put(
-                  cg.groupId.toBytes.bits,
-                  GroupData(cg.name, cg.coordinator),
-                )
-                .runS(ms.group.groupState)
-            yield (
-              ms.copy(group = ms.group.copy(groupState = groupState)),
-              TransactionWithResult(Signed(sig, cg), None),
-            )
-          else
-            EitherT.leftT(
-              s"Account does not match signature: ${cg.coordinator} vs ${sig.account}",
-            )
-        case ag: Transaction.GroupTx.AddAccounts =>
-          for
-            groupDataOption <- GenericMerkleTrie
-              .get[F, GroupId, GroupData](ag.groupId.toBytes.bits)
-              .runA(ms.group.groupState)
-            groupData <- EitherT.fromOption[F](
-              groupDataOption,
-              s"Group does not exist: ${ag.groupId}",
-            )
-            _ <- EitherT.cond(
-              groupData.coordinator === sig.account,
-              (),
-              s"Account does not match signature: ${groupData.coordinator} vs ${sig.account}",
-            )
-            groupAccountState <- ag.accounts.toList.foldLeftM(
-              ms.group.groupAccountState,
-            ) { (state, account) =>
-              GenericMerkleTrie
-                .put[F, (GroupId, Account), Unit](
-                  (ag.groupId, account).toBytes.bits,
-                  (),
-                )
-                .runS(state)
-            }
-          yield (
-            ms.copy(group =
-              ms.group.copy(groupAccountState = groupAccountState),
-            ),
-            TransactionWithResult(Signed(sig, ag), None),
-          )
+      PlayNommDAppGroup[F](tx, sig).run(ms).leftMap(_.msg)
+//      tx match
+//        case cg: Transaction.GroupTx.CreateGroup =>
+//          if cg.coordinator === sig.account then
+//            for groupState <- GenericMerkleTrie
+//                .put(
+//                  cg.groupId.toBytes.bits,
+//                  GroupData(cg.name, cg.coordinator),
+//                )
+//                .runS(ms.group.groupState)
+//            yield (
+//              ms.copy(group = ms.group.copy(groupState = groupState)),
+//              TransactionWithResult(Signed(sig, cg), None),
+//            )
+//          else
+//            EitherT.leftT(
+//              s"Account does not match signature: ${cg.coordinator} vs ${sig.account}",
+//            )
+//        case ag: Transaction.GroupTx.AddAccounts =>
+//          for
+//            groupDataOption <- GenericMerkleTrie
+//              .get[F, GroupId, GroupData](ag.groupId.toBytes.bits)
+//              .runA(ms.group.groupState)
+//            groupData <- EitherT.fromOption[F](
+//              groupDataOption,
+//              s"Group does not exist: ${ag.groupId}",
+//            )
+//            _ <- EitherT.cond(
+//              groupData.coordinator === sig.account,
+//              (),
+//              s"Account does not match signature: ${groupData.coordinator} vs ${sig.account}",
+//            )
+//            groupAccountState <- ag.accounts.toList.foldLeftM(
+//              ms.group.groupAccountState,
+//            ) { (state, account) =>
+//              GenericMerkleTrie
+//                .put[F, (GroupId, Account), Unit](
+//                  (ag.groupId, account).toBytes.bits,
+//                  (),
+//                )
+//                .runS(state)
+//            }
+//          yield (
+//            ms.copy(group =
+//              ms.group.copy(groupAccountState = groupAccountState),
+//            ),
+//            TransactionWithResult(Signed(sig, ag), None),
+//          )
