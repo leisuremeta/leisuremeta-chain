@@ -61,6 +61,18 @@ object ExploreApi:
   )
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val bff_getTxPageEndPoint = baseEndpoint.get
+    .in("bff" / "tx" / "list")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .in(
+      query[Option[String]]("accountAddr")
+        .and(query[Option[String]]("blockHash")),
+    )
+    .out(jsonBody[PageResponse[TxInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxPageEndPoint = baseEndpoint.get
     .in("tx" / "list")
     .in(

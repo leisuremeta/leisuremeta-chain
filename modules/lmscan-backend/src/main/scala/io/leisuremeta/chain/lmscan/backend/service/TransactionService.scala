@@ -16,6 +16,7 @@ import io.leisuremeta.chain.lmscan.common.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
+import io.leisuremeta.chain.lmscan.backend.repository.Dao
 
 object TransactionService:
 
@@ -54,13 +55,19 @@ object TransactionService:
       }
     yield detail
 
-  // EitherT[F[_], A, B] is a lightweight wrapper for F[Either[A, B]]
-  // that makes it easy to compose Eithers and Fs together.
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
   ): EitherT[F, String, PageResponse[TxInfo]] =
     for
       page <- TransactionRepository.getPage(pageNavInfo)
+      txInfo = convertToInfo(page.payload)
+    yield PageResponse(page.totalCount, page.totalPages, txInfo)
+
+  def bff_getPage[F[_]: Async](
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[TxInfo]] =
+    for
+      page <- Dao.getPage(pageNavInfo)
       txInfo = convertToInfo(page.payload)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
@@ -90,6 +97,22 @@ object TransactionService:
     (accountAddr, blockHash) match
       case (None, None) =>
         getPage[F](pageInfo)
+      case (None, Some(blockHash)) =>
+        getPageByBlock[F](blockHash, pageInfo)
+      case (Some(accountAddr), None) =>
+        getPageByAccount[F](accountAddr, pageInfo)
+      case (_, _) =>
+        EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
+
+  def bff_getPageByFilter[F[_]: Async](
+      pageInfo: PageNavigation,
+      accountAddr: Option[String],
+      blockHash: Option[String],
+  ): EitherT[F, String, PageResponse[TxInfo]] =
+    (accountAddr, blockHash) match
+      case (None, None) =>
+        // getPage[F](pageInfo)
+        bff_getPage[F](pageInfo)
       case (None, Some(blockHash)) =>
         getPageByBlock[F](blockHash, pageInfo)
       case (Some(accountAddr), None) =>

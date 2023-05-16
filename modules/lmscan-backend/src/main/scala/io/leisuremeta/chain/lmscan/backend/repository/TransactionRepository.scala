@@ -19,9 +19,6 @@ trait TransactionRepository[F[_]]:
 
 object TransactionRepository extends CommonQuery:
 
-  // given scala.concurrent.ExecutionContext =
-  //   scala.concurrent.ExecutionContext.global
-
   import ctx.{*, given}
 
   def apply[F[_]: TransactionRepository]: TransactionRepository[F] =

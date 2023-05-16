@@ -45,7 +45,32 @@ import sttp.tapir.server.interceptor.cors.CORSConfig
 
 object BackendMain extends IOApp:
 
-  def bff = ""
+  def bff_txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.bff_getTxPageEndPoint.serverLogic {
+      (
+          pageInfo,
+          accountAddr,
+          blockHash,
+      ) =>
+        scribe.info(s"txPaging request pageInfo: $pageInfo")
+        // TransactionService
+        // .bff_getPageByFilter[F](pageInfo, accountAddr, blockHash)
+        // .leftMap { (errMsg: String) =>
+        //   scribe.error(s"errorMsg: $errMsg")
+        //   (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        // }
+
+        // DAO
+        // DTO(INPUT)
+
+        TransactionService
+          .bff_getPageByFilter[F](pageInfo, accountAddr, blockHash)
+          .leftMap { (errMsg: String) =>
+            scribe.error(s"errorMsg: $errMsg")
+            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+          }
+          .value
+    }
 
   def txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxPageEndPoint.serverLogic {
@@ -167,6 +192,7 @@ object BackendMain extends IOApp:
 
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
+      bff_txPaging[F],
       txPaging[F],
       txDetail[F],
       blockPaging[F],
