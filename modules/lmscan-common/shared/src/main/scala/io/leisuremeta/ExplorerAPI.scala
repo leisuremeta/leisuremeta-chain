@@ -22,6 +22,7 @@ import io.leisuremeta.chain.lmscan.common.model.{
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 import io.circe.*
+import io.leisuremeta.chain.lmscan.common.model.dto.*
 
 object ExploreApi:
   opaque type Utf8 = String
@@ -64,10 +65,9 @@ object ExploreApi:
   )
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  // Endpoint[Unit, Unit, Either[ServerError, UserError], Option[Tx], Any]
   val bff_getTx = baseEndpoint.get
     .in("bff2")
-    .out(jsonBody[Seq[Tx]])
+    .out(jsonBody[Seq[DTO_Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   // Endpoint[Unit, (PageNavigation, Option[String], Option[String]), Either[ServerError, UserError], PageResponse[TxInfo], Any]

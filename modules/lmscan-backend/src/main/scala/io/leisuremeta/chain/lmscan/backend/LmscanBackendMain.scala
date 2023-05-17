@@ -1,6 +1,8 @@
 package io.leisuremeta.chain.lmscan
 package backend
 
+import io.circe.generic.auto.*
+
 import cats.Monad
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import cats.effect.std.Dispatcher
@@ -22,12 +24,8 @@ import common.LmscanApi
 import common.ExploreApi
 import common.model.{PageNavigation, SummaryModel}
 
-import scala.collection.StringOps
 import io.leisuremeta.chain.lmscan.backend.service.*
-import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
-import cats.effect.Async
-import com.linecorp.armeria.server.cors.CorsService
 
 import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.server.HttpService;
@@ -43,20 +41,24 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
+import io.leisuremeta.chain.lmscan.common.ExploreApi.baseEndpoint
+import io.leisuremeta.chain.lmscan.common.model.dto.*
+import io.circe.Encoder.AsArray.importedAsArrayEncoder
+import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository.*
 
 object BackendMain extends IOApp:
-
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def bff_getTx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.bff_getTx.serverLogic { (Unit) =>
-      scribe.info(s"get tx page")
-      val r = TransactionRepository
-        .getTx[F]()
-        .leftMap { (errMsg: String) =>
+    baseEndpoint.get
+      .in("tx")
+      .out(jsonBody[Seq[DTO_Tx]])
+      .serverLogic { (Unit) =>
+        scribe.info(s"get tx page")
+        getTx[F]().leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      r.value
-    }
+        }.value
+      }
 
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
