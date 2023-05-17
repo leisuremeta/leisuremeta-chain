@@ -42,34 +42,36 @@ import sttp.tapir.server.armeria.TapirService
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
+import io.leisuremeta.chain.lmscan.backend.entity.Tx
 
 object BackendMain extends IOApp:
 
-  def bff_txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.bff_getTxPageEndPoint.serverLogic {
+  // def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  //   ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
+  //     scribe.info(s"blockDetail request hash: $hash")
+  //     val result = BlockService
+  //       .getDetail(hash)
+  //       .leftMap { (errMsg: String) =>
+  //         scribe.error(s"errorMsg: $errMsg")
+  //         (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+  //       }
+  //     result.value
+  //   }
+
+  def bff_getTx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.bff_getTx.serverLogic {
       (
-          pageInfo,
-          accountAddr,
-          blockHash,
+        Unit
       ) =>
-        scribe.info(s"txPaging request pageInfo: $pageInfo")
-        // TransactionService
-        // .bff_getPageByFilter[F](pageInfo, accountAddr, blockHash)
-        // .leftMap { (errMsg: String) =>
-        //   scribe.error(s"errorMsg: $errMsg")
-        //   (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        // }
-
-        // DAO
-        // DTO(INPUT)
-
-        TransactionService
-          .bff_getPageByFilter[F](pageInfo, accountAddr, blockHash)
+        scribe
+          .info(s"txPaging request pageInfo: ")
+        val r = TransactionRepository
+          .getTx[F]()
           .leftMap { (errMsg: String) =>
             scribe.error(s"errorMsg: $errMsg")
             (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
           }
-          .value
+        r.value
     }
 
   def txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
@@ -192,7 +194,7 @@ object BackendMain extends IOApp:
 
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
-      bff_txPaging[F],
+      // bff_txPaging[F],
       txPaging[F],
       txDetail[F],
       blockPaging[F],

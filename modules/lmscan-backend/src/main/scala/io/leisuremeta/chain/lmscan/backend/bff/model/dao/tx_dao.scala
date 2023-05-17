@@ -3,7 +3,6 @@ package io.leisuremeta.chain.lmscan.backend.repository
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
-import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import cats.data.EitherT
 import cats.implicits.*
 import io.getquill.PostgresJAsyncContext
@@ -12,6 +11,7 @@ import io.getquill.*
 import io.getquill.Literal
 import cats.effect.{Async, IO}
 import scala.concurrent.Future
+import io.leisuremeta.chain.lmscan.common.model.dao.Tx
 
 object Dao extends CommonQuery:
   import ctx.{*, given}

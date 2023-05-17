@@ -1,6 +1,6 @@
 package io.leisuremeta.chain.lmscan.backend.service
 
-import io.leisuremeta.chain.lmscan.backend.entity.Tx
+// import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
@@ -17,6 +17,7 @@ import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
 import io.leisuremeta.chain.lmscan.backend.repository.Dao
+import io.leisuremeta.chain.lmscan.common.model.dao.Tx
 
 object TransactionService:
 

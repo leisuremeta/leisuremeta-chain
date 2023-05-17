@@ -1,8 +1,10 @@
 # 기존
 http://localhost:8081/tx/list?useDataNav=true&pageNo=0&sizePerRequest=10
 
-# 변경
-http://localhost:8081/tx?pipe=(take(3),absend,asd,asd,asd)
+# 변경 (backend |> pipe |> frontend )
+
+// oneline
+http://localhost:8081/tx?pipe=(take(3),sortby(time),like("asd"),asd,asd)&dto=(txDetailpage)&view=(form)
 
 # 테스팅
 스캔 playgrond 에서 자체 테스팅 쉬워진다

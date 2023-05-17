@@ -3,7 +3,8 @@ package io.leisuremeta.chain.lmscan.backend.repository
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
-import io.leisuremeta.chain.lmscan.backend.entity.Tx
+import io.leisuremeta.chain.lmscan.common.model.dao.*
+// import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import cats.data.EitherT
 import cats.implicits.*
 import io.getquill.PostgresJAsyncContext
@@ -23,6 +24,11 @@ object TransactionRepository extends CommonQuery:
 
   def apply[F[_]: TransactionRepository]: TransactionRepository[F] =
     summon
+
+  def getTx[F[_]: Async](): EitherT[F, String, Option[Tx]] =
+    optionQuery(quote {
+      query[Tx]
+    })
 
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
