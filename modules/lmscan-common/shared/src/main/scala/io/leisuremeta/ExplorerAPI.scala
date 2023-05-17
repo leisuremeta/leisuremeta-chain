@@ -66,8 +66,8 @@ object ExploreApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   // Endpoint[Unit, Unit, Either[ServerError, UserError], Option[Tx], Any]
   val bff_getTx = baseEndpoint.get
-    .in("bff")
-    .out(jsonBody[Option[Tx]])
+    .in("bff2")
+    .out(jsonBody[Seq[Tx]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   // Endpoint[Unit, (PageNavigation, Option[String], Option[String]), Either[ServerError, UserError], PageResponse[TxInfo], Any]

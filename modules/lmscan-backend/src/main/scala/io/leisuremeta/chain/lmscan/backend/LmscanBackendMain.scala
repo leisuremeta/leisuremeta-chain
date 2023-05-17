@@ -46,140 +46,17 @@ import io.leisuremeta.chain.lmscan.backend.entity.Tx
 
 object BackendMain extends IOApp:
 
-  // def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
-  //     scribe.info(s"blockDetail request hash: $hash")
-  //     val result = BlockService
-  //       .getDetail(hash)
-  //       .leftMap { (errMsg: String) =>
-  //         scribe.error(s"errorMsg: $errMsg")
-  //         (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-  //       }
-  //     result.value
-  //   }
-
   def bff_getTx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.bff_getTx.serverLogic {
-      (
-        Unit
-      ) =>
-        scribe
-          .info(s"txPaging request pageInfo: ")
-        val r = TransactionRepository
-          .getTx[F]()
-          .leftMap { (errMsg: String) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-          }
-        r.value
-    }
-
-  def txPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTxPageEndPoint.serverLogic {
-      (
-          pageInfo,
-          accountAddr,
-          blockHash,
-      ) =>
-        scribe.info(s"txPaging request pageInfo: $pageInfo")
-        val result = TransactionService
-          .getPageByFilter[F](pageInfo, accountAddr, blockHash)
-          .leftMap { (errMsg: String) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-          }
-        result.value
-    }
-
-  def txDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
-      scribe.info(s"txDetail request hash: $hash")
-      val result = TransactionService
-        .getDetail(hash)
+    ExploreApi.bff_getTx.serverLogic { (Unit) =>
+      scribe.info(s"get tx page")
+      val r = TransactionRepository
+        .getTx[F]()
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }
-      result.value
+      r.value
     }
-
-  def blockPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
-      scribe.info(s"blockPaging request pageInfo: $pageInfo")
-      val result = BlockService
-        .getPage[F](pageInfo)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
-  def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
-      scribe.info(s"blockDetail request hash: $hash")
-      val result = BlockService
-        .getDetail(hash)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
-  // def txPageByBlock[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getTxPageByBlockEndPoint.serverLogic {
-  //     (blockHash: String, pageInfo: PageNavigation) =>
-  //       scribe.info(s"txPageByBlock request pageInfo: $pageInfo")
-  //       val result = TransactionService
-  //         .getPageByBlock[F](blockHash, pageInfo)
-  //         .leftMap { (errMsg: String) =>
-  //           scribe.error(s"errorMsg: $errMsg")
-  //           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-  //         }
-  //       println(s"result.value: ${result.value}")
-  //       result.value
-  //   }
-
-  def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getAccountDetailEndPoint.serverLogic { (address: String) =>
-      scribe.info(s"accountDetail request address: $address")
-      val result = AccountService
-        .get(address)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
-  def nftDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getNftDetailEndPoint.serverLogic { (tokenId: String) =>
-      scribe.info(s"nftDetail request tokenId: $tokenId")
-      val result = NftService
-        .getNftDetail(tokenId)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
-  // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
-  //     scribe.info(s"search type request target: $target")
-  //     val len = target.length()
-
-  //     val targetType = len match
-  //       case 40 => for a <- AccountService.get(target) yield if a.nonEmpty then Some("account")   // account
-  //       case 25 => for n <-NftService.getNftDetail(target) yield if n.nonEmpty then Some("nft")   // token
-  //       case 64 => {
-  //         for t <- TransactionService.get(target) yield if t.nonEmpty then Some("transaction")    // transaction
-  //         else for b <- BlockService.get(target) yield if b.nonEmpty then Some("blockByHash")     // blcokByHash
-  //       }
-  //       case _  => if (target.forall(Character.isDigit)) then
-  //                   for b <- BlockService.getByNumber(target.toLong) yield if b.nonEmpty then Some("blockByNumber")
-  //   }
 
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
@@ -194,29 +71,12 @@ object BackendMain extends IOApp:
 
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
-      // bff_txPaging[F],
-      txPaging[F],
-      txDetail[F],
-      blockPaging[F],
-      blockDetail[F],
-      accountDetail[F],
-      nftDetail[F],
+      bff_getTx[F],
       // searchTargetType[F],
       summaryMain[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
-    // def corsService =
-    //   CorsService
-    //     .builder("*")
-    //     .allowCredentials()
-    //     .allowNullOrigin() // 'Origin: null' will be accepted.
-    //     .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
-    //     .allowRequestHeaders("allow_request_header")
-    //     .exposeHeaders("expose_header_1", "expose_header_2")
-    //     .preflightResponseHeader("x-preflight-cors", "CORS")
-    //     .newDecorator();
-
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(Async[F].async_[Server] { cb =>

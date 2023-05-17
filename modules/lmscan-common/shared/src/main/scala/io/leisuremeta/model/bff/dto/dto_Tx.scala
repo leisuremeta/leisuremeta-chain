@@ -1,11 +1,9 @@
-// package io.leisuremeta.chain.lmscan.common.model.dao
+// package io.leisuremeta.chain.lmscan.common.model.dto
 
-// import io.getquill.Quoted
-
-// final case class Tx(
-//     hash: String,
-//     txType: String, // col_name : type
-//     fromAddr: String,
+// final case class DTO_Tx(
+//     hash: Option[String] = None,
+//     txType: Option[String] = None, // col_name : type
+//     fromAddr: Option[String] = None,
 //     toAddr: Seq[String],
 //     blockHash: String,
 //     eventTime: Long,
