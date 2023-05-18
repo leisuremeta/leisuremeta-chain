@@ -19,6 +19,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.token.*
+import lib.crypto.Hash.ops.*
 import lib.datatype.BigNat
 import lib.merkle.MerkleTrieState
 import GossipDomain.MerkleState
@@ -54,7 +55,34 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case mf: Transaction.TokenTx.MintFungibleToken => ???
+    case mf: Transaction.TokenTx.MintFungibleToken =>
+
+      val program = for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- checkMinterAndGetTokenDefinition(
+          sig.account,
+          mf.definitionId,
+        )
+        txWithResult = TransactionWithResult(Signed(sig, mf))(None)
+        txHash       = txWithResult.toHash
+        _ <- mf.outputs.toSeq.traverse { case (account, _) =>
+          PlayNommState[F].token.fungibleBalance
+            .put((account, mf.definitionId, txHash), ())
+            .mapK(PlayNommDAppFailure.mapInternal {
+              s"Fail to put token balance ($account, ${mf.definitionId}, $txHash)"
+            })
+        }
+        mintAmount  = mf.outputs.values.foldLeft(BigNat.Zero)(BigNat.add)
+        totalAmount = BigNat.add(tokenDef.totalAmount, mintAmount)
+        _ <- putTokenDefinition(
+          mf.definitionId,
+          tokenDef.copy(totalAmount = totalAmount),
+        )
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case mn: Transaction.TokenTx.MintNFT => ???
     case tf: Transaction.TokenTx.TransferFungibleToken => ???
     case tn: Transaction.TokenTx.TransferNFT => ???
@@ -76,6 +104,17 @@ object PlayNommDAppToken:
         s"Fail to get token definition of ${definitionId}"
       })
 
+  def getTokenDefinition[F[_]: Monad: PlayNommState](
+      definitionId: TokenDefinitionId,
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, TokenDefinition] =
+    for
+      tokenDefOption <- getTokenDefinitionOption(definitionId)
+      tokenDef <- fromOption(
+        tokenDefOption,
+        s"Token $definitionId is not defined",
+      )
+    yield tokenDef
+
   def putTokenDefinition[F[_]: Monad: PlayNommState](
       definitionId: TokenDefinitionId,
       definition: TokenDefinition,
@@ -85,3 +124,24 @@ object PlayNommDAppToken:
       .mapK(PlayNommDAppFailure.mapInternal {
         s"Fail to set token definition of $definitionId"
       })
+
+  def checkMinterAndGetTokenDefinition[F[_]: Monad: PlayNommState](
+      account: Account,
+      definitionId: TokenDefinitionId,
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, TokenDefinition] =
+    for
+      tokenDef <- getTokenDefinition(definitionId)
+      minterGroup <- fromOption(
+        tokenDef.adminGroup,
+        s"Token $definitionId does not have a minter group",
+      )
+      groupAccountInfoOption <- PlayNommState[F].group.groupAccount
+        .get((minterGroup, account))
+        .mapK(PlayNommDAppFailure.mapInternal {
+          s"Fail to get group account for ($minterGroup, $account)"
+        })
+      _ <- checkExternal(
+        groupAccountInfoOption.nonEmpty,
+        s"Account $account is not a member of minter group $minterGroup",
+      )
+    yield tokenDef
