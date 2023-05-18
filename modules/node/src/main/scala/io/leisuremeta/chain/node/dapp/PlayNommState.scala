@@ -5,10 +5,11 @@ package dapp
 import cats.Monad
 
 import api.model.*
-import api.model.{Account => AccountM}
+import api.model.{Account as AccountM}
 import api.model.account.*
 import api.model.token.*
 import api.model.reward.*
+import lib.crypto.Hash
 import lib.datatype.Utf8
 import lib.merkle.MerkleTrie.NodeStore
 import lib.merkle.MerkleTrieNode.MerkleRoot
@@ -18,6 +19,7 @@ import java.time.Instant
 trait PlayNommState[F[_]]:
   def account: PlayNommState.Account[F]
   def group: PlayNommState.Group[F]
+  def token: PlayNommState.Token[F]
   def reward: PlayNommState.Reward[F]
 
 object PlayNommState:
@@ -43,8 +45,32 @@ object PlayNommState:
   )
 
   case class Group[F[_]](
-    group: DAppState[F, GroupId, GroupData],
-    groupAccount: DAppState[F, (GroupId, AccountM), Unit],
+      group: DAppState[F, GroupId, GroupData],
+      groupAccount: DAppState[F, (GroupId, AccountM), Unit],
+  )
+
+  type TxHash = Hash.Value[TransactionWithResult]
+
+  case class Token[F[_]](
+      definition: DAppState[F, TokenDefinitionId, TokenDefinition],
+      fungibleBalance: DAppState[
+        F,
+        (AccountM, TokenDefinitionId, TxHash),
+        Unit,
+      ],
+      nftBalance: DAppState[F, (AccountM, TokenId, TxHash), Unit],
+      nftState: DAppState[F, TokenId, NftState],
+      rarityState: DAppState[F, (TokenDefinitionId, Rarity, TokenId), Unit],
+      entrustFungibleBalance: DAppState[
+        F,
+        (AccountM, AccountM, TokenDefinitionId, TxHash),
+        Unit,
+      ],
+      entrustNftBalance: DAppState[
+        F,
+        (AccountM, AccountM, TokenId, TxHash),
+        Unit,
+      ],
   )
 
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
@@ -62,6 +88,17 @@ object PlayNommState:
       val group: Group[F] = Group[F](
         group = playNommState.ofName("group"),
         groupAccount = playNommState.ofName("group-account"),
+      )
+
+      val token: Token[F] = Token[F](
+        definition = playNommState.ofName("token-def"),
+        fungibleBalance = playNommState.ofName("fungible-balance"),
+        nftBalance = playNommState.ofName("nft-balance"),
+        nftState = playNommState.ofName("nft-state"),
+        rarityState = playNommState.ofName("rarity-state"),
+        entrustFungibleBalance =
+          playNommState.ofName("entrust-fungible-balance"),
+        entrustNftBalance = playNommState.ofName("entrust-nft-balance"),
       )
 
       val reward: Reward[F] = Reward[F](
