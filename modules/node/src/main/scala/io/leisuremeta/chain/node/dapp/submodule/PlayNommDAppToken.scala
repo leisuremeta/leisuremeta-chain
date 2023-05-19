@@ -26,6 +26,9 @@ import lib.datatype.BigNat
 import lib.merkle.MerkleTrieState
 import repository.TransactionRepository
 import GossipDomain.MerkleState
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintNFT
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferNFT
+import io.leisuremeta.chain.api.model.Transaction.TokenTx.DisposeEntrustedNFT
 
 object PlayNommDAppToken:
   def apply[F[_]: Concurrent: PlayNommState: TransactionRepository](
@@ -236,7 +239,47 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case bn: Transaction.TokenTx.BurnNFT                       => ???
+    case bn: Transaction.TokenTx.BurnNFT =>
+      val program = for
+        _       <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenId <- getNftTokenId(bn.input.toResultHashValue)
+        txWithResult = TransactionWithResult(Signed(sig, bn))(None)
+        txHash       = txWithResult.toHash
+        utxoKey      = (sig.account, tokenId, bn.input.toResultHashValue)
+        isRemoveSuccessful <- PlayNommState[F].token.nftBalance
+          .remove(utxoKey)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft balance of $utxoKey"
+        _ <- checkExternal(isRemoveSuccessful, s"No NFT Balance: ${utxoKey}")
+        nftStateOption <- PlayNommState[F].token.nftState
+          .get(tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get nft state of ${tokenId}"
+        _ <- checkInternal(
+          nftStateOption.isDefined,
+          s"Empty NFT State: ${tokenId}",
+        )
+        nftState <- fromOption(
+          nftStateOption,
+          s"Empty NFT State: ${tokenId}",
+        )
+        _ <- PlayNommState[F].token.nftState
+          .remove(tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft state of ${tokenId}"
+        _ <- PlayNommState[F].token.rarityState
+          .remove((bn.definitionId, nftState.rarity, tokenId))
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove rarity state of ${tokenId}"
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case ef: Transaction.TokenTx.EntrustFungibleToken          => ???
     case de: Transaction.TokenTx.DisposeEntrustedFungibleToken => ???
     case ef: Transaction.TokenTx.EntrustNFT                    => ???
@@ -396,3 +439,30 @@ object PlayNommDAppToken:
       .mapK:
         PlayNommDAppFailure.mapInternal:
           s"Fail to put token balance ($account, $definitionId, $txHash)"
+
+  def getNftTokenId[F[_]: Monad: TransactionRepository](
+      utxoHash: Hash.Value[TransactionWithResult],
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, TokenId] =
+    StateT.liftF:
+      TransactionRepository[F]
+        .get(utxoHash)
+        .leftMap(e => PlayNommDAppFailure.internal(s"Fail to get tx: ${e.msg}"))
+        .subflatMap { txOption =>
+          Either.fromOption(
+            txOption,
+            PlayNommDAppFailure.internal(s"There is no tx of $utxoHash"),
+          )
+        }
+        .flatMap: txWithResult =>
+          txWithResult.signedTx.value match
+            case nb: Transaction.NftBalance =>
+              EitherT.pure:
+                nb match
+                  case mn: MintNFT              => mn.tokenId
+                  case tn: TransferNFT          => tn.tokenId
+                  case den: DisposeEntrustedNFT => den.tokenId
+            case _ =>
+              EitherT.leftT:
+                PlayNommDAppFailure.external(
+                  s"Tx $txWithResult is not a nft balance",
+                )

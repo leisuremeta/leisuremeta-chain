@@ -24,6 +24,17 @@ def checkExternal[F[_]: Monad](
     )
   }
 
+def checkInternal[F[_]: Monad](
+    test: Boolean,
+    errorMessage: String,
+): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
+  StateT.liftF:
+    EitherT.cond(
+      test,
+      (),
+      PlayNommDAppFailure.internal(errorMessage),
+    )
+
 def fromOption[F[_]: Monad, A](
     option: Option[A],
     errorMessage: String,
