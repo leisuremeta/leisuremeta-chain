@@ -36,6 +36,9 @@ val V = new {
   val quill         = "4.6.0.1"
   val postgres      = "42.6.0"
   val flywayCore    = "9.16.3"
+
+  val doobieVersion = "1.0.0-RC2"
+
 }
 
 val Dependencies = new {
@@ -187,6 +190,24 @@ val Dependencies = new {
       "com.opentable.components" % "otj-pg-embedded" % V.pgEmbedded,
     ),
   )
+  lazy val lmscanBackend2 = Seq(
+    libraryDependencies ++= Seq(
+      "org.tpolecat" %% "doobie-core"     % V.doobieVersion,
+      "org.tpolecat" %% "doobie-postgres" % V.doobieVersion,
+      //
+      "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
+      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
+      "com.softwaremill.sttp.tapir"   %% "tapir-core"           % V.tapir,
+      "com.outr"                      %% "scribe-slf4j"         % V.scribe,
+      "com.outr"                      %% "scribe-cats"          % V.scribe,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "com.typesafe"             % "config"          % V.typesafeConfig,
+      "com.outr"                %% "scribe-slf4j"    % V.scribe,
+      "org.postgresql"           % "postgresql"      % V.postgres,
+      "com.opentable.components" % "otj-pg-embedded" % V.pgEmbedded,
+    ),
+  )
 
   lazy val lmscanAgent = Seq(
     libraryDependencies ++= Seq(
@@ -227,6 +248,7 @@ lazy val root = (project in file("."))
     lmscanCommon.js,
     lmscanFrontend,
     lmscanBackend,
+    lmscanBackend2,
     lmscanAgent,
   )
 
@@ -413,6 +435,27 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
     flywayPassword := Settings.flywaySettings.pwd,
     flywaySchemas  := Settings.flywaySettings.schemas,
     flywayLocations ++= Settings.flywaySettings.locations,
+  )
+  .dependsOn(lmscanCommon.jvm)
+
+lazy val lmscanBackend2 = (project in file("modules/lmscan-backend2"))
+  .settings(Dependencies.lmscanBackend2)
+  .settings(
+    name := "leisuremeta-chain-lmscan-backend2",
+    assemblyMergeStrategy := {
+      case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
+      case PathList("io", "getquill", xs @ _*)        => MergeStrategy.first
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "scala-asm.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "compiler.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
   )
   .dependsOn(lmscanCommon.jvm)
 

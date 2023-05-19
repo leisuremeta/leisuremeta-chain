@@ -1,8 +1,8 @@
-package io.leisuremeta.chain.lmscan.backend.repository
+package io.leisuremeta.chain.lmscan.backend2.repository
 
-import io.leisuremeta.chain.lmscan.common.model.PageNavigation
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
+// import io.leisuremeta.chain.lmscan.common.model.PageNavigation
+// import io.leisuremeta.chain.lmscan.common.model.PageResponse
+// import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
 import io.leisuremeta.chain.lmscan.common.model.dao.*
 
 import cats.data.EitherT
@@ -52,19 +52,17 @@ object TransactionRepository extends CommonQuery:
   // http://localhost:8081/tx?pipe=(take(3),absend,asd,asd,asd)&dto=(txDetailpage)&view=(form)
 
   def getTx[F[_]: Async](): EitherT[F, String, Seq[DTO_Tx]] =
-    val a = quote(
+    quote(
       query[Tx]
         .take(3),
     )
-    val b = a.pipe(f =>
-      seqQuery(
-        query[Tx]
-          .take(3),
-      ),
-    )
-    val c = b
+      .pipe(f =>
+        seqQuery(
+          query[Tx]
+            .take(3),
+        ),
+      )
       .map(dao => dao2dto(dao))
-    c
 
   def getPageByTokenId[F[_]: Async](
       tokenId: String,
