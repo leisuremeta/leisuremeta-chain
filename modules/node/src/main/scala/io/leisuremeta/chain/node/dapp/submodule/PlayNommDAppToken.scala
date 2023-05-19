@@ -18,14 +18,17 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
+import api.model.TransactionWithResult.ops.*
 import api.model.token.*
+import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.BigNat
 import lib.merkle.MerkleTrieState
+import repository.TransactionRepository
 import GossipDomain.MerkleState
 
 object PlayNommDAppToken:
-  def apply[F[_]: Concurrent: PlayNommState](
+  def apply[F[_]: Concurrent: PlayNommState: TransactionRepository](
       tx: Transaction.TokenTx,
       sig: AccountSignature,
   ): StateT[
@@ -127,7 +130,39 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case tf: Transaction.TokenTx.TransferFungibleToken         => ???
+    case tf: Transaction.TokenTx.TransferFungibleToken =>
+      val program = for
+        _        <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- getTokenDefinition(tf.tokenDefinitionId)
+        inputAmount <- getInputAmounts(
+          tf.inputs.map(_.toResultHashValue),
+          sig.account,
+        )
+        outputAmount = tf.outputs.values.foldLeft(BigNat.Zero)(BigNat.add)
+        diff <- fromEitherExternal:
+          BigNat.fromBigInt:
+            inputAmount.toBigInt - outputAmount.toBigInt
+        txWithResult = TransactionWithResult(Signed(sig, tf))(None)
+        txHash       = txWithResult.toHash
+        _ <- removeInputUtxos(
+          sig.account,
+          tf.inputs.map(_.toResultHashValue),
+          tf.tokenDefinitionId,
+        )
+        _ <- tf.outputs.toSeq.traverse:
+          case (account, _) =>
+            putBalance(account, tf.tokenDefinitionId, txHash)
+        totalAmount <- fromEitherInternal:
+          BigNat.tryToSubtract(tokenDef.totalAmount, diff)
+        _ <- putTokenDefinition(
+          tf.tokenDefinitionId,
+          tokenDef.copy(totalAmount = totalAmount),
+        )
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case tn: Transaction.TokenTx.TransferNFT                   => ???
     case bf: Transaction.TokenTx.BurnFungibleToken             => ???
     case bn: Transaction.TokenTx.BurnNFT                       => ???
@@ -196,3 +231,97 @@ object PlayNommDAppToken:
         s"Account $account is not a member of minter group $minterGroup",
       )
     yield tokenDef
+
+  def getInputAmounts[F[_]: Monad: TransactionRepository: PlayNommState](
+      inputs: Set[Hash.Value[TransactionWithResult]],
+      account: Account,
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, BigNat] =
+    StateT.liftF:
+      inputs.toSeq
+        .traverse: txHash =>
+          for
+            txOption <- TransactionRepository[F]
+              .get(txHash)
+              .leftMap: e =>
+                PlayNommDAppFailure.internal(
+                  s"Fail to get tx $txHash: ${e.msg}",
+                )
+            txWithResult <- EitherT.fromOption(
+              txOption,
+              PlayNommDAppFailure.internal(s"There is no tx of $txHash"),
+            )
+          yield tokenBalanceAmount(account)(txWithResult)
+        .map { _.foldLeft(BigNat.Zero)(BigNat.add) }
+
+  def removeInputUtxos[F[_]: Monad: PlayNommState](
+      account: Account,
+      inputs: Set[Hash.Value[TransactionWithResult]],
+      definitionId: TokenDefinitionId,
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
+    for
+      removeResults <- inputs.toSeq.traverse { txHash =>
+        PlayNommState[F].token.fungibleBalance
+          .remove((account, definitionId, txHash))
+          .mapK(PlayNommDAppFailure.mapInternal {
+            s"Fail to remove fingible balance ($account, $definitionId, $txHash)"
+          })
+      }
+      invalidUtxos = inputs.zip(removeResults).filterNot(_._2)
+      _ <- checkExternal(
+        invalidUtxos.isEmpty,
+        s"These utxos are invalid: $invalidUtxos",
+      )
+    yield ()
+
+  def tokenBalanceAmount(account: Account)(
+      txWithResult: TransactionWithResult,
+  ): BigNat = txWithResult.signedTx.value match
+    case tb: Transaction.FungibleBalance =>
+      tb match
+        case mt: Transaction.TokenTx.MintFungibleToken =>
+          mt.outputs.getOrElse(account, BigNat.Zero)
+        case bt: Transaction.TokenTx.BurnFungibleToken =>
+          txWithResult.result.fold(BigNat.Zero):
+            case Transaction.TokenTx.BurnFungibleTokenResult(amount)
+                if txWithResult.signedTx.sig.account === account =>
+              amount
+            case _ =>
+              scribe.error(
+                s"Fail to get burn token result: $txWithResult",
+              )
+              BigNat.Zero
+        case tt: Transaction.TokenTx.TransferFungibleToken =>
+          tt.outputs.getOrElse(account, BigNat.Zero)
+        case ef: Transaction.TokenTx.EntrustFungibleToken =>
+          txWithResult.result.fold(BigNat.Zero):
+            case Transaction.TokenTx.EntrustFungibleTokenResult(remainder) =>
+              remainder
+            case _ => BigNat.Zero
+        case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
+          df.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+        case or: Transaction.RewardTx.OfferReward =>
+          or.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+        case xr: Transaction.RewardTx.ExecuteReward =>
+          txWithResult.result.fold(BigNat.Zero):
+            case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
+              outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+            case _ => BigNat.Zero
+        case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
+          txWithResult.result.fold(BigNat.Zero):
+            case Transaction.RewardTx.ExecuteOwnershipRewardResult(outputs) =>
+              outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+            case _ => BigNat.Zero
+    case _ =>
+      scribe.error(s"Not a fungible balance: $txWithResult")
+      BigNat.Zero
+
+  def putBalance[F[_]: Monad: PlayNommState](
+      account: Account,
+      definitionId: TokenDefinitionId,
+      txHash: Hash.Value[TransactionWithResult],
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
+    PlayNommState[F].token.fungibleBalance
+      .put((account, definitionId, txHash), ())
+      .mapK:
+        PlayNommDAppFailure.mapInternal:
+          s"Fail to put token balance ($account, $definitionId, $txHash)"
