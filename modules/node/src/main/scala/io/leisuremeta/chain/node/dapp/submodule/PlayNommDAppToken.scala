@@ -364,7 +364,56 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case de: Transaction.TokenTx.DisposeEntrustedNFT => ???
+    case de: Transaction.TokenTx.DisposeEntrustedNFT =>
+      val program = for
+        _            <- PlayNommDAppAccount.verifySignature(sig, tx)
+        entrustedNFT <- getEntrustedNFT(de.input.toResultHashValue, sig.account)
+        (fromAccount, entrustTx) = entrustedNFT
+        txWithResult             = TransactionWithResult(Signed(sig, de))(None)
+        txHash                   = txWithResult.toHash
+        utxoKey = (
+          fromAccount,
+          sig.account,
+          de.tokenId,
+          de.input.toResultHashValue,
+        )
+        isRemoveSuccessful <- PlayNommState[F].token.entrustNftBalance
+          .remove(utxoKey)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove entrust nft balance of $utxoKey"
+        _ <- checkExternal(
+          isRemoveSuccessful,
+          s"No Entrust NFT Balance: ${utxoKey}",
+        )
+        newUtxoKey = (de.output.getOrElse(fromAccount), de.tokenId, txHash)
+        _ <- PlayNommState[F].token.nftBalance
+          .put(newUtxoKey, ())
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft balance of $newUtxoKey"
+        _ <- de.output.fold(unit): toAddress =>
+          for
+            nftStateOption <- PlayNommState[F].token.nftState
+              .get(de.tokenId)
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to get nft state of ${de.tokenId}"
+            nftState <- fromOption(
+              nftStateOption,
+              s"Empty NFT State: ${de.tokenId}",
+            )
+            nftState1 = nftState.copy(currentOwner = toAddress)
+            _ <- PlayNommState[F].token.nftState
+              .put(de.tokenId, nftState1)
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to put nft state of ${de.tokenId}"
+          yield ()
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
   def getTokenDefinitionOption[F[_]: Monad: PlayNommState](
       definitionId: TokenDefinitionId,
@@ -555,7 +604,7 @@ object PlayNommDAppToken:
                   s"Tx $txWithResult is not a nft balance",
                 )
 
-  def getEntrustedInputs[F[_]: Monad: TransactionRepository: PlayNommState](
+  def getEntrustedInputs[F[_]: Monad: TransactionRepository](
       inputs: Set[Hash.Value[TransactionWithResult]],
       account: Account,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Map[
@@ -591,3 +640,31 @@ object PlayNommDAppToken:
                   )
           yield ((txWithResult.signedTx.sig.account, txHash), amount)
         .map(_.toMap)
+
+  def getEntrustedNFT[F[_]: Monad: TransactionRepository](
+      input: Hash.Value[TransactionWithResult],
+      account: Account,
+  ): StateT[
+    EitherT[F, PlayNommDAppFailure, *],
+    MerkleTrieState,
+    (Account, Transaction.TokenTx.EntrustNFT),
+  ] =
+    StateT.liftF:
+      TransactionRepository[F]
+        .get(input)
+        .leftMap: e =>
+          PlayNommDAppFailure.internal:
+            s"Fail to get tx $input: ${e.msg}"
+        .subflatMap: txOption =>
+          Either.fromOption(
+            txOption,
+            PlayNommDAppFailure.internal(s"There is no tx of $input"),
+          )
+        .subflatMap: txWithResult =>
+          txWithResult.signedTx.value match
+            case ef: Transaction.TokenTx.EntrustNFT if ef.to === account =>
+              Right((txWithResult.signedTx.sig.account, ef))
+            case _ =>
+              Left:
+                PlayNommDAppFailure.external:
+                  s"Tx $txWithResult is not an entrust nft transaction"
