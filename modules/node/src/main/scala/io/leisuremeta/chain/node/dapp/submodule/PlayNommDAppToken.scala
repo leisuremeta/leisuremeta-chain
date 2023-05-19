@@ -280,7 +280,34 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case ef: Transaction.TokenTx.EntrustFungibleToken          => ???
+    case ef: Transaction.TokenTx.EntrustFungibleToken =>
+      val program = for
+        _        <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- getTokenDefinition(ef.definitionId)
+        inputAmount <- getInputAmounts(
+          ef.inputs.map(_.toResultHashValue),
+          sig.account,
+        )
+        diff <- fromEitherExternal:
+          BigNat.tryToSubtract(inputAmount, ef.amount)
+        result       = Transaction.TokenTx.EntrustFungibleTokenResult(diff)
+        txWithResult = TransactionWithResult(Signed(sig, ef))(Some(result))
+        txHash       = txWithResult.toHash
+        _ <- removeInputUtxos(
+          sig.account,
+          ef.inputs.map(_.toResultHashValue),
+          ef.definitionId,
+        )
+        _ <- PlayNommState[F].token.entrustFungibleBalance
+          .put((sig.account, ef.to, ef.definitionId, txHash), ())
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put entrust fungible balance of (${sig.account}, ${ef.to}, ${ef.definitionId}, ${txHash})"
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case de: Transaction.TokenTx.DisposeEntrustedFungibleToken => ???
     case ef: Transaction.TokenTx.EntrustNFT                    => ???
     case de: Transaction.TokenTx.DisposeEntrustedNFT           => ???
@@ -292,9 +319,9 @@ object PlayNommDAppToken:
   ]] =
     PlayNommState[F].token.definition
       .get(definitionId)
-      .mapK(PlayNommDAppFailure.mapInternal {
-        s"Fail to get token definition of ${definitionId}"
-      })
+      .mapK:
+        PlayNommDAppFailure.mapInternal:
+          s"Fail to get token definition of ${definitionId}"
 
   def getTokenDefinition[F[_]: Monad: PlayNommState](
       definitionId: TokenDefinitionId,
@@ -412,18 +439,26 @@ object PlayNommDAppToken:
               remainder
             case _ => BigNat.Zero
         case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
-          df.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+          df.outputs
+            .get(txWithResult.signedTx.sig.account)
+            .getOrElse(BigNat.Zero)
         case or: Transaction.RewardTx.OfferReward =>
-          or.outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+          or.outputs
+            .get(txWithResult.signedTx.sig.account)
+            .getOrElse(BigNat.Zero)
         case xr: Transaction.RewardTx.ExecuteReward =>
           txWithResult.result.fold(BigNat.Zero):
             case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
-              outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+              outputs
+                .get(txWithResult.signedTx.sig.account)
+                .getOrElse(BigNat.Zero)
             case _ => BigNat.Zero
         case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
           txWithResult.result.fold(BigNat.Zero):
             case Transaction.RewardTx.ExecuteOwnershipRewardResult(outputs) =>
-              outputs.get(txWithResult.signedTx.sig.account).getOrElse(BigNat.Zero)
+              outputs
+                .get(txWithResult.signedTx.sig.account)
+                .getOrElse(BigNat.Zero)
             case _ => BigNat.Zero
     case _ =>
       scribe.error(s"Not a fungible balance: $txWithResult")
@@ -447,12 +482,11 @@ object PlayNommDAppToken:
       TransactionRepository[F]
         .get(utxoHash)
         .leftMap(e => PlayNommDAppFailure.internal(s"Fail to get tx: ${e.msg}"))
-        .subflatMap { txOption =>
+        .subflatMap: txOption =>
           Either.fromOption(
             txOption,
             PlayNommDAppFailure.internal(s"There is no tx of $utxoHash"),
           )
-        }
         .flatMap: txWithResult =>
           txWithResult.signedTx.value match
             case nb: Transaction.NftBalance =>
