@@ -201,7 +201,41 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case bf: Transaction.TokenTx.BurnFungibleToken             => ???
+    case bf: Transaction.TokenTx.BurnFungibleToken =>
+      val program = for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- checkMinterAndGetTokenDefinition(
+          sig.account,
+          bf.definitionId,
+        )
+        inputAmount <- getInputAmounts(
+          bf.inputs.map(_.toResultHashValue),
+          sig.account,
+        )
+        outputAmount <- fromEitherExternal:
+          BigNat.tryToSubtract(inputAmount, bf.amount)
+        result       = Transaction.TokenTx.BurnFungibleTokenResult(outputAmount)
+        txWithResult = TransactionWithResult(Signed(sig, bf))(Some(result))
+        txHash       = txWithResult.toHash
+        _ <- removeInputUtxos(
+          sig.account,
+          bf.inputs.map(_.toResultHashValue),
+          bf.definitionId,
+        )
+        _ <-
+          if outputAmount === BigNat.Zero then unit
+          else putBalance(sig.account, bf.definitionId, txWithResult.toHash)
+        totalAmount <- fromEitherInternal:
+          BigNat.tryToSubtract(tokenDef.totalAmount, bf.amount)
+        _ <- putTokenDefinition(
+          bf.definitionId,
+          tokenDef.copy(totalAmount = totalAmount),
+        )
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case bn: Transaction.TokenTx.BurnNFT                       => ???
     case ef: Transaction.TokenTx.EntrustFungibleToken          => ???
     case de: Transaction.TokenTx.DisposeEntrustedFungibleToken => ???
