@@ -341,7 +341,29 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case ef: Transaction.TokenTx.EntrustNFT          => ???
+    case ef: Transaction.TokenTx.EntrustNFT =>
+      val program = for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        txWithResult = TransactionWithResult(Signed(sig, ef))(None)
+        txHash       = txWithResult.toHash
+        utxoKey      = (sig.account, ef.tokenId, ef.input.toResultHashValue)
+        isRemoveSuccessful <- PlayNommState[F].token.nftBalance
+          .remove(utxoKey)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft balance of $utxoKey"
+        _ <- checkExternal(isRemoveSuccessful, s"No NFT Balance: ${utxoKey}")
+        newUtxoKey = (sig.account, ef.to, ef.tokenId, txHash)
+        _ <- PlayNommState[F].token.entrustNftBalance
+          .put(newUtxoKey, ())
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put entrust nft balance of $newUtxoKey"
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case de: Transaction.TokenTx.DisposeEntrustedNFT => ???
 
   def getTokenDefinitionOption[F[_]: Monad: PlayNommState](
