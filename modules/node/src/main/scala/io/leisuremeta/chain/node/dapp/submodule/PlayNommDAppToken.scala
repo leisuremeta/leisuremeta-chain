@@ -163,7 +163,44 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case tn: Transaction.TokenTx.TransferNFT                   => ???
+    case tn: Transaction.TokenTx.TransferNFT =>
+      val program = for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        txWithResult = TransactionWithResult(Signed(sig, tn))(None)
+        txHash       = txWithResult.toHash
+        utxoKey      = (sig.account, tn.tokenId, tn.input.toResultHashValue)
+        isRemoveSuccessful <- PlayNommState[F].token.nftBalance
+          .remove(utxoKey)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft balance of $utxoKey"
+        _ <- checkExternal(isRemoveSuccessful, s"No NFT Balance: ${utxoKey}")
+        newUtxoKey = (tn.output, tn.tokenId, txHash)
+        _ <- PlayNommState[F].token.nftBalance
+          .put(newUtxoKey, ())
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft balance of $newUtxoKey"
+        nftStateOption <- PlayNommState[F].token.nftState
+          .get(tn.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get nft state of ${tn.tokenId}"
+        nftState <- fromOption(
+          nftStateOption,
+          s"Empty NFT State: ${tn.tokenId}",
+        )
+        nftState1 = nftState.copy(currentOwner = tn.output)
+        _ <- PlayNommState[F].token.nftState
+          .put(tn.tokenId, nftState1)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft state of ${tn.tokenId}"
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
     case bf: Transaction.TokenTx.BurnFungibleToken             => ???
     case bn: Transaction.TokenTx.BurnNFT                       => ???
     case ef: Transaction.TokenTx.EntrustFungibleToken          => ???
