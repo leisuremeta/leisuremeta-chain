@@ -308,9 +308,41 @@ object PlayNommDAppToken:
       program
         .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
-    case de: Transaction.TokenTx.DisposeEntrustedFungibleToken => ???
-    case ef: Transaction.TokenTx.EntrustNFT                    => ???
-    case de: Transaction.TokenTx.DisposeEntrustedNFT           => ???
+    case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
+      val program = for
+        _        <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- getTokenDefinition(de.definitionId)
+        inputHashList = de.inputs.map(_.toResultHashValue)
+        inputMap <- getEntrustedInputs(inputHashList, sig.account)
+        inputAmount  = inputMap.values.foldLeft(BigNat.Zero)(BigNat.add)
+        outputAmount = de.outputs.values.foldLeft(BigNat.Zero)(BigNat.add)
+        _ <- checkExternal(
+          inputAmount === outputAmount,
+          s"Output amount is not equal to input amount $inputAmount",
+        )
+        txWithResult = TransactionWithResult(Signed(sig, de))(None)
+        txHash       = txWithResult.toHash
+        _ <- inputMap.toList
+          .map(_._1)
+          .traverse: (account, txHash) =>
+            PlayNommState[F].token.entrustFungibleBalance
+              .remove((account, sig.account, de.definitionId, txHash))
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to remove entrust fungible balance of (${account}, ${sig.account}, ${de.definitionId}, ${txHash})"
+        _ <- de.outputs.toList.traverse: (account, amount) =>
+          PlayNommState[F].token.fungibleBalance
+            .put((account, de.definitionId, txHash), ())
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to put fungible balance of (${account}, ${de.definitionId}, ${txHash})"
+      yield txWithResult
+
+      program
+        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+
+    case ef: Transaction.TokenTx.EntrustNFT          => ???
+    case de: Transaction.TokenTx.DisposeEntrustedNFT => ???
 
   def getTokenDefinitionOption[F[_]: Monad: PlayNommState](
       definitionId: TokenDefinitionId,
@@ -500,3 +532,40 @@ object PlayNommDAppToken:
                 PlayNommDAppFailure.external(
                   s"Tx $txWithResult is not a nft balance",
                 )
+
+  def getEntrustedInputs[F[_]: Monad: TransactionRepository: PlayNommState](
+      inputs: Set[Hash.Value[TransactionWithResult]],
+      account: Account,
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Map[
+    (Account, Hash.Value[TransactionWithResult]),
+    BigNat,
+  ]] =
+    StateT.liftF:
+      inputs.toSeq
+        .traverse: txHash =>
+          for
+            txOption <- TransactionRepository[F]
+              .get(txHash)
+              .leftMap: e =>
+                PlayNommDAppFailure.internal:
+                  s"Fail to get tx $txHash: ${e.msg}"
+            txWithResult <- EitherT.fromOption(
+              txOption,
+              PlayNommDAppFailure.internal(s"There is no tx of $txHash"),
+            )
+            amount <- txWithResult.signedTx.value match
+              case ef: Transaction.TokenTx.EntrustFungibleToken =>
+                EitherT.cond(
+                  ef.to === account,
+                  ef.amount,
+                  PlayNommDAppFailure.external(
+                    s"Entrust fungible token tx $txWithResult is not for $account",
+                  ),
+                )
+              case _ =>
+                EitherT.leftT:
+                  PlayNommDAppFailure.external(
+                    s"Tx $txWithResult is not an entrust fungible token transaction",
+                  )
+          yield ((txWithResult.signedTx.sig.account, txHash), amount)
+        .map(_.toMap)
