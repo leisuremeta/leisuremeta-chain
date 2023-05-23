@@ -112,7 +112,7 @@ object ArchiveMain extends IOApp:
     for
       block <- getBlock[F](backend)(next)
       _ <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
-      _ <- run(block.transactionHashes)
+      _ <- run(block.transactionHashes).recover(_ => ())
       count1 <- loop[F](backend)(block.header.parentHash, genesis, count + 1)(run)
     yield count1
     
