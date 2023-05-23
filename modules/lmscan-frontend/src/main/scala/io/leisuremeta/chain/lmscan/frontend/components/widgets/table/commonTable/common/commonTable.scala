@@ -53,7 +53,7 @@ object Table:
     )
 
   def accountDetail_txtable = (model: Model) =>
-    log(current_ViewCase(model).txInfo)
+    // log(current_ViewCase(model).txInfo)
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
         new TxInfo == current_ViewCase(model).txInfo(0) match

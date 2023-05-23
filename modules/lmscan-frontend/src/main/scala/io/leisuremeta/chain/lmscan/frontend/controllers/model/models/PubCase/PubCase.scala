@@ -2,11 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 import io.leisuremeta.chain.lmscan.common.model.*
 
 enum PubCase:
-//   baseurl
-//   &pageNo=0
-//   &sizePerRequest=10
-//   &accountAddr=playnomm or hash
-
   case BlockPub(
       page: Int = 1,
       sizePerRequest: Int = 10,

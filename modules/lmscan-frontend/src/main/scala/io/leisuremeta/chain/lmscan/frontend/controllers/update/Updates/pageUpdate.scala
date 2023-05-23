@@ -5,11 +5,12 @@ import org.scalajs.dom.window
 import scala.util.chaining.*
 import tyrian.*
 import cats.effect.IO
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.in_Page
+import io.leisuremeta.chain.lmscan.frontend.Log.*
+import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.getPubCase
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -22,8 +23,18 @@ object PageUpdate:
           )
           (
             model.copy(
-              tx_current_page = in_Page((in_PubCases(page)(0))).toString(),
-              block_current_page = in_Page((in_PubCases(page)(0))).toString(),
+              tx_current_page = page
+                .pipe(in_PubCases)
+                .pipe(getPubCase[PubCase.TxPub])
+                .pipe(_.getOrElse(PubCase.TxPub()))
+                .pipe(in_Page)
+                .pipe(_.toString),
+              block_current_page = page
+                .pipe(in_PubCases)
+                .pipe(getPubCase[PubCase.BlockPub])
+                .pipe(_.getOrElse(PubCase.BlockPub()))
+                .pipe(in_Page)
+                .pipe(_.toString),
               tx_total_page =
                 get_PageResponseViewCase(model).tx.totalPages match
                   case 1 => model.tx_total_page

@@ -46,8 +46,8 @@ object TxDetailTableMain:
               Cell.Head("SubType", "cell type-detail-head"),
               Cell.PlainStr(
                 {
-                  log("서브타입")
-                  log(data.subType)
+                  // log("서브타입")
+                  // log(data.subType)
                   data.subType
                 },
                 "cell type-detail-body",

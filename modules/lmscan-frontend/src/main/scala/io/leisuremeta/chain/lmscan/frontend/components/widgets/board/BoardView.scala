@@ -70,8 +70,8 @@ object BoardView:
             ),
             div(`class` := "color-white font-bold")(
               {
-                log("data.totalTxSize")
-                log(data.totalTxSize)
+                // log("data.totalTxSize")
+                // log(data.totalTxSize)
                 String
                   .format(
                     "%.3f",

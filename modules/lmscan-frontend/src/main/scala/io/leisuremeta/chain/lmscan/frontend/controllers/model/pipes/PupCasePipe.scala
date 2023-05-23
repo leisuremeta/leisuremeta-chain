@@ -3,6 +3,7 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.*
 import scala.scalajs.js
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import scala.reflect.ClassTag
 
 object PupCasePipe:
   def in_Page(pubCase: PubCase) =
@@ -31,6 +32,20 @@ object PupCasePipe:
       case PubCase.TxDetailPub(_, _, pub_m2)      => pub_m2
       case PubCase.AccountDetailPub(_, _, pub_m2) => pub_m2
       case PubCase.NftDetailPub(_, _, pub_m2)     => pub_m2
+
+  def filterByType[T <: PubCase](lst: List[PubCase])(implicit
+      tag: ClassTag[T],
+  ): List[T] =
+    lst.collect { case t: T =>
+      t
+    }
+
+  def getPubCase[T <: PubCase](lst: List[PubCase])(implicit
+      tag: ClassTag[T],
+  ): Option[PubCase] =
+    filterByType[T](lst) match
+      case Nil       => None
+      case head :: _ => Some(head)
 
   def update_PubCase_data(pub: PubCase, data: String) =
     pub match
