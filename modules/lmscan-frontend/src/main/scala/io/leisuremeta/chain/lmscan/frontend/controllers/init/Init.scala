@@ -14,6 +14,7 @@ object Init:
 
   def setMode(mode: CommandCaseMode) =
     window.localStorage.setItem("commandMode", mode.toString())
+    window.localStorage.setItem("limit", "50000")
     mode
 
   val path = window.location.pathname
@@ -36,11 +37,9 @@ object Init:
         commandMode =
           window.location.href.contains("https://scan.leisuremeta.io") match
             case true =>
-              // setMode(CommandCaseMode.Production)
-              CommandCaseMode.Production
+              setMode(CommandCaseMode.Production)
             case _ =>
-              // setMode(CommandCaseMode.Development)
-              CommandCaseMode.Development
+              setMode(CommandCaseMode.Development)
         ,
         commandLink =
           window.location.href.contains("https://scan.leisuremeta.io") match

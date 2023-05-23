@@ -14,4 +14,5 @@ final case class Model(
     tx_current_page: String = "1",
     block_total_page: String = "1",
     block_current_page: String = "1",
+    pageLimit: Int = 50,
 )

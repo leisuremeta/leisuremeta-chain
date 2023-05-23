@@ -272,9 +272,9 @@ object Search:
           onClick(
             PageMsg.PreUpdate(
               PageCase.Transactions(
-                url = s"transactions/${limit_value((curPage + 10).toString())}",
+                url = s"transactions/${limit_value(totalPage.toString())}",
                 pubs = List(
-                  PubCase.TxPub(page = limit_value((curPage + 10).toString())),
+                  PubCase.TxPub(page = limit_value(totalPage.toString())),
                 ),
               ),
             ),
