@@ -7,6 +7,8 @@ import cats.Monad
 import cats.data.{EitherT, Kleisli}
 import cats.implicits.*
 
+import scodec.bits.ByteVector
+
 import api.model.{
   Account,
   AccountData,
@@ -31,10 +33,12 @@ import lib.merkle.{
   GenericMerkleTrie,
   GenericMerkleTrieNode,
   GenericMerkleTrieState,
+  MerkleTrie,
   MerkleTrieState,
 }
-import lib.merkle.GenericMerkleTrie.NodeStore
+import lib.merkle.GenericMerkleTrie.{NodeStore => GenericNodeStore}
 import lib.merkle.GenericMerkleTrieNode.MerkleRoot
+import lib.merkle.MerkleTrie.NodeStore
 
 object GossipDomain:
 
@@ -313,8 +317,7 @@ object GossipDomain:
         "No transactions to include in new block",
       )
     else
-      given idNodeStore: NodeStore[cats.Id, Signed.TxHash, Unit] =
-        Kleisli.pure(None)
+      given idNodeStore: NodeStore[cats.Id] = Kleisli.pure(None)
       for
         stateAndTxSet <- candidateTxs.toList.foldM(
           (bestState, Set.empty[Signed.TxHash]),
@@ -327,18 +330,12 @@ object GossipDomain:
           yield (state1, txSet + txHash)).recover { _ => (state, txSet) }
         }
         (state, txSet) = stateAndTxSet
-        txState = txSet.toList.foldLeft(
-          GenericMerkleTrieState.empty[Signed.TxHash, Unit],
-        ) { (state, txHash) =>
-          GenericMerkleTrie
-            .put[cats.Id, Signed.TxHash, Unit](
-              txHash.toUInt256Bytes.toBytes.bits,
-              (),
-            )
+        txState = txSet.toList.foldLeft(MerkleTrieState.empty): (state, txHash) =>
+          MerkleTrie
+            .put[cats.Id](txHash.toUInt256Bytes.toBytes.bits, ByteVector.empty)
             .runS(state)
             .value
             .getOrElse(state)
-        }
         header = Block.Header(
           number = BigNat.add(bestBlock.header.number, BigNat.One),
           parentHash = bestBlockHash,

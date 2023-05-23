@@ -6,13 +6,13 @@ import cats.effect.Concurrent
 import cats.data.{EitherT, StateT}
 
 import api.model.{Signed, Transaction, TransactionWithResult}
-import repository.{GenericStateRepository, TransactionRepository}
+import repository.TransactionRepository
 import submodule.*
 
 import GossipDomain.MerkleState
 
 object PlayNommDApp:
-  def apply[F[_]: Concurrent: TransactionRepository: PlayNommState: GenericStateRepository.TokenState](
+  def apply[F[_]: Concurrent: TransactionRepository: PlayNommState](
       signedTx: Signed.Tx,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleState, TransactionWithResult] =
     signedTx.value match

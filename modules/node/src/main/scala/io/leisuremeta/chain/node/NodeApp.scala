@@ -21,7 +21,7 @@ import api.{LeisureMetaChainApi as Api}
 import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
 import api.model.account.EthAddress
 import api.model.token.{TokenDefinitionId, TokenId}
-import dapp.PlayNommState
+import dapp.{PlayNommDAppFailure, PlayNommState}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{
@@ -308,9 +308,12 @@ final case class NodeApp[F[_]
       val result =
         TransactionService.submit[F](semaphore, txs, localKeyPair).value
       result.map {
-        case Left(err) =>
-          scribe.info(s"error occured in tx $txs: $err")
-          Left(Right(Api.BadRequest(err)))
+        case Left(PlayNommDAppFailure.External(msg)) =>
+          scribe.info(s"external error occured in tx $txs: $msg")
+          Left(Right(Api.BadRequest(msg)))
+        case Left(PlayNommDAppFailure.Internal(msg)) =>
+          scribe.error(s"internal error occured in tx $txs: $msg")
+          Left(Left(Api.ServerError(msg)))
         case Right(txHashes) =>
           scribe.info(s"submitted txs: $txHashes")
           Right(txHashes)
