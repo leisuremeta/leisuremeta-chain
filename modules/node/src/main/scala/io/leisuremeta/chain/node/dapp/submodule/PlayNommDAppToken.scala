@@ -143,8 +143,7 @@ object PlayNommDAppToken:
         )
         outputAmount = tf.outputs.values.foldLeft(BigNat.Zero)(BigNat.add)
         diff <- fromEitherExternal:
-          BigNat.fromBigInt:
-            inputAmount.toBigInt - outputAmount.toBigInt
+          BigNat.tryToSubtract(inputAmount, outputAmount)
         txWithResult = TransactionWithResult(Signed(sig, tf))(None)
         txHash       = txWithResult.toHash
         _ <- removeInputUtxos(
