@@ -14,10 +14,11 @@ object PopupView:
   def view(model: Model): Html[Msg] =
     div(id := "popup1", `class` := "overlay")(
       div(`class` := "popup")(
-        h2("Here i am"),
+        h2("INFO"),
+        br,
         a(`class` := "close", href := "#")("×"),
         div(`class` := "content")(
-          "Thank to pop me out of that button, but now i'm done so you can close this window.",
+          "sorry, page limit is 50,000",
         ),
       ),
     )

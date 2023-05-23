@@ -21,6 +21,7 @@ object NavView:
       //     onClick(PageMsg.PreUpdate(PageCase.Observer())),
       //   )(span()(PageCase.Observer().name)),
       // ),
+
       div(
         id := "buttons",
       )(

@@ -79,4 +79,5 @@ object PageView:
             case false => div(`class` := "pb-32px")(Pages.render(model))
         },
       ),
+      PopupView.view(model),
     )
