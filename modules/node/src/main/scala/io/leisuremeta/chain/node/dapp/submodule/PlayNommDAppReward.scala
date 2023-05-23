@@ -80,7 +80,7 @@ object PlayNommDAppReward:
       val program = for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- PlayNommDAppToken.getTokenDefinition(or.tokenDefinitionId)
-        inputAmount <- PlayNommDAppToken.getInputAmounts(
+        inputAmount <- PlayNommDAppToken.getFungibleBalanceTotalAmounts(
           or.inputs.map(_.toResultHashValue),
           sig.account,
         )

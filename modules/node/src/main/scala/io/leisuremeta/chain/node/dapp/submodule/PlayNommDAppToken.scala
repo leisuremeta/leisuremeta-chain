@@ -137,7 +137,7 @@ object PlayNommDAppToken:
       val program = for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- getTokenDefinition(tf.tokenDefinitionId)
-        inputAmount <- getInputAmounts(
+        inputAmount <- getFungibleBalanceTotalAmounts(
           tf.inputs.map(_.toResultHashValue),
           sig.account,
         )
@@ -210,7 +210,7 @@ object PlayNommDAppToken:
           sig.account,
           bf.definitionId,
         )
-        inputAmount <- getInputAmounts(
+        inputAmount <- getFungibleBalanceTotalAmounts(
           bf.inputs.map(_.toResultHashValue),
           sig.account,
         )
@@ -283,7 +283,7 @@ object PlayNommDAppToken:
       val program = for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- getTokenDefinition(ef.definitionId)
-        inputAmount <- getInputAmounts(
+        inputAmount <- getFungibleBalanceTotalAmounts(
           ef.inputs.map(_.toResultHashValue),
           sig.account,
         )
@@ -475,7 +475,7 @@ object PlayNommDAppToken:
       )
     yield tokenDef
 
-  def getInputAmounts[F[_]: Monad: TransactionRepository: PlayNommState](
+  def getFungibleBalanceTotalAmounts[F[_]: Monad: TransactionRepository: PlayNommState](
       inputs: Set[Hash.Value[TransactionWithResult]],
       account: Account,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, BigNat] =

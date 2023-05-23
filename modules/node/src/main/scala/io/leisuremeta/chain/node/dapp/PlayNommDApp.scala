@@ -18,7 +18,11 @@ object PlayNommDApp:
     signedTx.value match
       case accountTx: Transaction.AccountTx =>
         PlayNommDAppAccount(accountTx, signedTx.sig)
+      case groupTx: Transaction.GroupTx =>
+        PlayNommDAppGroup(groupTx, signedTx.sig)
+      case tokenTx: Transaction.TokenTx =>
+        PlayNommDAppToken(tokenTx, signedTx.sig)
       case rewardTx: Transaction.RewardTx =>
         PlayNommDAppReward(rewardTx, signedTx.sig)
-
-      case _ => ???
+      case agendaTx: Transaction.AgendaTx =>
+        PlayNommDAppAgenda(agendaTx, signedTx.sig)
