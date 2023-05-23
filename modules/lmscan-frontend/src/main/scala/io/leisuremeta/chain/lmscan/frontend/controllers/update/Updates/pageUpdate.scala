@@ -9,6 +9,7 @@ import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
+import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.in_Page
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
@@ -21,15 +22,19 @@ object PageUpdate:
           )
           (
             model.copy(
+              tx_current_page = in_Page((in_PubCases(page)(0))).toString(),
+              block_current_page = in_Page((in_PubCases(page)(0))).toString(),
               tx_total_page =
                 get_PageResponseViewCase(model).tx.totalPages match
                   case 1 => model.tx_total_page
-                  case _ => get_PageResponseViewCase(model).tx.totalPages
+                  case _ =>
+                    get_PageResponseViewCase(model).tx.totalPages.toString()
               ,
               block_total_page =
                 get_PageResponseViewCase(model).block.totalPages match
                   case 1 => model.block_total_page
-                  case _ => get_PageResponseViewCase(model).block.totalPages
+                  case _ =>
+                    get_PageResponseViewCase(model).block.totalPages.toString()
               ,
               pointer = get_latest_number(model) + 1,
               appStates = model.appStates ++ Seq(
@@ -119,7 +124,39 @@ object PageUpdate:
         Cmd.None,
       )
     case PageMsg.None => (model, Cmd.None)
+
     case PageMsg.GetFromBlockSearch(s) =>
-      (model.copy(block_current_page = s.toInt), Cmd.None)
+      (model.copy(block_current_page = s), Cmd.None)
+
     case PageMsg.GetFromTxSearch(s) =>
-      (model.copy(tx_current_page = s.toInt), Cmd.None)
+      (model.copy(tx_current_page = s), Cmd.None)
+
+    case PageMsg.PatchFromBlockSearch(validPage) =>
+      (
+        model.copy(block_current_page = validPage),
+        Cmd.emit(
+          PageMsg.PreUpdate(
+            PageCase.Blocks(
+              url = s"blocks/${validPage}",
+              pubs = List(
+                PubCase.BlockPub(page = validPage.toInt),
+              ),
+            ),
+          ),
+        ),
+      )
+
+    case PageMsg.PatchFromTxSearch(validPage) =>
+      (
+        model.copy(tx_current_page = validPage),
+        Cmd.emit(
+          PageMsg.PreUpdate(
+            PageCase.Transactions(
+              url = s"transactions/${validPage}",
+              pubs = List(
+                PubCase.TxPub(page = validPage.toInt),
+              ),
+            ),
+          ),
+        ),
+      )

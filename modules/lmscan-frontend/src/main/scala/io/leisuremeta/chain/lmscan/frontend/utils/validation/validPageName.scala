@@ -87,22 +87,31 @@ object ValidPageName:
     url match
       case s"/dashboard" => PageCase.DashBoard()
       case s"/blocks"    => PageCase.Blocks()
-      case s"/blocks/${page}" if page.toInt < 50000 =>
+      case s"/blocks/${page}"
+          if page.forall(
+            Character.isDigit,
+          ) =>
         PageCase.Blocks(
-          url = s"blocks/${page}",
-          pubs = List(PubCase.BlockPub(page = page.toInt)),
+          url = s"blocks/${limit_value(page)}",
+          pubs = List(PubCase.BlockPub(page = limit_value(page))),
         )
       case s"/transactions" => PageCase.Transactions()
-      case s"/transactions/${page}" if page.toInt < 50000 =>
+      case s"/transactions/${page}"
+          if page.forall(
+            Character.isDigit,
+          ) =>
         PageCase.Transactions(
-          url = s"transactions/${page}",
-          pubs = List(PubCase.TxPub(page = page.toInt)),
+          url = s"transactions/${limit_value(page)}",
+          pubs = List(PubCase.TxPub(page = limit_value(page))),
         )
       case s"/txs" => PageCase.Transactions()
-      case s"/txs/${page}" if page.toInt < 50000 =>
+      case s"/txs/${page}"
+          if page.forall(
+            Character.isDigit,
+          ) =>
         PageCase.Transactions(
-          url = s"transactions/${page}",
-          pubs = List(PubCase.TxPub(page = page.toInt)),
+          url = s"transactions/${limit_value(page)}",
+          pubs = List(PubCase.TxPub(page = limit_value(page))),
         )
 
       case s"/transaction/${hash}" if hash.length() == 64 =>

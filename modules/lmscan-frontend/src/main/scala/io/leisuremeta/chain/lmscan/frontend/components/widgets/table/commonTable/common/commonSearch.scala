@@ -17,12 +17,14 @@ object Search:
     // todo :: make as pipe
     val curPage = find_current_PubPage(model)
 
-    val totalPage = model.block_total_page
+    val totalPage = model.block_total_page.toInt
 
     val btnFistPage = curPage match
-      case x if (x == 1 || x == 2)                         => 1
-      case x if (x == totalPage) || (x == (totalPage - 1)) => (totalPage - 4)
-      case x                                               => (curPage - 2)
+      case x if (x == 1 || x == 2) => 1
+      case x if (x == totalPage.toInt) || (x == (totalPage.toInt - 1)) => (
+        totalPage.toInt - 4
+      )
+      case x => (curPage - 2)
 
     val btnLastPage = btnFistPage + 5
 
@@ -70,8 +72,10 @@ object Search:
                 onClick(
                   PageMsg.PreUpdate(
                     PageCase.Blocks(
-                      url = s"blocks/${idx}",
-                      pubs = List(PubCase.BlockPub(page = idx)),
+                      url = s"blocks/${limit_value(idx.toString())}",
+                      pubs = List(
+                        PubCase.BlockPub(page = limit_value(idx.toString())),
+                      ),
                     ),
                   ),
                 ),
@@ -80,15 +84,19 @@ object Search:
         ),
         div(
           `class` := s"type-arrow",
-          curPage >= (totalPage - 10) match
+          curPage >= (totalPage.toInt - 10) match
             case true =>
               style(Style("color" -> "lightgray"))
             case false =>
               onClick(
                 PageMsg.PreUpdate(
                   PageCase.Blocks(
-                    url = s"blocks/${curPage + 10}",
-                    pubs = List(PubCase.BlockPub(page = curPage + 10)),
+                    url = s"blocks/${limit_value((curPage + 10).toString())}",
+                    pubs = List(
+                      PubCase.BlockPub(page =
+                        limit_value((curPage + 10).toString()),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -98,8 +106,10 @@ object Search:
           onClick(
             PageMsg.PreUpdate(
               PageCase.Blocks(
-                url = s"blocks/${totalPage}",
-                pubs = List(PubCase.BlockPub(page = totalPage)),
+                url = s"blocks/${limit_value(totalPage.toString())}",
+                pubs = List(
+                  PubCase.BlockPub(page = limit_value(totalPage.toString())),
+                ),
               ),
             ),
           ),
@@ -110,23 +120,23 @@ object Search:
           input(
             onInput(s => PageMsg.GetFromBlockSearch(s)),
             onKeyUp(e =>
-              e.key == "Enter" match
-                case true =>
-                  PageMsg.PreUpdate(
-                    PageCase.Blocks(
-                      url = s"blocks/${model.block_current_page}",
-                      pubs =
-                        List(PubCase.BlockPub(page = model.block_current_page)),
-                    ),
+              e.key match
+                case "Enter" =>
+                  PageMsg.PatchFromBlockSearch(
+                    block_validPageNumber(model).toString(),
                   )
-                case false =>
-                  PageMsg.None,
+                case _ => PageMsg.None,
             ),
-            value := s"${curPage}",
+            value := s"${model.block_current_page}",
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
-          div(`class` := "type-plain-text margin-right")(totalPage.toString()),
+          div(`class` := "type-plain-text margin-right")({
+            totalPage match
+              case 1 =>
+                get_PageResponseViewCase(model).block.totalPages.toString()
+              case _ => totalPage.toString()
+          }),
         ),
       ),
     )
@@ -136,12 +146,14 @@ object Search:
     // todo :: make as pipe
     val curPage = find_current_PubPage(model)
 
-    val totalPage = model.tx_total_page
+    val totalPage = model.tx_total_page.toInt
 
     val btnFistPage = curPage match
-      case x if (x == 1 || x == 2)                         => 1
-      case x if (x == totalPage) || (x == (totalPage - 1)) => (totalPage - 4)
-      case x                                               => (curPage - 2)
+      case x if (x == 1 || x == 2) => 1
+      case x if (x == totalPage.toInt) || (x == (totalPage.toInt - 1)) => (
+        totalPage.toInt - 4
+      )
+      case x => (curPage - 2)
 
     val btnLastPage = btnFistPage + 5
 
@@ -194,11 +206,14 @@ object Search:
                     find_current_PageCase(model) match
                       case page: PageCase.Transactions =>
                         page.copy(
-                          url = s"transactions/${idx}",
-                          pubs = List(PubCase.TxPub(page = idx)),
+                          url = s"transactions/${limit_value(idx.toString())}",
+                          pubs = List(
+                            PubCase.TxPub(page = limit_value(idx.toString())),
+                          ),
                         )
 
                       // TODO:: replaced with values ​​received from the cache.
+                      // TODO:: fix 필요
                       case page: PageCase.AccountDetail =>
                         page.copy(
                           url = s"account/${idx}",
@@ -234,15 +249,20 @@ object Search:
         ),
         div(
           `class` := s"type-arrow",
-          curPage >= (totalPage - 10) match
+          curPage >= (totalPage.toInt - 10) match
             case true =>
               style(Style("color" -> "lightgray"))
             case false =>
               onClick(
                 PageMsg.PreUpdate(
                   PageCase.Transactions(
-                    url = s"transactions/${curPage + 10}",
-                    pubs = List(PubCase.TxPub(page = curPage + 10)),
+                    url =
+                      s"transactions/${limit_value((curPage + 10).toString())}",
+                    pubs = List(
+                      PubCase.TxPub(page =
+                        limit_value((curPage + 10).toString()),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -252,8 +272,10 @@ object Search:
           onClick(
             PageMsg.PreUpdate(
               PageCase.Transactions(
-                url = s"transactions/${totalPage}",
-                pubs = List(PubCase.TxPub(page = totalPage)),
+                url = s"transactions/${limit_value((curPage + 10).toString())}",
+                pubs = List(
+                  PubCase.TxPub(page = limit_value((curPage + 10).toString())),
+                ),
               ),
             ),
           ),
@@ -264,18 +286,14 @@ object Search:
           input(
             onInput(s => PageMsg.GetFromTxSearch(s)),
             onKeyUp(e =>
-              e.key == "Enter" match
-                case true =>
-                  PageMsg.PreUpdate(
-                    PageCase.Transactions(
-                      url = s"transactions/${model.tx_current_page}",
-                      pubs = List(PubCase.TxPub(page = model.tx_current_page)),
-                    ),
+              e.key match
+                case "Enter" =>
+                  PageMsg.PatchFromTxSearch(
+                    tx_validPageNumber(model).toString(),
                   )
-                case false =>
-                  PageMsg.None,
+                case _ => PageMsg.None,
             ),
-            value := s"${curPage}",
+            value := s"${model.tx_current_page}",
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),

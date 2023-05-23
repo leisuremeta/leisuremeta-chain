@@ -5,6 +5,8 @@ import cats.effect.IO
 import tyrian.Html.*
 import tyrian.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.find_current_Pub_m1s
+import org.scalajs.dom.window
+import io.leisuremeta.chain.lmscan.frontend.Init.setMode
 
 object CommandUpdate:
   def update(model: Model): CommandMsg => (Model, Cmd[IO, Msg]) =
@@ -14,7 +16,7 @@ object CommandUpdate:
         case m: CommandCaseMode =>
           (
             model.copy(
-              commandMode = m,
+              commandMode = setMode(m),
             ),
             Cmd.None,
           )

@@ -12,6 +12,10 @@ object Init:
         .contains("http:") && !window.location.href.contains("local")
     then window.location.href = window.location.href.replace("http:", "https:")
 
+  def setMode(mode: CommandCaseMode) =
+    window.localStorage.setItem("commandMode", mode.toString())
+    mode
+
   val path = window.location.pathname
 
   val pageCase = getPageCaseFromUrl(path)
@@ -31,8 +35,12 @@ object Init:
         temp = "",
         commandMode =
           window.location.href.contains("https://scan.leisuremeta.io") match
-            case true => CommandCaseMode.Production
-            case _    => CommandCaseMode.Development
+            case true =>
+              // setMode(CommandCaseMode.Production)
+              CommandCaseMode.Production
+            case _ =>
+              // setMode(CommandCaseMode.Development)
+              CommandCaseMode.Development
         ,
         commandLink =
           window.location.href.contains("https://scan.leisuremeta.io") match
