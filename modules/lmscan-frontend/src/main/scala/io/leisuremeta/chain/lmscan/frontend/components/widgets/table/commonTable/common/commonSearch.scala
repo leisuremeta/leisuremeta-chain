@@ -21,8 +21,11 @@ object Search:
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2) => 1
-      case x if (x == totalPage.toInt) || (x == (totalPage.toInt - 1)) => (
-        totalPage.toInt - 4
+      case x
+          if (x == limit_value(totalPage.toString())) || (x == (limit_value(
+            totalPage.toString(),
+          ) - 1)) => (
+        limit_value(totalPage.toString()) - 4
       )
       case x => (curPage - 2)
 
@@ -92,9 +95,9 @@ object Search:
         ),
         div(
           `class` := s"type-arrow",
-          curPage >= (totalPage.toInt - 10) match
+          curPage >= (limit_value(totalPage.toString()) - 10) match
             case true =>
-              style(Style("color" -> "lightgray"))
+              style(Style("color" -> "gray"))
             case false =>
               onClick(
                 (limit_value(
@@ -120,24 +123,34 @@ object Search:
         )(">"),
         div(
           `class` := s"type-arrow",
-          onClick(
-            (limit_value(
-              totalPage.toString(),
-            ) == 50000 && block_validPageNumber(
-              model,
-            ) == 50000) match
-              case true =>
-                PopupMsg.OnClick(true)
-              case false =>
-                PageMsg.PreUpdate(
-                  PageCase.Blocks(
-                    url = s"blocks/${limit_value(totalPage.toString())}",
-                    pubs = List(
-                      PubCase.BlockPub(page = limit_value(totalPage.toString())),
+          (limit_value(
+            totalPage.toString(),
+          ) == 50000 && block_validPageNumber(
+            model,
+          ) == 50000) match
+            case true =>
+              style(Style("color" -> "gray"))
+            case false =>
+              onClick(
+                (limit_value(
+                  totalPage.toString(),
+                ) == 50000 && block_validPageNumber(
+                  model,
+                ) == 50000) match
+                  case true =>
+                    PopupMsg.OnClick(true)
+                  case false =>
+                    PageMsg.PreUpdate(
+                      PageCase.Blocks(
+                        url = s"blocks/${limit_value(totalPage.toString())}",
+                        pubs = List(
+                          PubCase.BlockPub(page =
+                            limit_value(totalPage.toString()),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-          ),
+              ),
         )(">>"),
         div(
           style(Style("margin-left" -> "10px")),
@@ -164,8 +177,10 @@ object Search:
           div(`class` := "type-plain-text margin-right")({
             totalPage match
               case 1 =>
-                get_PageResponseViewCase(model).block.totalPages.toString()
-              case _ => totalPage.toString()
+                limit_value(
+                  get_PageResponseViewCase(model).block.totalPages.toString(),
+                ).toString()
+              case _ => limit_value(totalPage.toString()).toString()
           }),
         ),
       ),
@@ -180,8 +195,11 @@ object Search:
 
     val btnFistPage = curPage match
       case x if (x == 1 || x == 2) => 1
-      case x if (x == totalPage.toInt) || (x == (totalPage.toInt - 1)) => (
-        totalPage.toInt - 4
+      case x
+          if (x == limit_value(totalPage.toString())) || (x == (limit_value(
+            totalPage.toString(),
+          ) - 1)) => (
+        limit_value(totalPage.toString()) - 4
       )
       case x => (curPage - 2)
 
@@ -296,9 +314,9 @@ object Search:
         ),
         div(
           `class` := s"type-arrow",
-          curPage >= (totalPage.toInt - 10) match
+          curPage >= (limit_value(totalPage.toString()) - 10) match
             case true =>
-              style(Style("color" -> "lightgray"))
+              style(Style("color" -> "gray"))
             case false =>
               onClick(
                 (limit_value(
@@ -324,22 +342,32 @@ object Search:
         )(">"),
         div(
           `class` := s"type-arrow",
-          onClick(
-            (limit_value(totalPage.toString()) == 50000 && tx_validPageNumber(
-              model,
-            ) == 50000) match
-              case true =>
-                PopupMsg.OnClick(true)
-              case false =>
-                PageMsg.PreUpdate(
-                  PageCase.Transactions(
-                    url = s"transactions/${limit_value(totalPage.toString())}",
-                    pubs = List(
-                      PubCase.TxPub(page = limit_value(totalPage.toString())),
+          (limit_value(totalPage.toString()) == 50000 && tx_validPageNumber(
+            model,
+          ) == 50000) match
+            case true => style(Style("color" -> "gray"))
+            case false =>
+              onClick(
+                (limit_value(
+                  totalPage.toString(),
+                ) == 50000 && tx_validPageNumber(
+                  model,
+                ) == 50000) match
+                  case true =>
+                    PopupMsg.OnClick(true)
+                  case false =>
+                    PageMsg.PreUpdate(
+                      PageCase.Transactions(
+                        url =
+                          s"transactions/${limit_value(totalPage.toString())}",
+                        pubs = List(
+                          PubCase.TxPub(page =
+                            limit_value(totalPage.toString()),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-          ),
+              ),
         )(">>"),
         div(
           style(Style("margin-left" -> "10px")),
@@ -365,8 +393,11 @@ object Search:
           div(`class` := "type-plain-text margin-right")("of"),
           div(`class` := "type-plain-text margin-right")({
             totalPage match
-              case 1 => get_PageResponseViewCase(model).tx.totalPages.toString()
-              case _ => totalPage.toString()
+              case 1 =>
+                limit_value(
+                  get_PageResponseViewCase(model).tx.totalPages.toString(),
+                ).toString()
+              case _ => limit_value(totalPage.toString()).toString()
           }),
         ),
       ),
