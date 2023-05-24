@@ -9,14 +9,18 @@ import Dom.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
+import org.scalajs.dom.window
 
 object PopupView:
   def view(model: Model): Html[Msg] =
-    div(id := "popup1", `class` := "overlay")(
-      div(`class` := "popup")(
+    div(id := "popup1", `class` := "overlay true")(
+      div(`class` := "popup true")(
         h2("INFO"),
         br,
-        a(`class` := "close", href := "#")("×"),
+        div(
+          `class` := "close",
+          // onClick(),
+        )("×"),
         div(`class` := "content")(
           "sorry, page limit is 50,000",
         ),

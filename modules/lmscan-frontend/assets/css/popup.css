@@ -5,10 +5,13 @@
     border-radius: 5px;
     width: 200px;
     position: fixed;
-    bottom: 0px;
+    bottom: -40px;
     right: 20px;
-    /* right: -500px; */
+    right: -500px;
     transition: all 0.3s ease-in-out;
+  }
+  .popup.true {
+      right: 30px;
   }
   
   .popup h2 {
@@ -41,17 +44,18 @@
     right: 0;
     background: rgba(0, 0, 0, 0.3);
     transition: opacity 500ms;
-    visibility: visible;
+    display: none;
     opacity: 1;
   }
-  .overlay:target {
+
+  .overlay.true {
     visibility: visible;
     opacity: 1;
+    display: block;
     z-index: 999;
   }
-  
-  
-  
+    
+    
   
   
   @media screen and (max-width: 700px){
