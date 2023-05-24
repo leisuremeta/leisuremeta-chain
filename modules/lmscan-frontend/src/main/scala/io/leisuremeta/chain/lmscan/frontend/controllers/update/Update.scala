@@ -8,6 +8,7 @@ object Update:
     case pageMsg: PageMsg       => PageUpdate.update(model)(pageMsg)
     case inputMsg: InputMsg     => SearchUpdate.update(model)(inputMsg)
     case toggleMsg: ToggleMsg   => ToggleUpdate.update(model)(toggleMsg)
+    case popupMsg: PopupMsg     => PopupUpdate.update(model)(popupMsg)
     case commandMsg: CommandMsg => CommandUpdate.update(model)(commandMsg)
     case detailButtonMsg: DetailButtonMsg =>
       DetailButtonUpdate.update(model)(detailButtonMsg)

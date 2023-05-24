@@ -13,13 +13,13 @@ import org.scalajs.dom.window
 
 object PopupView:
   def view(model: Model): Html[Msg] =
-    div(id := "popup1", `class` := "overlay true")(
-      div(`class` := "popup true")(
+    div(id := "popup1", `class` := s"overlay ${model.popup}")(
+      div(`class` := s"popup ${model.popup}")(
         h2("INFO"),
         br,
         div(
           `class` := "close",
-          // onClick(),
+          onClick(PopupMsg.OnClick(false)),
         )("×"),
         div(`class` := "content")(
           "sorry, page limit is 50,000",

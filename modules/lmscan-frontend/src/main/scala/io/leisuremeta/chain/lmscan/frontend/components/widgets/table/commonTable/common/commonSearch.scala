@@ -70,14 +70,22 @@ object Search:
               span(
                 `class` := s"${_selectedPage[Int](curPage, idx)}",
                 onClick(
-                  PageMsg.PreUpdate(
-                    PageCase.Blocks(
-                      url = s"blocks/${limit_value(idx.toString())}",
-                      pubs = List(
-                        PubCase.BlockPub(page = limit_value(idx.toString())),
+                  (limit_value(
+                    idx.toString(),
+                  ) == 50000 && block_validPageNumber(
+                    model,
+                  ) == 50000) match
+                    case true =>
+                      PopupMsg.OnClick(true)
+                    case false =>
+                      PageMsg.PreUpdate(
+                        PageCase.Blocks(
+                          url = s"blocks/${limit_value(idx.toString())}",
+                          pubs = List(
+                            PubCase.BlockPub(page = limit_value(idx.toString())),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
                 ),
               )(idx.toString()),
             ),
@@ -89,29 +97,46 @@ object Search:
               style(Style("color" -> "lightgray"))
             case false =>
               onClick(
-                PageMsg.PreUpdate(
-                  PageCase.Blocks(
-                    url = s"blocks/${limit_value((curPage + 10).toString())}",
-                    pubs = List(
-                      PubCase.BlockPub(page =
-                        limit_value((curPage + 10).toString()),
+                (limit_value(
+                  (curPage + 10).toString(),
+                ) == 50000 && block_validPageNumber(
+                  model,
+                ) == 50000) match
+                  case true =>
+                    PopupMsg.OnClick(true)
+                  case false =>
+                    PageMsg.PreUpdate(
+                      PageCase.Blocks(
+                        url =
+                          s"blocks/${limit_value((curPage + 10).toString())}",
+                        pubs = List(
+                          PubCase.BlockPub(page =
+                            limit_value((curPage + 10).toString()),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
               ),
         )(">"),
         div(
           `class` := s"type-arrow",
           onClick(
-            PageMsg.PreUpdate(
-              PageCase.Blocks(
-                url = s"blocks/${limit_value(totalPage.toString())}",
-                pubs = List(
-                  PubCase.BlockPub(page = limit_value(totalPage.toString())),
+            (limit_value(
+              totalPage.toString(),
+            ) == 50000 && block_validPageNumber(
+              model,
+            ) == 50000) match
+              case true =>
+                PopupMsg.OnClick(true)
+              case false =>
+                PageMsg.PreUpdate(
+                  PageCase.Blocks(
+                    url = s"blocks/${limit_value(totalPage.toString())}",
+                    pubs = List(
+                      PubCase.BlockPub(page = limit_value(totalPage.toString())),
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         )(">>"),
         div(
@@ -122,9 +147,14 @@ object Search:
             onKeyUp(e =>
               e.key match
                 case "Enter" =>
-                  PageMsg.PatchFromBlockSearch(
-                    block_validPageNumber(model).toString(),
-                  )
+                  block_validPageNumber(model) == 50000 match
+                    case true =>
+                      PopupMsg.OnClick(true)
+                    case false =>
+                      PageMsg.PatchFromBlockSearch(
+                        block_validPageNumber(model).toString(),
+                      )
+
                 case _ => PageMsg.None,
             ),
             value := s"${model.block_current_page}",
@@ -202,47 +232,64 @@ object Search:
               span(
                 `class` := s"${_selectedPage[Int](curPage, idx)}",
                 onClick(
-                  PageMsg.PreUpdate(
-                    find_current_PageCase(model) match
-                      case page: PageCase.Transactions =>
-                        page.copy(
+                  (limit_value(
+                    idx.toString(),
+                  ) == 50000 && tx_validPageNumber(
+                    model,
+                  ) == 50000) match
+                    case true =>
+                      PopupMsg.OnClick(true)
+                    case false =>
+                      PageMsg.PreUpdate(
+                        PageCase.Transactions(
                           url = s"transactions/${limit_value(idx.toString())}",
                           pubs = List(
                             PubCase.TxPub(page = limit_value(idx.toString())),
                           ),
-                        )
+                        ),
+                      ),
 
-                      // TODO:: replaced with values ​​received from the cache.
-                      // TODO:: fix 필요
-                      case page: PageCase.AccountDetail =>
-                        page.copy(
-                          url = s"account/${idx}",
-                          pubs = List(
-                            PubCase.BoardPub(1, "", SummaryModel()),
-                            PubCase.AccountDetailPub(hash =
-                              page.pubs.filter(pub =>
-                                pub match
-                                  case pub: PubCase.TxPub => true
-                                  case _                  => false,
-                              )(0) match
-                                case pub: PubCase.TxPub => pub.accountAddr
-                                case _                  => "",
-                            ),
-                            PubCase.TxPub(
-                              accountAddr = page.pubs.filter(pub =>
-                                pub match
-                                  case pub: PubCase.TxPub => true
-                                  case _                  => false,
-                              )(0) match
-                                case pub: PubCase.TxPub => pub.accountAddr
-                                case _                  => ""
-                              ,
-                              page = idx,
-                            ),
-                          ),
-                        )
-                      case _ => find_current_PageCase(model),
-                  ),
+                  // PageMsg.PreUpdate(
+                  //   find_current_PageCase(model) match
+                  //     case page: PageCase.Transactions =>
+                  //       page.copy(
+                  //         url = s"transactions/${limit_value(idx.toString())}",
+                  //         pubs = List(
+                  //           PubCase.TxPub(page = limit_value(idx.toString())),
+                  //         ),
+                  //       )
+
+                  //     // TODO:: replaced with values ​​received from the cache.
+                  //     // TODO:: fix 필요
+                  //     case page: PageCase.AccountDetail =>
+                  //       page.copy(
+                  //         url = s"account/${idx}",
+                  //         pubs = List(
+                  //           PubCase.BoardPub(1, "", SummaryModel()),
+                  //           PubCase.AccountDetailPub(hash =
+                  //             page.pubs.filter(pub =>
+                  //               pub match
+                  //                 case pub: PubCase.TxPub => true
+                  //                 case _                  => false,
+                  //             )(0) match
+                  //               case pub: PubCase.TxPub => pub.accountAddr
+                  //               case _                  => "",
+                  //           ),
+                  //           PubCase.TxPub(
+                  //             accountAddr = page.pubs.filter(pub =>
+                  //               pub match
+                  //                 case pub: PubCase.TxPub => true
+                  //                 case _                  => false,
+                  //             )(0) match
+                  //               case pub: PubCase.TxPub => pub.accountAddr
+                  //               case _                  => ""
+                  //             ,
+                  //             page = idx,
+                  //           ),
+                  //         ),
+                  //       )
+                  //     case _ => find_current_PageCase(model),
+                  // ),
                 ),
               )(idx.toString()),
             ),
@@ -254,30 +301,44 @@ object Search:
               style(Style("color" -> "lightgray"))
             case false =>
               onClick(
-                PageMsg.PreUpdate(
-                  PageCase.Transactions(
-                    url =
-                      s"transactions/${limit_value((curPage + 10).toString())}",
-                    pubs = List(
-                      PubCase.TxPub(page =
-                        limit_value((curPage + 10).toString()),
+                (limit_value(
+                  (curPage + 10).toString(),
+                ) == 50000 && tx_validPageNumber(
+                  model,
+                ) == 50000) match
+                  case true =>
+                    PopupMsg.OnClick(true)
+                  case false =>
+                    PageMsg.PreUpdate(
+                      PageCase.Transactions(
+                        url =
+                          s"transactions/${limit_value((curPage + 10).toString())}",
+                        pubs = List(
+                          PubCase.TxPub(page =
+                            limit_value((curPage + 10).toString()),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
               ),
         )(">"),
         div(
           `class` := s"type-arrow",
           onClick(
-            PageMsg.PreUpdate(
-              PageCase.Transactions(
-                url = s"transactions/${limit_value(totalPage.toString())}",
-                pubs = List(
-                  PubCase.TxPub(page = limit_value(totalPage.toString())),
+            (limit_value(totalPage.toString()) == 50000 && tx_validPageNumber(
+              model,
+            ) == 50000) match
+              case true =>
+                PopupMsg.OnClick(true)
+              case false =>
+                PageMsg.PreUpdate(
+                  PageCase.Transactions(
+                    url = s"transactions/${limit_value(totalPage.toString())}",
+                    pubs = List(
+                      PubCase.TxPub(page = limit_value(totalPage.toString())),
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         )(">>"),
         div(
@@ -288,9 +349,14 @@ object Search:
             onKeyUp(e =>
               e.key match
                 case "Enter" =>
-                  PageMsg.PatchFromTxSearch(
-                    tx_validPageNumber(model).toString(),
-                  )
+                  tx_validPageNumber(model) == 50000 match
+                    case true =>
+                      PopupMsg.OnClick(true)
+                    case false =>
+                      PageMsg.PatchFromTxSearch(
+                        tx_validPageNumber(model).toString(),
+                      )
+
                 case _ => PageMsg.None,
             ),
             value := s"${model.tx_current_page}",

@@ -32,3 +32,6 @@ enum DetailButtonMsg extends Msg:
 enum CommandMsg extends Msg:
   case OnClick(commandCase: CommandCaseMode | CommandCaseLink)
       extends CommandMsg
+
+enum PopupMsg extends Msg:
+  case OnClick(value: Boolean) extends PopupMsg

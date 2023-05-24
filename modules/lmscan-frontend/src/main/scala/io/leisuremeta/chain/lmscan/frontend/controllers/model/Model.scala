@@ -15,4 +15,5 @@ final case class Model(
     block_total_page: String = "1",
     block_current_page: String = "1",
     pageLimit: Int = 50,
+    popup: Boolean = false,
 )

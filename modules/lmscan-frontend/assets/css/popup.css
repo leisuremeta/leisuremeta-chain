@@ -1,4 +1,5 @@
 .popup {
+    right: -500px;
     margin: 70px auto;
     padding: 20px;
     background: #fff;
@@ -6,9 +7,9 @@
     width: 200px;
     position: fixed;
     bottom: -40px;
-    right: 20px;
-    right: -500px;
+    right: -300;
     transition: all 0.3s ease-in-out;
+   
   }
   .popup.true {
       right: 30px;
@@ -28,6 +29,7 @@
     font-weight: bold;
     text-decoration: none;
     color: #333;
+    cursor: pointer;
   }
   .popup .close:hover {
     color: #06D85F;
@@ -36,7 +38,7 @@
     max-height: 30%;
     overflow: auto;
   }
-  .overlay {
+  .overlay.true {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -46,17 +48,11 @@
     transition: opacity 500ms;
     display: none;
     opacity: 1;
-  }
-
-  .overlay.true {
-    visibility: visible;
-    opacity: 1;
     display: block;
     z-index: 999;
   }
-    
-    
-  
+
+
   
   @media screen and (max-width: 700px){
     .box{
