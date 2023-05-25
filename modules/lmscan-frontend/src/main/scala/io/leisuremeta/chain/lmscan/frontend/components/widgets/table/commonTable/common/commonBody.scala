@@ -99,11 +99,11 @@ object Body:
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
-            Cell.Tx_VALUE((v.tokenType, V.validNull(v.value))),
+            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
           // Cell.PlainInt(v.blockNumber),
           // Cell.PlainStr(v.txType),
-          // Cell.PlainStr(v.tokenType),
+          // Cell.PlainStr(v.subType),
         ),
       )
   def txlist_txtable_on = (payload: List[TxInfo]) =>
@@ -117,11 +117,11 @@ object Body:
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             Cell.PlainStr(v.subType), // subtype 추가
-            Cell.Tx_VALUE((v.tokenType, V.validNull(v.value))),
+            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
           // Cell.PlainInt(v.blockNumber),
           // Cell.PlainStr(v.txType),
-          // Cell.PlainStr(v.tokenType),
+          // Cell.PlainStr(v.subType),
         ),
       )
   def dashboard_txtable = (payload: List[TxInfo]) =>
@@ -162,8 +162,8 @@ object Body:
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
-            // Cell.PlainStr(v.tokenType),
-            Cell.Tx_VALUE((v.tokenType, V.validNull(v.value))),
+            // Cell.PlainStr(v.subType),
+            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
         ),
       )
@@ -179,10 +179,10 @@ object Body:
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
             // Cell.PlainStr(v.txType),
-            // Cell.PlainStr(v.tokenType),
+            // Cell.PlainStr(v.subType),
             Cell.Tx_VALUE2(
               (
-                v.tokenType,
+                v.subType,
                 V.validNull(v.value),
                 v.inOut,
               ),

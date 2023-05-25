@@ -7,7 +7,7 @@ import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.frontend.Log.*
 
 enum Cell:
   case Image(data: Option[String])                              extends Cell
@@ -73,13 +73,16 @@ object gen:
             span(
             )(plainLong(data)),
           )
-        case Cell.Tx_VALUE(tokeyType, value) =>
+        case Cell.Tx_VALUE(subType, value) =>
           div(
-            `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
+            `class` := s"cell ${plainStr(subType).contains("Nft") match
+                case true => "type-3"
+                case _    => ""
+              }",
           )(
             span(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   onClick(
                     PageMsg.PreUpdate(
                       PageCase.NftDetail(
@@ -95,22 +98,27 @@ object gen:
                   )
                 case _ => EmptyAttribute,
             )(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   plainStr(value)
-                case _ => txValue(value),
+                case _ =>
+                  value
+                    .map(s => s.forall(Character.isDigit))
+                    .getOrElse(false) match
+                    case true =>
+                      txValue(value)
+                    case false => plainStr(value),
             ),
           )
-        case Cell.Tx_VALUE2(tokeyType, value, inout) =>
+        case Cell.Tx_VALUE2(subType, value, inout) =>
           div(
-            `class` := s"cell ${isEqGet[String](plainStr(tokeyType), "NFT", "type-3")}",
+            `class` := s"cell ${plainStr(subType).contains("Nft") match
+                case true => "type-3"
+                case _    => ""
+              }",
           )(
             {
               txValue(value) == "-" || {
-                log("value")
-                log(value)
-                log(value)
-                log(value)
                 plainStr(value) == "-"
               } match
                 case true => span()
@@ -145,8 +153,8 @@ object gen:
                   )(plainStr(inout))
             },
             span(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   onClick(
                     PageMsg.PreUpdate(
                       PageCase.NftDetail(
@@ -162,8 +170,8 @@ object gen:
                   )
                 case _ => EmptyAttribute,
             )(
-              plainStr(tokeyType) match
-                case "NFT" =>
+              plainStr(subType).contains("Nft") match
+                case true =>
                   plainStr(value).replace("-", "")
                 case _ => txValue(value),
             ),
