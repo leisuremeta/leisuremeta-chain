@@ -12,6 +12,7 @@ import io.leisuremeta.chain.lmscan.backend2.entity.Tx
 import io.leisuremeta.chain.lmscan.backend2.entity.Summary
 import io.leisuremeta.chain.lmscan.backend2.entity.Nft
 import doobie.postgres.implicits.* // list 받을때 필요
+import io.leisuremeta.chain.lmscan.backend2.entity.Tx_1
 
 val operations1 = 42.pure[ConnectionIO]
 val operations2 = sql"select 42".query[Int].unique
@@ -30,25 +31,41 @@ object DoobieExample extends IOApp.Simple:
   )
 
   val queries =
-    List(
-      sql"select 42"
+    Map(
+      "a" -> sql"select 42"
         .query[Int]
         .to[List],
-      sql"select * from summary".query[Summary].stream.take(5).compile.toList,
-      sql"select hash from tx".query[String].stream.take(5).compile.toList,
-      sql"select array['foo',NULL,'baz']"
+      "b" -> sql"select * from summary"
+        .query[Summary]
+        .stream
+        .take(5)
+        .compile
+        .toList,
+      "c" -> sql"select hash from tx"
+        .query[String]
+        .stream
+        .take(5)
+        .compile
+        .toList,
+      "d" -> sql"select array['foo',NULL,'baz']"
         .query[List[Option[String]]]
         .stream
         .take(5)
         .compile
         .toList,
-      sql"select to_addr from tx"
+      "e" -> sql"select to_addr from tx"
         .query[List[String]]
         .stream
         .take(5)
         .compile
         .toList,
-      sql"select * from nft".query[Nft].stream.take(5).compile.toList,
+      "f" -> sql"select hash, tx_type from tx"
+        .query[Tx_1]
+        .stream
+        .take(5)
+        .compile
+        .toList,
+      "g" -> sql"select * from nft".query[Nft].stream.take(5).compile.toList,
     )
 
   def val_run = sql"select * from tx"
@@ -61,7 +78,7 @@ object DoobieExample extends IOApp.Simple:
 
   def genQuery =
     // val_run
-    queries(4).transact(xa)
+    queries("f").transact(xa)
 
   val run =
     genQuery.log.as(ExitCode.Success)

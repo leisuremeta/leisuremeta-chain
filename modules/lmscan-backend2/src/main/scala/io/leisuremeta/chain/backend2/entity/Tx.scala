@@ -11,15 +11,34 @@ final case class Tx(
     eventTime: Long,
     createdAt: Long,
     tokenType: String,
-    // outputVals: Option[Seq[String]],
-    outputVals: Seq[String],
+    outputVals: Option[Seq[String]],
+    // outputVals: Seq[String],
     json: String,
     blockNumber: Long,
     // inputHashs: Seq[String],
-    inputHashs: Seq[String],
-    amount: Double,
+    inputHashs: Option[Seq[String]],
+    amount: Option[Double],
     subType: String,
     displayYn: Boolean,
+)
+final case class Tx_1(
+    hash: String,
+    txType: String, // col_name : type
+    // fromAddr: String,
+    // toAddr: Seq[String],
+    // blockHash: String,
+    // eventTime: Long,
+    // createdAt: Long,
+    // tokenType: String,
+    // outputVals: Option[Seq[String]],
+    // // outputVals: Seq[String],
+    // json: String,
+    // blockNumber: Long,
+    // // inputHashs: Seq[String],
+    // inputHashs: Option[Seq[String]],
+    // amount: Option[Double],
+    // subType: String,
+    // displayYn: Boolean,
 )
 
 // final case class Tx(
