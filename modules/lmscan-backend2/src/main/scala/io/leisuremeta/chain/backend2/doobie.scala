@@ -15,21 +15,29 @@ val operations2 = sql"select 42".query[Int].unique
 case class Person(name: String, age: Int)
 val nel = NonEmptyList.of(Person("Bob", 12), Person("Alice", 14))
 
+implicit class Loggable[A](io: IO[A]):
+  def log: IO[A] = io.flatMap { a =>
+    IO {
+      println(s"[log] ${a}")
+    }.map(_ => a)
+  }
+  def logM(msg: String = "DEBUG"): IO[A] = io.flatMap { a =>
+    IO {
+      println(s"[$msg] ${a}")
+    }.map(_ => a)
+  }
+
 object DoobieExample extends IOApp.Simple:
 
   val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
     "org.postgresql.ds.PGSimpleDataSource",   // driver classname
     "jdbc:postgresql://localhost:54320/scan", // connect URL (driver-specific)
     "playnomm",                               // user
-    "dnflskfk0423",                           // password
+    "dnflskfk0423!",                          // password
   )
 
-//   def genQuery: Int =
-//     val query = sql"select 42".query[Int].to[List]
-  // query.
+  def genQuery =
+    sql"select 42".query[Int].to[List].transact(xa)
 
-//   val io = operations2.transact(transactor).unsafeRunSync()
-//   println(io)
   val run =
-    IO.println(4)
-    // program1
+    genQuery.log.as(ExitCode.Success)
