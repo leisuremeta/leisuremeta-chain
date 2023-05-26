@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain.lib.merkle
 
 import GenericMerkleTrieNode.MerkleHash
@@ -48,3 +49,4 @@ object GenericMerkleTrieStateDiff:
 
     def toMap: Map[MerkleHash[K, V], (GenericMerkleTrieNode[K, V], Int)] = diff
   end extension
+*/

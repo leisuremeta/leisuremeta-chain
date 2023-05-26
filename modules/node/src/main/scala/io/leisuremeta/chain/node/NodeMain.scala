@@ -17,8 +17,7 @@ import dapp.PlayNommState
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash
 import lib.datatype.{BigNat, UInt256Bytes}
-import lib.merkle.{GenericMerkleTrieNode, MerkleTrieNode}
-import lib.merkle.GenericMerkleTrieNode.{MerkleHash => GenericMerkleHash, MerkleRoot}
+import lib.merkle.MerkleTrieNode
 import lib.merkle.MerkleTrieNode.MerkleHash
 import repository.{
   BlockRepository,
@@ -59,8 +58,8 @@ object NodeMain extends IOApp:
       ](Paths.get("sway", "block", "tx"))
     yield BlockRepository.fromStores[IO]
 
-    type StateRepoStore[F[_], K, V] =
-      StoreIndex[IO, GenericMerkleHash[K, V], GenericMerkleTrieNode[K, V]]
+//    type StateRepoStore[F[_], K, V] =
+//      StoreIndex[IO, GenericMerkleHash[K, V], GenericMerkleTrieNode[K, V]]
 
 //    def getGenericStateRepo[K: ByteCodec, V: ByteCodec](
 //        dir: Path,

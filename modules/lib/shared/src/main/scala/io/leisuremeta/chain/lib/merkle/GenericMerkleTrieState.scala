@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain.lib.merkle
 
 import GenericMerkleTrieNode.MerkleRoot
@@ -42,3 +43,4 @@ object GenericMerkleTrieState:
       base = Some(root),
       diff = GenericMerkleTrieStateDiff.empty[K, V],
     )
+*/

@@ -11,7 +11,6 @@ import sttp.tapir.*
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.crypto.Hash
-import lib.merkle.GenericMerkleTrieNode.{MerkleRoot as GenericMerkleRoot}
 import lib.merkle.MerkleTrieNode.MerkleRoot
 import account.EthAddress
 import reward.*

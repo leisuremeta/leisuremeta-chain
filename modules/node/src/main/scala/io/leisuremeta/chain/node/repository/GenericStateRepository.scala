@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package repository
@@ -320,3 +321,4 @@ object GenericStateRepository:
       }
       _ <- Monad[F].pure(scribe.debug(s"Putting completed: $state"))
     yield ()
+*/

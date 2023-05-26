@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain.lib
 package merkle
 
@@ -572,3 +573,4 @@ object GenericMerkleTrie:
         }
 
 end GenericMerkleTrie
+*/

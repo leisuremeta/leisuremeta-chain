@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain.lib
 package merkle
 
@@ -230,3 +231,4 @@ object GenericMerkleTrieNode:
       }
 
   given GenericMerkleTrieNodeHash[K, V]: Hash[GenericMerkleTrieNode[K, V]] = Hash.build
+*/

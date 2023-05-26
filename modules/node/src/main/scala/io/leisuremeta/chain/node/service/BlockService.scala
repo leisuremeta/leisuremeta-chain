@@ -13,7 +13,7 @@ import cats.syntax.traverse.*
 import api.model.{Block, Signed, TransactionWithResult}
 import api.model.api_model.BlockInfo
 import dapp.PlayNommState
-import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
+import repository.{BlockRepository, TransactionRepository}
 import lib.crypto.Hash.ops.*
 import io.leisuremeta.chain.api.model.Block.ops.toBlockHash
 

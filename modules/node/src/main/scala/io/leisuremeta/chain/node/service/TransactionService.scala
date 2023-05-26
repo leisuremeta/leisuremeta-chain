@@ -23,16 +23,16 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
-import lib.merkle.{
-  GenericMerkleTrie,
-  GenericMerkleTrieNode,
-  GenericMerkleTrieState,
-}
+//import lib.merkle.{
+//  GenericMerkleTrie,
+//  GenericMerkleTrieNode,
+//  GenericMerkleTrieState,
+//}
 import lib.merkle.MerkleTrie.NodeStore
-import lib.merkle.GenericMerkleTrie.{NodeStore as GenericNodeStore}
+//import lib.merkle.GenericMerkleTrie.{NodeStore as GenericNodeStore}
 import repository.{
   BlockRepository,
-  GenericStateRepository,
+//  GenericStateRepository,
   StateRepository,
   TransactionRepository,
 }

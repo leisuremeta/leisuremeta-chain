@@ -26,7 +26,7 @@ import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{
   BlockRepository,
-  GenericStateRepository,
+//  GenericStateRepository,
   StateRepository,
   TransactionRepository,
 }
