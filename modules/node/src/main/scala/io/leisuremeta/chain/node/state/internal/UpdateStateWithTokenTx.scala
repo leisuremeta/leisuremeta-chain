@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -943,3 +944,4 @@ trait UpdateStateWithTokenTx:
                 )
               case _ => Either.left(s"Invalid transaction result: $tx")
       case _ => Either.left(s"Transaction $tx is not a fungible balance")
+*/

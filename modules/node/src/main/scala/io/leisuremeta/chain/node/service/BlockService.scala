@@ -18,7 +18,7 @@ import lib.crypto.Hash.ops.*
 import io.leisuremeta.chain.api.model.Block.ops.toBlockHash
 
 object BlockService:
-
+/*
   def saveBlockWithState[F[_]: Concurrent: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: PlayNommState](
       block: Block,
       txs: Map[Signed.TxHash, Signed.Tx],
@@ -82,7 +82,7 @@ object BlockService:
   yield
     scribe.info(s"block saved with states: $block")
     block.toHash
-
+*/
   def saveBlock[F[_]: Monad: BlockRepository: TransactionRepository](
       block: Block,
       txs: Map[Signed.TxHash, TransactionWithResult],

@@ -9,10 +9,10 @@ import GossipDomain.MerkleState
 import api.model.{Signed, Transaction, TransactionWithResult}
 import dapp.PlayNommState
 import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
-import state.UpdateState
+//import state.UpdateState
 
-object StateService:
-
+object StateService
+/*
   def updateStateWithTx[F[_]
     : Concurrent: BlockRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
       state: MerkleState,
@@ -31,3 +31,4 @@ object StateService:
       case tx: Transaction.AgendaTx =>
         UpdateState[F, Transaction.AgendaTx](state, signedTx.sig, tx)
 
+*/

@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -44,3 +45,4 @@ object UpdateState
     )
     .map(_.toHash)
     .map(PublicKeySummary.fromPublicKeyHash)
+*/

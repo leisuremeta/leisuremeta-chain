@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package service
@@ -213,3 +214,4 @@ object LocalGossipServiceInterpreter:
       params,
       txResponseRef,
     )
+*/

@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -443,3 +444,4 @@ trait UpdateStateWithRewardTx:
     program.runS(balanceState)
 
 end UpdateStateWithRewardTx
+*/

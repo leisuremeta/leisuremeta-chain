@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -328,4 +329,5 @@ trait UpdateStateWithAccountTx:
                   s"Account does not match signature: ${ap.account} vs ${sig.account}",
                 )
             }
+*/
 */

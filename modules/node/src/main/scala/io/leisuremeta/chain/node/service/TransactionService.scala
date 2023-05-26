@@ -36,7 +36,7 @@ import repository.{
   StateRepository,
   TransactionRepository,
 }
-import state.UpdateState
+//import state.UpdateState
 import GossipDomain.MerkleState
 
 object TransactionService:

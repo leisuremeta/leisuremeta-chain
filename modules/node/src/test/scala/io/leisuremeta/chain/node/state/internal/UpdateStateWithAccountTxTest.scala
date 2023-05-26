@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -219,3 +220,4 @@ class UpdateStateWithAccountTxTest extends HedgehogSuite:
       assertions.assertEquals(result, Right(Some(alice)))
     }
   }
+*/

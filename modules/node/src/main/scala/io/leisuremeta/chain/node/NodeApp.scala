@@ -41,10 +41,10 @@ import service.{
   StateReadService,
   TransactionService,
 }
-import service.interpreter.LocalGossipServiceInterpreter
+//import service.interpreter.LocalGossipServiceInterpreter
 
 final case class NodeApp[F[_]
-  : Async: BlockRepository: StateRepository: GenericStateRepository.AccountState: GenericStateRepository.GroupState: GenericStateRepository.TokenState: GenericStateRepository.RewardState: TransactionRepository: PlayNommState](
+  : Async: BlockRepository: StateRepository: TransactionRepository: PlayNommState](
     config: NodeConfig,
 ):
 
@@ -76,23 +76,23 @@ final case class NodeApp[F[_]
       .get
     CryptoOps.fromPrivate(privateKey)
 
-  def getLocalGossipService(
-      bestConfirmedBlock: Block,
-  ): F[LocalGossipService[F]] =
-
-    val params = GossipDomain.GossipParams(
-      nodeAddresses = nodeAddresses.zipWithIndex.map { case (address, i) =>
-        i -> address
-      }.toMap,
-      timeWindowMillis = config.wire.timeWindowMillis,
-      localKeyPair = localKeyPair,
-    )
-    scribe.debug(s"local gossip params: $params")
-    LocalGossipServiceInterpreter
-      .build[F](
-        bestConfirmedBlock = bestConfirmedBlock,
-        params = params,
-      )
+//  def getLocalGossipService(
+//      bestConfirmedBlock: Block,
+//  ): F[LocalGossipService[F]] =
+//
+//    val params = GossipDomain.GossipParams(
+//      nodeAddresses = nodeAddresses.zipWithIndex.map { case (address, i) =>
+//        i -> address
+//      }.toMap,
+//      timeWindowMillis = config.wire.timeWindowMillis,
+//      localKeyPair = localKeyPair,
+//    )
+//    scribe.debug(s"local gossip params: $params")
+//    LocalGossipServiceInterpreter
+//      .build[F](
+//        bestConfirmedBlock = bestConfirmedBlock,
+//        params = params,
+//      )
 
   def getAccountServerEndpoint = Api.getAccountEndpoint.serverLogic {
     (a: Account) =>

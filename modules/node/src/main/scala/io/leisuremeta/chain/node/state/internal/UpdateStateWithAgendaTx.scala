@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -63,3 +64,4 @@ trait UpdateStateWithAgendaTx:
             )
             txResult = Transaction.AgendaTx.VoteSimpleAgendaResult(votingAmount)
           yield (ms, TransactionWithResult(Signed[Transaction](sig, tx), Some(txResult)))
+*/

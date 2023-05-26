@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 
@@ -471,3 +472,4 @@ genesis {
       .unsafeRunSync()
   }
  */
+*/

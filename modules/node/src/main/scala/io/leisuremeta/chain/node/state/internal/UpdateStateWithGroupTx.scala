@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package state
@@ -83,3 +84,4 @@ trait UpdateStateWithGroupTx:
 //            ),
 //            TransactionWithResult(Signed(sig, ag), None),
 //          )
+*/

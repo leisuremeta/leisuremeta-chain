@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 
@@ -442,3 +443,4 @@ class GossipDomainTest extends HedgehogSuite:
         )
   }
  */
+*/
