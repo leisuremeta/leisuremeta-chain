@@ -25,10 +25,6 @@ import lib.crypto.Hash.ops.*
 import lib.datatype.BigNat
 import lib.merkle.MerkleTrieState
 import repository.TransactionRepository
-import GossipDomain.MerkleState
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.MintNFT
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.TransferNFT
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.DisposeEntrustedNFT
 
 object PlayNommDAppToken:
   def apply[F[_]: Concurrent: PlayNommState: TransactionRepository](
@@ -36,11 +32,11 @@ object PlayNommDAppToken:
       sig: AccountSignature,
   ): StateT[
     EitherT[F, PlayNommDAppFailure, *],
-    MerkleState,
+    MerkleTrieState,
     TransactionWithResult,
   ] = tx match
     case dt: Transaction.TokenTx.DefineToken =>
-      val program = for
+      for
         _              <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDefOption <- getTokenDefinitionOption(dt.definitionId)
         _ <- checkExternal(
@@ -58,11 +54,8 @@ object PlayNommDAppToken:
         _ <- putTokenDefinition(dt.definitionId, tokenDefinition)
       yield TransactionWithResult(Signed(sig, dt))(None)
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case mf: Transaction.TokenTx.MintFungibleToken =>
-      val program = for
+      for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- checkMinterAndGetTokenDefinition(
           sig.account,
@@ -85,11 +78,8 @@ object PlayNommDAppToken:
         )
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case mn: Transaction.TokenTx.MintNFT =>
-      val program = for
+      for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- checkMinterAndGetTokenDefinition(
           sig.account,
@@ -130,11 +120,8 @@ object PlayNommDAppToken:
               s"Fail to put rarity state of ${mn.tokenDefinitionId}, ${mn.rarity}, ${mn.tokenId}"
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case tf: Transaction.TokenTx.TransferFungibleToken =>
-      val program = for
+      for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- getTokenDefinition(tf.tokenDefinitionId)
         inputAmount <- getFungibleBalanceTotalAmounts(
@@ -162,11 +149,8 @@ object PlayNommDAppToken:
         )
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case tn: Transaction.TokenTx.TransferNFT =>
-      val program = for
+      for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         txWithResult = TransactionWithResult(Signed(sig, tn))(None)
         txHash       = txWithResult.toHash
@@ -200,11 +184,8 @@ object PlayNommDAppToken:
               s"Fail to put nft state of ${tn.tokenId}"
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case bf: Transaction.TokenTx.BurnFungibleToken =>
-      val program = for
+      for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- checkMinterAndGetTokenDefinition(
           sig.account,
@@ -235,11 +216,8 @@ object PlayNommDAppToken:
         )
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case bn: Transaction.TokenTx.BurnNFT =>
-      val program = for
+      for
         _       <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenId <- getNftTokenId(bn.input.toResultHashValue)
         txWithResult = TransactionWithResult(Signed(sig, bn))(None)
@@ -276,11 +254,8 @@ object PlayNommDAppToken:
               s"Fail to remove rarity state of ${tokenId}"
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case ef: Transaction.TokenTx.EntrustFungibleToken =>
-      val program = for
+      for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- getTokenDefinition(ef.definitionId)
         inputAmount <- getFungibleBalanceTotalAmounts(
@@ -304,11 +279,8 @@ object PlayNommDAppToken:
               s"Fail to put entrust fungible balance of (${sig.account}, ${ef.to}, ${ef.definitionId}, ${txHash})"
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
-      val program = for
+      for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- getTokenDefinition(de.definitionId)
         inputHashList = de.inputs.map(_.toResultHashValue)
@@ -337,11 +309,8 @@ object PlayNommDAppToken:
                 s"Fail to put fungible balance of (${account}, ${de.definitionId}, ${txHash})"
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case ef: Transaction.TokenTx.EntrustNFT =>
-      val program = for
+      for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         txWithResult = TransactionWithResult(Signed(sig, ef))(None)
         txHash       = txWithResult.toHash
@@ -360,11 +329,8 @@ object PlayNommDAppToken:
               s"Fail to put entrust nft balance of $newUtxoKey"
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case de: Transaction.TokenTx.DisposeEntrustedNFT =>
-      val program = for
+      for
         _            <- PlayNommDAppAccount.verifySignature(sig, tx)
         entrustedNFT <- getEntrustedNFT(de.input.toResultHashValue, sig.account)
         (fromAccount, entrustTx) = entrustedNFT
@@ -410,9 +376,6 @@ object PlayNommDAppToken:
                   s"Fail to put nft state of ${de.tokenId}"
           yield ()
       yield txWithResult
-
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
   def getTokenDefinitionOption[F[_]: Monad: PlayNommState](
       definitionId: TokenDefinitionId,
@@ -475,7 +438,8 @@ object PlayNommDAppToken:
       )
     yield tokenDef
 
-  def getFungibleBalanceTotalAmounts[F[_]: Monad: TransactionRepository: PlayNommState](
+  def getFungibleBalanceTotalAmounts[F[_]
+    : Monad: TransactionRepository: PlayNommState](
       inputs: Set[Hash.Value[TransactionWithResult]],
       account: Account,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, BigNat] =
@@ -594,14 +558,14 @@ object PlayNommDAppToken:
             case nb: Transaction.NftBalance =>
               EitherT.pure:
                 nb match
-                  case mn: MintNFT              => mn.tokenId
-                  case tn: TransferNFT          => tn.tokenId
-                  case den: DisposeEntrustedNFT => den.tokenId
+                  case mn: Transaction.TokenTx.MintNFT     => mn.tokenId
+                  case tn: Transaction.TokenTx.TransferNFT => tn.tokenId
+                  case den: Transaction.TokenTx.DisposeEntrustedNFT =>
+                    den.tokenId
             case _ =>
               EitherT.leftT:
-                PlayNommDAppFailure.external(
-                  s"Tx $txWithResult is not a nft balance",
-                )
+                PlayNommDAppFailure.external:
+                  s"Tx $txWithResult is not a nft balance"
 
   def getEntrustedInputs[F[_]: Monad: TransactionRepository](
       inputs: Set[Hash.Value[TransactionWithResult]],

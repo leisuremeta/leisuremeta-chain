@@ -20,8 +20,8 @@ import api.model.{
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
+import lib.merkle.MerkleTrieState
 import repository.TransactionRepository
-import GossipDomain.MerkleState
 
 object PlayNommDAppAgenda:
   def apply[F[_]: Concurrent: PlayNommState: TransactionRepository](
@@ -29,19 +29,16 @@ object PlayNommDAppAgenda:
       sig: AccountSignature,
   ): StateT[
     EitherT[F, PlayNommDAppFailure, *],
-    MerkleState,
+    MerkleTrieState,
     TransactionWithResult,
   ] = tx match
     case ssa: Transaction.AgendaTx.SuggestSimpleAgenda =>
-      val program = for
+      for
         _ <- PlayNommDAppAccount.verifySignature[F](sig, ssa)
       yield TransactionWithResult(Signed(sig, ssa), None)
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case vsa: Transaction.AgendaTx.VoteSimpleAgenda =>
-      val program = for
+      for
         agendaTx <- StateT.liftF(getSuggestSimpleAgendaTx(vsa.agendaTxHash))
         fungibleBalanceStream <- PlayNommState[F].token.fungibleBalance
           .from((sig.account, agendaTx.votingToken).toBytes)
@@ -78,9 +75,6 @@ object PlayNommDAppAgenda:
         votingAmount = BigNat.add(freeBalance, entrustBalance)
         txResult = Transaction.AgendaTx.VoteSimpleAgendaResult(votingAmount)        
       yield TransactionWithResult(Signed(sig, vsa), Some(txResult))
-
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
   def getSuggestSimpleAgendaTx[F[_]: Concurrent: TransactionRepository](
     txHash: Hash.Value[TransactionWithResult],

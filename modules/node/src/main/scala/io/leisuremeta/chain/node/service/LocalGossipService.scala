@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package service
@@ -34,3 +35,4 @@ trait LocalGossipService[F[_]]:
 
 object LocalGossipService:
   def apply[F[_]: LocalGossipService]: LocalGossipService[F] = summon
+*/

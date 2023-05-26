@@ -6,15 +6,14 @@ import cats.effect.Concurrent
 import cats.data.{EitherT, StateT}
 
 import api.model.{Signed, Transaction, TransactionWithResult}
+import lib.merkle.MerkleTrieState
 import repository.TransactionRepository
 import submodule.*
-
-import GossipDomain.MerkleState
 
 object PlayNommDApp:
   def apply[F[_]: Concurrent: TransactionRepository: PlayNommState](
       signedTx: Signed.Tx,
-  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleState, TransactionWithResult] =
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, TransactionWithResult] =
     signedTx.value match
       case accountTx: Transaction.AccountTx =>
         PlayNommDAppAccount(accountTx, signedTx.sig)

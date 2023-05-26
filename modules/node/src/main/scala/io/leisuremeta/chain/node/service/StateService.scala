@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 package service
@@ -5,7 +6,6 @@ package service
 import cats.data.EitherT
 import cats.effect.Concurrent
 
-import GossipDomain.MerkleState
 import api.model.{Signed, Transaction, TransactionWithResult}
 import dapp.PlayNommState
 import repository.{BlockRepository, GenericStateRepository, TransactionRepository}
@@ -31,4 +31,5 @@ object StateService
       case tx: Transaction.AgendaTx =>
         UpdateState[F, Transaction.AgendaTx](state, signedTx.sig, tx)
 
+*/
 */

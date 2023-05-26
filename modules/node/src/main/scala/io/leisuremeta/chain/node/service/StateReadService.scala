@@ -12,8 +12,8 @@ import cats.syntax.flatMap.*
 import cats.syntax.traverse.*
 
 import fs2.Stream
+import scodec.bits.ByteVector
 
-import GossipDomain.MerkleState
 import api.{LeisureMetaChainApi as Api}
 import api.model.{
   Account,
@@ -51,17 +51,11 @@ import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
-import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
-import repository.{
-  BlockRepository,
-  GenericStateRepository,
-  TransactionRepository,
-}
-import GenericStateRepository.given
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.BurnFungibleTokenResult
+import lib.merkle.MerkleTrieState
+import repository.{BlockRepository, TransactionRepository}
 
 import io.leisuremeta.chain.node.dapp.PlayNommState
-import scodec.bits.ByteVector
+
 object StateReadService:
   def getAccountInfo[F[_]: Concurrent: BlockRepository: PlayNommState](
       account: Account,
@@ -72,17 +66,17 @@ object StateReadService:
       case Right(None) =>
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     accountStateEither <- PlayNommState[F].account.name
       .get(account)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .value
     accountStateOption <- accountStateEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(accountStateOption) => Concurrent[F].pure(accountStateOption)
     keyListEither <- PlayNommState[F].account.key
       .from(account.toBytes)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .flatMap(_.compile.toList)
       .map(_.map { case ((_, pks), info) => (pks, info) })
       .value
@@ -106,10 +100,10 @@ object StateReadService:
       case Right(None) =>
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     ethStateEither <- PlayNommState[F].account.eth
       .get(ethAddress)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .value
     ethStateOption <- ethStateEither match
       case Left(err)             => Concurrent[F].raiseError(new Exception(err))
@@ -125,17 +119,17 @@ object StateReadService:
       case Right(None) =>
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     groupDataEither <- PlayNommState[F].group.group
       .get(groupId)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .value
     groupDataOption <- groupDataEither match
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(groupDataOption) => Concurrent[F].pure(groupDataOption)
     accountListEither <- PlayNommState[F].group.groupAccount
       .from(groupId.toBytes)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .flatMap(_.compile.toList)
       .map(_.map(_._1._2))
       .value
@@ -154,10 +148,10 @@ object StateReadService:
       case Right(None) =>
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     tokenDefEither <- PlayNommState[F].token.definition
       .get(tokenDefinitionId)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .value
     tokenDefOption <- tokenDefEither match
       case Left(err)             => Concurrent[F].raiseError(new Exception(err))
@@ -183,10 +177,10 @@ object StateReadService:
         case Right(None) =>
           Concurrent[F].raiseError(new Exception("No best header"))
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-      merkleState = MerkleState.from(bestHeader)
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       balanceListEither <- PlayNommState[F].token.fungibleBalance
         .from(account.toBytes)
-        .runA(merkleState.main)
+        .runA(merkleState)
         .flatMap: stream =>
           stream
             .map:
@@ -226,7 +220,11 @@ object StateReadService:
                 )
               case bf: Transaction.TokenTx.BurnFungibleToken =>
                 val amount = txWithResult.result match
-                  case Some(BurnFungibleTokenResult(outputAmount)) =>
+                  case Some(
+                        Transaction.TokenTx.BurnFungibleTokenResult(
+                          outputAmount,
+                        ),
+                      ) =>
                     outputAmount
                   case _ => BigNat.Zero
                 BalanceInfo(
@@ -297,10 +295,10 @@ object StateReadService:
         case Right(None) =>
           Concurrent[F].raiseError(new Exception("No best header"))
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-      merkleState = MerkleState.from(bestHeader)
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       balanceListEither <- PlayNommState[F].token.entrustFungibleBalance
         .from(account.toBytes)
-        .runA(merkleState.main)
+        .runA(merkleState)
         .flatMap: stream =>
           stream
             .map:
@@ -365,7 +363,7 @@ object StateReadService:
       case Right(None) =>
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     nftBalanceMap <- getNftBalanceFromNftBalanceState[F](
       account,
       merkleState,
@@ -382,7 +380,7 @@ object StateReadService:
       case Right(None) =>
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     nftBalanceMap <- getEntrustedNftBalanceFromEntrustedNftBalanceState[F](
       account,
       merkleState,
@@ -392,11 +390,11 @@ object StateReadService:
   def getNftBalanceFromNftBalanceState[F[_]
     : Concurrent: BlockRepository: TransactionRepository: PlayNommState](
       account: Account,
-      ms: MerkleState,
+      mts: MerkleTrieState,
   ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- PlayNommState[F].token.nftBalance
       .from(account.toBytes)
-      .runA(ms.main)
+      .runA(mts)
       .flatMap: stream =>
         stream
           .map:
@@ -448,11 +446,11 @@ object StateReadService:
   def getEntrustedNftBalanceFromEntrustedNftBalanceState[F[_]
     : Concurrent: BlockRepository: TransactionRepository: PlayNommState](
       account: Account,
-      ms: MerkleState,
+      mts: MerkleTrieState,
   ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- PlayNommState[F].token.entrustNftBalance
       .from(account.toBytes)
-      .runA(ms.main)
+      .runA(mts)
       .flatMap: stream =>
         stream
           .map:
@@ -490,10 +488,10 @@ object StateReadService:
   ): EitherT[F, String, Option[NftState]] = for
     bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
     bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     nftStateOption <- PlayNommState[F].token.nftState
       .get(tokenId)
-      .runA(merkleState.main)
+      .runA(merkleState)
   yield nftStateOption
 
   def getOwners[F[_]: Concurrent: BlockRepository: PlayNommState](
@@ -501,15 +499,15 @@ object StateReadService:
   ): EitherT[F, String, Map[TokenId, Account]] = for
     bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
     bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
-    merkleState = MerkleState.from(bestHeader)
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     tokenIdList <- PlayNommState[F].token.rarityState
       .from(tokenDefinitionId.toBytes)
-      .runA(merkleState.main)
+      .runA(merkleState)
       .flatMap(stream => stream.map(_._1._3).compile.toList)
     ownerOptionList <- tokenIdList.traverse: (tokenId: TokenId) =>
       PlayNommState[F].token.nftState
         .get(tokenId)
-        .runA(merkleState.main)
+        .runA(merkleState)
         .map: nftStateOption =>
           nftStateOption.map(state => (tokenId, state.currentOwner))
   yield ownerOptionList.flatten.toMap
@@ -541,8 +539,8 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      infosEitherT <- program.runA(merkleState).leftMap(_.asLeft[String])
       infos        <- infosEitherT.leftMap(_.asLeft[String])
     yield infos.toSeq
 
@@ -573,8 +571,8 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      infosEitherT <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      infosEitherT <- program.runA(merkleState).leftMap(_.asLeft[String])
       infos        <- infosEitherT.leftMap(_.asLeft[String])
     yield infos.toSeq
 
@@ -589,8 +587,8 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      snapshotOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield snapshotOption
 
   def getTokenSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
@@ -604,8 +602,8 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      snapshotOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield snapshotOption
 
   def getOwnershipSnapshot[F[_]: Concurrent: BlockRepository: PlayNommState](
@@ -619,8 +617,8 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      snapshotOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      snapshotOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield snapshotOption
 
   def getOwnershipSnapshotMap[F[_]: Concurrent: BlockRepository: PlayNommState](
@@ -636,8 +634,8 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      snapshotStream <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      snapshotStream <- program.runA(merkleState).leftMap(_.asLeft[String])
       snapshots <- snapshotStream
         .take(limit)
         .compile
@@ -656,6 +654,6 @@ object StateReadService:
         Left(e.msg)
       bestHeader <- EitherT
         .fromOption[F](bestHeaderOption, Left("No best header"))
-      merkleState = MerkleState.from(bestHeader)
-      logOption <- program.runA(merkleState.main).leftMap(_.asLeft[String])
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      logOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield logOption

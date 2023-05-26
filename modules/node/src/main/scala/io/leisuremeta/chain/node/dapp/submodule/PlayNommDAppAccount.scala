@@ -28,20 +28,18 @@ import lib.crypto.Recover.ops.*
 import lib.datatype.Utf8
 import lib.merkle.MerkleTrieState
 
-import GossipDomain.MerkleState
-
 object PlayNommDAppAccount:
   def apply[F[_]: Concurrent: PlayNommState](
       tx: Transaction.AccountTx,
       sig: AccountSignature,
   ): StateT[
     EitherT[F, PlayNommDAppFailure, *],
-    MerkleState,
+    MerkleTrieState,
     TransactionWithResult,
   ] =
     tx match
       case ca: Transaction.AccountTx.CreateAccount =>
-        val program = for
+        for
           accountInfoOption <- getAccountInfo(ca.account)
           _ <- checkExternal(
             accountInfoOption.isEmpty,
@@ -85,10 +83,8 @@ object PlayNommDAppAccount:
             
         yield TransactionWithResult(Signed(sig, ca))(None)
 
-        program
-          .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
       case ua: Transaction.AccountTx.UpdateAccount =>
-        val program = for
+        for
           accountData <- verifySignature(sig, ua)
           _ <- checkExternal(
             sig.account == ua.account ||
@@ -111,10 +107,8 @@ object PlayNommDAppAccount:
               PlayNommDAppFailure.mapInternal(s"Fail to update eth address ${ua.ethAddress}")
         yield TransactionWithResult(Signed(sig, ua))(None)
 
-        program
-          .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
       case ap: Transaction.AccountTx.AddPublicKeySummaries =>
-        val program = for
+        for
           accountData <- verifySignature(sig, ap)
           _ <- checkExternal(
             sig.account == ap.account ||
@@ -174,9 +168,6 @@ object PlayNommDAppAccount:
             Transaction.AccountTx.AddPublicKeySummariesResult(toRemove.toMap),
           )
         yield TransactionWithResult(Signed(sig, ap))(txResult)
-
-        program
-          .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
 
   def verifySignature[F[_]: Monad: PlayNommState](
       sig: AccountSignature,

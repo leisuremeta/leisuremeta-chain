@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node
 
@@ -794,3 +795,5 @@ object GossipDomain:
         tokenReceivedState,
       ),
     )
+
+*/

@@ -17,12 +17,11 @@ import cats.syntax.traverse.toTraverseOps
 import fs2.Stream
 import scodec.bits.BitVector
 
-import GossipDomain.MerkleState
 import api.model.{Account, Block, GroupId, StateRoot, TransactionWithResult}
 import api.model.Block.ops.*
 import api.model.TransactionWithResult.ops.*
 import api.model.api_model.RewardInfo
-import api.model.reward.DaoInfo
+import api.model.reward.{DaoActivity, DaoInfo}
 import api.model.token.{
   NftState,
   Rarity,
@@ -30,6 +29,7 @@ import api.model.token.{
   TokenDefinitionId,
   TokenId,
 }
+import dapp.PlayNommState
 import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -41,7 +41,6 @@ import repository.{BlockRepository, GenericStateRepository, TransactionRepositor
 import repository.GenericStateRepository.given
 
 import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
-import io.leisuremeta.chain.api.model.reward.DaoActivity
 
 object RewardService:
 
@@ -171,20 +170,21 @@ object RewardService:
 //      totalNumberOfDao = BigNat.unsafeFromLong(totalNumberOfDao),
 //    )
 //*/
-  /** count dao (max value 100)
-    *
-    * @return
-    *   number of dao (if larger than 100, return 100)
-    */
-  def countDao[F[_]: Concurrent: GenericStateRepository.RewardState](
-      daoState: GenericMerkleTrieState[GroupId, DaoInfo],
-  ): EitherT[F, String, Int] =
-    for
-      stream <- GenericMerkleTrie
-        .from[F, GroupId, DaoInfo](BitVector.empty)
-        .runA(daoState)
-      size <- stream.take(100).compile.count
-    yield size.toInt
+
+//  /** count dao (max value 100)
+//    *
+//    * @return
+//    *   number of dao (if larger than 100, return 100)
+//    */
+//  def countDao[F[_]: Concurrent: PlayNommState](
+//      daoState: GenericMerkleTrieState[GroupId, DaoInfo],
+//  ): EitherT[F, String, Int] =
+//    for
+//      stream <- GenericMerkleTrie
+//        .from[F, GroupId, DaoInfo](BitVector.empty)
+//        .runA(daoState)
+//      size <- stream.take(100).compile.count
+//    yield size.toInt
 
 //  def calculateUserActivityReward(
 //      numberOfDao: Int,
@@ -300,37 +300,38 @@ object RewardService:
 //  def getUserActivityTimeWindows(last: Instant): Seq[Instant] =
 //    Seq.tabulate(8)(i => last.minus(7 - i, ChronoUnit.DAYS))
 //
-  def findStateRootAt[F[_]: Monad: BlockRepository: TransactionRepository](
-      instant: Instant,
-  ): EitherT[F, String, GossipDomain.MerkleState] =
 
-    def loop(
-        blockHash: Block.BlockHash,
-    ): EitherT[F, String, GossipDomain.MerkleState] =
-      for
-        blockOption <- BlockRepository[F].get(blockHash).leftMap(_.msg)
-        block <- EitherT.fromOption(blockOption, s"Block not found: $blockHash")
-        txs <- block.transactionHashes.toList.traverse { txHash =>
-          TransactionRepository[F]
-            .get(txHash.toResultHashValue)
-            .leftMap(_.msg)
-            .flatMap(
-              EitherT.fromOption(
-                _,
-                s"Transaction $txHash is not found in block $blockHash",
-              ),
-            )
-        }
-        ans <-
-          if txs.exists(_.signedTx.value.createdAt.compareTo(instant) > 0) then
-            loop(block.header.parentHash)
-          else EitherT.pure(MerkleState.from(block.header))
-      yield ans
-
-    BlockRepository[F].bestHeader
-      .leftMap(_.msg)
-      .map(_.get.toHash.toBlockHash)
-      .flatMap(loop)
+//  def findStateRootAt[F[_]: Monad: BlockRepository: TransactionRepository](
+//      instant: Instant,
+//  ): EitherT[F, String, GossipDomain.MerkleState] =
+//
+//    def loop(
+//        blockHash: Block.BlockHash,
+//    ): EitherT[F, String, GossipDomain.MerkleState] =
+//      for
+//        blockOption <- BlockRepository[F].get(blockHash).leftMap(_.msg)
+//        block <- EitherT.fromOption(blockOption, s"Block not found: $blockHash")
+//        txs <- block.transactionHashes.toList.traverse { txHash =>
+//          TransactionRepository[F]
+//            .get(txHash.toResultHashValue)
+//            .leftMap(_.msg)
+//            .flatMap(
+//              EitherT.fromOption(
+//                _,
+//                s"Transaction $txHash is not found in block $blockHash",
+//              ),
+//            )
+//        }
+//        ans <-
+//          if txs.exists(_.signedTx.value.createdAt.compareTo(instant) > 0) then
+//            loop(block.header.parentHash)
+//          else EitherT.pure(MerkleState.from(block.header))
+//      yield ans
+//
+//    BlockRepository[F].bestHeader
+//      .leftMap(_.msg)
+//      .map(_.get.toHash.toBlockHash)
+//      .flatMap(loop)
 
 //  def getNftOwned[F[_]: Concurrent: GenericStateRepository.TokenState](
 //      user: Account,

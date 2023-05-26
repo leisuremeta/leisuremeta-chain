@@ -33,10 +33,10 @@ import repository.{
 import repository.StateRepository.given
 import service.{
   BlockService,
-  LocalGossipService,
+//  LocalGossipService,
   LocalStatusService,
   NodeInitializationService,
-  PeriodicActionService,
+//  PeriodicActionService,
   RewardService,
   StateReadService,
   TransactionService,

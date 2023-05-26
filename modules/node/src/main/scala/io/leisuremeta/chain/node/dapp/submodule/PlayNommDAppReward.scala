@@ -31,25 +31,20 @@ import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.BigNat
-import lib.merkle.{GenericMerkleTrie, MerkleTrieState}
-import repository.{GenericStateRepository, TransactionRepository}
-import repository.GenericStateRepository.given
-
-import GossipDomain.MerkleState
-import PlayNommDAppUtil.*
+import lib.merkle.MerkleTrieState
+import repository.TransactionRepository
 
 object PlayNommDAppReward:
-  def apply[F[_]
-    : Concurrent: TransactionRepository: PlayNommState](
+  def apply[F[_]: Concurrent: TransactionRepository: PlayNommState](
       tx: Transaction.RewardTx,
       sig: AccountSignature,
   ): StateT[
     EitherT[F, PlayNommDAppFailure, *],
-    MerkleState,
+    MerkleTrieState,
     TransactionWithResult,
   ] = tx match
     case rd: Transaction.RewardTx.RegisterDao =>
-      val program = for
+      for
         groupDataOption <- PlayNommState[F].group.group
           .get(rd.groupId)
           .mapK:
@@ -73,11 +68,8 @@ object PlayNommDAppReward:
             PlayNommDAppFailure.mapInternal(s"Fail to put DAO ${rd.groupId}")
       yield TransactionWithResult(Signed(sig, tx), None)
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case or: Transaction.RewardTx.OfferReward =>
-      val program = for
+      for
         _        <- PlayNommDAppAccount.verifySignature(sig, tx)
         tokenDef <- PlayNommDAppToken.getTokenDefinition(or.tokenDefinitionId)
         inputAmount <- PlayNommDAppToken.getFungibleBalanceTotalAmounts(
@@ -105,47 +97,36 @@ object PlayNommDAppReward:
         )
       yield txWithResult
 
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
-
     case tx: Transaction.RewardTx.UpdateDao => ???
     case tx: Transaction.RewardTx.RecordActivity =>
       val txResult = TransactionWithResult(Signed(sig, tx), None)
       val txHash   = txResult.toHash
-      val program: StateT[
-        EitherT[F, PlayNommDAppFailure, *],
-        MerkleTrieState,
-        TransactionWithResult,
-      ] =
-        for
-          _ <- tx.userActivity.toList.traverse { case (account, activities) =>
-            val logs = activities.map { a =>
-              ActivityLog(a.point, a.description, txHash)
-            }
-            PlayNommState[F].reward.accountActivity
-              .put((account, tx.timestamp), logs)
-              .mapK {
-                PlayNommDAppFailure.mapInternal {
-                  s"Fail to put account activity in $txHash"
-                }
-              }
+      for
+        _ <- tx.userActivity.toList.traverse { case (account, activities) =>
+          val logs = activities.map { a =>
+            ActivityLog(a.point, a.description, txHash)
           }
-          _ <- tx.tokenReceived.toList.traverse { case (account, activities) =>
-            val logs = activities.map { a =>
-              ActivityLog(a.point, a.description, txHash)
-            }
-            PlayNommState[F].reward.tokenReceived
-              .put((account, tx.timestamp), logs)
-              .mapK {
-                PlayNommDAppFailure.mapInternal {
-                  s"Fail to put account activity in $txHash"
-                }
+          PlayNommState[F].reward.accountActivity
+            .put((account, tx.timestamp), logs)
+            .mapK {
+              PlayNommDAppFailure.mapInternal {
+                s"Fail to put account activity in $txHash"
               }
+            }
+        }
+        _ <- tx.tokenReceived.toList.traverse { case (account, activities) =>
+          val logs = activities.map { a =>
+            ActivityLog(a.point, a.description, txHash)
           }
-        yield txResult
-
-      program
-        .transformS[MerkleState](_.main, (ms, mts) => (ms.copy(main = mts)))
+          PlayNommState[F].reward.tokenReceived
+            .put((account, tx.timestamp), logs)
+            .mapK {
+              PlayNommDAppFailure.mapInternal {
+                s"Fail to put account activity in $txHash"
+              }
+            }
+        }
+      yield txResult
 
     case tx: Transaction.RewardTx.ExecuteReward => ???
     case tx: Transaction.RewardTx.BuildSnapshot => ???

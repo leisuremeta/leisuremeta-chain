@@ -13,7 +13,7 @@ import cats.syntax.traverse.*
 
 import scodec.bits.ByteVector
 
-import api.model.{Block, Signed, Transaction, TransactionWithResult}
+import api.model.{Block, Signed, StateRoot, Transaction, TransactionWithResult}
 import api.model.Block.ops.*
 import api.model.TransactionWithResult.ops.*
 import api.model.api_model.TxInfo
@@ -36,8 +36,6 @@ import repository.{
   StateRepository,
   TransactionRepository,
 }
-//import state.UpdateState
-import GossipDomain.MerkleState
 
 object TransactionService:
   def submit[F[_]
@@ -74,7 +72,7 @@ object TransactionService:
         bestBlockHeaderOption,
         PlayNommDAppFailure.internal("No best Header Available"),
       )
-      baseState = MerkleState.from(bestBlockHeader)
+      baseState = MerkleTrieState.fromRootOption(bestBlockHeader.stateRoot.main)
       result <- txs
         .traverse(PlayNommDApp[F])
         .run(baseState)
@@ -93,12 +91,12 @@ object TransactionService:
             .runS(state)
             .value
             .getOrElse(state)
-      stateRoot = finalState.toStateRoot
+      stateRoot1 = StateRoot(finalState.root)
       now <- EitherT.right(Clock[F].realTimeInstant)
       header = Block.Header(
         number = BigNat.add(bestBlockHeader.number, BigNat.One),
         parentHash = bestBlockHeader.toHash.toBlockHash,
-        stateRoot = stateRoot,
+        stateRoot = stateRoot1,
         transactionsRoot = txState.root,
         timestamp = now,
       )
@@ -118,7 +116,7 @@ object TransactionService:
           scribe.error(s"Fail to put block: $e")
           PlayNommDAppFailure.internal(s"Fail to put block: ${e.msg}")
       _ <- StateRepository[F]
-        .put(finalState.main)
+        .put(finalState)
         .leftMap: e =>
           scribe.error(s"Fail to put state: $e")
           PlayNommDAppFailure.internal(s"Fail to put state: ${e.msg}")

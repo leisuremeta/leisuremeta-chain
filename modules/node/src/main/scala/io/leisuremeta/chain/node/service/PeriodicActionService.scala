@@ -1,3 +1,4 @@
+/*
 package io.leisuremeta.chain
 package node.service
 
@@ -112,3 +113,4 @@ object PeriodicActionService:
       _   <- periodicRun(now.toMillis + initialDelay)(action).useForever
     yield ()
   end periodic
+*/
