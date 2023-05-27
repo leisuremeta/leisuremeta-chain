@@ -9,7 +9,7 @@ import scodec.bits.ByteVector
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign, Signature}
 import lib.datatype.BigNat
-import lib.merkle.GenericMerkleTrieNode
+import lib.merkle.MerkleTrieNode
 
 final case class Block(
     header: Block.Header,
@@ -25,9 +25,7 @@ object Block:
       number: BigNat,
       parentHash: BlockHash,
       stateRoot: StateRoot,
-      transactionsRoot: Option[
-        GenericMerkleTrieNode.MerkleRoot[Signed.TxHash, Unit],
-      ],
+      transactionsRoot: Option[MerkleTrieNode.MerkleRoot],
       timestamp: Instant,
   )
 
@@ -41,18 +39,14 @@ object Block:
         ByteEncoder[BigNat].encode(header.number)
           ++ ByteEncoder[BlockHash].encode(header.parentHash)
           ++ ByteEncoder[StateRoot].encode(header.stateRoot)
-          ++ ByteEncoder[Option[
-            GenericMerkleTrieNode.MerkleRoot[Signed.TxHash, Unit],
-          ]].encode(header.transactionsRoot)
+          ++ ByteEncoder[Option[MerkleTrieNode.MerkleRoot]].encode(header.transactionsRoot)
           ++ ByteEncoder[Instant].encode(header.timestamp)
     given decoder: ByteDecoder[Header] =
       for
         number     <- ByteDecoder[BigNat]
         parentHash <- ByteDecoder[BlockHash]
         stateRoot  <- ByteDecoder[StateRoot]
-        transactionsRoot <- ByteDecoder[Option[
-          GenericMerkleTrieNode.MerkleRoot[Signed.TxHash, Unit],
-        ]]
+        transactionsRoot <- ByteDecoder[Option[MerkleTrieNode.MerkleRoot]]
         timestamp <- ByteDecoder[Instant]
       yield Header(number, parentHash, stateRoot, transactionsRoot, timestamp)
 

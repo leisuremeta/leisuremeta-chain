@@ -6,17 +6,22 @@ import cats.effect.Concurrent
 import cats.data.{EitherT, StateT}
 
 import api.model.{Signed, Transaction, TransactionWithResult}
-import repository.{GenericStateRepository, TransactionRepository}
+import lib.merkle.MerkleTrieState
+import repository.TransactionRepository
 import submodule.*
 
-import GossipDomain.MerkleState
-
 object PlayNommDApp:
-  def apply[F[_]: Concurrent: TransactionRepository: PlayNommState: GenericStateRepository.TokenState](
+  def apply[F[_]: Concurrent: TransactionRepository: PlayNommState](
       signedTx: Signed.Tx,
-  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleState, TransactionWithResult] =
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, TransactionWithResult] =
     signedTx.value match
+      case accountTx: Transaction.AccountTx =>
+        PlayNommDAppAccount(accountTx, signedTx.sig)
+      case groupTx: Transaction.GroupTx =>
+        PlayNommDAppGroup(groupTx, signedTx.sig)
+      case tokenTx: Transaction.TokenTx =>
+        PlayNommDAppToken(tokenTx, signedTx.sig)
       case rewardTx: Transaction.RewardTx =>
         PlayNommDAppReward(rewardTx, signedTx.sig)
-
-      case _ => ???
+      case agendaTx: Transaction.AgendaTx =>
+        PlayNommDAppAgenda(agendaTx, signedTx.sig)

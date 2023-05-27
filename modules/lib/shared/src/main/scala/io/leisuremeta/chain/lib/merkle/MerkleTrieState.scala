@@ -42,3 +42,10 @@ object MerkleTrieState:
       base = Some(root),
       diff = MerkleTrieStateDiff.empty,
     )
+  def fromRootOption(root: Option[MerkleRoot]): MerkleTrieState =
+    MerkleTrieState(
+      root = root,
+      base = root,
+      diff = MerkleTrieStateDiff.empty,
+    )
+
