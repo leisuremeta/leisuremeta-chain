@@ -54,8 +54,6 @@ import lib.datatype.BigNat
 import lib.merkle.MerkleTrieState
 import repository.{BlockRepository, TransactionRepository}
 
-import io.leisuremeta.chain.node.dapp.PlayNommState
-
 object StateReadService:
   def getAccountInfo[F[_]: Concurrent: BlockRepository: PlayNommState](
       account: Account,

@@ -26,22 +26,18 @@ import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{
   BlockRepository,
-//  GenericStateRepository,
   StateRepository,
   TransactionRepository,
 }
 import repository.StateRepository.given
 import service.{
   BlockService,
-//  LocalGossipService,
   LocalStatusService,
   NodeInitializationService,
-//  PeriodicActionService,
   RewardService,
   StateReadService,
   TransactionService,
 }
-//import service.interpreter.LocalGossipServiceInterpreter
 
 final case class NodeApp[F[_]
   : Async: BlockRepository: StateRepository: TransactionRepository: PlayNommState](
@@ -75,24 +71,6 @@ final case class NodeApp[F[_]
       .orElse(config.local.`private`)
       .get
     CryptoOps.fromPrivate(privateKey)
-
-//  def getLocalGossipService(
-//      bestConfirmedBlock: Block,
-//  ): F[LocalGossipService[F]] =
-//
-//    val params = GossipDomain.GossipParams(
-//      nodeAddresses = nodeAddresses.zipWithIndex.map { case (address, i) =>
-//        i -> address
-//      }.toMap,
-//      timeWindowMillis = config.wire.timeWindowMillis,
-//      localKeyPair = localKeyPair,
-//    )
-//    scribe.debug(s"local gossip params: $params")
-//    LocalGossipServiceInterpreter
-//      .build[F](
-//        bestConfirmedBlock = bestConfirmedBlock,
-//        params = params,
-//      )
 
   def getAccountServerEndpoint = Api.getAccountEndpoint.serverLogic {
     (a: Account) =>
@@ -345,23 +323,7 @@ final case class NodeApp[F[_]
       scribe.info(s"received postTxHash request: $txs")
       Right(txs.map(_.toHash))
     }
-  /*
-  def getRewardServerEndpoint = Api.getRewardEndpoint.serverLogic {
-    (
-        account: Account,
-        timestamp: Option[Instant],
-        daoAccount: Option[Account],
-        rewardAmount: Option[BigNat],
-    ) =>
-      RewardService
-        .getRewardInfoFromBestHeader(account, timestamp, daoAccount, rewardAmount)
-        .value
-        .map {
-          case Left(err) => Left(Left(Api.ServerError(err)))
-          case Right(rewardInfo) => Right(rewardInfo)
-        }
-  }
-   */
+
   def leisuremetaEndpoints(
       semaphore: Semaphore[F],
   ): List[ServerEndpoint[Fs2Streams[F], F]] = List(
@@ -384,7 +346,6 @@ final case class NodeApp[F[_]
     getTokenSnapshotServerEndpoint,
     getOwnershipSnapshotServerEndpoint,
     getOwnershipSnapshotMapServerEndpoint,
-//    getRewardServerEndpoint,
     getOwnershipRewardedServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
@@ -396,13 +357,6 @@ final case class NodeApp[F[_]
   val localNodeIndex: Int =
     config.wire.peers.map(_.publicKeySummary).indexOf(localPublicKeySummary)
 
-//  def periodicResource(using LocalGossipService[F]): Resource[F, F[Unit]] =
-//    PeriodicActionService.periodicAction[F](
-//      timeWindowMillis = config.wire.timeWindowMillis,
-//      numberOfNodes = config.wire.peers.size,
-//      localNodeIndex = localNodeIndex,
-//    )
-
   def getServer(
       dispatcher: Dispatcher[F],
   ): F[Server] = for
@@ -412,7 +366,6 @@ final case class NodeApp[F[_]
     bestBlock <- initializeResult match
       case Left(err)    => Async[F].raiseError(Exception(err))
       case Right(block) => Async[F].pure(block)
-//    given LocalGossipService[F] <- getLocalGossipService(bestBlock)
     semaphore <- Semaphore[F](1)
     server <- Async[F].async_[Server] { cb =>
       def log[F[_]: Async](
@@ -453,7 +406,6 @@ final case class NodeApp[F[_]
 
   def resource: F[Resource[F, Server]] = Async[F].delay {
     for
-//      _ <- periodicResource
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(getServer(dispatcher))(server =>
         Async[F]

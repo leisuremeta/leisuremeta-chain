@@ -21,14 +21,10 @@ import lib.merkle.MerkleTrieNode
 import lib.merkle.MerkleTrieNode.MerkleHash
 import repository.{
   BlockRepository,
-//  GenericStateRepository,
   StateRepository,
   TransactionRepository,
 }
-//import repository.GenericStateRepository.given
 import repository.StateRepository.given
-//import service.LocalGossipService
-//import service.interpreter.LocalGossipServiceInterpreter
 import store.*
 import store.interpreter.StoreIndexSwayInterpreter
 
@@ -58,14 +54,6 @@ object NodeMain extends IOApp:
       ](Paths.get("sway", "block", "tx"))
     yield BlockRepository.fromStores[IO]
 
-//    type StateRepoStore[F[_], K, V] =
-//      StoreIndex[IO, GenericMerkleHash[K, V], GenericMerkleTrieNode[K, V]]
-
-//    def getGenericStateRepo[K: ByteCodec, V: ByteCodec](
-//        dir: Path,
-//    ): IO[StateRepoStore[IO, K, V]] =
-//      sway[GenericMerkleHash[K, V], GenericMerkleTrieNode[K, V]](dir)
-
     def getStateRepo: IO[StateRepository[IO]] = for given KeyValueStore[
         IO,
         MerkleHash,
@@ -88,115 +76,6 @@ object NodeMain extends IOApp:
       case Right(config) =>
         for
           given BlockRepository[IO] <- getBlockRepo
-//          given StateRepoStore[IO, Account, AccountData] <-
-//            getGenericStateRepo[Account, AccountData](
-//              Paths.get("sway", "state", "account", "name"),
-//            )
-//          given StateRepoStore[
-//            IO,
-//            (Account, PublicKeySummary),
-//            PublicKeySummary.Info,
-//          ] <-
-//            getGenericStateRepo[
-//              (Account, PublicKeySummary),
-//              PublicKeySummary.Info,
-//            ](
-//              Paths.get("sway", "state", "account", "pubkey"),
-//            )
-//          given StateRepoStore[IO, EthAddress, Account] <-
-//            getGenericStateRepo[EthAddress, Account](
-//              Paths.get("sway", "state", "account", "eth"),
-//            )
-//          given StateRepoStore[IO, GroupId, GroupData] <-
-//            getGenericStateRepo[GroupId, GroupData](
-//              Paths.get("sway", "state", "group"),
-//            )
-//          given StateRepoStore[IO, (GroupId, Account), Unit] <-
-//            getGenericStateRepo[(GroupId, Account), Unit](
-//              Paths.get("sway", "state", "group", "account"),
-//            )
-//          given StateRepoStore[IO, TokenDefinitionId, TokenDefinition] <-
-//            getGenericStateRepo[TokenDefinitionId, TokenDefinition](
-//              Paths.get("sway", "state", "token", "definition"),
-//            )
-//          given StateRepoStore[
-//            IO,
-//            (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
-//            Unit,
-//          ] <-
-//            getGenericStateRepo[
-//              (Account, TokenDefinitionId, Hash.Value[TransactionWithResult]),
-//              Unit,
-//            ](
-//              Paths.get("sway", "state", "token", "fungible-balance"),
-//            )
-//          given StateRepoStore[
-//            IO,
-//            (Account, TokenId, Hash.Value[TransactionWithResult]),
-//            Unit,
-//          ] <-
-//            getGenericStateRepo[
-//              (Account, TokenId, Hash.Value[TransactionWithResult]),
-//              Unit,
-//            ](
-//              Paths.get("sway", "state", "token", "nft-balance"),
-//            )
-//          given StateRepoStore[IO, TokenId, NftState] <-
-//            getGenericStateRepo[TokenId, NftState](
-//              Paths.get("sway", "state", "token", "nft"),
-//            )
-//          given StateRepoStore[
-//            IO,
-//            (TokenDefinitionId, Rarity, TokenId),
-//            Unit,
-//          ] <-
-//            getGenericStateRepo[(TokenDefinitionId, Rarity, TokenId), Unit](
-//              Paths.get("sway", "state", "token", "rarity"),
-//            )
-//          given StateRepoStore[
-//            IO,
-//            (
-//                Account,
-//                Account,
-//                TokenDefinitionId,
-//                Hash.Value[TransactionWithResult],
-//            ),
-//            Unit,
-//          ] <-
-//            getGenericStateRepo[
-//              (
-//                  Account,
-//                  Account,
-//                  TokenDefinitionId,
-//                  Hash.Value[TransactionWithResult],
-//              ),
-//              Unit,
-//            ](
-//              Paths.get("sway", "state", "token", "entrust-fungible-balance"),
-//            )
-//          given StateRepoStore[
-//            IO,
-//            (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
-//            Unit,
-//          ] <-
-//            getGenericStateRepo[
-//              (Account, Account, TokenId, Hash.Value[TransactionWithResult]),
-//              Unit,
-//            ](
-//              Paths.get("sway", "state", "token", "entrust-nft-balance"),
-//            )
-//          given StateRepoStore[IO, GroupId, DaoInfo] <-
-//            getGenericStateRepo[GroupId, DaoInfo](
-//              Paths.get("sway", "state", "reward", "dao"),
-//            )
-//          given StateRepoStore[IO, (Instant, Account), DaoActivity] <-
-//            getGenericStateRepo[(Instant, Account), DaoActivity](
-//              Paths.get("sway", "state", "reward", "user-activity"),
-//            )
-//          given StateRepoStore[IO, (Instant, TokenId), DaoActivity] <-
-//            getGenericStateRepo[(Instant, TokenId), DaoActivity](
-//              Paths.get("sway", "state", "reward", "token-received"),
-//            )
           given TransactionRepository[IO] <- getTransactionRepo
           given StateRepository[IO]       <- getStateRepo
           given PlayNommState[IO] = PlayNommState.build[IO]
