@@ -57,7 +57,7 @@ case class NodeBalancer[F[_]: Async] (
   // startBlock: bestBlock in old blockchain
   def logDiffTxsLoop(startBlock: Block, endBlockNumber: BigNat): F[Unit] =
     def getTxWithExponentialRetry(txHash: String, retries: Int, delay: FiniteDuration): F[Option[String]] =
-      apiService.getTxFromOld(txHash).flatMap { res =>
+      apiService.getTxFromOld(txHash).flatMap { (_, res) =>
         res match
           case Right(txModel) => Async[F].pure(Some(txModel.signedTx))
           case Left(err) if retries > 0 => Async[F].sleep(delay) 
@@ -71,10 +71,13 @@ case class NodeBalancer[F[_]: Async] (
         val parentHash = currBlock.header.parentHash.toUInt256Bytes.toBytes.toHex
         for 
           txList    <- currBlock.transactionHashes.toList.traverse { txHash => 
-                         getTxWithExponentialRetry(txHash.toUInt256Bytes.toBytes.toHex, 10, 1.second) }
+                         getTxWithExponentialRetry(txHash.toUInt256Bytes.toBytes.toHex, 5, 1.second) }
           filteredTxList = txList.flatMap(identity)
-          _         <- appendLog("diff-txs.json", s"[${filteredTxList.mkString(",")}]")
-          prevBlock <- apiService.block(nodeConfig.oldNodeAddress, parentHash)
+          _         <- filteredTxList match 
+                      case head :: tail => appendLog("diff-txs.json", s"[${filteredTxList.mkString(",")}]")
+                      case Nil => Async[F].unit
+          res       <- apiService.block(nodeConfig.oldNodeAddress, parentHash)
+          (_, prevBlock) = res
           _         <- loop(prevBlock)
         yield ()
       } else {
@@ -96,7 +99,7 @@ case class NodeBalancer[F[_]: Async] (
   
   def postTxWithExponentialRetry(line: String, retries: Int, delay: FiniteDuration): F[String] =
     println(s"request txs: $line")
-    apiService.postTx(nodeConfig.newNodeAddress.get, line).flatMap { res =>
+    apiService.postTx(nodeConfig.newNodeAddress.get, line).flatMap { (statusCode, res) =>
       println(s"generated hash: $res")
       val code = res.code
       if code.isSuccess 
@@ -188,7 +191,8 @@ case class NodeBalancer[F[_]: Async] (
       scribe.info(s"endBlockNumber: $endBlockNumber")
       for 
         // bestBlock in old blockchain
-        startBlock <- apiService.bestBlock(oldNodeAddr)
+        response   <- apiService.bestBlock(oldNodeAddr)
+        (_, startBlock) = response
         _          <- Async[F].delay(println(s"startBlock: $startBlock"))
         _          <- if (startBlock.header.number == endBlockNumber) {
                         for 
@@ -203,9 +207,9 @@ case class NodeBalancer[F[_]: Async] (
                           _ <- baseUrlsLock.getAndUpdate{_.appended(nodeConfig.newNodeAddress.get)} 
                           _ <- blocker.set(true) // 양쪽 모두 릴레이 시작.
                           // _ <- Async[F].delay(scribe.info("마이그레이션 성공. 양쪽 모두 API 릴레이 시작"))
-                          _ <- NodeWatchService.waitTerminateSig
-                          _ <- Async[F].delay(scribe.info(s"now api only relay to ${nodeConfig.oldNodeAddress}"))
-                          _ <- baseUrlsLock.set(List(nodeConfig.oldNodeAddress))
+                          newNodeCfg <- NodeWatchService.waitTerminateSig
+                          _ <- Async[F].delay(scribe.info(s"now api request only relayed to ${newNodeCfg.oldNodeAddress}"))
+                          _ <- baseUrlsLock.set(List(newNodeCfg.oldNodeAddress))
                         yield ()
                       } else {
                         scribe.info("NodeBalancer.loop() else branch")

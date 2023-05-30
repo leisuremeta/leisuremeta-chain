@@ -24,6 +24,7 @@ import io.leisuremeta.chain.node.proxy.{NodeProxyApi as Api}
 import cats.data.Op
 import io.leisuremeta.chain.api.model.reward.*
 import io.leisuremeta.chain.api.model.token.*
+import io.leisuremeta.chain.api.model.Block.*
 // import io.leisuremeta.chain.api.model.Transaction.RewardTx.OfferReward
 import cats.effect.*
 import cats.effect.Async
@@ -67,43 +68,46 @@ class InternalApiService[F[_]: Async](
   
   def getAsString(
     uri: Uri 
-  ): F[String] = 
+  ): F[(StatusCode, String)] = 
     for {
       _      <- jobOrBlock
       result <- basicRequest
         .response(asStringAlways)
         .get(uri)
         .send(backend)
-        .map(_.body)
+        .map(res => (res.code, res.body))
     } yield 
       // scribe.info(s"getAsString result: $result")
       result
 
   def getAsResponse(
     uri: Uri 
-  ): F[Response[String]] = 
+  ): F[(StatusCode, Response[String])] = 
     for {
       _      <- jobOrBlock
       result <- basicRequest
         .response(asStringAlways)
         .get(uri)
         .send(backend)
-    } yield 
-      result
+    } yield (result.code, result)
+      
 
   def getTxAsResponse[A: io.circe.Decoder](
     uri: Uri 
-  ): F[Either[String, A]] = 
+  ): F[(StatusCode, Either[String, A])] = 
     for {
       _      <- jobOrBlock
       result <- basicRequest
         .get(uri)
         .send(backend)
         .map { response =>
-          for 
-            body <- response.body
-            a    <- decode[A](body).leftMap(_.getMessage())
-          yield a
+          (
+            response.code,
+            for 
+              body <- response.body
+              a    <- decode[A](body).leftMap(_.getMessage())
+            yield a
+          )
         }
     } yield 
       // scribe.info(s"getAsString result: $result")
@@ -112,7 +116,7 @@ class InternalApiService[F[_]: Async](
   def postAsString(
     uri: Uri,
     body: String,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     for
       _      <- jobOrBlock
       result <- basicRequest
@@ -120,13 +124,13 @@ class InternalApiService[F[_]: Async](
         .post(uri)
         .body(body)
         .send(backend)
-        .map(_.body)
+        .map(res => (res.code, res.body))
     yield result
 
   def postAsResponse(
     uri: Uri,
     body: String,
-  ): F[Response[String]] =
+  ): F[(StatusCode, Response[String])] =
     for
       _      <- jobOrBlock
       result <- basicRequest
@@ -135,11 +139,11 @@ class InternalApiService[F[_]: Async](
         .contentType(MediaType.ApplicationJson)
         .body(body)
         .send(backend)
-    yield result
+    yield (result.code, result)
 
   def getBlock(
     blockHash: String,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/block/$blockHash")
@@ -148,7 +152,7 @@ class InternalApiService[F[_]: Async](
 
   def getAccount(
     account: Account
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/account/${account.utf8.value}") 
@@ -157,7 +161,7 @@ class InternalApiService[F[_]: Async](
     
   def getEthAccount(
     ethAddress: EthAddress
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/eth/$ethAddress")
@@ -166,7 +170,7 @@ class InternalApiService[F[_]: Async](
   
   def getGroupInfo(
     groupId: GroupId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/group/$groupId")
@@ -177,14 +181,14 @@ class InternalApiService[F[_]: Async](
   def getBlockList(
     fromOption: Option[String],
     limitOption: Option[Int],
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/block?from=${fromOption.getOrElse("")}&limit=${limitOption.getOrElse("")}")
       }
     }.map(_.head)
 
-  def getStatus: F[String] =
+  def getStatus: F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/status")
@@ -193,7 +197,7 @@ class InternalApiService[F[_]: Async](
 
   def getTokenDef(
     tokenDefinitionId: TokenDefinitionId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/token-def/$tokenDefinitionId")
@@ -203,7 +207,7 @@ class InternalApiService[F[_]: Async](
   def getBalance(
     account: Account,
     movable: String
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/balance/$account?movable=${movable}")
@@ -213,7 +217,7 @@ class InternalApiService[F[_]: Async](
   def getNftBalance(
     account: Account,
     movable: Option[String]
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/nft-balance/$account?movable=${movable}")
@@ -223,7 +227,7 @@ class InternalApiService[F[_]: Async](
 
   def getToken(
     tokenId: TokenId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/token/$tokenId")
@@ -232,7 +236,7 @@ class InternalApiService[F[_]: Async](
 
   def getOwners(
     tokenDefinitionId: TokenDefinitionId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/owners/$tokenDefinitionId")
@@ -241,7 +245,7 @@ class InternalApiService[F[_]: Async](
 
   def getAccountActivity(
     account: Account
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/activity/account/$account")
@@ -250,7 +254,7 @@ class InternalApiService[F[_]: Async](
 
   def getTokenActivity(
     tokenId: TokenId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/activity/token/$tokenId")
@@ -259,7 +263,7 @@ class InternalApiService[F[_]: Async](
 
   def getAccountSnapshot(
     account: Account
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/snapshot/account/$account")
@@ -269,14 +273,14 @@ class InternalApiService[F[_]: Async](
 
   def getTokenSnapshot(
     tokenId: TokenId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/snapshot/token/$tokenId")
       }
     }.map(_.head)
 
-  def getStatusEndpoint: F[String] =
+  def getStatusEndpoint: F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/status")
@@ -285,7 +289,7 @@ class InternalApiService[F[_]: Async](
 
   def getOwnershipSnapshot(
     tokenId: TokenId
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/snapshot/ownership/$tokenId")
@@ -295,7 +299,7 @@ class InternalApiService[F[_]: Async](
   def getOwnershipSnapshotMap(
     tokenId: Option[TokenId],
     limit:   Option[Int]
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/snapshot/ownership?from=$tokenId&limit=$limit")
@@ -304,7 +308,7 @@ class InternalApiService[F[_]: Async](
 
   def getOwnershipRewarded(
     tokenId: TokenId,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/rewarded/ownership/$tokenId")
@@ -313,7 +317,7 @@ class InternalApiService[F[_]: Async](
 
   def getReward(
     tokenId: TokenId,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/rewarded/ownership/$tokenId")
@@ -322,7 +326,7 @@ class InternalApiService[F[_]: Async](
 
   def getTx(
     txHash: String,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/tx/$txHash")
@@ -331,14 +335,14 @@ class InternalApiService[F[_]: Async](
 
   def getTxFromOld(
     txHash: String,
-  ): F[Either[String, TxModel]] =
+  ): F[(StatusCode, Either[String, TxModel])] =
     baseUrlsLock.get.map(_.head).flatMap { baseUrl =>
       getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
     }
 
   def getTxSet(
     txHash: String,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/tx/$txHash")
@@ -347,7 +351,7 @@ class InternalApiService[F[_]: Async](
 
   def postTx(
     txs: String,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     queue.push(txs)
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
@@ -360,14 +364,14 @@ class InternalApiService[F[_]: Async](
   def postTx(
     baseUrl: String,
     txs: String,
-  ): F[Response[String]] =    
+  ): F[(StatusCode, Response[String])] =    
     postAsResponse(
       uri"$baseUrl/tx", txs
     )
     
   def postTxHash(
     txs: String,
-  ): F[String] =
+  ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         postAsString(
@@ -386,16 +390,17 @@ class InternalApiService[F[_]: Async](
         case true  => Async[F].unit
     }
   
-  def bestBlock(baseUri: String): F[Block] = 
+  def bestBlock(baseUri: String): F[(StatusCode, Block)] = 
     for 
-      nodeStatus <- get[NodeStatus](uri"$baseUri/status")
+      res <- get[NodeStatus](uri"$baseUri/status")
+      (_, nodeStatus) = res
       bestBlock  <- block(baseUri, nodeStatus.bestHash.toUInt256Bytes.toHex)
     yield bestBlock
 
-  def block(baseUri: String, blockHash: String): F[Block] =
+  def block(baseUri: String, blockHash: String): F[(StatusCode, Block)] =
     get[Block](uri"$baseUri/block/$blockHash")
 
-  def postTxs(baseUri: String, body: String): F[String] =
+  def postTxs(baseUri: String, body: String): F[(StatusCode, String)] =
     postAsString(uri"$baseUri/tx", body)
       
   def getAsOption[A: io.circe.Decoder](uri: Uri): F[Option[A]] =
@@ -408,7 +413,7 @@ class InternalApiService[F[_]: Async](
         }
       }
 
-  def get[A: io.circe.Decoder](uri: Uri): F[A] =
+  def get[A: io.circe.Decoder](uri: Uri): F[(StatusCode, A)] =
     basicRequest
       .get(uri)
       .send(backend)
@@ -416,7 +421,7 @@ class InternalApiService[F[_]: Async](
         response.body match 
           case Right(body) => 
             decode[A](body) match 
-            case Right(a) => Async[F].pure(a)
+            case Right(a) => Async[F].pure((response.code, a))
             case Left(error) => Async[F].raiseError(error)
           case Left(error) => Async[F].raiseError(new Exception(s"Error in response body: $error"))
       }

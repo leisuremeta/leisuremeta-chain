@@ -538,7 +538,7 @@ lazy val nodeProxy = (project in file("modules/node-proxy"))
   .settings(Dependencies.nodeProxy)
   .settings(Dependencies.tests)
   .settings(
-    name := "leisuremeta-chain-node-prxoy",
+    name := "leisuremeta-chain-node-proxy",
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first

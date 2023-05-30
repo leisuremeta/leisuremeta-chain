@@ -26,7 +26,7 @@ object NodeWatchService:
     // val path = Paths.get("/Users/jichangho/playnomm/leisuremeta-chain/migration-node.json")
     // val path = Paths.get("/Users/user/playnomm/source_code/leisuremeta-chain/migration-node.json")
     val path = Paths.get("/home/rocky/nodeproxy/migration-node.json")
-    
+
       for 
         json <- Try(Files.readAllLines(path).asScala.mkString("\n")).toEither
         nodeConfig <- decode[NodeConfig](json)
@@ -80,15 +80,15 @@ object NodeWatchService:
       ) *> Async[F].unit
     } 
 
-  def waitTerminateSig[F[_]: Async]: F[Unit] =
-    def loop: F[Unit] =
+  def waitTerminateSig[F[_]: Async]: F[NodeConfig] =
+    def loop: F[NodeConfig] =
       nodeConfig.flatMap { nodeCfgEither =>
         nodeCfgEither match
           case Right(nodeConfig) =>
             nodeConfig.newNodeAddress match
               case Some(address) if address.isBlank() => 
                         Async[F].delay(scribe.info("마이그레이션 종료.")) 
-                         >> Async[F].unit
+                         >> Async[F].pure(nodeConfig)
               case _ => Async[F].delay(scribe.info("종료 시그널 기다리는 중..")) 
                          >> Async[F].sleep(10.second) 
                          >> loop
