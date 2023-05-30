@@ -101,11 +101,13 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put token balance (${mn.output}, ${mn.tokenId}, $txHash)"
+        weight = tokenDef.nftInfo.get.rarity
+          .getOrElse(mn.rarity, BigNat.unsafeFromLong(2L))
         nftState = NftState(
           tokenId = mn.tokenId,
           tokenDefinitionId = mn.tokenDefinitionId,
           rarity = mn.rarity,
-          weight = tokenDef.nftInfo.get.rarity(mn.rarity),
+          weight = weight,
           currentOwner = mn.output,
         )
         _ <- PlayNommState[F].token.nftState
@@ -277,6 +279,7 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put entrust fungible balance of (${sig.account}, ${ef.to}, ${ef.definitionId}, ${txHash})"
+        _ <- putBalance(sig.account, ef.definitionId, txHash)
       yield txWithResult
 
     case de: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
@@ -464,21 +467,24 @@ object PlayNommDAppToken:
       account: Account,
       inputs: Set[Hash.Value[TransactionWithResult]],
       definitionId: TokenDefinitionId,
-  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, List[
+    Hash.Value[TransactionWithResult],
+  ]] =
+    val inputList = inputs.toList
     for
-      removeResults <- inputs.toSeq.traverse { txHash =>
+      removeResults <- inputList.traverse { txHash =>
         PlayNommState[F].token.fungibleBalance
           .remove((account, definitionId, txHash))
           .mapK(PlayNommDAppFailure.mapInternal {
             s"Fail to remove fingible balance ($account, $definitionId, $txHash)"
           })
       }
-      invalidUtxos = inputs.zip(removeResults).filterNot(_._2)
+      invalidUtxos = inputList.zip(removeResults).filterNot(_._2).map(_._1)
       _ <- checkExternal(
         invalidUtxos.isEmpty,
         s"These utxos are invalid: $invalidUtxos",
       )
-    yield ()
+    yield invalidUtxos
 
   def tokenBalanceAmount(account: Account)(
       txWithResult: TransactionWithResult,

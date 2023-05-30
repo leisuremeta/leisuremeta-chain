@@ -85,7 +85,12 @@ object PlayNommDAppAccount:
 
       case ua: Transaction.AccountTx.UpdateAccount =>
         for
-          accountData <- verifySignature(sig, ua)
+          _ <- verifySignature(sig, ua)
+          accountDataOption <- getAccountInfo(ua.account)
+          accountData <- fromOption(
+            accountDataOption,
+            s"${ua.account} does not exists",
+          )
           _ <- checkExternal(
             sig.account == ua.account ||
               Some(sig.account) == accountData.guardian,
@@ -109,11 +114,16 @@ object PlayNommDAppAccount:
 
       case ap: Transaction.AccountTx.AddPublicKeySummaries =>
         for
-          accountData <- verifySignature(sig, ap)
+          _ <- verifySignature(sig, ap)
+          accountDataOption <- getAccountInfo(ap.account)
+          accountData <- fromOption(
+            accountDataOption,
+            s"${ap.account} does not exists",
+          )
           _ <- checkExternal(
             sig.account == ap.account ||
               Some(sig.account) == accountData.guardian,
-            s"Signer ${sig.account} is neither ${ap.account} nor its guardian",
+            s"Signer ${sig.account} is neither ${ap.account} nor its guardian ${accountData.guardian}",
           )
           timeToCheck = accountData.lastChecked
             .plus(10, ChronoUnit.DAYS)
@@ -172,7 +182,7 @@ object PlayNommDAppAccount:
   def verifySignature[F[_]: Monad: PlayNommState](
       sig: AccountSignature,
       tx: Transaction,
-  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, AccountData] =
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
     for
       pks <- getPKS(sig, tx)
       keyInfoOption <- PlayNommState[F].account.key
@@ -184,12 +194,7 @@ object PlayNommDAppAccount:
         keyInfoOption,
         s"There is no public key summary $pks from account ${sig.account}",
       )
-      accountInfoOption <- getAccountInfo(sig.account)
-      accountInfo <- fromOption(
-        accountInfoOption,
-        s"${sig.account} does not exists",
-      )
-    yield accountInfo
+    yield ()
 
   def getAccountInfo[F[_]: Monad: PlayNommState](
       account: Account,

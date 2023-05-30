@@ -336,6 +336,16 @@ lazy val archive = (project in file("modules/archive"))
   )
   .dependsOn(api.jvm)
 
+lazy val bulkInsert = (project in file("modules/bulk-insert"))
+  .dependsOn(node)
+  .settings(
+    name := "leisuremeta-chain-bulk-insert",
+    excludeDependencies ++= Seq(
+      "org.scala-lang.modules" % "scala-collection-compat_2.13",
+      "org.scala-lang.modules" % "scala-java8-compat_2.13",
+    ),
+  )
+
 lazy val jvmClient = (project in file("modules/jvm-client"))
   .settings(Dependencies.jvmClient)
   .dependsOn(node)
