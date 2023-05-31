@@ -49,10 +49,29 @@ object PlayNommDAppToken:
           symbol = dt.symbol,
           adminGroup = dt.minterGroup,
           totalAmount = BigNat.Zero,
-          nftInfo = dt.nftInfo,
+          nftInfo = dt.nftInfo.map(NftInfoWithPrecision.fromNftInfo),
         )
         _ <- putTokenDefinition(dt.definitionId, tokenDefinition)
       yield TransactionWithResult(Signed(sig, dt))(None)
+
+    case dp: Transaction.TokenTx.DefineTokenWithPrecision =>
+      for
+        _              <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDefOption <- getTokenDefinitionOption(dp.definitionId)
+        _ <- checkExternal(
+          tokenDefOption.isEmpty,
+          s"Token ${dp.definitionId} is already defined",
+        )
+        tokenDefinition = TokenDefinition(
+          id = dp.definitionId,
+          name = dp.name,
+          symbol = dp.symbol,
+          adminGroup = dp.minterGroup,
+          totalAmount = BigNat.Zero,
+          nftInfo = dp.nftInfo,
+        )
+        _ <- putTokenDefinition(dp.definitionId, tokenDefinition)
+      yield TransactionWithResult(Signed(sig, dp))(None)
 
     case mf: Transaction.TokenTx.MintFungibleToken =>
       for

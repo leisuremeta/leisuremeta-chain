@@ -112,13 +112,34 @@ object JvmClientMain extends IOApp:
 //    ),
 //  )
 
-  val tx: Transaction = Transaction.AgendaTx.VoteSimpleAgenda(
+//  val tx: Transaction = Transaction.AgendaTx.VoteSimpleAgenda(
+//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+//    createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
+//    agendaTxHash = Hash.Value[TransactionWithResult]{
+//      UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get
+//    },
+//    selectedOption = Utf8.unsafeFrom(s"1"),
+//  )
+
+  val tx: Transaction = Transaction.TokenTx.DefineTokenWithPrecision(
     networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
     createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
-    agendaTxHash = Hash.Value[TransactionWithResult]{
-      UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get
-    },
-    selectedOption = Utf8.unsafeFrom(s"1"),
+    definitionId = TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+    name = Utf8.unsafeFrom("NFT with precision"),
+    symbol = Some(Utf8.unsafeFrom("NFTWP")),
+    minterGroup = Some(GroupId(Utf8.unsafeFrom("mint-group"))),
+    nftInfo = Some(NftInfoWithPrecision(
+      minter = alice,
+      rarity = Map(
+        Rarity(Utf8.unsafeFrom("LGDY")) -> BigNat.unsafeFromLong(100),
+        Rarity(Utf8.unsafeFrom("UNIQ")) -> BigNat.unsafeFromLong(66),
+        Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(33),
+        Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(10),
+      ),
+      precision = BigNat.unsafeFromLong(2),
+      dataUrl = Utf8.unsafeFrom("https://www.playnomm.com/data/nft-with-precision.json"),
+      contentHash = UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get,
+    )),
   )
 
   val signedTx = signAlice(tx)

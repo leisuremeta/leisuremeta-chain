@@ -10,5 +10,5 @@ final case class TokenDefinition(
     symbol: Option[Utf8],
     adminGroup: Option[GroupId],
     totalAmount: BigNat,
-    nftInfo: Option[NftInfo],
+    nftInfo: Option[NftInfoWithPrecision],
 )

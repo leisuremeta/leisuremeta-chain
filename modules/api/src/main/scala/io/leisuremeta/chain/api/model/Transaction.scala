@@ -14,7 +14,7 @@ import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
-import token.{Rarity, NftInfo, TokenDefinitionId, TokenDetail, TokenId}
+import token.{Rarity, NftInfo, NftInfoWithPrecision, TokenDefinitionId, TokenDetail, TokenId}
 
 sealed trait TransactionResult
 object TransactionResult:
@@ -183,6 +183,16 @@ object Transaction:
         nftInfo: Option[NftInfo],
     ) extends TokenTx
 
+    final case class DefineTokenWithPrecision(
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        name: Utf8,
+        symbol: Option[Utf8],
+        minterGroup: Option[GroupId],
+        nftInfo: Option[NftInfoWithPrecision],
+    ) extends TokenTx
+
     final case class MintFungibleToken(
         networkId: NetworkId,
         createdAt: Instant,
@@ -300,6 +310,7 @@ object Transaction:
           case 9  => ByteDecoder[EntrustNFT].widen
           case 10 => ByteDecoder[DisposeEntrustedFungibleToken].widen
           case 11 => ByteDecoder[DisposeEntrustedNFT].widen
+          case 12 => ByteDecoder[DefineTokenWithPrecision].widen
     }
 
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
@@ -315,6 +326,7 @@ object Transaction:
         case tx: EntrustNFT                    => build(9)(tx)
         case tx: DisposeEntrustedFungibleToken => build(10)(tx)
         case tx: DisposeEntrustedNFT           => build(11)(tx)
+        case tx: DefineTokenWithPrecision      => build(12)(tx)
 
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder
