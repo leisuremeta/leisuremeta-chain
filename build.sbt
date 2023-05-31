@@ -1,19 +1,19 @@
 import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
-  val Scala      = "3.3.0-RC4"
+  val Scala      = "3.3.0"
   val ScalaGroup = "3.3"
 
-  val catsEffect = "3.4.9"
-  val tapir      = "1.2.12"
+  val catsEffect = "3.5.0"
+  val tapir      = "1.5.0"
   val sttp       = "3.8.15"
   val circe      = "0.15.0-M1"
   val refined    = "0.10.3"
   val scodecBits = "1.1.37"
   val shapeless  = "3.3.0"
-  val fs2        = "3.6.1"
+  val fs2        = "3.7.0"
 
   val typesafeConfig = "1.4.2"
-  val pureconfig     = "0.17.3"
+  val pureconfig     = "0.17.4"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
   val jasync         = "2.1.24"
@@ -22,12 +22,12 @@ val V = new {
 
   val web3J = "4.9.6"
 
-  val awsSdk = "2.20.32"
+  val awsSdk = "2.20.75"
 
-  val scribe          = "3.11.1"
+  val scribe          = "3.11.5"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
-  val zerowaste       = "0.2.6"
+  val zerowaste       = "0.2.7"
   val munitCatsEffect = "2.0.0-M3"
 
   val tyrian = "0.6.2"
@@ -39,7 +39,7 @@ val V = new {
   val pgEmbedded    = "1.0.1"
   val quill         = "4.6.0.1"
   val postgres      = "42.6.0"
-  val flywayCore    = "9.16.3"
+  val flywayCore    = "9.19.1"
 }
 
 val Dependencies = new {
@@ -238,6 +238,8 @@ lazy val root = (project in file("."))
     api.js,
     lib.jvm,
     lib.js,
+    archive,
+    bulkInsert,
     ethGatewayCommon,
     ethGatewayDeposit,
     ethGatewayWithdraw,
@@ -245,7 +247,7 @@ lazy val root = (project in file("."))
     lmscanCommon.js,
     lmscanFrontend,
     lmscanBackend,
-    lmscanAgent,
+//    lmscanAgent,
   )
 
 lazy val node = (project in file("modules/node"))
@@ -297,7 +299,7 @@ lazy val ethGatewayDeposit = (project in file("modules/eth-gateway-deposit"))
         oldStrategy(x)
     },
     Compile / compile / wartremoverErrors ++= Warts
-      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
+      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion, Wart.SeqApply),
   )
   .dependsOn(ethGatewayCommon)
 
@@ -389,7 +391,8 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
       "-scalajs",
     ),
     Test / fork := false,
-    Compile / compile / wartremoverErrors ++= Warts.all,
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.SeqApply, Wart.SeqUpdated),
   )
   .jsConfigure { project =>
     project
