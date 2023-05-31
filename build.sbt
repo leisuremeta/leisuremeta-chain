@@ -344,6 +344,14 @@ lazy val bulkInsert = (project in file("modules/bulk-insert"))
       "org.scala-lang.modules" % "scala-collection-compat_2.13",
       "org.scala-lang.modules" % "scala-java8-compat_2.13",
     ),
+    assemblyMergeStrategy := {
+      case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
   )
 
 lazy val jvmClient = (project in file("modules/jvm-client"))

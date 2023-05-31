@@ -72,7 +72,7 @@ def bulkInsert[F[_]
               .recoverWith: e =>
                 RecoverTx(e, ms, tx)
           .map: result =>
-            if index % 10000 === 0 then
+            if index % 100 === 0 then
               scribe.info(s"#$index: ${result._1.root}")
             result
           .compile

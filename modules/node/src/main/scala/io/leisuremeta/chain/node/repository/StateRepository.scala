@@ -30,12 +30,12 @@ object StateRepository:
       stateKvStore.get(merkleRoot)
 
     def put(state: MerkleTrieState): EitherT[F, DecodingFailure, Unit] = for
-      _ <- EitherT.pure(scribe.info(s"Putting state: $state"))
+//      _ <- EitherT.pure(scribe.info(s"Putting state: $state"))
       _ <- state.diff.toList.traverse { case (hash, (node, count)) =>
         if count <= 0 then EitherT.pure(()) else stateKvStore.get(hash).flatMap{
           case None => EitherT.right(stateKvStore.put(hash, node))
           case _ => EitherT.pure(())
         }
       }
-      _ <- EitherT.pure(scribe.info(s"Putting completed: $state"))
+//      _ <- EitherT.pure(scribe.info(s"Putting completed: $state"))
     yield ()
