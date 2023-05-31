@@ -416,8 +416,8 @@
     * *(optional)* Symbol(string)
     * *(optional)* MinterGroup: GroupID(string) 신규토큰발행 권한을 가진 그룹
     * *(optional)* NftInfo
-      * Creater: AccountName(string)
-      * Rarity: Map[(Rarity(string), Weight]
+      * minter: AccountName(string)
+      * rarity: Map[(Rarity(string), Weight]
       * *(optional)* DataUrl(string)
       * *(optional)* ContentHash: uint256
 
@@ -469,7 +469,69 @@
   ["b0cfd8da5ef347762b60162c772148902b54abca4760fb53e3eb752f8b953664"]
   ```
 
-  
+
+* DefineTokenWithPrecision Precision이 있는 토큰 정의. Fungible Token, NFT 공히 사용한다. (랜덤박스 포함)
+  * > MinterGroup에 속한 Account의 서명
+  * Fields
+    * definitionId: TokenDefinitionID(string)
+    * name: String
+    * *(optional)* Symbol(string)
+    * *(optional)* MinterGroup: GroupID(string) 신규토큰발행 권한을 가진 그룹
+    * *(optional)* NftInfo
+      * minter: AccountName(string)
+      * rarity: Map[(Rarity(string), Weight]
+      * precision: int 소숫점 자릿수
+      * *(optional)* DataUrl(string)
+      * *(optional)* ContentHash: uint256
+
+  * Example
+
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 27,
+          "r" : "74a1fa40be985b0c9bcf92df0262317a336f585fa24e261780b2ab6ff89d3f6a",
+          "s" : "4cea4a8ad18df36a2c140366f8afee36441757921aa351fedf0b53d82307e9c2"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "DefineTokenWithPrecision" : {
+            "networkId" : 2021,
+            "createdAt" : "2023-01-11T19:01:00Z",
+            "definitionId" : "nft-with-precision",
+            "name" : "NFT with precision",
+            "symbol" : "NFTWP",
+            "minterGroup" : "mint-group",
+            "nftInfo" : {
+              "Some" : {
+                "value" : {
+                  "minter" : "alice",
+                  "rarity" : {
+                    "LGDY" : 100,
+                    "UNIQ" : 66,
+                    "EPIC" : 33,
+                    "RARE" : 10
+                  },
+                  "precision" : 2,
+                  "dataUrl" : "https://www.playnomm.com/data/nft-with-precision.json",
+                  "contentHash" : "2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+  ```
+
+  ```json
+  ["6d49236405972c01322db054338da2c7ab6fd9662d2a64c9bc1ab4026da9fb8f"]
+  ```
 
 * MintFungibleToken
   * > MinterGroup에 속한 Account의 서명
