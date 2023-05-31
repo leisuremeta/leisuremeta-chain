@@ -240,11 +240,12 @@ object EthGatewayDepositMain extends IOApp:
       lmEndpoint: String,
       toAccount: Account,
       amount: BigInt,
+      targetGateway: String,
   ): F[Unit] =
 
     val networkId = NetworkId(BigNat.unsafeFromLong(1000L))
     val lmDef     = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-    val account   = Account(Utf8.unsafeFrom("eth-gateway"))
+    val account   = Account(Utf8.unsafeFrom(targetGateway))
 
     Clock[F].realTimeInstant.flatMap: now =>
 
@@ -299,6 +300,7 @@ object EthGatewayDepositMain extends IOApp:
       gatewayEthAddress: String,
       startBlockNumber: BigInt,
       endBlockNumber: BigInt,
+      targetGateway: String,
   ): F[Unit] =
     for
       events <- getTransferTokenEvents[F](
@@ -333,7 +335,7 @@ object EthGatewayDepositMain extends IOApp:
           Nil
       _ <- Async[F].delay(scribe.info(s"toMints: $toMints"))
       _ <- toMints.traverse: (account, event) =>
-        mintLM[F](sttp, lmEndpoint, account, event.value)
+        mintLM[F](sttp, lmEndpoint, account, event.value, targetGateway)
       _ <- logSentDeposits[F](toMints.map(_._1).zip(known.map(_._1)))
       unsent = unknown.map(_._1)
       _ <- Async[F].delay(scribe.info(s"unsent: $unsent"))
@@ -344,10 +346,7 @@ object EthGatewayDepositMain extends IOApp:
     : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      ethChainId: Int,
-      lmEndpoint: String,
-      ethContract: String,
-      gatewayEthAddress: String,
+      conf: GatewayConf,
   ): F[Unit] =
     def run: F[Unit] = for
       _ <- Async[F].delay:
@@ -367,11 +366,12 @@ object EthGatewayDepositMain extends IOApp:
       _ <- checkDepositAndMint[F](
         sttp,
         web3j,
-        lmEndpoint,
-        ethContract,
-        gatewayEthAddress,
+        conf.lmEndpoint,
+        conf.ethContractAddress,
+        conf.gatewayEthAddress,
         startBlockNumber,
         endBlockNumber,
+        conf.targetGateway,
       )
       _ <- writeLastBlockRead[F](endBlockNumber)
       _ <- Async[F].delay(scribe.info(s"Deposit check finished."))
@@ -395,11 +395,12 @@ object EthGatewayDepositMain extends IOApp:
   def getBalance[F[_]: Async](
       sttp: SttpBackend[F, Any],
       lmEndpoint: String,
+      targetGateway: String,
   ): F[Option[BalanceInfo]] =
     val lmDef = TokenDefinitionId(Utf8.unsafeFrom("LM"))
     basicRequest
       .response(asStringAlways)
-      .get(uri"http://$lmEndpoint/balance/eth-gateway?movable=all")
+      .get(uri"http://$lmEndpoint/balance/$targetGateway?movable=all")
       .send(sttp)
       .map: response =>
         if response.code.isSuccess then
@@ -411,7 +412,7 @@ object EthGatewayDepositMain extends IOApp:
               None
         else if response.code.code === StatusCode.NotFound.code then
           scribe.info:
-            s"balance of account eth-gateway not found: ${response.body}"
+            s"balance of account $targetGateway not found: ${response.body}"
           None
         else
           scribe.error(s"Error getting balance: ${response.body}")
@@ -453,10 +454,7 @@ object EthGatewayDepositMain extends IOApp:
           checkLoop[IO](
             sttp = sttp,
             web3j = web3j,
-            ethChainId = conf.ethChainId,
-            lmEndpoint = conf.lmEndpoint,
-            ethContract = conf.ethContractAddress,
-            gatewayEthAddress = conf.gatewayEthAddress,
+            conf = conf,
           )
       .value
       .map:

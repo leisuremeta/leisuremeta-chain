@@ -15,6 +15,7 @@ final case class GatewayConf(
     encryptedDatabaseEndpoint: String,
     databaseTableName: String,
     databaseValueColumn: String,
+    targetGateway: String,
 ) derives ConfigReader
 
 object GatewayConf:
