@@ -65,6 +65,8 @@ def bulkInsert[F[_]
             scribe.info(s"tx: ${tx.value}")
             PlayNommDApp[F](tx)
               .run(ms)
+              .map: (ms, txWithResult) =>
+                (ms, Option(txWithResult))
               .recoverWith: e =>
                 RecoverTx(e, ms, tx)
           .map: result =>
@@ -75,7 +77,8 @@ def bulkInsert[F[_]
           .leftMap: e =>
             scribe.error(s"Error building txs #$index: $txs: $e")
             e
-        (states, txWithResults) = result.unzip
+        (states, txWithResultOptions) = result.unzip
+        txWithResults = txWithResultOptions.flatten
         txHashes                = txWithResults.map(_.toHash)
         txState = txs
           .map(_.toHash)

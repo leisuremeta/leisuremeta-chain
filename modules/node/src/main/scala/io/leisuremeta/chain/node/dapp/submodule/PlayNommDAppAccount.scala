@@ -179,7 +179,7 @@ object PlayNommDAppAccount:
           )
         yield TransactionWithResult(Signed(sig, ap))(txResult)
 
-  def verifySignature[F[_]: Monad: PlayNommState](
+  def verifySignature[F[_]: Concurrent: PlayNommState](
       sig: AccountSignature,
       tx: Transaction,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
@@ -190,10 +190,27 @@ object PlayNommDAppAccount:
         .mapK(PlayNommDAppFailure.mapInternal {
           s"Fail to decode key info of ${(sig.account, pks)}"
         })
+//      _ <- if keyInfoOption.nonEmpty then StateT.pure[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit](()) else
+      _ <- PlayNommState[F].account.key
+          .from(sig.account.toBytes)
+          .flatMapF: stream =>
+            stream.compile.toList.map: list =>
+              scribe.info(s"===> PKS: $list")
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get stream of PKSes of account ${sig.account}"
       keyInfo <- fromOption(
         keyInfoOption,
         s"There is no public key summary $pks from account ${sig.account}",
       )
+      newExpiresAt = keyInfo.expiresAt.map: instant =>
+        Seq(instant, tx.createdAt.plus(30, ChronoUnit.DAYS)).maxBy(_.toEpochMilli())
+      _ <- if keyInfo.expiresAt.map(_.toEpochMilli()) === newExpiresAt.map(_.toEpochMilli()) then StateT.pure[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit](()) else
+        PlayNommState[F].account.key
+          .put((sig.account, pks), keyInfo.copy(expiresAt = newExpiresAt))
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to update key info of ${(sig.account, pks)} with $keyInfo"
     yield ()
 
   def getAccountInfo[F[_]: Monad: PlayNommState](
