@@ -14,8 +14,10 @@ import io.circe.parser.decode
 import scodec.bits.ByteVector
 
 import api.model.{Block, Signed, StateRoot}
+import api.model.TransactionWithResult.ops.*
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
+import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
 import lib.merkle.{MerkleTrie, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
@@ -47,8 +49,8 @@ def bulkInsert[F[_]
           scribe.error(s"Error decoding line #$index: $line: $e")
           e.getMessage()
         .map(txs => (index, txs))
-  stateStream = indexWithTxsStream.evalMapAccumulate(merkleState):
-    case (ms, (index, txs)) =>
+  stateStream = indexWithTxsStream.evalMapAccumulate((bestBlock, merkleState)):
+    case ((previousBlock, ms), (index, txs)) =>
       val localKeyPair: KeyPair =
         val privateKey = scala.sys.env
           .get("LMNODE_PRIVATE_KEY")
@@ -70,7 +72,8 @@ def bulkInsert[F[_]
               .recoverWith: e =>
                 RecoverTx(e, ms, tx)
           .map: result =>
-            scribe.info(s"#$index: ${result._1.root}")
+            if index % 10000 === 0 then
+              scribe.info(s"#$index: ${result._1.root}")
             result
           .compile
           .toList
@@ -78,6 +81,7 @@ def bulkInsert[F[_]
             scribe.error(s"Error building txs #$index: $txs: $e")
             e
         (states, txWithResultOptions) = result.unzip
+        finalState = states.last
         txWithResults = txWithResultOptions.flatten
         txHashes                = txWithResults.map(_.toHash)
         txState = txs
@@ -93,10 +97,39 @@ def bulkInsert[F[_]
               .runS(state)
               .value
               .getOrElse(state)
+        stateRoot1 = StateRoot(finalState.root)
+        now = txs.map(_.value.createdAt).maxBy(_.getEpochSecond())
+        header = Block.Header(
+          number = BigNat.add(previousBlock.header.number, BigNat.One),
+          parentHash = previousBlock.toHash,
+          stateRoot = stateRoot1,
+          transactionsRoot = txState.root,
+          timestamp = now,
+        )
+        sig <- EitherT
+          .fromEither(header.toHash.signBy(localKeyPair))
+          .leftMap: msg =>
+            scribe.error(s"Fail to sign header: $msg")
+            PlayNommDAppFailure.internal(s"Fail to sign header: $msg")
+        block = Block(
+          header = header,
+          transactionHashes = txHashes.toSet.map(_.toSignedTxHash),
+          votes = Set(sig),
+        )
+        _ <- BlockRepository[F]
+          .put(block)
+          .leftMap: e =>
+            scribe.error(s"Fail to put block: $e")
+            PlayNommDAppFailure.internal(s"Fail to put block: ${e.msg}")
+        _ <- StateRepository[F]
+          .put(finalState)
+          .leftMap: e =>
+            scribe.error(s"Fail to put state: $e")
+            PlayNommDAppFailure.internal(s"Fail to put state: ${e.msg}")
         _ <- txWithResults.traverse: txWithResult =>
           EitherT.liftF:
             TransactionRepository[F].put(txWithResult)
-      yield (states.last, (index, txWithResults))
+      yield ((block, finalState), (index, txWithResults))
 
       program.leftMap: e =>
         scribe.error(s"Error applying txs #$index: $txs: $e")

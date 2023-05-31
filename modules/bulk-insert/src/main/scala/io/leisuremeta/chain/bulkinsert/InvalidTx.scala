@@ -42,3 +42,4 @@ object InvalidTxLogger:
         case InvalidTx(signer, reason, amountToBurn, tx) =>
           Async[F].delay:
             out.println(s"$signer,$reason,$amountToBurn,${tx.getClass.getSimpleName},${tx.toHash}")
+            out.flush()
