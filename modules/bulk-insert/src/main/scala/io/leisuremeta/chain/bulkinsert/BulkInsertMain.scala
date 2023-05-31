@@ -61,8 +61,8 @@ def bulkInsert[F[_]
         result <- Stream
           .fromIterator[EitherT[F, PlayNommDAppFailure, *]](txs.iterator, 1)
           .evalMapAccumulate(ms): (ms, tx) =>
-            scribe.info(s"signer: ${tx.sig.account}")
-            scribe.info(s"tx: ${tx.value}")
+//            scribe.info(s"signer: ${tx.sig.account}")
+//            scribe.info(s"tx: ${tx.value}")
             PlayNommDApp[F](tx)
               .run(ms)
               .map: (ms, txWithResult) =>
