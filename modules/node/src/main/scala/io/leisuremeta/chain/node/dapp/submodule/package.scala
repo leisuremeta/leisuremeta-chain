@@ -1,6 +1,7 @@
 package io.leisuremeta.chain
 package node
 package dapp
+package submodule
 
 import cats.{~>, Monad}
 import cats.arrow.FunctionK

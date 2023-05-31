@@ -404,7 +404,7 @@ final case class NodeApp[F[_]
     }
   yield server
 
-  def resource: F[Resource[F, Server]] = Async[F].delay {
+  def resource: Resource[F, Server] =
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(getServer(dispatcher))(server =>
@@ -413,4 +413,3 @@ final case class NodeApp[F[_]
           .map(_ => ()),
       )
     yield server
-  }

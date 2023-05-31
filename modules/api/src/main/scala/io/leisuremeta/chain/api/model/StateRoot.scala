@@ -19,7 +19,6 @@ import token.*
 
 opaque type StateRoot = Option[MerkleRoot]
 
-
 object StateRoot:
 
   def apply(main: Option[MerkleRoot]): StateRoot = main

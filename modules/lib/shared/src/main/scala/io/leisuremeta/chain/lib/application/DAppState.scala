@@ -64,12 +64,12 @@ object DAppState:
             bytesOption.traverse(_.to[V].leftMap(_.msg))
           })
         yield
-          scribe.info(s"state $name get($k) result: $vOption")
+//          scribe.info(s"state $name get($k) result: $vOption")
           vOption
       def put(k: K, v: V): StateT[ETFS, MerkleTrieState, Unit] =
         MerkleTrie
           .put[F]((nameBytes ++ k.toBytes).bits, v.toBytes)
-          .map { _ => scribe.info(s"state $name put($k, $v)") }
+//          .map { _ => scribe.info(s"state $name put($k, $v)") }
       def remove(k: K): StateT[ETFS, MerkleTrieState, Boolean] =
         MerkleTrie.remove[F]((nameBytes ++ k.toBytes).bits)
       def from(

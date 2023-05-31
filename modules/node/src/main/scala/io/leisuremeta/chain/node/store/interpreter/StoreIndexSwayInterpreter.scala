@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 
 import cats.Monad
 import cats.data.EitherT
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.effect.unsafe.IORuntime
 import cats.implicits._
 
@@ -83,16 +83,17 @@ class StoreIndexSwayInterpreter[K, V: ByteCodec](
 
 object StoreIndexSwayInterpreter {
 
-  def apply[K: ByteCodec, V: ByteCodec](dir: Path): IO[StoreIndexSwayInterpreter[K, V]] = {
+  def apply[K: ByteCodec, V: ByteCodec](dir: Path): Resource[IO, StoreIndexSwayInterpreter[K, V]] = {
 
-    scribe.debug(s"===> Generating mapIO with path $dir")
-    given KeyOrder[Slice[Byte]] = KeyOrder.default
-    given KeyOrder[K] = null
-    given ExecutionContext = swaydb.configs.level.DefaultExecutionContext.compactionEC
+    val map: IO[Map[K, Array[Byte], Nothing, IO]] =
+      given KeyOrder[Slice[Byte]] = KeyOrder.default
+      given KeyOrder[K] = null
+      given ExecutionContext = swaydb.configs.level.DefaultExecutionContext.compactionEC
+      swaydb.persistent.Map[K, Array[Byte], Nothing, IO](dir)
 
-    val map: IO[Map[K, Array[Byte], Nothing, IO]] = swaydb.persistent.Map[K, Array[Byte], Nothing, IO](dir)
-
-    map.map(new StoreIndexSwayInterpreter[K, V](_, dir))
+    Resource
+      .make(map)(_.close())
+      .map(new StoreIndexSwayInterpreter[K, V](_, dir))
   }
 
   def ensureNoRemainder[A](
