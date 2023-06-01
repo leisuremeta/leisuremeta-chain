@@ -112,29 +112,15 @@ object EthGatewayWithdrawMain extends IOApp:
     : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      ethChainId: Int,
-      lmEndpoint: String,
-      ethContract: String,
-      gatewayEthAddress: String,
+      conf: GatewayConf,
   ): F[Unit] =
     def run: F[Unit] = for
       _ <- Async[F].delay(scribe.info(s"Withdrawal check started"))
       _ <- checkLmWithdrawal[F](
         sttp,
         web3j,
-        ethChainId,
-        lmEndpoint,
-        ethContract,
-        gatewayEthAddress,
+        conf,
       )
-//      _ <- checkNftWithdrawal[F](
-//        sttp,
-//        web3j,
-//        ethChainId,
-//        lmEndpoint,
-//        ethContract,
-//        gatewayEthAddress,
-//      )
       _ <- Async[F].delay(scribe.info(s"Withdrawal check finished"))
     yield ()
 
@@ -149,9 +135,10 @@ object EthGatewayWithdrawMain extends IOApp:
   def getFungibleBalance[F[_]: Async](
       sttp: SttpBackend[F, Any],
       lmEndpoint: String,
+      targetGateway: String,
   ): F[Map[TokenDefinitionId, BalanceInfo]] = basicRequest
     .response(asStringAlways)
-    .get(uri"http://$lmEndpoint/balance/eth-gateway?movable=free")
+    .get(uri"http://$lmEndpoint/balance/$targetGateway?movable=free")
     .send(sttp)
     .map: response =>
       if response.code.isSuccess then
@@ -163,7 +150,7 @@ object EthGatewayWithdrawMain extends IOApp:
             Map.empty
       else if response.code.code === StatusCode.NotFound.code then
         scribe.info(
-          s"balance of account eth-gateway not found: ${response.body}",
+          s"balance of account $targetGateway not found: ${response.body}",
         )
         Map.empty
       else
@@ -173,9 +160,10 @@ object EthGatewayWithdrawMain extends IOApp:
   def getNftBalance[F[_]: Async](
       sttp: SttpBackend[F, Any],
       lmEndpoint: String,
+      targetGateway: String,
   ): F[Map[TokenId, NftBalanceInfo]] = basicRequest
     .response(asStringAlways)
-    .get(uri"http://$lmEndpoint/nft-balance/eth-gateway?movable=free")
+    .get(uri"http://$lmEndpoint/nft-balance/$targetGateway?movable=free")
     .send(sttp)
     .map: response =>
       if response.code.isSuccess then
@@ -187,7 +175,7 @@ object EthGatewayWithdrawMain extends IOApp:
             Map.empty
       else if response.code.code === StatusCode.NotFound.code then
         scribe.info(
-          s"nft-balance of account eth-gateway not found: ${response.body}",
+          s"nft-balance of account $targetGateway not found: ${response.body}",
         )
         Map.empty
       else
@@ -220,14 +208,11 @@ object EthGatewayWithdrawMain extends IOApp:
     : Async: Clock: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      ethChainId: Int,
-      lmEndpoint: String,
-      ethLmContract: String,
-      gatewayEthAddress: String,
-  ): F[Unit] = getFungibleBalance(sttp, lmEndpoint)
+      conf: GatewayConf,
+  ): F[Unit] = getFungibleBalance(sttp, conf.lmEndpoint, conf.targetGateway)
     .flatMap { (balanceMap: Map[TokenDefinitionId, BalanceInfo]) =>
 
-      val gatewayAccount = Account(Utf8.unsafeFrom("eth-gateway"))
+      val gatewayAccount = Account(Utf8.unsafeFrom(conf.targetGateway))
       val LM             = TokenDefinitionId(Utf8.unsafeFrom("LM"))
 
       balanceMap
@@ -249,7 +234,7 @@ object EthGatewayWithdrawMain extends IOApp:
                   accountInfo <- EitherT.fromOptionF(
                     getAccountInfo(
                       sttp,
-                      lmEndpoint,
+                      conf.lmEndpoint,
                       txWithResult.signedTx.sig.account,
                     ),
                     s"No account info of ${txWithResult.signedTx.sig.account}",
@@ -261,9 +246,9 @@ object EthGatewayWithdrawMain extends IOApp:
                   _ <- EitherT.liftF:
                     transferEthLM(
                       web3j = web3j,
-                      ethChainId = ethChainId,
-                      ethLmContract = ethLmContract,
-                      gatewayEthAddress = gatewayEthAddress,
+                      ethChainId = conf.ethChainId,
+                      ethLmContract = conf.ethContractAddress,
+                      gatewayEthAddress = conf.gatewayEthAddress,
                       receiverEthAddress = ethAddress.utf8.value,
                       amount = amount,
                     )
@@ -279,7 +264,7 @@ object EthGatewayWithdrawMain extends IOApp:
                     }),
                   )
                   _ <- EitherT.liftF:
-                    submitTx(sttp, lmEndpoint, gatewayAccount, tx1)
+                    submitTx(sttp, conf.lmEndpoint, gatewayAccount, tx1)
                 yield ()
               }.leftMap { msg =>
                 scribe.error(msg)
@@ -294,14 +279,11 @@ object EthGatewayWithdrawMain extends IOApp:
     : Async: Clock: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      ethChainId: Int,
-      lmAddress: String,
-      ethNftContract: String,
-      gatewayEthAddress: String,
-  ): F[Unit] = getNftBalance(sttp, lmAddress)
+      conf: GatewayConf,
+  ): F[Unit] = getNftBalance(sttp, conf.lmEndpoint, conf.targetGateway)
     .flatMap { (balanceMap: Map[TokenId, NftBalanceInfo]) =>
 
-      val gatewayAccount = Account(Utf8.unsafeFrom("eth-gateway"))
+      val gatewayAccount = Account(Utf8.unsafeFrom(conf.targetGateway))
 
       balanceMap.toSeq.traverse { case (tokenId, balanceInfo) =>
         balanceInfo.tx.signedTx.value match
@@ -312,16 +294,16 @@ object EthGatewayWithdrawMain extends IOApp:
                 info <- OptionT:
                   getAccountInfo(
                     sttp,
-                    lmAddress,
+                    conf.lmEndpoint,
                     balanceInfo.tx.signedTx.sig.account,
                   )
                 ethAddress <- OptionT.fromOption[F](info.ethAddress)
                 _ <- OptionT.liftF:
                   mintEthNft[F](
                     web3j = web3j,
-                    ethChainId = ethChainId,
-                    ethNftContract = ethNftContract,
-                    gatewayEthAddress = gatewayEthAddress,
+                    ethChainId = conf.ethChainId,
+                    ethNftContract = conf.ethContractAddress,
+                    gatewayEthAddress = conf.gatewayEthAddress,
                     receiverEthAddress = ethAddress.utf8.value,
                     tokenId = tokenId,
                   )
@@ -334,7 +316,7 @@ object EthGatewayWithdrawMain extends IOApp:
                     Some(Utf8.unsafeFrom("gateway balance after withdrawal")),
                 )
                 _ <- OptionT.liftF:
-                  submitTx[F](sttp, lmAddress, gatewayAccount, tx1)
+                  submitTx[F](sttp, conf.lmEndpoint, gatewayAccount, tx1)
               yield ()
             }.value
           case _ => Async[F].delay(None)
@@ -599,10 +581,7 @@ object EthGatewayWithdrawMain extends IOApp:
           checkLoop[IO](
             sttp = sttp,
             web3j = web3j,
-            ethChainId = conf.ethChainId,
-            lmEndpoint = conf.lmEndpoint,
-            ethContract = conf.ethContractAddress,
-            gatewayEthAddress = conf.gatewayEthAddress,
+            conf= conf,
           )
       .value
       .map:
