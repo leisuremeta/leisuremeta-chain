@@ -13,6 +13,7 @@ import io.leisuremeta.chain.lmscan.backend2.entity.Summary
 import io.leisuremeta.chain.lmscan.backend2.entity.Nft
 import doobie.postgres.implicits.* // list 받을때 필요
 import com.typesafe.config.ConfigFactory
+import scala.util.chaining.*
 
 val operations1 = 42.pure[ConnectionIO]
 val operations2 = sql"select 42".query[Int].unique
@@ -64,6 +65,7 @@ object DoobieExample extends IOApp.Simple:
         from tx
       """
         .query[Tx]
+        .pipe(a => a)
         .stream
         .take(5)
         .compile
