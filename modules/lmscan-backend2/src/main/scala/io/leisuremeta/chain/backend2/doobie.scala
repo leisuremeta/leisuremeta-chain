@@ -13,6 +13,7 @@ import io.leisuremeta.chain.lmscan.backend2.entity.Summary
 import io.leisuremeta.chain.lmscan.backend2.entity.Nft
 import doobie.postgres.implicits.* // list 받을때 필요
 import io.leisuremeta.chain.lmscan.backend2.entity.Tx_1
+import com.typesafe.config.ConfigFactory
 
 val operations1 = 42.pure[ConnectionIO]
 val operations2 = sql"select 42".query[Int].unique
@@ -21,14 +22,20 @@ case class Person(name: String, age: Int)
 val nel = NonEmptyList.of(Person("Bob", 12), Person("Alice", 14))
 
 object DoobieExample extends IOApp.Simple:
-  // implicit val listRead: Read[List[String]] = Read.list[String]
+  val config = ConfigFactory.load()
 
   val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    "org.postgresql.ds.PGSimpleDataSource",   // driver classname
-    "jdbc:postgresql://localhost:54320/scan", // connect URL (driver-specific)
-    "playnomm",                               // user
-    "dnflskfk0423!",                          // password
+    config.getString("ctx.db_className"), // driver classname
+    config.getString("ctx.db_url"),       // connect URL (driver-specific)
+    config.getString("ctx.db_user"),      // user
+    config.getString("ctx.db_pass"),      // password
   )
+  // val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
+  //   "org.postgresql.ds.PGSimpleDataSource",
+  //   "jdbc:postgresql://localhost:54320/scan",
+  //   "playnomm",
+  //   "dnflskfk0423!",
+  // )
 
   val queries =
     Map(
