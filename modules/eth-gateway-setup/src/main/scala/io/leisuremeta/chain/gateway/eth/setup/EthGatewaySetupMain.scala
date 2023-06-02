@@ -237,7 +237,7 @@ object EthGatewaySetupMain extends IOApp:
 
     connectKms[IO].use: kmsClient =>
       def dbEndpoint(conf: EthGatewaySetupConfig.DbConfig): Array[Byte] =
-        s"jdbc:mysql://${conf.host}/${conf.db}?user=${conf.user}&password=${conf.password}".getBytes("UTF-8")
+        s"jdbc:mysql://${conf.host}:${conf.port}/${conf.db}?user=${conf.user}&password=${conf.password}".getBytes("UTF-8")
 
       val depositEndpoint = dbEndpoint(config.depositDb)
       val withdrawEndpoint = dbEndpoint(config.withdrawDb)
