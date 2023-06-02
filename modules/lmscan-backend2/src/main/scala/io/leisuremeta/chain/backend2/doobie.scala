@@ -12,7 +12,6 @@ import io.leisuremeta.chain.lmscan.backend2.entity.Tx
 import io.leisuremeta.chain.lmscan.backend2.entity.Summary
 import io.leisuremeta.chain.lmscan.backend2.entity.Nft
 import doobie.postgres.implicits.* // list 받을때 필요
-import io.leisuremeta.chain.lmscan.backend2.entity.Tx_1
 import com.typesafe.config.ConfigFactory
 
 val operations1 = 42.pure[ConnectionIO]
@@ -30,12 +29,6 @@ object DoobieExample extends IOApp.Simple:
     config.getString("ctx.db_user"),      // user
     config.getString("ctx.db_pass"),      // password
   )
-  // val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-  //   "org.postgresql.ds.PGSimpleDataSource",
-  //   "jdbc:postgresql://localhost:54320/scan",
-  //   "playnomm",
-  //   "dnflskfk0423!",
-  // )
 
   val queries =
     Map(
@@ -66,14 +59,25 @@ object DoobieExample extends IOApp.Simple:
         .take(5)
         .compile
         .toList,
-      "f" -> sql"select hash, tx_type from tx"
-        .query[Tx_1]
+      "f" -> sql"""
+        select *
+        from tx
+      """
+        .query[Tx]
         .stream
         .take(5)
         .compile
         .toList,
       "g" -> sql"select * from nft".query[Nft].stream.take(5).compile.toList,
     )
+
+  // val sampleTx = sql"select hash, tx_type from tx"
+  //   .query[Tx_1]
+  //   .stream
+  //   .take(5)
+  //   .compile
+  //   .toList
+  //   .transact(xa)
 
   def val_run = sql"select * from tx"
     .query[Summary]  // Query0[String]
@@ -84,7 +88,6 @@ object DoobieExample extends IOApp.Simple:
     .foreach(println)
 
   def genQuery =
-    // val_run
     queries("f").transact(xa)
 
   val run =

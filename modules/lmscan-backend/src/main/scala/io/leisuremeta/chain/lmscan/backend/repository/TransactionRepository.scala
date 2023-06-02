@@ -66,6 +66,21 @@ object TransactionRepository extends CommonQuery:
       .map(dao => dao2dto(dao))
     c
 
+  def getTx2[F[_]: Async](): EitherT[F, String, Seq[DTO_Tx]] =
+    val a = quote(
+      query[Tx]
+        .take(3),
+    )
+    val b = a.pipe(f =>
+      seqQuery(
+        query[Tx]
+          .take(3),
+      ),
+    )
+    val c = b
+      .map(dao => dao2dto(dao))
+    c
+
   def getPageByTokenId[F[_]: Async](
       tokenId: String,
       pageNavInfo: PageNavigation,
