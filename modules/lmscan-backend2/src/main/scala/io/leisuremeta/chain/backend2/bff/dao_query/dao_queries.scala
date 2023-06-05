@@ -18,7 +18,7 @@ val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
 object Queries:
 
   def getTx =
-    sql"select AS from tx"
+    sql"select * from tx"
       .query[Tx] // DAO
       .stream
       .take(5)

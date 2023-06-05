@@ -52,7 +52,6 @@ import cats.effect.*
 import cats.implicits.*
 import fs2.Stream
 
-import cats.effect.unsafe.implicits.global
 import sttp.tapir.model.StatusCodeRange.ServerError
 import io.leisuremeta.chain.lmscan.common.ExploreApi.UserError
 import io.leisuremeta.chain.lmscan.common.ExploreApi.ServerError
@@ -65,12 +64,6 @@ import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 
 object BackendMain extends IOApp:
 
-  def getTx[F[_]: Async]() =
-    Queries.getTx
-      .unsafeRunSync()
-      .pipe(eitherToEitherT)
-      .map(Dao2Dto.tx)
-
 // Endpoint[Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any]
 // Full[Unit, Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any, F]
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -80,15 +73,15 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx page")
-        getTx[F](
-        ).leftMap { (errMsg) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi
-            .ServerError(errMsg.toString()))
-            .asLeft[ExploreApi.UserError]
-        }.pipe(a => a)
+        Queries.getTx
+          .pipe(QueriesPipe.pipeTx[F])
+          .leftMap { (errMsg) =>
+            scribe.error(s"errorMsg: $errMsg")
+            (ExploreApi
+              .ServerError(errMsg.toString()))
+              .asLeft[ExploreApi.UserError]
+          }
           .value
-          .pipe(a => a)
       }
 
   // def tx2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
