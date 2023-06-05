@@ -60,14 +60,15 @@ import io.leisuremeta.chain.lmscan.common.model.dao.Tx
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
+import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 // import io.leisuremeta.chain.lmscan.common.model.Utills.Dao2Dto
 
 object BackendMain extends IOApp:
 
-  def getTx[F[_]: Async]() =
-    Queries.getTx
+  def getTx2[F[_]: Async]() =
+    Queries.getTx2
       .unsafeRunSync()
-      .pipe(genEither)
+      .pipe(eitherToEitherT)
       .map(Dao2Dto.tx)
 
 // Endpoint[Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any]
@@ -79,12 +80,30 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx page")
-        getTx[F](
-        ).leftMap { (errMsg: String) =>
+        getTx2[F](
+        ).leftMap { (errMsg) =>
           scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }.value
+          (ExploreApi
+            .ServerError(errMsg.toString()))
+            .asLeft[ExploreApi.UserError]
+        }.pipe(a => a)
+          .value
+          .pipe(a => a)
       }
+
+  // def tx2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  //   baseEndpoint.get
+  //     .in("tx2")
+  //     .out(jsonBody[List[DTO_Tx]])
+  //     .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+  //       scribe.info(s"get tx page")
+  //       getTx2[F](
+  //       ).leftMap { (errMsg) =>
+  //         scribe.error(s"errorMsg: $errMsg")
+  //         // (ExploreApi.ServerError("errMsg")).asLeft[ExploreApi.UserError]
+  //         errMsg
+  //       }
+  //     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
