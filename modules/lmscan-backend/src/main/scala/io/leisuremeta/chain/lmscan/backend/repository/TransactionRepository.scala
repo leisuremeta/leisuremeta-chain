@@ -14,7 +14,8 @@ import io.getquill.Literal
 import cats.effect.{Async, IO}
 import scala.concurrent.Future
 import io.leisuremeta.chain.lmscan.common.model.dto.*
-import io.leisuremeta.chain.lmscan.common.model.Utills.*
+import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
+// import io.leisuremeta.chain.lmscan.common.model.Utills.*
 import io.getquill.autoQuote
 import scala.util.chaining.*
 
@@ -51,35 +52,20 @@ object TransactionRepository extends CommonQuery:
 
   // http://localhost:8081/tx?pipe=(take(3),absend,asd,asd,asd)&dto=(txDetailpage)&view=(form)
 
-  def getTx[F[_]: Async](): EitherT[F, String, Seq[DTO_Tx]] =
-    val a = quote(
-      query[Tx]
-        .take(3),
-    )
-    val b = a.pipe(f =>
-      seqQuery(
-        query[Tx]
-          .take(3),
-      ),
-    )
-    val c = b
-      .map(dao => dao2dto(dao))
-    c
-
-  def getTx2[F[_]: Async](): EitherT[F, String, Seq[DTO_Tx]] =
-    val a = quote(
-      query[Tx]
-        .take(3),
-    )
-    val b = a.pipe(f =>
-      seqQuery(
-        query[Tx]
-          .take(3),
-      ),
-    )
-    val c = b
-      .map(dao => dao2dto(dao))
-    c
+  // def getTx2[F[_]: Async](): EitherT[F, String, Seq[DTO_Tx]] =
+  //   val a = quote(
+  //     query[Tx]
+  //       .take(3),
+  //   )
+  //   val b = a.pipe(f =>
+  //     seqQuery(
+  //       query[Tx]
+  //         .take(3),
+  //     ),
+  //   )
+  //   val c = b
+  //     .map(dao => dao2dto(dao))
+  //   c
 
   def getPageByTokenId[F[_]: Async](
       tokenId: String,

@@ -16,7 +16,7 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import sttp.model.StatusCode
 import sttp.tapir.*
-import sttp.tapir.EndpointIO
+// import sttp.tapir.EndpointIO
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 
@@ -51,70 +51,40 @@ import cats.data.*
 import cats.effect.*
 import cats.implicits.*
 import fs2.Stream
-import com.typesafe.config.ConfigFactory
 
 import cats.effect.unsafe.implicits.global
 import sttp.tapir.model.StatusCodeRange.ServerError
 import io.leisuremeta.chain.lmscan.common.ExploreApi.UserError
 import io.leisuremeta.chain.lmscan.common.ExploreApi.ServerError
 import io.leisuremeta.chain.lmscan.common.model.dao.Tx
-import io.leisuremeta.chain.lmscan.common.model.Utills.dao2dto
+import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
+import scala.util.chaining.*
+import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
+// import io.leisuremeta.chain.lmscan.common.model.Utills.Dao2Dto
 
 object BackendMain extends IOApp:
-  val config = ConfigFactory.load()
-  val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    config.getString("ctx.db_className"), // driver classname
-    config.getString("ctx.db_url"),       // connect URL (driver-specific)
-    config.getString("ctx.db_user"),      // user
-    config.getString("ctx.db_pass"),      // password
-  )
 
   def getTx[F[_]: Async]() =
-    val a = Log.log2("tx..??")(
-      sql"select * from tx"
-        .query[Tx] // Query0[String]
-        .to[List]
-        // .take(10)
-        .transact(xa)
-        .unsafeRunSync()
-        .take(1),
-    )
-
-    EitherT
-      .rightT[F, String](a)
-      .map(dao => dao2dto(dao))
-
-  def getTx2[F[_]: Async]() =
-
-    val result = sql"select * from tx"
-      .query[Tx] // DAO
-      .stream
-      .take(5)
-      .compile // commont option
-      .toList
-      .transact(xa)
+    Queries.getTx
       .unsafeRunSync()
-
-    EitherT
-      .rightT[F, String](result)
-      .map(dao => dao) // dao2dto
+      .pipe(genEither)
+      .map(Dao2Dto.tx)
 
 // Endpoint[Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any]
 // Full[Unit, Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any, F]
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def tx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    val a = baseEndpoint.get
+    baseEndpoint.get
       .in("tx")
-      .out(jsonBody[List[Tx]])
+      .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx page")
-        getTx2[F](
+        getTx[F](
         ).leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
         }.value
       }
-    a
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
