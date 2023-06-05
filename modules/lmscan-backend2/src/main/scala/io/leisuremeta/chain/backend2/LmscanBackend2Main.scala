@@ -65,8 +65,8 @@ import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 
 object BackendMain extends IOApp:
 
-  def getTx2[F[_]: Async]() =
-    Queries.getTx2
+  def getTx[F[_]: Async]() =
+    Queries.getTx
       .unsafeRunSync()
       .pipe(eitherToEitherT)
       .map(Dao2Dto.tx)
@@ -80,7 +80,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx page")
-        getTx2[F](
+        getTx[F](
         ).leftMap { (errMsg) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi

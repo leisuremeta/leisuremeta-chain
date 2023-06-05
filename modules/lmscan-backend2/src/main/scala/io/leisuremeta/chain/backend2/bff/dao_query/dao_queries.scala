@@ -16,17 +16,8 @@ val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
 )
 
 object Queries:
-  def getTx =
-    sql"select * from tx"
-      .query[Tx] // DAO
-      .stream
-      .take(5)
-      .compile // commont option
-      .toList
-      .transact(xa)
-    // .attemptSql
 
-  def getTx2 =
+  def getTx =
     sql"select AS from tx"
       .query[Tx] // DAO
       .stream
