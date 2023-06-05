@@ -53,7 +53,7 @@ object BlockRepository extends CommonQuery:
     optionQuery(detailQuery(lift(hash)))
 
   def getByNumber[F[_]: Async](
-      number: Long
+      number: Long,
   ): EitherT[F, String, Option[Block]] =
     inline def detailQuery =
       quote { (number: Long) =>
