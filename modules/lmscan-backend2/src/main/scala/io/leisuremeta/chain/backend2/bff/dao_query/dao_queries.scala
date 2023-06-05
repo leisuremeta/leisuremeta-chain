@@ -26,22 +26,3 @@ object Queries:
       .toList
       .transact(xa)
       .attemptSql
-
-//       val xa = Transactor.fromDriverManager[IO](
-//   "org.postgresql.Driver",
-//   "jdbc:postgresql:database",
-//   "user",
-//   "password"
-// )
-
-// val query: ConnectionIO[List[Tx]] =
-//   sql"SELECT * FROM tx".query[Tx].stream.take(5).compile.toList
-
-// val result: EitherT[IO, Throwable, List[Tx]] =
-//   sql"SELECT * FROM tx".query[Tx].stream.take(5).compile.toList.attemptSql
-
-// val program: IO[Unit] = result.value.flatMap {
-//   case Right(txList) => IO(println(txList))
-//   case Left(error)   => IO(println(s"An error occurred: $error"))
-// }
-// // program.unsafeRunSync()
