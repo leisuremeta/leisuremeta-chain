@@ -16,7 +16,6 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
 import sttp.model.StatusCode
 import sttp.tapir.*
-// import sttp.tapir.EndpointIO
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 
@@ -60,19 +59,18 @@ import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
-// import io.leisuremeta.chain.lmscan.common.model.Utills.Dao2Dto
+import io.leisuremeta.chain.lmscan.common.model.dao.Account
+import io.leisuremeta.chain.lmscan.common.model.dao.DTO_Account
 
 object BackendMain extends IOApp:
 
-// Endpoint[Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any]
-// Full[Unit, Unit, Unit, Either[ServerError, UserError], Seq[DTO_Tx], Any, F]
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def tx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("tx")
       .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx page")
+        scribe.info(s"get tx")
         Queries.getTx
           .pipe(QueriesPipe.pipeTx[F])
           .leftMap { (errMsg) =>
@@ -83,27 +81,48 @@ object BackendMain extends IOApp:
           }
           .value
       }
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def tx2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    baseEndpoint.get
+      .in("tx2")
+      .out(jsonBody[List[DTO_Tx]])
+      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+        scribe.info(s"get tx2")
+        Queries.getTx_byAddress
+          .pipe(QueriesPipe.pipeTx[F])
+          .leftMap { (errMsg) =>
+            scribe.error(s"errorMsg: $errMsg")
+            (ExploreApi
+              .ServerError(errMsg.toString()))
+              .asLeft[ExploreApi.UserError]
+          }
+          .value
+      }
 
-  // def tx2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   baseEndpoint.get
-  //     .in("tx2")
-  //     .out(jsonBody[List[DTO_Tx]])
-  //     .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-  //       scribe.info(s"get tx page")
-  //       getTx2[F](
-  //       ).leftMap { (errMsg) =>
-  //         scribe.error(s"errorMsg: $errMsg")
-  //         // (ExploreApi.ServerError("errMsg")).asLeft[ExploreApi.UserError]
-  //         errMsg
-  //       }
-  //     }
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    baseEndpoint.get
+      .in("account")
+      .out(jsonBody[List[Account]])
+      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+        scribe.info(s"get Account")
+        Queries.getAccount
+          .pipe(QueriesPipe.pipeAccount[F])
+          .leftMap { (errMsg) =>
+            scribe.error(s"errorMsg: $errMsg")
+            (ExploreApi
+              .ServerError(s"errorMsg: $errMsg"))
+              .asLeft[ExploreApi.UserError]
+          }
+          .value
+      }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       tx[F],
-      // hash[F],
-      // summaryMain[F],
+      tx2[F],
+      account[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =

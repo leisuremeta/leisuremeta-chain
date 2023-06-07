@@ -12,11 +12,19 @@ import cats.implicits.*
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import java.sql.SQLException
+import io.leisuremeta.chain.lmscan.common.model.dao.Account
+import io.leisuremeta.chain.lmscan.common.model.dao.DTO_Account
 
 object QueriesPipe:
 
   def pipeTx[F[_]: Async](q: IO[Either[SQLException, List[Tx]]]) =
-    Queries.getTx
+    q
       .unsafeRunSync()
       .pipe(eitherToEitherT)
       .map(Dao2Dto.tx)
+
+  def pipeAccount[F[_]: Async](q: IO[Either[SQLException, List[Account]]]) =
+    q
+      .unsafeRunSync()
+      .pipe(eitherToEitherT)
+      .map(Dao2Dto.account)

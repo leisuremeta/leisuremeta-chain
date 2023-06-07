@@ -41,3 +41,13 @@ object Dao2Dto:
       d.displayYn,
     ),
   )
+  def account(dao: List[Account]) = dao.map(d => d)
+  // def account(dao: List[Account]) = dao.map(d =>
+  //   DTO_Account(
+  //     Some(d.address),
+  //     Some(d.createdAt),
+  //     Some(d.eventTime),
+  //     Some(d.balance),
+  //     Some(d.amount),
+  //   ),
+  // )
