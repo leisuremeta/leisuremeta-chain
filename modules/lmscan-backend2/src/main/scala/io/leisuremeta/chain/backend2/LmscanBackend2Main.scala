@@ -74,12 +74,7 @@ object BackendMain extends IOApp:
         scribe.info(s"get tx")
         Queries.getTx
           .pipe(QueriesPipe.pipeTx[F])
-          .leftMap { (errMsg) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi
-              .ServerError(errMsg.toString()))
-              .asLeft[ExploreApi.UserError]
-          }
+          .pipe(ErrorHandle.genMsg)
           .value
       }
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -91,12 +86,7 @@ object BackendMain extends IOApp:
         scribe.info(s"get tx2")
         Queries.getTx_byAddress
           .pipe(QueriesPipe.pipeTx[F])
-          .leftMap { (errMsg) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi
-              .ServerError(errMsg.toString()))
-              .asLeft[ExploreApi.UserError]
-          }
+          .pipe(ErrorHandle.genMsg)
           .value
       }
 
@@ -109,12 +99,7 @@ object BackendMain extends IOApp:
         scribe.info(s"get Account")
         Queries.getAccount
           .pipe(QueriesPipe.pipeAccount[F])
-          .leftMap { (errMsg) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi
-              .ServerError(s"errorMsg: $errMsg"))
-              .asLeft[ExploreApi.UserError]
-          }
+          .pipe(ErrorHandle.genMsg)
           .value
       }
 
@@ -141,12 +126,9 @@ object BackendMain extends IOApp:
       .out(jsonBody[DTO_AccountDetail])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get Account")
-        accountService.leftMap { (errMsg) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi
-            .ServerError(s"errorMsg: $errMsg"))
-            .asLeft[ExploreApi.UserError]
-        }.value
+        accountService
+          .pipe(ErrorHandle.genMsg)
+          .value
       }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
