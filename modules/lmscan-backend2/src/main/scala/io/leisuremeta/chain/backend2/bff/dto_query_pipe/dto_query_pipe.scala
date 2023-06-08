@@ -13,7 +13,7 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import java.sql.SQLException
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
-import io.leisuremeta.chain.lmscan.common.model.dao.DTO_Account
+import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
 
 object QueriesPipe:
 

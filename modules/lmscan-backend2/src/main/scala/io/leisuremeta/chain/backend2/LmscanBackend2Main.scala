@@ -60,7 +60,8 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
-import io.leisuremeta.chain.lmscan.common.model.dao.DTO_Account
+import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
+import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 
 object BackendMain extends IOApp:
 
@@ -103,7 +104,7 @@ object BackendMain extends IOApp:
   def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("account")
-      .out(jsonBody[List[Account]])
+      .out(jsonBody[Account])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get Account")
         Queries.getAccount
@@ -117,12 +118,44 @@ object BackendMain extends IOApp:
           .value
       }
 
+  def accountService[F[_]: Async] =
+    val r = for
+      account <- Queries.getAccount
+        .pipe(QueriesPipe.pipeAccount[F])
+      txList <- Queries.getTx.pipe(QueriesPipe.pipeTx[F])
+    yield (account, txList)
+    r.map { (account, txList) =>
+      DTO_AccountDetail(
+        address = account.address,
+        balance = account.balance,
+        value = account.balance,
+        txList = Some(txList),
+      )
+    }
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    baseEndpoint.get
+      .in("account")
+      .in("detail")
+      .out(jsonBody[DTO_AccountDetail])
+      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+        scribe.info(s"get Account")
+        accountService.leftMap { (errMsg) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi
+            .ServerError(s"errorMsg: $errMsg"))
+            .asLeft[ExploreApi.UserError]
+        }.value
+      }
+
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       tx[F],
       tx2[F],
       account[F],
+      accountDetail[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =

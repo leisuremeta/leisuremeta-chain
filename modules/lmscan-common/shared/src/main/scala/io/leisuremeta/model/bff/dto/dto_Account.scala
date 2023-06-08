@@ -1,4 +1,4 @@
-package io.leisuremeta.chain.lmscan.common.model.dao
+package io.leisuremeta.chain.lmscan.common.model.dto
 
 final case class DTO_Account(
     address: Option[String] = None,

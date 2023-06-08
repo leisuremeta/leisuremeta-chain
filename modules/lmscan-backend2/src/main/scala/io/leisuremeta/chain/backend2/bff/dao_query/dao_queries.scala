@@ -8,7 +8,7 @@ import io.leisuremeta.chain.lmscan.common.model.dao.Account
 import com.typesafe.config.ConfigFactory
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import scala.util.chaining.*
-import io.leisuremeta.chain.lmscan.common.model.dao.DTO_Account
+import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
 
 val config = ConfigFactory.load()
 val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
@@ -70,7 +70,7 @@ object Queries:
     sql"select * from account"
       .query[Account] // DAO
       .stream
-      .take(2)
+      .take(1)
       .compile // commont option
       .toList
       .transact(xa)

@@ -34,3 +34,22 @@ final case class Tx(
     subType: String,
     displayYn: Boolean,
 )
+
+// 옵션
+// final case class Tx(
+//     hash: Option[String] = None,
+//     txType: Option[String] = None,
+//     fromAddr: Option[String] = None,
+//     toAddr: Option[String] = None,
+//     blockHash: Option[String] = None,
+//     eventTime: Option[Long] = None,
+//     createdAt: Option[Long] = None,
+//     tokenType: Option[String] = None,
+//     outputVals: Option[String] = None,
+//     json: Option[String] = None,
+//     blockNumber: Option[Long] = None,
+//     inputHashs: Option[String] = None,
+//     amount: Option[Double] = None,
+//     subType: Option[String] = None,
+//     displayYn: Option[Boolean] = None,
+// )
