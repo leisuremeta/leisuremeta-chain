@@ -10,6 +10,89 @@ Queries.getTx // 쿼리 생성
 
 ```
 
+#
+
+```scala
+object QueriesFunctionTest:
+  type Q = Tx | Account
+
+  def take(l: Int)(d: fs2.Stream[doobie.ConnectionIO, Q]) = d.take(l)
+
+  def drop(l: Int)(d: fs2.Stream[doobie.ConnectionIO, Q]) = d.drop(l)
+
+  def filter(f: String)(d: fs2.Stream[doobie.ConnectionIO, Q]) =
+    d.filter(d => true)
+
+  def hash(f: Q => Boolean)(d: fs2.Stream[doobie.ConnectionIO, Q]) =
+    // d.filter(d => d.hash == hash)
+    d.filter(f)
+
+  def getPipeFunction(
+      pipeString: String,
+  ): fs2.Stream[doobie.ConnectionIO, Q] => fs2.Stream[doobie.ConnectionIO, Q] =
+    pipeString match
+      case s"take($number)" => take(number.toInt)
+      case s"drop($number)" => drop(number.toInt)
+      case s"hash($hash)" =>
+        hash(a =>
+          a match
+            case d: Tx      => d.hash == hash
+            case d: Account => d.address.get == hash,
+        )
+      case _ => filter("true")
+
+  def pipeRun(list: List[String])(
+      acc: fs2.Stream[doobie.ConnectionIO, Q],
+  ): fs2.Stream[doobie.ConnectionIO, Q] =
+    list.length == 0 match
+      case true => acc
+      case false =>
+        acc
+          .pipe(getPipeFunction(list.head))
+          .pipe(pipeRun(list.tail))
+
+  def genPipeList(pipe: Option[String]) =
+    pipe
+      .getOrElse("")
+      .split(",")
+      .toList
+
+```
+
+# tx list
+
+```scala
+  def getPage[F[_]: Async](
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[Tx]] =
+    // OFFSET 시작번호, limit 페이지보여줄갯수
+    val cntQuery = quote {
+      query[Tx]
+    }
+
+    inline def pagedQuery =
+      quote { (pageNavInfo: PageNavigation) =>
+        val sizePerRequest = pageNavInfo.sizePerRequest
+        val offset         = sizePerRequest * pageNavInfo.pageNo
+
+        query[Tx]
+          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
+          .drop(offset)
+          .filter(t => t.display_yn == true)
+          .take(sizePerRequest)
+      }
+
+    val res = for
+      totalCnt <- countQuery(cntQuery)
+      payload  <- seqQuery(pagedQuery(lift(pageNavInfo)))
+    yield (totalCnt, payload)
+
+    res.map { (totalCnt, payload) =>
+      val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
+      new PageResponse(totalCnt, totalPages, payload)
+    }
+```
+
 ```scala
 // todo
 // http://localhost:8081/tx?pipe=(take(3),absend,asd,asd,asd)&dto=(txDetailpage)&view=(form)
