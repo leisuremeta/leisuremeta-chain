@@ -9,6 +9,8 @@ import com.typesafe.config.ConfigFactory
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
+import io.leisuremeta.chain.lmscan.backend2.Log.log2
+import cats.instances.boolean
 
 val config = ConfigFactory.load()
 val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
@@ -19,6 +21,57 @@ val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
 )
 
 object Queries:
+
+  def take[F](l: Int)(d: fs2.Stream[doobie.ConnectionIO, F]) =
+    d.take(l)
+
+  def filter[F](b: Boolean)(d: fs2.Stream[doobie.ConnectionIO, F]) =
+    d.filter(a => b)
+
+  def getPipeFunction[F](pipeString: String = "take(3)") =
+    pipeString match
+      case s"take($number)" => take[F](number.toInt)
+      case _                => filter[F](true)
+
+  def pipeList2pipeFunction(
+      pipeList: List[String] = List("take(3)", "absend"),
+  ) =
+    pipeList.map(getPipeFunction)
+
+  def pipeStr2pipeList(pipe: Option[String]) =
+    pipe.getOrElse("") match
+      case "" => ""
+      case _  => ""
+
+  def pipeRun[F](list: List[String])(
+      acc: fs2.Stream[doobie.ConnectionIO, F],
+  ): fs2.Stream[doobie.ConnectionIO, F] =
+    list.length == 0 match
+      case true => acc
+      case false =>
+        acc.pipe(getPipeFunction(list.head)).pipe(pipeRun[F](list.tail))
+
+  def genPipeList(pipe: Option[String]) =
+    pipe
+      .getOrElse("")
+      .split(",")
+      .toList
+
+  def getTxPipe(pipeString: Option[String]) =
+    sql"select * from tx"
+      .query[Tx] // DAO
+      .stream
+      .pipe(
+        pipeString
+          .pipe(genPipeList)
+          .pipe(pipeRun),
+      )
+      // .filter(t => t.blockNumber == 2.pipe(a => a))
+      // .take(2)
+      .compile // commont option
+      .toList
+      .transact(xa)
+      .attemptSql
 
   def getTx =
     sql"select * from tx"

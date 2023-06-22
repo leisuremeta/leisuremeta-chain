@@ -1,3 +1,23 @@
+# flow
+
+```scala
+
+
+Queries.getTx // 쿼리 생성
+|> QueriesPipe.pipeTx // 쿼리실헹 |> DTO 적용
+|> ErrorHandle.genMsg // 에러핸들
+|> .value // 값
+
+```
+
+```scala
+// todo
+// http://localhost:8081/tx?pipe=(take(3),absend,asd,asd,asd)&dto=(txDetailpage)&view=(form)
+
+
+```
+
+```scala
 package io.leisuremeta.chain.lmscan
 package backend2
 
@@ -65,31 +85,10 @@ import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 
 object BackendMain extends IOApp:
 
-  // http://localhost:8081/tx/list?useDataNav=true&pageNo=0&sizePerRequest=10
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getTxPageEndPoint = baseEndpoint.get
-    .in("tx" / "list")
-    .in(
-      sttp.tapir.EndpointInput.derived[PageNavigation],
-    )
-    .in(
-      query[Option[String]]("accountAddr")
-        .and(query[Option[String]]("blockHash"))
-        .and(query[Option[String]]("subtype")),
-    )
-  // .serverLogic {
-  //   (
-  //       pageInfo,
-  //       accountAddr,
-  //       blockHash,
-  //       subType,
-  //   ) =>
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx_test[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  def tx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("tx")
-      .in("test")
       .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx")
@@ -99,31 +98,13 @@ object BackendMain extends IOApp:
           .value
       }
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx_test2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  def tx2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
-      .in("tx")
-      .in("test2")
+      .in("tx2")
       .out(jsonBody[List[DTO_Tx]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx2")
         Queries.getTx_byAddress
-          .pipe(QueriesPipe.pipeTx[F])
-          .pipe(ErrorHandle.genMsg)
-          .value
-      }
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    baseEndpoint.get
-      .in("tx")
-      .in(
-        query[Option[String]]("pipe"),
-      )
-      .out(jsonBody[List[DTO_Tx]])
-      .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx with pipe=$pipe")
-        Queries
-          .getTxPipe(pipe)
           .pipe(QueriesPipe.pipeTx[F])
           .pipe(ErrorHandle.genMsg)
           .value
@@ -174,8 +155,7 @@ object BackendMain extends IOApp:
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       tx[F],
-      tx_test[F],
-      tx_test2[F],
+      tx2[F],
       account[F],
       accountDetail[F],
     )
@@ -222,3 +202,4 @@ object BackendMain extends IOApp:
       yield server
 
     program.useForever.as(ExitCode.Success)
+```
