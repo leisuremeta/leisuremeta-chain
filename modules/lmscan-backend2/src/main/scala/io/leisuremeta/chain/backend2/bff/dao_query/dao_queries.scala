@@ -3,6 +3,7 @@ package backend2
 import doobie.*
 import doobie.implicits.*
 import doobie.util.ExecutionContexts
+import scala.reflect.runtime.universe.*
 
 import io.leisuremeta.chain.lmscan.common.model.dao.Tx
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
@@ -13,10 +14,10 @@ import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
 import io.leisuremeta.chain.lmscan.backend2.Log.log2
 import cats.instances.boolean
 import doobie.ConnectionIO
+import scala.reflect.ClassTag
 
 import fs2.Stream
-
-// import io.getquill
+import io.leisuremeta.chain.lmscan.common.model.dao.DAO
 
 val config = ConfigFactory.load()
 val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
@@ -27,46 +28,39 @@ val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
 )
 
 object QueriesFunction:
-  def take[T](l: Int)(d: Stream[ConnectionIO, T]) = d.take(l)
 
-  def drop[T](l: Int)(d: Stream[ConnectionIO, T]) = d.drop(l)
+  def take(l: Int)(d: Stream[ConnectionIO, Tx]) = d.take(l)
 
-  def filter[T](f: String)(d: Stream[ConnectionIO, T]) =
+  def drop(l: Int)(d: Stream[ConnectionIO, Tx]) = d.drop(l)
+
+  def filter(str: String)(
+      d: Stream[ConnectionIO, Tx],
+  ) =
+    d.filter(d => d.hash == str)
+
+  def filterSelf(
+      d: Stream[ConnectionIO, Tx],
+  ) =
     d.filter(d => true)
 
-  // def hash[T](f: String => Boolean)(
-  //     d: Stream[ConnectionIO, T],
-  // ): Stream[ConnectionIO, T] =
-  //   d.filter(x match
-  //     case a: Tx => ???
-
-  //   )
-  // d match
-  //   case d: Stream[ConnectionIO, Tx] =>
-  //     d.filter(d => d.hash == "hash")
-  //   case d: Stream[ConnectionIO, Account] =>
-  //     d.filter(d => d.address.get == "hash")
-  //   case _ =>
-  //     d.filter(d => true)
-
-  def getPipeFunction[T](
+  def getPipeFunction(
       pipeString: String,
-  ): Stream[ConnectionIO, T] => Stream[ConnectionIO, T] =
+  ): Stream[ConnectionIO, Tx] => Stream[ConnectionIO, Tx] =
     pipeString match
-      case s"take($number)" => take[T](number.toInt)
-      case s"drop($number)" => drop[T](number.toInt)
-      // case s"hash($hash)"   => hash[T](hash => true, )
-      case _ => filter[T]("true")
+      case s"take($number)" => take(number.toInt)
+      case s"drop($number)" => drop(number.toInt)
+      case s"hash($str)"    => filter(str)
+      case _                => filterSelf
 
-  def pipeRun[T](list: List[String])(
-      acc: Stream[ConnectionIO, T],
-  ): Stream[ConnectionIO, T] =
+  def pipeRun(list: List[String])(
+      acc: Stream[ConnectionIO, Tx],
+  ): Stream[ConnectionIO, Tx] =
     list.length == 0 match
       case true => acc
       case false =>
         acc
           .pipe(getPipeFunction(list.head))
-          .pipe(pipeRun[T](list.tail))
+          .pipe(pipeRun(list.tail))
 
   def genPipeList(pipe: Option[String]) =
     pipe
@@ -77,24 +71,16 @@ object QueriesFunction:
 object Queries:
   import QueriesFunction.*
 
-  // https://devscan.leisuremeta.io/transactions/1 == https://devscan.leisuremeta.io/transaction/7fdc83bf729874a710af9dcab1c97d04daa89e96e378d7c44679f3c182d4b2ac
-  // https://devscan.leisuremeta.io/transaction/7fdc83bf729874a710af9dcab1c97d04daa89e96e378d7c44679f3c182d4b2ac ==
-  def getTxPipe[T](pipeString: Option[String]) =
+  def getTxPipe(pipeString: Option[String]) =
     sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
       .query[Tx] // DAO
       .stream
       .pipe(
-        // common
         pipeString
           .pipe(genPipeList)
           .pipe(pipeRun),
       )
       .pipe(a => a)
-      .take(100)
-      .filter(tx =>
-        tx.hash == "7fdc83bf729874a710af9dcab1c97d04daa89e96e378d7c44679f3c182d4b2ac",
-      )
-      // .filter(t => t.blockNumber == 2.pipe(a => a))
       .compile
       .toList
       .transact(xa)

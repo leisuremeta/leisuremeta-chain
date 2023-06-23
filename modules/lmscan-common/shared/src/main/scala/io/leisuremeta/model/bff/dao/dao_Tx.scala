@@ -33,7 +33,7 @@ final case class Tx(
     amount: Option[Double],
     subType: String,
     displayYn: Boolean,
-)
+) extends DAO
 
 // 옵션
 // final case class Tx(
