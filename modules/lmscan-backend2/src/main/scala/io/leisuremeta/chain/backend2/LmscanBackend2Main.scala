@@ -78,13 +78,6 @@ object BackendMain extends IOApp:
         .and(query[Option[String]]("blockHash"))
         .and(query[Option[String]]("subtype")),
     )
-  // .serverLogic {
-  //   (
-  //       pageInfo,
-  //       accountAddr,
-  //       blockHash,
-  //       subType,
-  //   ) =>
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def tx_test[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
