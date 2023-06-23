@@ -29,17 +29,17 @@ val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
 
 object QueriesFunction:
 
-  def take(l: Int)(d: Stream[ConnectionIO, Tx]) = d.take(l)
+  def take[T](l: Int)(d: Stream[ConnectionIO, T]) = d.take(l)
 
-  def drop(l: Int)(d: Stream[ConnectionIO, Tx]) = d.drop(l)
+  def drop[T](l: Int)(d: Stream[ConnectionIO, T]) = d.drop(l)
 
-  def filter(str: String)(
+  def filterTxHash(str: String)(
       d: Stream[ConnectionIO, Tx],
   ) =
     d.filter(d => d.hash == str)
 
-  def filterSelf(
-      d: Stream[ConnectionIO, Tx],
+  def filterSelf[T](
+      d: Stream[ConnectionIO, T],
   ) =
     d.filter(d => true)
 
@@ -49,7 +49,7 @@ object QueriesFunction:
     pipeString match
       case s"take($number)" => take(number.toInt)
       case s"drop($number)" => drop(number.toInt)
-      case s"hash($str)"    => filter(str)
+      case s"hash($str)"    => filterTxHash(str)
       case _                => filterSelf
 
   def pipeRun(list: List[String])(
@@ -91,6 +91,7 @@ object Queries:
       .query[Tx] // DAO
       .stream
       .filter(t => t.blockNumber == 2.pipe(a => a))
+      .pipe(a => a)
       .take(2)
       .compile // commont option
       .toList

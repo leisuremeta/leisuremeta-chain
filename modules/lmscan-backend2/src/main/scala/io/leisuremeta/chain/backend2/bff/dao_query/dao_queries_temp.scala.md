@@ -84,6 +84,13 @@ trait QueryGen[T]:
   ): Stream[ConnectionIO, T] =
     d.filter(f(str))
 
+    def filter[T <: DAO](str: String)(
+      d: Stream[ConnectionIO, T],
+  ) =
+    d match
+      case d: Stream[ConnectionIO, Tx] => d.filter(d => d.hash == str)
+  def genStream(d: Unit) = Stream[ConnectionIO, Tx]
+
 given QueryGen[Tx] with
   def filter(str: String)(d: Stream[ConnectionIO, Tx]) =
     d.filter(d => d.hash == str)
