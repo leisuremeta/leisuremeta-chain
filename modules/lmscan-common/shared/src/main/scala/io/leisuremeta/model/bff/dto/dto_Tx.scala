@@ -28,3 +28,6 @@ final case class DTO_Tx_type2(
     amount: Option[Double] = None,
     subType: Option[String] = None,
 )
+final case class DTO_Tx_count(
+    count: Long = 0,
+)

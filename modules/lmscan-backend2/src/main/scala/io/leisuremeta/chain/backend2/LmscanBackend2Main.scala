@@ -62,6 +62,7 @@ import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
 import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
+import cats.instances.unit
 
 object BackendMain extends IOApp:
 
@@ -129,6 +130,20 @@ object BackendMain extends IOApp:
           .value
       }
 
+  def txCount[F[_]: Async] =
+    baseEndpoint.get
+      .in("tx")
+      .in("count")
+      .out(jsonBody[List[DTO_Tx_count]])
+      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+        scribe.info(s"get tx count")
+        Queries
+          .getTxCount()
+          .pipe(QueriesPipe.pipeTxG[F])
+          .pipe(ErrorHandle.genMsg)
+          .value
+      }
+
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
@@ -178,6 +193,7 @@ object BackendMain extends IOApp:
       tx_test2[F],
       account[F],
       accountDetail[F],
+      txCount[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =

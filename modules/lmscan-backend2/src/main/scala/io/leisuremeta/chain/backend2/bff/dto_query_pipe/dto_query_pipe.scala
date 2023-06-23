@@ -13,7 +13,8 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import java.sql.SQLException
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
-import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
+import io.leisuremeta.chain.lmscan.common.model.dto.*
+// import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Tx_count.count
 
 object QueriesPipe:
 
@@ -22,6 +23,12 @@ object QueriesPipe:
       .unsafeRunSync()
       .pipe(eitherToEitherT)
       .map(Dao2Dto.tx_type1)
+
+  def pipeTxG[F[_]: Async](q: IO[Either[SQLException, List[Int]]]) =
+    q
+      .unsafeRunSync()
+      .pipe(eitherToEitherT)
+      .map(d => List(new DTO_Tx_count(count = d(0))))
 
   def pipeAccount[F[_]: Async](q: IO[Either[SQLException, List[Account]]]) =
     q

@@ -5,12 +5,11 @@ import doobie.implicits.*
 import doobie.util.ExecutionContexts
 import scala.reflect.runtime.universe.*
 
-import io.leisuremeta.chain.lmscan.common.model.dao.Tx
-import io.leisuremeta.chain.lmscan.common.model.dao.Account
+import io.leisuremeta.chain.lmscan.common.model.dao.*
 import com.typesafe.config.ConfigFactory
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import scala.util.chaining.*
-import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
+import io.leisuremeta.chain.lmscan.common.model.dto.*
 import io.leisuremeta.chain.lmscan.backend2.Log.log2
 import cats.instances.boolean
 import doobie.ConnectionIO
@@ -83,6 +82,17 @@ object Queries:
           .pipe(pipeRun),
       )
       .pipe(a => a)
+      .compile
+      .toList
+      .transact(xa)
+      .attemptSql
+
+  def getTxCount() =
+    // sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
+    sql"SELECT COUNT(*) FROM Tx "
+      .query[Int] // DAO
+      .pipe(log2("dma..."))
+      .stream
       .compile
       .toList
       .transact(xa)
