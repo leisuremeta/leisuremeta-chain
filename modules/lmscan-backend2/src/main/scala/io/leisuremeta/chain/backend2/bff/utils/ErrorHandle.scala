@@ -6,7 +6,6 @@ import cats.data.EitherT
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import common.ExploreApi
 import cats.implicits.catsSyntaxEitherId
-import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Tx
 
 object ErrorHandle:
   def genMsg[F[_]: Async, A, B](pipe: EitherT[F, A, B]) =

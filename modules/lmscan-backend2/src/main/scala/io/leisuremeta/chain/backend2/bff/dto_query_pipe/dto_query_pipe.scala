@@ -21,7 +21,7 @@ object QueriesPipe:
     q
       .unsafeRunSync()
       .pipe(eitherToEitherT)
-      .map(Dao2Dto.tx)
+      .map(Dao2Dto.tx_type1)
 
   def pipeAccount[F[_]: Async](q: IO[Either[SQLException, List[Account]]]) =
     q

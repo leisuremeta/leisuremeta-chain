@@ -90,7 +90,7 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("tx")
       .in("test")
-      .out(jsonBody[List[DTO_Tx]])
+      .out(jsonBody[List[DTO_Tx_type1]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx")
         Queries.getTx
@@ -103,7 +103,7 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("tx")
       .in("test2")
-      .out(jsonBody[List[DTO_Tx]])
+      .out(jsonBody[List[DTO_Tx_type1]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx2")
         Queries.getTx_byAddress
@@ -119,7 +119,7 @@ object BackendMain extends IOApp:
       .in(
         query[Option[String]]("pipe"),
       )
-      .out(jsonBody[List[DTO_Tx]])
+      .out(jsonBody[List[DTO_Tx_type1]])
       .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx with pipe=$pipe")
         Queries

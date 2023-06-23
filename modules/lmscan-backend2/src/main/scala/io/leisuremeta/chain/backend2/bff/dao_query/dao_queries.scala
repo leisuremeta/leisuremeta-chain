@@ -27,11 +27,13 @@ val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
   config.getString("ctx.db_pass"),      // password
 )
 
-object QueriesFunction:
-
+object QueriesFunctionCommon:
   def take[T](l: Int)(d: Stream[ConnectionIO, T]) = d.take(l)
 
   def drop[T](l: Int)(d: Stream[ConnectionIO, T]) = d.drop(l)
+
+object QueriesFunction:
+  import QueriesFunctionCommon.*
 
   def filterTxHash(str: String)(
       d: Stream[ConnectionIO, Tx],
@@ -43,7 +45,7 @@ object QueriesFunction:
   ) =
     d.filter(d => true)
 
-  def getPipeFunction(
+  def getPipeFunctionTx(
       pipeString: String,
   ): Stream[ConnectionIO, Tx] => Stream[ConnectionIO, Tx] =
     pipeString match
@@ -59,7 +61,7 @@ object QueriesFunction:
       case true => acc
       case false =>
         acc
-          .pipe(getPipeFunction(list.head))
+          .pipe(getPipeFunctionTx(list.head))
           .pipe(pipeRun(list.tail))
 
   def genPipeList(pipe: Option[String]) =
