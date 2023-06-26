@@ -14,7 +14,6 @@ import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import java.sql.SQLException
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
 import io.leisuremeta.chain.lmscan.common.model.dto.*
-// import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Tx_count.count
 
 object QueriesPipe:
 
@@ -24,11 +23,11 @@ object QueriesPipe:
       .pipe(eitherToEitherT)
       .map(Dao2Dto.tx_type1)
 
-  def pipeTxG[F[_]: Async](q: IO[Either[SQLException, List[Int]]]) =
+  def pipeTxCount[F[_]: Async](q: IO[Either[SQLException, Int]]) =
     q
       .unsafeRunSync()
       .pipe(eitherToEitherT)
-      .map(d => List(new DTO_Tx_count(count = d(0))))
+      .map(d => new DTO_Tx_count(count = d))
 
   def pipeAccount[F[_]: Async](q: IO[Either[SQLException, List[Account]]]) =
     q

@@ -63,6 +63,7 @@ import io.leisuremeta.chain.lmscan.common.model.dao.Account
 import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import cats.instances.unit
+import io.leisuremeta.chain.backend2.CountQuery
 
 object BackendMain extends IOApp:
 
@@ -127,12 +128,12 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("tx")
       .in("count")
-      .out(jsonBody[List[DTO_Tx_count]])
+      .out(jsonBody[DTO_Tx_count])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx count")
-        Queries
+        CountQuery
           .getTxCount()
-          .pipe(QueriesPipe.pipeTxG[F])
+          .pipe(QueriesPipe.pipeTxCount[F])
           .pipe(ErrorHandle.genMsg)
           .value
       }
