@@ -16,21 +16,22 @@ import io.leisuremeta.chain.lmscan.common.model.dao.Account
 import io.leisuremeta.chain.lmscan.common.model.dto.*
 
 object QueriesPipe:
+  def genericQueryPipe[F[_]: Async, A, B](
+      f: A => B,
+  )(q: IO[Either[SQLException, A]]) =
+    q
+      .unsafeRunSync()
+      .pipe(eitherToEitherT)
+      .map(f)
 
   def pipeTx[F[_]: Async](q: IO[Either[SQLException, List[Tx]]]) =
     q
-      .unsafeRunSync()
-      .pipe(eitherToEitherT)
-      .map(Dao2Dto.tx_type1)
+      .pipe(genericQueryPipe(Dao2Dto.tx_type1))
 
   def pipeTxCount[F[_]: Async](q: IO[Either[SQLException, Int]]) =
     q
-      .unsafeRunSync()
-      .pipe(eitherToEitherT)
-      .map(d => new DTO_Tx_count(count = d))
+      .pipe(genericQueryPipe(d => new DTO_Tx_count(count = d)))
 
   def pipeAccount[F[_]: Async](q: IO[Either[SQLException, List[Account]]]) =
     q
-      .unsafeRunSync()
-      .pipe(eitherToEitherT)
-      .map(Dao2Dto.account)
+      .pipe(genericQueryPipe(Dao2Dto.account))
