@@ -40,7 +40,6 @@ import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
 import io.leisuremeta.chain.lmscan.common.ExploreApi.baseEndpoint
-import io.leisuremeta.chain.lmscan.common.model.dto.*
 import io.circe.Encoder.AsArray.importedAsArrayEncoder
 import doobie.*
 import doobie.implicits.*
@@ -54,12 +53,10 @@ import fs2.Stream
 import sttp.tapir.model.StatusCodeRange.ServerError
 import io.leisuremeta.chain.lmscan.common.ExploreApi.UserError
 import io.leisuremeta.chain.lmscan.common.ExploreApi.ServerError
-import io.leisuremeta.chain.lmscan.common.model.dao.Tx
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
-import io.leisuremeta.chain.lmscan.common.model.dao.Account
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import cats.instances.unit
 import io.leisuremeta.chain.backend2.CountQuery
@@ -141,7 +138,7 @@ object BackendMain extends IOApp:
   def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("account")
-      .out(jsonBody[Account])
+      .out(jsonBody[DAO.Account])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get Account")
         Queries.getAccount

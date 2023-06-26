@@ -5,18 +5,16 @@ import doobie.implicits.*
 import doobie.util.ExecutionContexts
 import scala.reflect.runtime.universe.*
 
-import io.leisuremeta.chain.lmscan.common.model.dao.*
 import com.typesafe.config.ConfigFactory
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import scala.util.chaining.*
-import io.leisuremeta.chain.lmscan.common.model.dto.*
 import io.leisuremeta.chain.lmscan.backend2.Log.log2
 import cats.instances.boolean
 import doobie.ConnectionIO
 import scala.reflect.ClassTag
 
 import fs2.Stream
-import io.leisuremeta.chain.lmscan.common.model.dao.DAO
+import io.leisuremeta.chain.lmscan.common.model.DAO
 
 val config = ConfigFactory.load()
 val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
@@ -35,7 +33,7 @@ object QueriesFunction:
   import QueriesFunctionCommon.*
 
   def filterTxHash(str: String)(
-      d: Stream[ConnectionIO, Tx],
+      d: Stream[ConnectionIO, DAO.Tx],
   ) =
     d.filter(d => d.hash == str)
 
@@ -46,7 +44,7 @@ object QueriesFunction:
 
   def getPipeFunctionTx(
       pipeString: String,
-  ): Stream[ConnectionIO, Tx] => Stream[ConnectionIO, Tx] =
+  ): Stream[ConnectionIO, DAO.Tx] => Stream[ConnectionIO, DAO.Tx] =
     pipeString match
       case s"take($number)" => take(number.toInt)
       case s"drop($number)" => drop(number.toInt)
@@ -54,8 +52,8 @@ object QueriesFunction:
       case _                => filterSelf
 
   def pipeRun(list: List[String])(
-      acc: Stream[ConnectionIO, Tx],
-  ): Stream[ConnectionIO, Tx] =
+      acc: Stream[ConnectionIO, DAO.Tx],
+  ): Stream[ConnectionIO, DAO.Tx] =
     list.length == 0 match
       case true => acc
       case false =>
@@ -74,7 +72,7 @@ object Queries:
 
   def getTxPipe(pipeString: Option[String]) =
     sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
-      .query[Tx] // DAO
+      .query[DAO.Tx] // DAO
       .stream
       .pipe(
         pipeString
@@ -89,7 +87,7 @@ object Queries:
 
   def getTx =
     sql"select * from tx"
-      .query[Tx] // DAO
+      .query[DAO.Tx] // DAO
       .stream
       .filter(t => t.blockNumber == 2.pipe(a => a))
       .pipe(a => a)
@@ -101,7 +99,7 @@ object Queries:
 
   def getTx_byAddress =
     sql"select * from tx"
-      .query[Tx] // DAO
+      .query[DAO.Tx] // DAO
       .stream
       .filter(t => t.fromAddr == "playnomm" || t.toAddr.contains("playnomm"))
       .take(2)
@@ -112,7 +110,7 @@ object Queries:
 
   def getAccount =
     sql"select * from account"
-      .query[Account] // DAO
+      .query[DAO.Account] // DAO
       .stream
       .take(1)
       .compile // commont option

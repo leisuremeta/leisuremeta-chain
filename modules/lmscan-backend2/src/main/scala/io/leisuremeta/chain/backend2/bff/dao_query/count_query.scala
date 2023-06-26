@@ -8,7 +8,6 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.backend2.Log.log2
 
 import fs2.Stream
-import io.leisuremeta.chain.lmscan.common.model.dao.DAO
 
 val config = ConfigFactory.load()
 val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
