@@ -83,7 +83,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO.Tx.type1]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx")
-        Queries.getTx
+        TxQuery.getTx
           .pipe(QueriesPipe.pipeTx[F])
           .pipe(ErrorHandle.genMsg)
           .value
@@ -96,7 +96,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO.Tx.type1]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx2")
-        Queries.getTx_byAddress
+        TxQuery.getTx_byAddress
           .pipe(QueriesPipe.pipeTx[F])
           .pipe(ErrorHandle.genMsg)
           .value
@@ -112,7 +112,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO.Tx.type1]])
       .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx with pipe=$pipe")
-        Queries
+        TxQuery
           .getTxPipe(pipe)
           .pipe(QueriesPipe.pipeTx[F])
           .pipe(ErrorHandle.genMsg)
@@ -140,7 +140,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[DAO.Account])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get Account")
-        Queries.getAccount
+        TxQuery.getAccount
           .pipe(QueriesPipe.pipeAccount[F])
           .pipe(ErrorHandle.genMsg)
           .value
@@ -148,9 +148,9 @@ object BackendMain extends IOApp:
 
   def accountService[F[_]: Async] =
     val r = for
-      account <- Queries.getAccount
+      account <- TxQuery.getAccount
         .pipe(QueriesPipe.pipeAccount[F])
-      txList <- Queries.getTx.pipe(QueriesPipe.pipeTx[F])
+      txList <- TxQuery.getTx.pipe(QueriesPipe.pipeTx[F])
     yield (account, txList)
     r.map { (account, txList) =>
       DTO.Account.Detail(

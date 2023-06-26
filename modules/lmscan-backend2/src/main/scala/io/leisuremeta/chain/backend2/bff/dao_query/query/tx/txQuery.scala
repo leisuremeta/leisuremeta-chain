@@ -14,7 +14,7 @@ import fs2.Stream
 import io.leisuremeta.chain.lmscan.common.model.DAO
 import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
 
-object Queries:
+object TxQuery:
   import TxQueryPipe.*
 
   def getTxPipe(pipeString: Option[String]) =
