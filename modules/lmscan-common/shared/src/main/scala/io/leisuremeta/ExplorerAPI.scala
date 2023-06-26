@@ -10,7 +10,6 @@ import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.dao.*
 // import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import io.leisuremeta.chain.lmscan.common.model.*
 
