@@ -4,7 +4,6 @@ import cats.effect.unsafe.implicits.global
 import doobie.*
 import doobie.implicits.*
 import doobie.util.ExecutionContexts
-// import io.leisuremeta.chain.lmscan.common.model.dao.Tx
 import com.typesafe.config.ConfigFactory
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
@@ -12,8 +11,6 @@ import cats.implicits.*
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 import java.sql.SQLException
-// import io.leisuremeta.chain.lmscan.common.model.dao.Account
-// import io.leisuremeta.chain.lmscan.common.model.dto.*
 import io.leisuremeta.chain.lmscan.common.model.*
 
 object QueriesPipe:

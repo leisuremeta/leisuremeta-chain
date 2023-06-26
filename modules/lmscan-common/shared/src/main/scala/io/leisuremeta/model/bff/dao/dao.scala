@@ -26,3 +26,45 @@ enum DAO:
       balance: Option[BigDecimal] = None,
       amount: Option[BigDecimal] = None,
   )
+
+  case Block(
+      number: Long,
+      hash: String,
+      parentHash: String,
+      txCount: Long,
+      eventTime: Long,
+      createdAt: Long,
+  )
+
+  case Nft(
+      tokenId: String,
+      txHash: String,
+      action: String,
+      fromAddr: String,
+      toAddr: String,
+      eventTime: Long,
+      createdAt: Long,
+  )
+
+  case NftFile(
+      tokenId: String,
+      tokenDefId: String,
+      collectionName: String,
+      nftName: String,
+      nftUri: String,
+      creatorDescription: String,
+      dataUrl: String,
+      rarity: String,
+      creator: String,
+      eventTime: Long,
+      createdAt: Long,
+      owner: String,
+  )
+  case Summary(
+      id: Long,
+      lmPrice: Double,
+      blockNumber: Long,
+      totalTxSize: Long,
+      totalAccounts: Long,
+      createdAt: Long,
+  )
