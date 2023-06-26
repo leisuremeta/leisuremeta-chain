@@ -18,6 +18,8 @@ import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 // import io.leisuremeta.chain.lmscan.common.model.Utills.*
 import io.getquill.autoQuote
 import scala.util.chaining.*
+import io.leisuremeta.chain.lmscan.backend.entity.Tx
+import io.leisuremeta.chain.lmscan.backend.entity.Nft
 
 trait TransactionRepository[F[_]]:
   def getPage(

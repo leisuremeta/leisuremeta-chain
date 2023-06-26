@@ -23,6 +23,7 @@ object Dao2Dto:
       d.displayYn,
     ),
   )
+
   def tx_type2(dao: List[DAO.Tx]) = dao.map(d =>
     DTO.Tx.type2(
       hash = Some(d.hash),
@@ -36,4 +37,5 @@ object Dao2Dto:
       subType = Some(d.subType),
     ),
   )
+
   def account(dao: List[DAO.Account]) = dao.map(d => d)(0)
