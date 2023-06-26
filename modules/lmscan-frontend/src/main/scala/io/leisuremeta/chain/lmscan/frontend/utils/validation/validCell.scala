@@ -20,6 +20,8 @@ enum Cell:
   case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
   case ACCOUNT_HASH_DETAIL(data: Option[String], css: String = "cell")
       extends Cell
+  case ACCOUNT_HASH_Long(data: Option[String], css: String = "cell")
+      extends Cell
   case TX_HASH(data: Option[String])                    extends Cell
   case TX_HASH10(data: Option[String])                  extends Cell
   case Tx_VALUE(data: (Option[String], Option[String])) extends Cell
@@ -185,7 +187,7 @@ object gen:
                     name = PageCase.AccountDetail().name,
                     url = s"account/${plainStr(hash)}",
                     pubs = List(
-                      PubCase.BoardPub(1, "", SummaryModel()),
+                      // PubCase.BoardPub(1, "", SummaryModel()),
                       PubCase.AccountDetailPub(hash = plainStr(hash)),
                       PubCase.TxPub(
                         page = 1,
@@ -198,6 +200,30 @@ object gen:
               ),
             )(
               accountHash(hash),
+            ),
+          )
+        case Cell.ACCOUNT_HASH_Long(hash, css) =>
+          div(`class` := "cell type-3")(
+            span(
+              onClick(
+                PageMsg.PreUpdate(
+                  PageCase.AccountDetail(
+                    name = PageCase.AccountDetail().name,
+                    url = s"account/${plainStr(hash)}",
+                    pubs = List(
+                      // PubCase.BoardPub(1, "", SummaryModel()),
+                      PubCase.AccountDetailPub(hash = plainStr(hash)),
+                      PubCase.TxPub(
+                        page = 1,
+                        accountAddr = plainStr(hash),
+                        sizePerRequest = 10,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )(
+              accountHash_DETAIL(hash),
             ),
           )
         case Cell.ACCOUNT_HASH_DETAIL(data, css) =>

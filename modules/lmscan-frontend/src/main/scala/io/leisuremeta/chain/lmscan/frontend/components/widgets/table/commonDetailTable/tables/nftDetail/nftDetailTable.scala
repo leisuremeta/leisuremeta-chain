@@ -15,8 +15,7 @@ object NftDetailTable:
     genView(model, data)
 
   val genView = (model: Model, data: NftDetail) =>
-    val nftFile =
-      getOptionValue(data.nftFile, new NftFileModel).asInstanceOf[NftFileModel]
+    val nftFile = getOptionValue(data.nftFile, new NftFileModel)
 
     div(`class` := "table-area")(
       div(id := "oop-table-blocks", `class` := "table-list x")(

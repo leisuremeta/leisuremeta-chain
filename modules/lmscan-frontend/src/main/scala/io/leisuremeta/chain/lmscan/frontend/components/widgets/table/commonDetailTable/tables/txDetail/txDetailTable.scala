@@ -13,7 +13,9 @@ object TxDetailTable:
   def view(model: Model) =
     val data: TxDetail = get_PageResponseViewCase(model).txDetail
     div(`class` := "y-start gap-10px w-[100%] ")(
-      TxDetailTableMain.view(data),
-      TxDetailTableInput.view(data),
-      TxDetailTableOutput.view(data),
+      TxDetailTableMain.view(data) :: TxDetailTableCommon.view(data),
+      // TxDetailTableInput.view(data),
+      // TxDetailTableOutput.view(data),
+      // TxDetailTableCommon.view(data),
+
     )

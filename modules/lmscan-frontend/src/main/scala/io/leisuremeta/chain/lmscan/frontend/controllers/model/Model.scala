@@ -12,8 +12,10 @@ final case class Model(
     detail_button: Boolean = false,
     tx_total_page: String = "1",
     tx_current_page: String = "1",
+    subtype: String = "",
     block_total_page: String = "1",
     block_current_page: String = "1",
     pageLimit: Int = 50,
     popup: Boolean = false,
+    lmprice: Double = 0.0,
 )

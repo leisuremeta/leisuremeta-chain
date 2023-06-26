@@ -35,3 +35,6 @@ enum CommandMsg extends Msg:
 
 enum PopupMsg extends Msg:
   case OnClick(value: Boolean) extends PopupMsg
+
+enum RouterMsg extends Msg:
+  case NoOp

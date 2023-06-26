@@ -10,6 +10,7 @@ import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
+import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object Search:
   val search_block = (model: Model) =>
@@ -175,12 +176,7 @@ object Search:
           ),
           div(`class` := "type-plain-text margin-right")("of"),
           div(`class` := "type-plain-text margin-right")({
-            totalPage match
-              case 1 =>
-                limit_value(
-                  get_PageResponseViewCase(model).block.totalPages.toString(),
-                ).toString()
-              case _ => limit_value(totalPage.toString()).toString()
+            model.block_total_page
           }),
         ),
       ),
@@ -220,7 +216,9 @@ object Search:
                 PageMsg.PreUpdate(
                   PageCase.Transactions(
                     url = s"transactions/${1}",
-                    pubs = List(PubCase.TxPub(page = 1)),
+                    pubs = List(
+                      PubCase.TxPub(page = 1, subtype = model.subtype),
+                    ),
                   ),
                 ),
               ),
@@ -235,7 +233,12 @@ object Search:
                 PageMsg.PreUpdate(
                   PageCase.Transactions(
                     url = s"transactions/${curPage - 10}",
-                    pubs = List(PubCase.TxPub(page = curPage - 10)),
+                    pubs = List(
+                      PubCase.TxPub(
+                        page = curPage - 10,
+                        subtype = model.subtype,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -262,7 +265,10 @@ object Search:
                         PageCase.Transactions(
                           url = s"transactions/${limit_value(idx.toString())}",
                           pubs = List(
-                            PubCase.TxPub(page = limit_value(idx.toString())),
+                            PubCase.TxPub(
+                              page = limit_value(idx.toString()),
+                              subtype = model.subtype,
+                            ),
                           ),
                         ),
                       ),
@@ -332,8 +338,9 @@ object Search:
                         url =
                           s"transactions/${limit_value((curPage + 10).toString())}",
                         pubs = List(
-                          PubCase.TxPub(page =
-                            limit_value((curPage + 10).toString()),
+                          PubCase.TxPub(
+                            page = limit_value((curPage + 10).toString()),
+                            subtype = model.subtype,
                           ),
                         ),
                       ),
@@ -361,8 +368,9 @@ object Search:
                         url =
                           s"transactions/${limit_value(totalPage.toString())}",
                         pubs = List(
-                          PubCase.TxPub(page =
-                            limit_value(totalPage.toString()),
+                          PubCase.TxPub(
+                            page = limit_value(totalPage.toString()),
+                            subtype = model.subtype,
                           ),
                         ),
                       ),
@@ -392,12 +400,7 @@ object Search:
           ),
           div(`class` := "type-plain-text margin-right")("of"),
           div(`class` := "type-plain-text margin-right")({
-            totalPage match
-              case 1 =>
-                limit_value(
-                  get_PageResponseViewCase(model).tx.totalPages.toString(),
-                ).toString()
-              case _ => limit_value(totalPage.toString()).toString()
+            model.tx_total_page
           }),
         ),
       ),

@@ -11,9 +11,12 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.in_Page
 import io.leisuremeta.chain.lmscan.frontend.Log.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.getPubCase
+import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.in_SummaryModel_pub
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
+
     case PageMsg.PreUpdate(page: PageCase) =>
       page match
         case _ =>
@@ -35,18 +38,18 @@ object PageUpdate:
                 .pipe(_.getOrElse(PubCase.BlockPub()))
                 .pipe(in_Page)
                 .pipe(_.toString),
-              tx_total_page =
-                get_PageResponseViewCase(model).tx.totalPages match
-                  case 1 => model.tx_total_page
-                  case _ =>
-                    get_PageResponseViewCase(model).tx.totalPages.toString()
-              ,
-              block_total_page =
-                get_PageResponseViewCase(model).block.totalPages match
-                  case 1 => model.block_total_page
-                  case _ =>
-                    get_PageResponseViewCase(model).block.totalPages.toString()
-              ,
+              // tx_total_page =
+              //   get_PageResponseViewCase(model).tx.totalPages match
+              //     case 1 => model.tx_total_page
+              //     case _ =>
+              //       get_PageResponseViewCase(model).tx.totalPages.toString()
+              // ,
+              // block_total_page =
+              //   get_PageResponseViewCase(model).block.totalPages match
+              //     case 1 => model.block_total_page
+              //     case _ =>
+              //       get_PageResponseViewCase(model).block.totalPages.toString()
+              // ,
               pointer = get_latest_number(model) + 1,
               appStates = model.appStates ++ Seq(
                 StateCase(
@@ -128,9 +131,33 @@ object PageUpdate:
     case PageMsg.DataUpdate(pub: PubCase) =>
       (
         model.copy(
+          // DataUpdate => 후처리 로직으로 바꾸는것 고려하기
+          subtype = pub match
+            case pub: PubCase.TxPub => pub.subtype
+            case _                  => model.subtype
+          ,
+          tx_total_page = pub match
+            case pub: PubCase.TxPub => pub.pub_m2.totalPages.toString()
+            case _                  => model.tx_total_page
+          ,
+          block_total_page = pub match
+            case pub: PubCase.BlockPub => pub.pub_m2.totalPages.toString()
+            case _                     => model.block_total_page
+          ,
           appStates = model
             .pipe(in_appStates)
             .map(update_PubData(pub, model.appStates.length)),
+          lmprice = List(pub)
+            .pipe(getPubCase[PubCase.BoardPub])
+            .pipe(
+              _.getOrElse(
+                PubCase.BoardPub(pub_m2 =
+                  SummaryModel(lmPrice = Some(model.lmprice)),
+                ),
+              ),
+            )
+            .pipe(in_SummaryModel_pub(model))
+            .pipe(d => Math.floor(d * 10000) / 10000),
         ),
         Cmd.None,
       )

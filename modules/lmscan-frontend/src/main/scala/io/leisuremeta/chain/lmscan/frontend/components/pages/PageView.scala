@@ -4,6 +4,7 @@ import tyrian.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object Pages:
+
   def render(model: Model): Html[Msg] =
     find_current_PageCase(model) match
       case PageCase.Observer(_, _, _, _) =>
@@ -66,18 +67,23 @@ object JsonPages:
 
 object PageView:
   def view(model: Model): Html[Msg] =
-    div(id := "page", `class` := "")(
-      div()(
-        div(`class` := "x")(
-          SearchView.view(model),
-          model.commandMode match
-            case CommandCaseMode.Development => Toggle.view(model)
-            case CommandCaseMode.Production  => div(),
-        ), {
-          model.toggle match
-            case true  => div(`class` := "pb-32px")(JsonPages.render(model))
-            case false => div(`class` := "pb-32px")(Pages.render(model))
-        },
-      ),
-      PopupView.view(model),
-    )
+    val isTesto = false
+    isTesto match
+      case false =>
+        div(id := "page", `class` := "")(
+          div()(
+            div(`class` := "x")(
+              SearchView.view(model),
+              model.commandMode match
+                case CommandCaseMode.Development => Toggle.view(model)
+                case CommandCaseMode.Production  => div(),
+            ), {
+              model.toggle match
+                case true  => div(`class` := "pb-32px")(JsonPages.render(model))
+                case false => div(`class` := "pb-32px")(Pages.render(model))
+            },
+          ),
+          PopupView.view(model),
+          // TestoView.view(model),
+        )
+      case _: Boolean => NoPageView.view(model)

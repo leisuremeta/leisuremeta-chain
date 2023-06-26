@@ -15,6 +15,7 @@ enum PubCase:
       sizePerRequest: Int = 10,
       accountAddr: String = "",
       blockHash: String = "",
+      subtype: String = "",
       pub_m1: String = "",
       pub_m2: PageResponse[TxInfo] =
         new PageResponse[TxInfo](1, 1, Range(1, 11).map(d => new TxInfo)),

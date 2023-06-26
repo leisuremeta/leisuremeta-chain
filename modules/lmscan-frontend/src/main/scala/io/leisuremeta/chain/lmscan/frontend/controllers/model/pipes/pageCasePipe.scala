@@ -55,7 +55,7 @@ object PageCasePipe:
           case PubCase.BlockPub(_, _, _, pub_m2) =>
             resulte.blockInfo = pub_m2.payload.toList
 
-          case PubCase.TxPub(_, _, _, _, _, pub_m2) =>
+          case PubCase.TxPub(_, _, _, _, _, _, pub_m2) =>
             resulte.txInfo =
               val txInfoList = pub_m2.payload.toList
               txInfoList.length == 0 match
@@ -90,7 +90,7 @@ object PageCasePipe:
           case PubCase.BlockPub(_, _, _, pub_m2) =>
             resulte.block = pub_m2
 
-          case PubCase.TxPub(_, _, _, _, _, pub_m2) =>
+          case PubCase.TxPub(_, _, _, _, _, _, pub_m2) =>
             resulte.tx = pub_m2
 
           case PubCase.BoardPub(_, _, pub_m2) =>

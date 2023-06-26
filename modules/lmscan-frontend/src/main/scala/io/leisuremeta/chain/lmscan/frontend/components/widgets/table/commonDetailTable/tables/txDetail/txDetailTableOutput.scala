@@ -1,5 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
-
+import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
 import Dom.*
@@ -17,16 +17,6 @@ object TxDetailTableOutput:
     data.zipWithIndex.map { case ((output), i) => genOutput_NFT(output, i + 1) }
 
   val genOutput = (data: TransferHist, i: Any) =>
-    val formatter = java.text.NumberFormat.getNumberInstance()
-    formatter.setRoundingMode(RoundingMode.FLOOR)
-    formatter.setMaximumFractionDigits(18)
-
-    val value = getOptionValue(data.value, "0").toString().toDouble / Math
-      .pow(10, 18)
-      .toDouble
-
-    val formattedValue = formatter.format(value)
-
     div(`class` := "row")(
       div(`class` := "cell type-detail-head")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
@@ -34,7 +24,7 @@ object TxDetailTableOutput:
         )(getOptionValue(data.toAddress, "-").toString()),
       ),
       div(`class` := "cell type-detail-body")(
-        formattedValue,
+        data.value.pipe(s => Pipe.txDetailTableOutput(s)),
       ),
     )
   val genOutput_NFT = (data: TransferHist, i: Any) =>

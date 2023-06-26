@@ -9,6 +9,14 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import Log.*
 import io.leisuremeta.chain.lmscan.common.model.*
 
+object TransactionTableCommon:
+  def loader(model: Model) =
+    val isLoader = current_ViewCase(model).txInfo(0) != new TxInfo
+
+    isLoader match
+      case false => LoaderView.view(model)
+      case _     => div()
+
 object TransactionTable:
   def view(model: Model): Html[Msg] =
     find_current_PageCase(model) match
@@ -19,9 +27,7 @@ object TransactionTable:
               Table.txList_txtable(model),
               Search.search_tx(model),
             ),
-            current_ViewCase(model).txInfo(0) != new TxInfo match
-              case false => LoaderView.view(model)
-              case _     => div(),
+            TransactionTableCommon.loader(model),
           ),
         )
       case PageCase.DashBoard(_, _, _, _) =>
@@ -45,9 +51,7 @@ object TransactionTable:
               // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
               // Search.search_tx(model),
             ),
-            current_ViewCase(model).txInfo(0) != new TxInfo match
-              case false => LoaderView.view(model)
-              case _     => div(`class` := "")(),
+            TransactionTableCommon.loader(model),
           ),
         )
 

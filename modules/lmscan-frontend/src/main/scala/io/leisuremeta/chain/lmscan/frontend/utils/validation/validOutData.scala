@@ -15,6 +15,11 @@ object V:
       case Some(value) => value
       case None        => default
 
+  def getOptionValuePipe[T](default: T)(field: Option[T]) =
+    field match
+      case Some(value) => value
+      case None        => default
+
   def plainStr(
       data: Option[String] | Option[Int] | Option[Double] | Option[Long],
   ) =

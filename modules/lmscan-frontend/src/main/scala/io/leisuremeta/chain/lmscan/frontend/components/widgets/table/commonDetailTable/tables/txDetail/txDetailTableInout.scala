@@ -4,12 +4,16 @@ import tyrian.*
 import V.*
 import io.leisuremeta.chain.lmscan.common.model.TxDetail
 
-object TxDetailTableInput:
+object TxDetailTableINOUT:
+
   val input = (data: List[String]) =>
-    data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }
+    data.zipWithIndex.map { ((input, i) => genInput(input, i + 1)) }(0)
+
+  val output = (data: List[String]) =>
+    data.zipWithIndex.map { ((input, i) => genOutput(input, i + 1)) }(0)
 
   val genInput = (data: String, i: Any) =>
-    div(`class` := "row")(
+    List(
       div(`class` := "cell type-detail-body")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
@@ -25,20 +29,20 @@ object TxDetailTableInput:
         )(data),
       ),
     )
-
-  def view(data: TxDetail) =
-    val inputHashs = getOptionValue(data.inputHashs, List())
-      .asInstanceOf[List[String]]
-
-    div(`class` := "x")(
-      div(`class` := "type-TableDetail table-container ")(
-        div(`class` := "table w-[100%]")(
-          div(`class` := "row")(
-            div(`class` := "cell type-detail-head")("Input"),
-            div(`class` := "cell type-detail-body font-bold")(
-              "Transaction Hash",
+  val genOutput = (data: String, i: Any) =>
+    List(
+      div(`class` := "cell type-detail-body")(i.toString()),
+      div(`class` := "cell type-3 type-detail-body")(
+        span(
+          onClick(
+            PageMsg.PreUpdate(
+              PageCase.TxDetail(
+                name = PageCase.Transactions().name,
+                url = s"txDetail/${plainStr(Some(data))}",
+                pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
+              ),
             ),
-          ) :: input(inputHashs),
-        ),
+          ),
+        )(data),
       ),
     )

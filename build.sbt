@@ -26,7 +26,7 @@ val V = new {
   val organiseImports = "0.6.0"
   val zerowaste       = "0.2.6"
 
-  val tyrian = "0.6.2"
+  val tyrian = "0.7.0"
 
   val scalaJavaTime = "2.3.0"
   val jsSha3        = "0.8.0"
@@ -406,7 +406,7 @@ lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
     ), // sbt-tpolecat bug: https://github.com/typelevel/sbt-tpolecat/issues/102
 //    scalaJSUseMainModuleInitializer := true,
   )
-  .dependsOn(lmscanCommon.js)
+  .dependsOn(lmscanCommon.js, api.js)
 
 lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
   .enablePlugins(FlywayPlugin)

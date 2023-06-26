@@ -1,11 +1,41 @@
 package io.leisuremeta.chain.lmscan.frontend
-
+import scala.util.chaining.*
 import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import io.circe.parser.*
 import io.leisuremeta.chain.lmscan.frontend.Log.log
+import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object ValidPageName:
+  val subtypeList =
+    List(
+      ":MintFungibleToken",
+      ":AddAccounts",
+      ":CreateAccount",
+      ":UpdateAccount",
+      ":AddPublicKeySummaries",
+      ":CreateGroup",
+      ":AddAccounts",
+      ":DefineToken",
+      ":BurnFungibleToken",
+      ":MintNFT",
+      ":BurnNFT",
+      ":EntrustNFT",
+      ":TransferNFT",
+      ":DisposeEntrustedNFT",
+      ":EntrustFungibleToken",
+      ":MintFungibleToken",
+      ":TransferFungibleToken",
+      ":DisposeEntrustedFungibleToken",
+      ":OfferReward",
+      ":RegisterDao",
+      ":UpdateDao",
+      ":RecordActivity",
+      ":BuildSnapshot",
+      ":ExecuteOwnershipReward",
+      ":SuggestSimpleAgenda",
+      ":VoteSimpleAgenda",
+    )
   def getPageFromString(search: String): PageCase | CommandCaseMode |
     CommandCaseLink =
     search match
@@ -14,6 +44,10 @@ object ValidPageName:
       case ":prod"  => CommandCaseLink.Production
       case ":dev"   => CommandCaseLink.Development
       case ":local" => CommandCaseLink.Local
+      case subtype if subtypeList.contains(subtype.replaceAll(" ", "")) =>
+        PageCase.Transactions(pubs =
+          List(PubCase.TxPub(subtype = subtype.replaceAll(" ", "").tail)),
+        )
       case _ =>
         search.length() match
           case 40 =>
@@ -58,6 +92,7 @@ object ValidPageName:
               name = PageCase.AccountDetail().name,
               url = s"account/${search}",
               pubs = List(
+                // PubCase.BoardPub(),
                 PubCase.AccountDetailPub(hash = search),
                 PubCase.TxPub(
                   page = 1,
@@ -153,6 +188,7 @@ object ValidPageName:
           url = s"account/${hash}",
           pubs = List(
             PubCase.AccountDetailPub(hash = hash),
+            PubCase.BoardPub(),
             PubCase.TxPub(
               page = 1,
               accountAddr = hash,

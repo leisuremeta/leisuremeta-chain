@@ -5,6 +5,7 @@ import Log.log
 
 object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
+    case routerMsg: RouterMsg   => (model, Cmd.None)
     case pageMsg: PageMsg       => PageUpdate.update(model)(pageMsg)
     case inputMsg: InputMsg     => SearchUpdate.update(model)(inputMsg)
     case toggleMsg: ToggleMsg   => ToggleUpdate.update(model)(toggleMsg)
