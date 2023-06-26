@@ -59,7 +59,7 @@ object DTO:
         totalAccounts: Long,
         createdAt: Long,
     )
-    final case class SummaryMainO(
+    final case class SummaryMainOption(
         id: Option[Long] = None,
         lmPrice: Option[Double] = None,
         blockNumber: Option[Long] = None,

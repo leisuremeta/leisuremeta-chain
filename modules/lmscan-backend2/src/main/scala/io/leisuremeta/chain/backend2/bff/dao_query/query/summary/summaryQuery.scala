@@ -8,16 +8,6 @@ import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
 
 object SummaryQuery:
 //   import SummaryQueryPipe.*
-  def getTx =
-    sql"select * from tx"
-      .query[DAO.Tx]
-      .stream
-      .filter(t => t.blockNumber == 2)
-      .take(2)
-      .compile
-      .toList
-      .transact(xa)
-      .attemptSql
 
   def getSummary =
     sql"select * from summary"
