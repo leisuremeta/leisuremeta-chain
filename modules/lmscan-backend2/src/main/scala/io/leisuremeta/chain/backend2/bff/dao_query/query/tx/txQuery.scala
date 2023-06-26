@@ -12,52 +12,10 @@ import scala.reflect.ClassTag
 
 import fs2.Stream
 import io.leisuremeta.chain.lmscan.common.model.DAO
-
-object QueriesFunctionCommon:
-  def take[T](l: Int)(d: Stream[ConnectionIO, T]) = d.take(l)
-
-  def drop[T](l: Int)(d: Stream[ConnectionIO, T]) = d.drop(l)
-
-object QueriesFunction:
-  import QueriesFunctionCommon.*
-
-  def filterTxHash(str: String)(
-      d: Stream[ConnectionIO, DAO.Tx],
-  ) =
-    d.filter(d => d.hash == str)
-
-  def filterSelf[T](
-      d: Stream[ConnectionIO, T],
-  ) =
-    d.filter(d => true)
-
-  def getPipeFunctionTx(
-      pipeString: String,
-  ): Stream[ConnectionIO, DAO.Tx] => Stream[ConnectionIO, DAO.Tx] =
-    pipeString match
-      case s"take($number)" => take(number.toInt)
-      case s"drop($number)" => drop(number.toInt)
-      case s"hash($str)"    => filterTxHash(str)
-      case _                => filterSelf
-
-  def pipeRun(list: List[String])(
-      acc: Stream[ConnectionIO, DAO.Tx],
-  ): Stream[ConnectionIO, DAO.Tx] =
-    list.length == 0 match
-      case true => acc
-      case false =>
-        acc
-          .pipe(getPipeFunctionTx(list.head))
-          .pipe(pipeRun(list.tail))
-
-  def genPipeList(pipe: Option[String]) =
-    pipe
-      .getOrElse("")
-      .split(",")
-      .toList
+import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
 
 object Queries:
-  import QueriesFunction.*
+  import TxQueryPipe.*
 
   def getTxPipe(pipeString: Option[String]) =
     sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
