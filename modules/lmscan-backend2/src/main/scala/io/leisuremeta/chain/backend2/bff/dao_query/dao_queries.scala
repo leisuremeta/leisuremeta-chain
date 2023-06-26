@@ -5,24 +5,13 @@ import doobie.implicits.*
 import doobie.util.ExecutionContexts
 import scala.reflect.runtime.universe.*
 
-import com.typesafe.config.ConfigFactory
-import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import scala.util.chaining.*
-import io.leisuremeta.chain.lmscan.backend2.Log.log2
 import cats.instances.boolean
 import doobie.ConnectionIO
 import scala.reflect.ClassTag
 
 import fs2.Stream
 import io.leisuremeta.chain.lmscan.common.model.DAO
-
-val config = ConfigFactory.load()
-val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-  config.getString("ctx.db_className"), // driver classname
-  config.getString("ctx.db_url"),       // connect URL (driver-specific)
-  config.getString("ctx.db_user"),      // user
-  config.getString("ctx.db_pass"),      // password
-)
 
 object QueriesFunctionCommon:
   def take[T](l: Int)(d: Stream[ConnectionIO, T]) = d.take(l)

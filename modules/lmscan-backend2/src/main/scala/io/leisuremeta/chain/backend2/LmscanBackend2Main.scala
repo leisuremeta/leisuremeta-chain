@@ -59,7 +59,6 @@ import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import cats.instances.unit
-import io.leisuremeta.chain.backend2.CountQuery
 
 object BackendMain extends IOApp:
 
