@@ -18,3 +18,11 @@ object AccountQuery:
       .toList
       .transact(xa)
       .attemptSql
+
+  // def _getAccount =
+  //   sql"select * from account"
+  //     .query[DAO.Account]
+
+  //     .toList
+  //     .transact(xa)
+  //     .attemptSql

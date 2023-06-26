@@ -19,7 +19,12 @@ object TxQueryPipe:
   def filterTxHash[T](str: String)(
       d: Stream[ConnectionIO, DAO.Tx],
   ) =
-    d.filter(d => d.hash == str)
+    d.filter(tx => tx.hash == str)
+
+  def filterTxAccount[T](str: String)(
+      d: Stream[ConnectionIO, DAO.Tx],
+  ) =
+    d.filter(tx => tx.fromAddr == str || tx.toAddr.contains(str))
 
   def getPipeFunctionTx(
       pipeString: String,
@@ -28,6 +33,7 @@ object TxQueryPipe:
       case s"take($number)" => take(number.toInt)
       case s"drop($number)" => drop(number.toInt)
       case s"hash($str)"    => filterTxHash(str)
+      case s"addr($str)"    => filterTxAccount(str)
       case _                => filterSelf
 
   def pipeRun(list: List[String])(

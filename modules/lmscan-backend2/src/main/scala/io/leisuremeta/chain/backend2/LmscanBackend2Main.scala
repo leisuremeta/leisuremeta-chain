@@ -124,45 +124,32 @@ object BackendMain extends IOApp:
   // (1) account.address == addr
   // (2) tx.addr == addr
   // (1) + (2)
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    baseEndpoint.get
-      .in("account")
-      .in(path[String])
-      .in("detail")
-      .out(jsonBody[DAO.Account])
-      .serverLogic { (address: String) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get Account")
-        AccountQuery.getAccount
-          .pipe(QueriesPipe.pipeAccount[F])
-          .pipe(ErrorHandle.genMsg)
-          .value
-      }
-
-  def accountService[F[_]: Async] =
-    val r = for
-      account <- AccountQuery.getAccount
-        .pipe(QueriesPipe.pipeAccount[F])
-      txList <- TxQuery.getTx.pipe(QueriesPipe.pipeTx[F])
-    yield (account, txList)
-    r.map { (account, txList) =>
-      DTO.Account.Detail(
-        address = account.address,
-        balance = account.balance,
-        value = account.balance,
-        txList = Some(txList),
-      )
-    }
+  // @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  // def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  //   baseEndpoint.get
+  //     .in("account")
+  //     .in(path[String])
+  //     .in("detail")
+  //     .out(jsonBody[DAO.Account])
+  //     .serverLogic { (address: String) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+  //       scribe.info(s"get Account")
+  //       AccountQuery.getAccount
+  //         .pipe(QueriesPipe.pipeAccount[F])
+  //         .pipe(ErrorHandle.genMsg)
+  //         .value
+  //     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("account")
+      .in(path[String])
       .in("detail")
       .out(jsonBody[DTO.Account.Detail])
-      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get Account")
-        accountService
+      .serverLogic { (address: String) =>
+        scribe.info(s"get Account11")
+        AccountService
+          .getAccountDetail(address)
           .pipe(ErrorHandle.genMsg)
           .value
       }
@@ -171,7 +158,7 @@ object BackendMain extends IOApp:
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       tx[F],
-      account[F],
+      // account[F],
       accountDetail[F],
       txCount[F],
       summary[F],
