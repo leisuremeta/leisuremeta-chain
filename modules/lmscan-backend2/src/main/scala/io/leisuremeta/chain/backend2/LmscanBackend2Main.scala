@@ -76,6 +76,19 @@ object BackendMain extends IOApp:
     )
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def summary[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    baseEndpoint.get
+      .in("summary")
+      .in("main")
+      .out(jsonBody[DTO.Summary.SummaryMain])
+      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+        scribe.info(s"get tx")
+        SummaryQuery.getSummary
+          .pipe(QueriesPipe.pipeSummary[F])
+          .pipe(ErrorHandle.genMsg)
+          .value
+      }
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def tx_test[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("tx")

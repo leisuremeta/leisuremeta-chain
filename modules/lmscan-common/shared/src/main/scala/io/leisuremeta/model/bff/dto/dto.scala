@@ -50,7 +50,25 @@ object DTO:
         amount: Option[BigDecimal] = None,
     )
 
-    // final case class Block(
+  object Summary:
+    final case class SummaryMain(
+        id: Long,
+        lmPrice: Double,
+        blockNumber: Long,
+        totalTxSize: Long,
+        totalAccounts: Long,
+        createdAt: Long,
+    )
+    final case class SummaryMainO(
+        id: Option[Long] = None,
+        lmPrice: Option[Double] = None,
+        blockNumber: Option[Long] = None,
+        totalTxSize: Option[Long] = None,
+        totalAccounts: Option[Long] = None,
+        createdAt: Option[Long] = None,
+    )
+
+// final case class Block(
 //     number: Long,
 //     hash: String,
 //     parentHash: String,
