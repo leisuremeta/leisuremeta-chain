@@ -23,7 +23,7 @@ import common.LmscanApi
 import common.ExploreApi
 import common.model.{PageNavigation, SummaryModel}
 
-// import io.leisuremeta.chain.lmscan.backend.service.*
+import io.leisuremeta.chain.lmscan.common.model.*
 import io.leisuremeta.chain.lmscan.backend2
 
 import com.linecorp.armeria.common.HttpMethod;
@@ -60,7 +60,6 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.genEither
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import io.leisuremeta.chain.lmscan.common.model.dao.Account
-import io.leisuremeta.chain.lmscan.common.model.dto.DTO_Account
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import cats.instances.unit
 import io.leisuremeta.chain.backend2.CountQuery
@@ -85,7 +84,7 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("tx")
       .in("test")
-      .out(jsonBody[List[DTO_Tx_type1]])
+      .out(jsonBody[List[DTO.Tx.type1]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx")
         Queries.getTx
@@ -98,7 +97,7 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("tx")
       .in("test2")
-      .out(jsonBody[List[DTO_Tx_type1]])
+      .out(jsonBody[List[DTO.Tx.type1]])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx2")
         Queries.getTx_byAddress
@@ -114,7 +113,7 @@ object BackendMain extends IOApp:
       .in(
         query[Option[String]]("pipe"),
       )
-      .out(jsonBody[List[DTO_Tx_type1]])
+      .out(jsonBody[List[DTO.Tx.type1]])
       .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx with pipe=$pipe")
         Queries
@@ -128,7 +127,7 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("tx")
       .in("count")
-      .out(jsonBody[DTO_Tx_count])
+      .out(jsonBody[DTO.Tx.count])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx count")
         CountQuery
@@ -158,7 +157,7 @@ object BackendMain extends IOApp:
       txList <- Queries.getTx.pipe(QueriesPipe.pipeTx[F])
     yield (account, txList)
     r.map { (account, txList) =>
-      DTO_AccountDetail(
+      DTO.Account.Detail(
         address = account.address,
         balance = account.balance,
         value = account.balance,
@@ -171,7 +170,7 @@ object BackendMain extends IOApp:
     baseEndpoint.get
       .in("account")
       .in("detail")
-      .out(jsonBody[DTO_AccountDetail])
+      .out(jsonBody[DTO.Account.Detail])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get Account")
         accountService

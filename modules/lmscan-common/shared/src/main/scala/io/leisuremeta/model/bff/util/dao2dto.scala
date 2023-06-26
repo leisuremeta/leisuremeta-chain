@@ -5,7 +5,7 @@ import io.leisuremeta.chain.lmscan.common.model.dao.*
 
 object Dao2Dto:
   def tx_type1(dao: List[Tx]) = dao.map(d =>
-    DTO_Tx_type1(
+    DTO.Tx.type1(
       d.hash,
       d.txType,
       d.fromAddr,
@@ -24,7 +24,7 @@ object Dao2Dto:
     ),
   )
   def tx_type2(dao: List[Tx]) = dao.map(d =>
-    DTO_Tx_type2(
+    DTO.Tx.type2(
       hash = Some(d.hash),
       txType = Some(d.txType),
       createdAt = Some(d.createdAt),

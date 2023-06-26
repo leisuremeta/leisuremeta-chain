@@ -12,6 +12,7 @@ import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.common.model.NftDetail
 import io.leisuremeta.chain.lmscan.common.model.dao.*
 // import io.leisuremeta.chain.lmscan.backend.entity.Tx
+import io.leisuremeta.chain.lmscan.common.model.*
 
 import io.leisuremeta.chain.lmscan.common.model.{
   TxDetail,
@@ -22,7 +23,7 @@ import io.leisuremeta.chain.lmscan.common.model.{
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 import io.circe.*
-import io.leisuremeta.chain.lmscan.common.model.dto.*
+import io.leisuremeta.chain.lmscan.common.model
 
 object ExploreApi:
   opaque type Utf8 = String
@@ -67,7 +68,7 @@ object ExploreApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val bff_getTx = baseEndpoint.get
     .in("bff2")
-    .out(jsonBody[Seq[DTO_Tx_type1]])
+    .out(jsonBody[Seq[DTO.Tx.type1]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   // Endpoint[Unit, (PageNavigation, Option[String], Option[String]), Either[ServerError, UserError], PageResponse[TxInfo], Any]
