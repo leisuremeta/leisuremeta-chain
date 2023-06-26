@@ -34,17 +34,18 @@ object QueriesPipe:
     q
       .pipe(genericQueryPipe(Dao2Dto.account))
 
-  def pipeSummary[F[_]: Async](q: IO[Either[SQLException, DAO.Summary]]) =
+  def pipeSummary[F[_]: Async](q: IO[Either[SQLException, List[DAO.Summary]]]) =
     q
       .pipe(
         genericQueryPipe(d =>
           new DTO.Summary.SummaryMain(
-            d.id,
-            d.lmPrice,
-            d.blockNumber,
-            d.totalTxSize,
-            d.totalAccounts,
-            d.createdAt,
+            Some(d(0).id),
+            Some(d(0).lmPrice),
+            Some(d(0).blockNumber),
+            Some(d(0).totalAccounts),
+            Some(d(0).createdAt),
+            Some(d(0).totalTxSize),
+            Some(d(0).total_balance),
           ),
         ),
       )

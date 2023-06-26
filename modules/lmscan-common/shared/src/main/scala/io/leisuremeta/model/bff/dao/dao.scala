@@ -60,11 +60,13 @@ enum DAO:
       createdAt: Long,
       owner: String,
   )
+
   case Summary(
       id: Long,
       lmPrice: Double,
       blockNumber: Long,
-      totalTxSize: Long,
       totalAccounts: Long,
       createdAt: Long,
+      totalTxSize: Long,
+      total_balance: Long,
   )

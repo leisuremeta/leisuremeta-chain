@@ -10,8 +10,11 @@ object SummaryQuery:
 //   import SummaryQueryPipe.*
 
   def getSummary =
-    sql"select * from summary"
+    sql"select * from summary ORDER BY created_at DESC"
       .query[DAO.Summary]
-      .unique
+      .stream
+      .take(1)
+      .compile
+      .toList
       .transact(xa)
       .attemptSql

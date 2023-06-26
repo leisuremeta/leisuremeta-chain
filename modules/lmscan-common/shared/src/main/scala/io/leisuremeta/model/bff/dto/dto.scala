@@ -52,12 +52,13 @@ object DTO:
 
   object Summary:
     final case class SummaryMain(
-        id: Long,
-        lmPrice: Double,
-        blockNumber: Long,
-        totalTxSize: Long,
-        totalAccounts: Long,
-        createdAt: Long,
+        id: Option[Long] = None,
+        lmPrice: Option[Double] = None,
+        blockNumber: Option[Long] = None,
+        totalAccounts: Option[Long] = None,
+        createdAt: Option[Long] = None,
+        totalTxSize: Option[Long] = None,
+        total_balance: Option[Long] = None,
     )
     final case class SummaryMainOption(
         id: Option[Long] = None,

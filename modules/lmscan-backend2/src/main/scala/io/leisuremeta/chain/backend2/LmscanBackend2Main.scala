@@ -21,7 +21,7 @@ import sttp.tapir.generic.auto.{*, given}
 
 import common.LmscanApi
 import common.ExploreApi
-import common.model.{PageNavigation, SummaryModel}
+// import common.model.{PageNavigation, SummaryModel}
 
 import io.leisuremeta.chain.lmscan.common.model.*
 import io.leisuremeta.chain.lmscan.backend2
@@ -82,7 +82,7 @@ object BackendMain extends IOApp:
       .in("main")
       .out(jsonBody[DTO.Summary.SummaryMain])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx")
+        scribe.info(s"get summary")
         SummaryQuery.getSummary
           .pipe(QueriesPipe.pipeSummary[F])
           .pipe(ErrorHandle.genMsg)
@@ -196,6 +196,7 @@ object BackendMain extends IOApp:
       account[F],
       accountDetail[F],
       txCount[F],
+      summary[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
