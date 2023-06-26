@@ -23,8 +23,3 @@ object CommonQueriesFunction:
       d: Stream[ConnectionIO, T],
   ) =
     d.filter(d => true)
-
-  def filterTxHash[T](str: String)(
-      d: Stream[ConnectionIO, T],
-  ) =
-    d.filter(d => true)

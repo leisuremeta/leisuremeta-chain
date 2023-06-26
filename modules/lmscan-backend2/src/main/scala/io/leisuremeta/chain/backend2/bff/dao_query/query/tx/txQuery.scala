@@ -2,15 +2,7 @@ package io.leisuremeta.chain.lmscan
 package backend2
 import doobie.*
 import doobie.implicits.*
-import doobie.util.ExecutionContexts
-import scala.reflect.runtime.universe.*
-
 import scala.util.chaining.*
-import cats.instances.boolean
-import doobie.ConnectionIO
-import scala.reflect.ClassTag
-
-import fs2.Stream
 import io.leisuremeta.chain.lmscan.common.model.DAO
 import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
 
@@ -19,14 +11,13 @@ object TxQuery:
 
   def getTxPipe(pipeString: Option[String]) =
     sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
-      .query[DAO.Tx] // DAO
+      .query[DAO.Tx]
       .stream
       .pipe(
         pipeString
           .pipe(genPipeList)
           .pipe(pipeRun),
       )
-      .pipe(a => a)
       .compile
       .toList
       .transact(xa)
@@ -34,33 +25,32 @@ object TxQuery:
 
   def getTx =
     sql"select * from tx"
-      .query[DAO.Tx] // DAO
+      .query[DAO.Tx]
       .stream
-      .filter(t => t.blockNumber == 2.pipe(a => a))
-      .pipe(a => a)
+      .filter(t => t.blockNumber == 2)
       .take(2)
-      .compile // commont option
+      .compile
       .toList
       .transact(xa)
       .attemptSql
 
   def getTx_byAddress =
     sql"select * from tx"
-      .query[DAO.Tx] // DAO
+      .query[DAO.Tx]
       .stream
       .filter(t => t.fromAddr == "playnomm" || t.toAddr.contains("playnomm"))
       .take(2)
-      .compile // commont option
+      .compile
       .toList
       .transact(xa)
       .attemptSql
 
   def getAccount =
     sql"select * from account"
-      .query[DAO.Account] // DAO
+      .query[DAO.Account]
       .stream
       .take(1)
-      .compile // commont option
+      .compile
       .toList
       .transact(xa)
       .attemptSql
