@@ -34,23 +34,13 @@ object TxQuery:
       .transact(xa)
       .attemptSql
 
-  def getTx_byAddress =
-    sql"select * from tx"
-      .query[DAO.Tx]
-      .stream
-      .filter(t => t.fromAddr == "playnomm" || t.toAddr.contains("playnomm"))
-      .take(2)
-      .compile
-      .toList
-      .transact(xa)
-      .attemptSql
-
-  def getAccount =
-    sql"select * from account"
-      .query[DAO.Account]
-      .stream
-      .take(1)
-      .compile
-      .toList
-      .transact(xa)
-      .attemptSql
+  // def getTx_byAddress =
+  //   sql"select * from tx"
+  //     .query[DAO.Tx]
+  //     .stream
+  //     .filter(t => t.fromAddr == "playnomm" || t.toAddr.contains("playnomm"))
+  //     .take(2)
+  //     .compile
+  //     .toList
+  //     .transact(xa)
+  //     .attemptSql

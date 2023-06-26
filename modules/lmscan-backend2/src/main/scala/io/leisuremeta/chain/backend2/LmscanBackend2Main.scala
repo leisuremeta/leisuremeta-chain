@@ -88,32 +88,6 @@ object BackendMain extends IOApp:
           .pipe(ErrorHandle.genMsg)
           .value
       }
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx_test[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    baseEndpoint.get
-      .in("tx")
-      .in("test")
-      .out(jsonBody[List[DTO.Tx.type1]])
-      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx")
-        TxQuery.getTx
-          .pipe(QueriesPipe.pipeTx[F])
-          .pipe(ErrorHandle.genMsg)
-          .value
-      }
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx_test2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    baseEndpoint.get
-      .in("tx")
-      .in("test2")
-      .out(jsonBody[List[DTO.Tx.type1]])
-      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx2")
-        TxQuery.getTx_byAddress
-          .pipe(QueriesPipe.pipeTx[F])
-          .pipe(ErrorHandle.genMsg)
-          .value
-      }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def tx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
@@ -146,14 +120,20 @@ object BackendMain extends IOApp:
           .value
       }
 
+  // account/{addr}/detail
+  // (1) account.address == addr
+  // (2) tx.addr == addr
+  // (1) + (2)
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("account")
+      .in(path[String])
+      .in("detail")
       .out(jsonBody[DAO.Account])
-      .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+      .serverLogic { (address: String) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get Account")
-        TxQuery.getAccount
+        AccountQuery.getAccount
           .pipe(QueriesPipe.pipeAccount[F])
           .pipe(ErrorHandle.genMsg)
           .value
@@ -161,7 +141,7 @@ object BackendMain extends IOApp:
 
   def accountService[F[_]: Async] =
     val r = for
-      account <- TxQuery.getAccount
+      account <- AccountQuery.getAccount
         .pipe(QueriesPipe.pipeAccount[F])
       txList <- TxQuery.getTx.pipe(QueriesPipe.pipeTx[F])
     yield (account, txList)
@@ -191,8 +171,6 @@ object BackendMain extends IOApp:
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       tx[F],
-      tx_test[F],
-      tx_test2[F],
       account[F],
       accountDetail[F],
       txCount[F],
