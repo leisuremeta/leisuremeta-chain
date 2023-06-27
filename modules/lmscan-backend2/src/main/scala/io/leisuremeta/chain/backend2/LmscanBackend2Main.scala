@@ -124,20 +124,6 @@ object BackendMain extends IOApp:
   // (1) account.address == addr
   // (2) tx.addr == addr
   // (1) + (2)
-  // @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  // def account[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   baseEndpoint.get
-  //     .in("account")
-  //     .in(path[String])
-  //     .in("detail")
-  //     .out(jsonBody[DAO.Account])
-  //     .serverLogic { (address: String) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-  //       scribe.info(s"get Account")
-  //       AccountQuery.getAccount
-  //         .pipe(QueriesPipe.pipeAccount[F])
-  //         .pipe(ErrorHandle.genMsg)
-  //         .value
-  //     }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
@@ -149,7 +135,6 @@ object BackendMain extends IOApp:
       .serverLogic { (address: String) =>
         scribe.info(s"get Account11")
         AccountService
-          // .getAccountDetail(address)
           .getAccountDetailAsync(address)
           .pipe(ErrorHandle.genMsg)
           .value
