@@ -19,7 +19,7 @@ import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 
 object AccountService:
-  def getAccountDetail[F[_]: Async](address: String) =
+  def getAccountDetailSync[F[_]: Async](address: String) =
     val r = for
       account <-
         AccountQuery.getAccount
