@@ -19,7 +19,7 @@ object AccountQuery:
       .transact(xa)
       .attemptSql
 
-  def getAccount2 =
+  def getAccountAsync =
     sql"select * from account"
       .query[DAO.Account]
       .stream

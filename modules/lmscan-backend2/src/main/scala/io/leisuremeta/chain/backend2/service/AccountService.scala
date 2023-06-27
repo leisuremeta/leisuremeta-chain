@@ -45,8 +45,8 @@ object AccountService:
     transactor
       .use(xa =>
         for
-          account <- AccountQuery.getAccount2.transact(xa)
-          txs     <- TxQuery.getTx2.transact(xa)
+          account <- AccountQuery.getAccountAsync.transact(xa)
+          txs <- TxQuery.getTxPipeAsync(Some(s"addr($address)")).transact(xa)
         yield DTO.Account.Detail(
           address = account(0).address,
           balance = account(0).balance,

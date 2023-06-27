@@ -23,6 +23,18 @@ object TxQuery:
       .transact(xa)
       .attemptSql
 
+  def getTxPipeAsync(pipeString: Option[String]) =
+    sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
+      .query[DAO.Tx]
+      .stream
+      .pipe(
+        pipeString
+          .pipe(genPipeList)
+          .pipe(pipeRun),
+      )
+      .compile
+      .toList
+
   def getTx =
     sql"select * from tx"
       .query[DAO.Tx]
