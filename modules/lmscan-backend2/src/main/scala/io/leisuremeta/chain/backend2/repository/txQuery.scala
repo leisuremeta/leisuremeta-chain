@@ -34,6 +34,14 @@ object TxQuery:
       .transact(xa)
       .attemptSql
 
+  def getTx2 =
+    sql"select * from tx"
+      .query[DAO.Tx]
+      .stream
+      .take(1)
+      .compile
+      .toList
+
   // def getTx_byAddress =
   //   sql"select * from tx"
   //     .query[DAO.Tx]

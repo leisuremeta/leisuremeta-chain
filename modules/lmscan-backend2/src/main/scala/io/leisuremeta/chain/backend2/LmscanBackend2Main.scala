@@ -149,7 +149,8 @@ object BackendMain extends IOApp:
       .serverLogic { (address: String) =>
         scribe.info(s"get Account11")
         AccountService
-          .getAccountDetail(address)
+          // .getAccountDetail(address)
+          .getAccountDetailAsync(address)
           .pipe(ErrorHandle.genMsg)
           .value
       }

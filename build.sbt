@@ -194,6 +194,7 @@ val Dependencies = new {
     libraryDependencies ++= Seq(
       "org.tpolecat" %% "doobie-core"     % V.doobieVersion,
       "org.tpolecat" %% "doobie-postgres" % V.doobieVersion,
+      "org.tpolecat" %% "doobie-hikari"   % V.doobieVersion,
       //
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
       "org.typelevel"                 %% "cats-effect"          % V.catsEffect,

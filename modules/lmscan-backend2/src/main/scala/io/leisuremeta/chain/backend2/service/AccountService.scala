@@ -13,6 +13,10 @@ import cats.effect.unsafe.implicits.global
 import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import scala.concurrent.ExecutionContext
 import cats.implicits.toFlatMapOps
+import java.sql.SQLException
+import io.leisuremeta.chain.lmscan.common.model.DTO.Account.Detail
+import cats.data.EitherT
+import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 
 object AccountService:
   def getAccountDetail[F[_]: Async](address: String) =
@@ -25,6 +29,7 @@ object AccountService:
           .getTxPipe(Some(s"addr($address)"))
           .pipe(QueriesPipe.pipeTx[F])
     yield (account, txList)
+
     r.map { (account, txList) =>
       DTO.Account.Detail(
         address = account.address,
@@ -33,49 +38,22 @@ object AccountService:
         txList = Some(txList),
       )
     }
-//   def getAccountDetailAsync[F[_]: Async](address: String)(implicit
-//       ec: ExecutionContext,
-//   ) =
-//     val combinedQuery = for
-//       account <-
-//         AccountQuery.getAccount
-//           .unsafeRunAsync(
-//             {
-//               case Left(error)   => println(s"Error: $error")
-//               case Right(result) => println(s"Result: $result")
-//             },
-//           )
-//       //   .getClass()
-//       //   .pipe(eitherToEitherT)
-//       txList <-
-//         TxQuery
-//           .getTxPipe(Some(s"addr($address)"))
-//           .unsafeRunSync()
-//           .pipe(eitherToEitherT)
-//     yield (account, txList)
 
-// combinedQuery.unsafeRunAsync()
-// r.map { (account, txList) =>
-//   DTO.Account.Detail(
-//     address = account.address,
-//     balance = account.balance,
-//     value = account.balance,
-//     txList = Some(txList),
-//   )
-// }
-
-// doobie join ..
-//     import doobie._
-// import doobie.implicits._
-// import doobie.postgres._
-// import doobie.postgres.implicits._
-
-// def joinOperation(): IO[List[(String, String)]] = {
-//   val query = for {
-//     movie <- sql"SELECT id, title FROM movies".query[(String, String)]
-//     actor <- sql"SELECT id, name FROM actors".query[(String, String)]
-//     if movie._1 == actor._1
-//   } yield (movie._2, actor._2)
-
-//   query.transact(xa)
-// }
+  def getAccountDetailAsync[F[_]: Async](
+      address: String,
+  ) =
+    transactor
+      .use(xa =>
+        for
+          account <- AccountQuery.getAccount2.transact(xa)
+          txs     <- TxQuery.getTx2.transact(xa)
+        yield DTO.Account.Detail(
+          address = account(0).address,
+          balance = account(0).balance,
+          value = account(0).balance,
+          txList = Some(txs.pipe(Dao2Dto.tx_type1)),
+        ),
+      )
+      .pipe(_.attemptSql)
+      .unsafeRunSync()
+      .pipe(eitherToEitherT)
