@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.common.model
 
 object DTO:
   object Tx:
-    final case class type1(
+    final case class Tx_self(
         hash: String,
         txType: String, // col_name : type
         fromAddr: String,
@@ -19,7 +19,7 @@ object DTO:
         subType: String,
         displayYn: Boolean,
     )
-    final case class type2(
+    final case class Tx_Type2(
         hash: Option[String] = None,
         txType: Option[String] = None,
         createdAt: Option[Long] = None,
@@ -39,7 +39,7 @@ object DTO:
         address: Option[String] = None,
         balance: Option[BigDecimal] = None,
         value: Option[BigDecimal] = None,
-        txList: Option[List[DTO.Tx.type1]] = None,
+        txList: Option[List[DTO.Tx.Tx_self]] = None,
     )
 
     final case class Account(
