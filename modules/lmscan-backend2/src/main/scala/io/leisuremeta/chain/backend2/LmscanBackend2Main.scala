@@ -89,37 +89,34 @@ object BackendMain extends IOApp:
       }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx_self[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    baseEndpoint.get
-      .in("tx")
-      .in(
-        query[Option[String]]("pipe"),
-        // .and(query[Option[String]]("dto")),
-      )
-      .out(jsonBody[List[DTO.Tx.Tx_self]])
-      .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx with pipe=$pipe")
-        TxService
-          .getTxAsync(pipe)
-          .pipe(ErrorHandle.genMsg)
-          .value
-      }
-  def tx_type2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    baseEndpoint.get
-      .in("tx_type2")
-      .in(
-        query[Option[String]]("pipe"),
-        // .and(query[Option[String]]("dto")),
-      )
-      .in("tx_type2")
-      .out(jsonBody[List[DTO.Tx.Tx_Type2]])
-      .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
-        scribe.info(s"get tx with pipe=$pipe")
-        TxService
-          .getTxAsync_tx_type2(pipe)
-          .pipe(ErrorHandle.genMsg)
-          .value
-      }
+  def tx_pipe_dto[F[_]: Async](dto: String): ServerEndpoint[Fs2Streams[F], F] =
+    dto match
+      case "self" =>
+        baseEndpoint.get
+          .in("tx")
+          .in(path[String])
+          .in(dto)
+          .out(jsonBody[List[DTO.Tx.Tx_self]])
+          .serverLogic { (pipe) =>
+            scribe.info(s"get tx with pipe=$pipe")
+            TxService
+              .getTxAsync(Some(pipe))
+              .pipe(ErrorHandle.genMsg)
+              .value
+          }
+      case "tx_type2" =>
+        baseEndpoint.get
+          .in("tx")
+          .in(path[String])
+          .in(dto)
+          .out(jsonBody[List[DTO.Tx.Tx_Type2]])
+          .serverLogic { (pipe) =>
+            scribe.info(s"get tx with pipe=$pipe")
+            TxService
+              .getTxAsync_tx_type2(Some(pipe))
+              .pipe(ErrorHandle.genMsg)
+              .value
+          }
 
   def txCount[F[_]: Async] =
     baseEndpoint.get
@@ -158,8 +155,8 @@ object BackendMain extends IOApp:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
-      tx_self[F],
-      tx_type2[F],
+      tx_pipe_dto[F]("self"),
+      tx_pipe_dto[F]("tx_type2"),
       // account[F],
       accountDetail[F],
       txCount[F],

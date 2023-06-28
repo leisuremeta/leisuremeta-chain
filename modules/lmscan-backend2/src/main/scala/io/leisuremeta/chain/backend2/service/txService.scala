@@ -37,6 +37,18 @@ object TxService:
       )
       .pipe(QueriesPipe.genericAsyncQueryPipe)
 
+  def getTxAsyncGeneric[F[_]: Async](pipeString: Option[String], dto: String) =
+    transactor
+      .use(xa =>
+        for txs <- TxRepository
+            .getTxPipeAsync(pipeString)
+            .transact(xa)
+        yield txs.map(
+          Dao2Dto.genericTxDto(dto),
+        ),
+      )
+      .pipe(QueriesPipe.genericAsyncQueryPipe)
+
   def getTxAsync_tx_type2[F[_]: Async](pipeString: Option[String]) =
     transactor
       .use(xa =>

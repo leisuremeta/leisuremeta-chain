@@ -42,13 +42,19 @@ object Dao2Dto:
       // subType = Some(dao.subType),
     )
 
-  def genericTxDto(dto: Option[String])(dao: DAO.Tx): TxLike =
+  def genericTxDto(dto: String)(dao: DAO.Tx): TxLike =
     dto match
-      case None =>
-        tx2tx_self(dao)
-      case Some(v) =>
-        v match
-          case "tx_type2" =>
-            tx2tx_type2(dao)
+      case "self" =>
+        tx2tx_type2(dao)
+      case "tx_type2" =>
+        tx2tx_type2(dao)
+  // def genericTxDto(dto: Option[String])(dao: DAO.Tx): TxLike =
+  //   dto match
+  //     case None =>
+  //       tx2tx_self(dao)
+  //     case Some(v) =>
+  //       v match
+  //         case "tx_type2" =>
+  //           tx2tx_type2(dao)
 
   def account(dao: List[DAO.Account]) = dao.map(d => d)(0)
