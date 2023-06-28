@@ -19,6 +19,7 @@ object Dao2Dto:
       Some(dao.eventTime),
       Some(dao.createdAt),
     )
+
   def tx2tx_self(dao: DAO.Tx) =
     DTO.Tx.Tx_self(
       dao.hash,

@@ -132,7 +132,7 @@ object BackendMain extends IOApp:
           .in(dto)
           .out(jsonBody[List[DTO.Block.Block_self]])
           .serverLogic { (pipe) =>
-            scribe.info(s"get tx with pipe=$pipe")
+            scribe.info(s"get block with pipe=$pipe,dto=$dto")
             BlockService
               .getBlockAsync(Some(pipe))
               .pipe(ErrorHandle.genMsg)
