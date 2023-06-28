@@ -83,8 +83,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[DTO.Summary.SummaryMain])
       .serverLogic { (Unit) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get summary")
-        SummaryQuery.getSummary
-          .pipe(QueriesPipe.pipeSummary[F])
+        SummaryService.getSummaryAsync
           .pipe(ErrorHandle.genMsg)
           .value
       }
@@ -99,7 +98,7 @@ object BackendMain extends IOApp:
       .out(jsonBody[List[DTO.Tx.Tx_self]])
       .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx with pipe=$pipe")
-        TxQuery
+        TxRepository
           .getTxPipe(pipe)
           .pipe(QueriesPipe.pipeTx[F])
           .pipe(ErrorHandle.genMsg)

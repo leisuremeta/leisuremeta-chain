@@ -58,7 +58,7 @@ object DTO:
         totalAccounts: Option[Long] = None,
         createdAt: Option[Long] = None,
         totalTxSize: Option[Long] = None,
-        total_balance: Option[Long] = None,
+        total_balance: Option[String] = None,
     )
     final case class SummaryMainOption(
         id: Option[Long] = None,

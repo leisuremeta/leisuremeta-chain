@@ -22,6 +22,12 @@ object QueriesPipe:
       .pipe(eitherToEitherT)
       .map(f)
 
+  def genericAsyncQueryPipe[F[_]: Async, T](q: IO[T]) =
+    q
+      .pipe(_.attemptSql)
+      .unsafeRunSync()
+      .pipe(eitherToEitherT)
+
   def pipeTx[F[_]: Async](q: IO[Either[SQLException, List[DAO.Tx]]]) =
     q
       .pipe(genericQueryPipe(Dao2Dto.tx_type1))

@@ -6,8 +6,8 @@ import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.DAO
 import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
 
-object TxQuery:
-  import TxQueryPipe.*
+object TxRepository:
+  import TxRepositoryPipe.*
 
   def getTxPipe(pipeString: Option[String]) =
     sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "

@@ -68,5 +68,5 @@ enum DAO:
       totalAccounts: Long,
       createdAt: Long,
       totalTxSize: Long,
-      total_balance: Long,
+      total_balance: String,
   )

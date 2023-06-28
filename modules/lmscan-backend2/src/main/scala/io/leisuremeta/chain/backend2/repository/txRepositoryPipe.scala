@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
 import fs2.Stream
 import io.leisuremeta.chain.lmscan.common.model.DAO
 
-object TxQueryPipe:
+object TxRepositoryPipe:
   import CommonQueriesFunction.*
 
   def filterTxHash[T](str: String)(
