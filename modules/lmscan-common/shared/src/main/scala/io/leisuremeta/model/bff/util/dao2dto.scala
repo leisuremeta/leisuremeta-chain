@@ -1,41 +1,54 @@
 package io.leisuremeta.chain.lmscan.common.model
 
+import io.leisuremeta.chain.lmscan.common.model.DTO.Tx.Tx_self
+import io.leisuremeta.chain.lmscan.common.model.DTO.Tx.Tx_Type2
+
 // import io.leisuremeta.chain.lmscan.common.model.dto.*
 // import io.leisuremeta.chain.lmscan.common.model.dao.*
 
-object Dao2Dto:
-  def tx_type1(dao: List[DAO.Tx]) = dao.map(d =>
-    DTO.Tx.Tx_self(
-      d.hash,
-      d.txType,
-      d.fromAddr,
-      d.toAddr,
-      d.blockHash,
-      d.eventTime,
-      d.createdAt,
-      d.tokenType,
-      d.outputVals,
-      d.json,
-      d.blockNumber,
-      d.inputHashs,
-      d.amount,
-      d.subType,
-      d.displayYn,
-    ),
-  )
+type TxLike = Tx_self | Tx_Type2
 
-  def tx_type2(dao: List[DAO.Tx]) = dao.map(d =>
+object Dao2Dto:
+
+  def tx2tx_self(dao: DAO.Tx) =
+    DTO.Tx.Tx_self(
+      dao.hash,
+      dao.txType,
+      dao.fromAddr,
+      dao.toAddr,
+      dao.blockHash,
+      dao.eventTime,
+      dao.createdAt,
+      dao.tokenType,
+      dao.outputVals,
+      dao.json,
+      dao.blockNumber,
+      dao.inputHashs,
+      dao.amount,
+      dao.subType,
+      dao.displayYn,
+    )
+
+  def tx2tx_type2(dao: DAO.Tx) =
     DTO.Tx.Tx_Type2(
-      hash = Some(d.hash),
-      txType = Some(d.txType),
-      createdAt = Some(d.createdAt),
-      tokenType = Some(d.tokenType),
-      outputVals = d.outputVals,
-      blockNumber = Some(d.blockNumber),
-      inputHashs = d.inputHashs,
-      amount = d.amount,
-      subType = Some(d.subType),
-    ),
-  )
+      hash = Some(dao.hash),
+      txType = Some(dao.txType),
+      createdAt = Some(dao.createdAt),
+      tokenType = Some(dao.tokenType),
+      outputVals = dao.outputVals,
+      blockNumber = Some(dao.blockNumber),
+      inputHashs = dao.inputHashs,
+      amount = dao.amount,
+      subType = Some(dao.subType),
+    )
+
+  def genericTxDto(dto: Option[String])(dao: DAO.Tx): TxLike =
+    dto match
+      case None =>
+        tx2tx_self(dao)
+      case Some(v) =>
+        v match
+          case "tx_type2" =>
+            tx2tx_type2(dao)
 
   def account(dao: List[DAO.Account]) = dao.map(d => d)(0)

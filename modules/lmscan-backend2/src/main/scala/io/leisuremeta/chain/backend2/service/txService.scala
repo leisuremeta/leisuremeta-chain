@@ -18,23 +18,18 @@ import io.leisuremeta.chain.lmscan.common.model.DTO.Account.Detail
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 
-object AccountService:
+object TxService:
 
-  def getAccountDetailAsync[F[_]: Async](
-      address: String,
-  ) =
+  // /tx?pipe=take(3),absend,asd,asd,asd&dto=txDetailpage&view=form
+  // /tx?pipe=take(10)
+  // /tx?pipe=drop(10*10),take(10) -- 10번째 페이지
+
+  def getTxAsync[F[_]: Async](pipeString: Option[String]) =
     transactor
       .use(xa =>
-        for
-          account <- AccountRepository.getAccountAsync.transact(xa)
-          txs <- TxRepository
-            .getTxPipeAsync(Some(s"addr($address)"))
+        for txs <- TxRepository
+            .getTxPipeAsync(pipeString)
             .transact(xa)
-        yield DTO.Account.Detail(
-          address = account(0).address,
-          balance = account(0).balance,
-          value = account(0).balance,
-          txList = Some(txs.map(Dao2Dto.tx2tx_self)),
-        ),
+        yield txs.map(Dao2Dto.tx2tx_self),
       )
       .pipe(QueriesPipe.genericAsyncQueryPipe)

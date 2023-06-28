@@ -8,6 +8,18 @@ import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
 
 object TxRepository:
   import TxRepositoryPipe.*
+  def getTxPipeAsync(pipeString: Option[String]) =
+    sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
+      .query[DAO.Tx]
+      .stream
+      .pipe(
+        pipeString
+          .pipe(genPipeList)
+          .pipe(pipeRun),
+      )
+      .take(100)
+      .compile
+      .toList
 
   def getTxPipe(pipeString: Option[String]) =
     sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
@@ -22,18 +34,6 @@ object TxRepository:
       .toList
       .transact(xa)
       .attemptSql
-
-  def getTxPipeAsync(pipeString: Option[String]) =
-    sql"select * from tx  ORDER BY  block_number DESC, event_time DESC  "
-      .query[DAO.Tx]
-      .stream
-      .pipe(
-        pipeString
-          .pipe(genPipeList)
-          .pipe(pipeRun),
-      )
-      .compile
-      .toList
 
   def getTx =
     sql"select * from tx"

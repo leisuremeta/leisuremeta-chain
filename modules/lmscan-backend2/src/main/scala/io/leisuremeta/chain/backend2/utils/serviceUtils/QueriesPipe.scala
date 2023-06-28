@@ -28,9 +28,9 @@ object QueriesPipe:
       .unsafeRunSync()
       .pipe(eitherToEitherT)
 
-  def pipeTx[F[_]: Async](q: IO[Either[SQLException, List[DAO.Tx]]]) =
-    q
-      .pipe(genericQueryPipe(Dao2Dto.tx_type1))
+  // def pipeTx[F[_]: Async](q: IO[Either[SQLException, List[DAO.Tx]]]) =
+  //   q
+  //     .pipe(genericQueryPipe(Dao2Dto.tx2tx_self))
 
   def pipeTxCount[F[_]: Async](q: IO[Either[SQLException, Int]]) =
     q

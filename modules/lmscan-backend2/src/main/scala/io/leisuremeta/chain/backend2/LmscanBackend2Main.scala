@@ -94,13 +94,13 @@ object BackendMain extends IOApp:
       .in("tx")
       .in(
         query[Option[String]]("pipe"),
+        // .and(query[Option[String]]("dto")),
       )
       .out(jsonBody[List[DTO.Tx.Tx_self]])
       .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
         scribe.info(s"get tx with pipe=$pipe")
-        TxRepository
-          .getTxPipe(pipe)
-          .pipe(QueriesPipe.pipeTx[F])
+        TxService
+          .getTxAsync(pipe)
           .pipe(ErrorHandle.genMsg)
           .value
       }
