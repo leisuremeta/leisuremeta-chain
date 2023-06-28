@@ -89,7 +89,7 @@ object BackendMain extends IOApp:
       }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  def tx_self[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     baseEndpoint.get
       .in("tx")
       .in(
@@ -101,6 +101,22 @@ object BackendMain extends IOApp:
         scribe.info(s"get tx with pipe=$pipe")
         TxService
           .getTxAsync(pipe)
+          .pipe(ErrorHandle.genMsg)
+          .value
+      }
+  def tx_type2[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    baseEndpoint.get
+      .in("tx_type2")
+      .in(
+        query[Option[String]]("pipe"),
+        // .and(query[Option[String]]("dto")),
+      )
+      .in("tx_type2")
+      .out(jsonBody[List[DTO.Tx.Tx_Type2]])
+      .serverLogic { (pipe) => // Unit 대신에 프론트에서 url 함수 넣을수 있게 할수있다.
+        scribe.info(s"get tx with pipe=$pipe")
+        TxService
+          .getTxAsync_tx_type2(pipe)
           .pipe(ErrorHandle.genMsg)
           .value
       }
@@ -142,7 +158,8 @@ object BackendMain extends IOApp:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
-      tx[F],
+      tx_self[F],
+      tx_type2[F],
       // account[F],
       accountDetail[F],
       txCount[F],

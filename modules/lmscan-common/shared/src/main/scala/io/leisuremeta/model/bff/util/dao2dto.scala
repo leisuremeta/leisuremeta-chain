@@ -32,14 +32,14 @@ object Dao2Dto:
   def tx2tx_type2(dao: DAO.Tx) =
     DTO.Tx.Tx_Type2(
       hash = Some(dao.hash),
-      txType = Some(dao.txType),
-      createdAt = Some(dao.createdAt),
-      tokenType = Some(dao.tokenType),
-      outputVals = dao.outputVals,
-      blockNumber = Some(dao.blockNumber),
-      inputHashs = dao.inputHashs,
-      amount = dao.amount,
-      subType = Some(dao.subType),
+      // txType = Some(dao.txType),
+      // createdAt = Some(dao.createdAt),
+      // tokenType = Some(dao.tokenType),
+      // outputVals = dao.outputVals,
+      // blockNumber = Some(dao.blockNumber),
+      // inputHashs = dao.inputHashs,
+      // amount = dao.amount,
+      // subType = Some(dao.subType),
     )
 
   def genericTxDto(dto: Option[String])(dao: DAO.Tx): TxLike =

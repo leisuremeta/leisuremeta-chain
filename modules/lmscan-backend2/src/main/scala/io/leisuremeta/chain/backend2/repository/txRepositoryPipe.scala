@@ -16,25 +16,37 @@ import io.leisuremeta.chain.lmscan.common.model.DAO
 object TxRepositoryPipe:
   import CommonQueriesFunction.*
 
-  def filterTxHash[T](str: String)(
+  def filterTxHash(str: String)(
       d: Stream[ConnectionIO, DAO.Tx],
   ) =
     d.filter(tx => tx.hash == str)
 
-  def filterTxAccount[T](str: String)(
+  def filterBlockHash(str: String)(
+      d: Stream[ConnectionIO, DAO.Tx],
+  ) =
+    d.filter(tx => tx.blockHash == str)
+
+  def filterAddr(str: String)(
       d: Stream[ConnectionIO, DAO.Tx],
   ) =
     d.filter(tx => tx.fromAddr == str || tx.toAddr.contains(str))
+
+  def filterSubtype(str: String)(
+      d: Stream[ConnectionIO, DAO.Tx],
+  ) =
+    d.filter(tx => tx.subType == str)
 
   def getPipeFunctionTx(
       pipeString: String,
   ): Stream[ConnectionIO, DAO.Tx] => Stream[ConnectionIO, DAO.Tx] =
     pipeString match
-      case s"take($number)" => take(number.toInt)
-      case s"drop($number)" => drop(number.toInt)
-      case s"hash($str)"    => filterTxHash(str)
-      case s"addr($str)"    => filterTxAccount(str)
-      case _                => filterSelf
+      case s"take($str)"      => take(str.toInt)
+      case s"drop($str)"      => drop(str.toInt)
+      case s"hash($str)"      => filterTxHash(str)
+      case s"blockHash($str)" => filterBlockHash(str)
+      case s"addr($str)"      => filterAddr(str)
+      case s"subtype($str)"   => filterSubtype(str)
+      case _                  => filterSelf
 
   def pipeRun(list: List[String])(
       acc: Stream[ConnectionIO, DAO.Tx],

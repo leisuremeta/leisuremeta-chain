@@ -20,9 +20,12 @@ import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 
 object TxService:
 
-  // /tx?pipe=take(3),absend,asd,asd,asd&dto=txDetailpage&view=form
   // /tx?pipe=take(10)
-  // /tx?pipe=drop(10*10),take(10) -- 10번째 페이지
+  // /tx?pipe=drop(100),take(10)
+  // /tx?pipe=hash(89ab4d153b6e62269a8bd8a0d3a65689bf1479d3fe5f5ffc4d0baae68ac53c66)
+  // /tx?pipe=blockHash(dfab606387674d80efe42d38ac31adfeb135689742c2ba8ebd3ca40e1968e71c)
+  // /tx?pipe=addr(a7fc7ad709d99f43fe056143aa7e0ae03842d2c5),take(1)
+  // /tx?pipe=subtype(TransferFungibleToken),take(10)
 
   def getTxAsync[F[_]: Async](pipeString: Option[String]) =
     transactor
@@ -31,5 +34,15 @@ object TxService:
             .getTxPipeAsync(pipeString)
             .transact(xa)
         yield txs.map(Dao2Dto.tx2tx_self),
+      )
+      .pipe(QueriesPipe.genericAsyncQueryPipe)
+
+  def getTxAsync_tx_type2[F[_]: Async](pipeString: Option[String]) =
+    transactor
+      .use(xa =>
+        for txs <- TxRepository
+            .getTxPipeAsync(pipeString)
+            .transact(xa)
+        yield txs.map(Dao2Dto.tx2tx_type2),
       )
       .pipe(QueriesPipe.genericAsyncQueryPipe)
