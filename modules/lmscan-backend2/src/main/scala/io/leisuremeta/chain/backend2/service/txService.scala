@@ -14,7 +14,7 @@ import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import scala.concurrent.ExecutionContext
 import cats.implicits.toFlatMapOps
 import java.sql.SQLException
-import io.leisuremeta.chain.lmscan.common.model.DTO.Account.Detail
+
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
 

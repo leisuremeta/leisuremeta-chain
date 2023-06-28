@@ -35,7 +35,7 @@ object DTO:
     )
 
   object Account:
-    final case class Detail(
+    final case class AccountDetail_withTX(
         address: Option[String] = None,
         balance: Option[BigDecimal] = None,
         value: Option[BigDecimal] = None,
@@ -58,6 +58,16 @@ object DTO:
         txCount: Option[Long],
         eventTime: Option[Long],
         createdAt: Option[Long],
+    )
+
+    final case class BlockDetail_withTx(
+        number: Option[Long] = None,
+        hash: Option[String] = None,
+        parentHash: Option[String] = None,
+        txCount: Option[Long] = None,
+        eventTime: Option[Long] = None,
+        createdAt: Option[Long] = None,
+        txList: Option[List[DTO.Tx.Tx_self]] = None,
     )
 
   object Summary:

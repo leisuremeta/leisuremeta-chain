@@ -5,6 +5,7 @@ import doobie.implicits.*
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.DAO
 import io.leisuremeta.chain.lmscan.backend2.CommonPipe.*
+import io.leisuremeta.chain.lmscan.backend2.Log.log2
 
 object BlockRepository:
   import BlockRepositoryPipe.*
@@ -17,6 +18,5 @@ object BlockRepository:
           .pipe(genPipeList)
           .pipe(pipeRun),
       )
-      .take(100)
       .compile
       .toList

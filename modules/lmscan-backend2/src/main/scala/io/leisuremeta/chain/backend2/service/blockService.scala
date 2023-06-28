@@ -14,9 +14,11 @@ import io.leisuremeta.chain.lmscan.backend2.CatsUtil.eitherToEitherT
 import scala.concurrent.ExecutionContext
 import cats.implicits.toFlatMapOps
 import java.sql.SQLException
-import io.leisuremeta.chain.lmscan.common.model.DTO.Account.Detail
+
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.common.model.Dao2Dto
+// import io.leisuremeta.chain.lmscan.common.model.BlockDetail_withTx
+import io.leisuremeta.chain.lmscan.common.model.DTO.Block.BlockDetail_withTx
 
 object BlockService:
 
@@ -34,12 +36,25 @@ object BlockService:
       )
       .pipe(QueriesPipe.genericAsyncQueryPipe)
 
-  def getTxAsync_block_type2[F[_]: Async](pipeString: Option[String]) =
+  def getBlockAsync_blockDetail_withTx[F[_]: Async](
+      hash: String,
+  ) =
     transactor
       .use(xa =>
-        for txs <- TxRepository
-            .getTxPipeAsync(pipeString)
+        for blocks <- BlockRepository
+            .getBlockPipeAsync(Some(s"hash($hash)"))
             .transact(xa)
-        yield txs.map(Dao2Dto.tx2tx_type2),
+          // txs <- TxRepository
+          //   .getTxPipeAsync(Some(s"blockHash($hash)"))
+          //   .transact(xa)
+        yield BlockDetail_withTx(
+          number = Some(blocks(0).number),
+          hash = Some(blocks(0).hash),
+          parentHash = Some(blocks(0).parentHash),
+          txCount = Some(blocks(0).txCount),
+          eventTime = Some(blocks(0).eventTime),
+          createdAt = Some(blocks(0).createdAt),
+          // txList = Some(txs.map(Dao2Dto.tx2tx_self)),
+        ),
       )
       .pipe(QueriesPipe.genericAsyncQueryPipe)

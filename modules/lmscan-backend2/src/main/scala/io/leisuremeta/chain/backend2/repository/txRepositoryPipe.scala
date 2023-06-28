@@ -36,6 +36,11 @@ object TxRepositoryPipe:
   ) =
     d.filter(tx => tx.subType == str)
 
+  def filterDisplay(str: String)(
+      d: Stream[ConnectionIO, DAO.Tx],
+  ) =
+    d.filter(tx => tx.displayYn == str.toBoolean)
+
   def getPipeFunctionTx(
       pipeString: String,
   ): Stream[ConnectionIO, DAO.Tx] => Stream[ConnectionIO, DAO.Tx] =
@@ -46,7 +51,11 @@ object TxRepositoryPipe:
       case s"blockHash($str)" => filterBlockHash(str)
       case s"addr($str)"      => filterAddr(str)
       case s"subtype($str)"   => filterSubtype(str)
+      case s"display($str)"   => filterSubtype(str)
       case _                  => filterSelf
+
+      // .filter(t => t.blockHash == lift(blockHash))
+      // .filter(t => t.display_yn == true)
 
   def pipeRun(list: List[String])(
       acc: Stream[ConnectionIO, DAO.Tx],

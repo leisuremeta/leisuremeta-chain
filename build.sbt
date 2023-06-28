@@ -442,6 +442,9 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
 lazy val lmscanBackend2 = (project in file("modules/lmscan-backend2"))
   .settings(Dependencies.lmscanBackend2)
   .settings(
+    scalacOptions ++= Seq(
+      "-Xmax-inlines:64",
+    ),
     name := "leisuremeta-chain-lmscan-backend2",
     assemblyMergeStrategy := {
       case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first

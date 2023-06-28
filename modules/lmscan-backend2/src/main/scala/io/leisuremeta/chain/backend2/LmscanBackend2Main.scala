@@ -164,11 +164,29 @@ object BackendMain extends IOApp:
       .in("account")
       .in(path[String])
       .in("detail")
-      .out(jsonBody[DTO.Account.Detail])
+      .out(jsonBody[DTO.Account.AccountDetail_withTX])
       .serverLogic { (address: String) =>
         scribe.info(s"get Account11")
         AccountService
           .getAccountDetailAsync(address)
+          .pipe(ErrorHandle.genMsg)
+          .value
+      }
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def blockDetail_withTx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    // block/{hash}/detail
+    // (1) block.hash == hash
+    // (2) tx.addr == addr
+    // (1) + (2)
+    baseEndpoint.get
+      .in("block")
+      .in(path[String])
+      .in("detail")
+      .out(jsonBody[DTO.Block.BlockDetail_withTx])
+      .serverLogic { (hash: String) =>
+        scribe.info(s"get Account11")
+        BlockService
+          .getBlockAsync_blockDetail_withTx(hash)
           .pipe(ErrorHandle.genMsg)
           .value
       }
@@ -180,6 +198,7 @@ object BackendMain extends IOApp:
       tx_pipe_dto[F]("tx_type2"),
       block_pipe_dto[F]("self"),
       accountDetail_withTx[F],
+      blockDetail_withTx[F],
       txCount[F],
       summary[F],
     )
