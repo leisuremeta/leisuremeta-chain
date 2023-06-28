@@ -10,6 +10,15 @@ type TxLike = Tx_self | Tx_Type2
 
 object Dao2Dto:
 
+  def block2block_self(dao: DAO.Block) =
+    DTO.Block.Block_self(
+      Some(dao.number),
+      Some(dao.hash),
+      Some(dao.parentHash),
+      Some(dao.txCount),
+      Some(dao.eventTime),
+      Some(dao.createdAt),
+    )
   def tx2tx_self(dao: DAO.Tx) =
     DTO.Tx.Tx_self(
       dao.hash,

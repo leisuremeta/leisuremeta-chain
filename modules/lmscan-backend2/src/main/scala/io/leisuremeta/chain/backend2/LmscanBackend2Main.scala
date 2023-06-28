@@ -89,7 +89,9 @@ object BackendMain extends IOApp:
       }
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def tx_pipe_dto[F[_]: Async](dto: String): ServerEndpoint[Fs2Streams[F], F] =
+  def tx_pipe_dto[F[_]: Async](
+      dto: String,
+  ): ServerEndpoint[Fs2Streams[F], F] =
     dto match
       case "self" =>
         baseEndpoint.get
@@ -118,6 +120,26 @@ object BackendMain extends IOApp:
               .value
           }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  def block_pipe_dto[F[_]: Async](
+      dto: String,
+  ): ServerEndpoint[Fs2Streams[F], F] =
+    dto match
+      case "self" =>
+        baseEndpoint.get
+          .in("block")
+          .in(path[String])
+          .in(dto)
+          .out(jsonBody[List[DTO.Block.Block_self]])
+          .serverLogic { (pipe) =>
+            scribe.info(s"get tx with pipe=$pipe")
+            BlockService
+              .getBlockAsync(Some(pipe))
+              .pipe(ErrorHandle.genMsg)
+              .value
+          }
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def txCount[F[_]: Async] =
     baseEndpoint.get
       .in("tx")
@@ -132,13 +154,12 @@ object BackendMain extends IOApp:
           .value
       }
 
-  // account/{addr}/detail
-  // (1) account.address == addr
-  // (2) tx.addr == addr
-  // (1) + (2)
-
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+  def accountDetail_withTx[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    // account/{addr}/detail
+    // (1) account.address == addr
+    // (2) tx.addr == addr
+    // (1) + (2)
     baseEndpoint.get
       .in("account")
       .in(path[String])
@@ -157,8 +178,8 @@ object BackendMain extends IOApp:
     List(
       tx_pipe_dto[F]("self"),
       tx_pipe_dto[F]("tx_type2"),
-      // account[F],
-      accountDetail[F],
+      block_pipe_dto[F]("self"),
+      accountDetail_withTx[F],
       txCount[F],
       summary[F],
     )

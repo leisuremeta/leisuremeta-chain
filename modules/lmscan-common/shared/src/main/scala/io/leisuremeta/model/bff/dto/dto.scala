@@ -50,6 +50,16 @@ object DTO:
         amount: Option[BigDecimal] = None,
     )
 
+  object Block:
+    final case class Block_self(
+        number: Option[Long],
+        hash: Option[String],
+        parentHash: Option[String],
+        txCount: Option[Long],
+        eventTime: Option[Long],
+        createdAt: Option[Long],
+    )
+
   object Summary:
     final case class SummaryMain(
         id: Option[Long] = None,
