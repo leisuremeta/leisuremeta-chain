@@ -5,6 +5,7 @@ import cats.effect.{Async, Resource}
 import cats.effect.std.Console
 
 import api.model.{Account, Transaction}
+import api.model.token.{TokenId}
 import lib.datatype.BigNat
 import lib.crypto.Hash.ops.*
 
@@ -13,11 +14,13 @@ final case class InvalidTx(
   reason: InvalidReason,
   amountToBurn: BigNat,
   tx: Transaction,
+  wrongNftInput: Option[TokenId] = None,
+  memo: String = "",
 ):
   def txType: String = tx.getClass.getSimpleName
 
 enum InvalidReason:
-  case OutputMoreThanInput, InputAlreadyUsed
+  case OutputMoreThanInput, InputAlreadyUsed, BalanceNotExist
 
 trait InvalidTxLogger[F[_]]:
   def log(invalidTx: InvalidTx): F[Unit]
@@ -32,14 +35,14 @@ object InvalidTxLogger:
   def file[F[_]: Async](filename: String): Resource[F, InvalidTxLogger[F]] =
     Resource
       .make:
-        import java.io.PrintWriter
-        Async[F].delay(new PrintWriter(filename))
+        import java.io.{File, FileOutputStream, PrintWriter}
+        Async[F].delay(new PrintWriter(new FileOutputStream(new File(filename), true)))
       .apply: out =>
         Async[F].delay:
           out.flush()
           out.close()
       .map: out =>
-        case InvalidTx(signer, reason, amountToBurn, tx) =>
+        case InvalidTx(signer, reason, amountToBurn, tx, wrongNftInput, memo) =>
           Async[F].delay:
-            out.println(s"$signer,$reason,$amountToBurn,${tx.getClass.getSimpleName},${tx.toHash}")
+            out.println(s"$signer,$reason,$amountToBurn,${tx.getClass.getSimpleName},${tx.toHash}, ${wrongNftInput}, $memo")
             out.flush()
