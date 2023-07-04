@@ -150,7 +150,13 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
   Resource.fromAutoCloseable:
     Async[F].delay(Source.fromFile(fileName))
 
+
 object BulkInsertMain extends IOApp:
+
+//  val offset: Long = 527856L
+//  val offset: Long = 533359L
+  val offset: Long = 534366L
+  
   override def run(args: List[String]): IO[ExitCode] =
     NodeConfig
       .load[IO](IO.blocking(ConfigFactory.load))
@@ -170,7 +176,7 @@ object BulkInsertMain extends IOApp:
               "invalid-txs.csv"
             result <- Resource.eval:
               given PlayNommState[IO] = PlayNommState.build[IO]
-              bulkInsert[IO](config, source, 0).value.map:
+              bulkInsert[IO](config, source, offset).value.map:
                 case Left(err) =>
                   scribe.error(s"Error: $err")
                   ExitCode.Error
@@ -179,4 +185,13 @@ object BulkInsertMain extends IOApp:
                   ExitCode.Success
           yield result
 
-          program.use(IO.pure).as(ExitCode.Success)
+          program.use(IO.pure)
+
+          fileResource[IO]("txs.archive")
+            .use: source =>
+              FungibleBalanceState.build(source).flatTap: state =>
+                IO.pure:
+                  ()
+//                  state.free.foreach(println)
+//                  state.locked.foreach(println)
+            .as(ExitCode.Success)
