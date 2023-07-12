@@ -9,8 +9,9 @@ import io.leisuremeta.chain.lmscan.backend.entity.{Tx, Account}
 import io.leisuremeta.chain.lmscan.common.model.{
   PageNavigation,
   PageResponse,
-  AccountDetail
+  AccountDetail,
 }
+import io.leisuremeta.chain.lmscan.backend.repository.PlaynommBalanceRepository
 
 object AccountService:
   def get[F[_]: Async](
@@ -26,14 +27,17 @@ object AccountService:
 
     res.map { (accountOpt, page) =>
       accountOpt match
-        case Some(x) => {
-          val detail = AccountDetail(Some(x.address), Some(x.balance), Some(x.amount), Some(page.payload))
+        case Some(x) =>
+          val detail = AccountDetail(
+            Some(x.address),
+            Some(x.balance),
+            Some(x.amount),
+            Some(page.payload),
+          )
           Some(detail)
-        }
-        case None => {
+        case None =>
           scribe.info(s"there is no exist account of '$address'")
           Option.empty
-        }
     }
 
     // accountOpt match

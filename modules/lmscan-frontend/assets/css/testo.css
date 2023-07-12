@@ -1,0 +1,7 @@
+.testo {
+    width: 100%;
+    height: 30vh;
+    z-index: 10;
+    background-color: rgba(189, 208, 202, 0.231);
+    color: white;
+}

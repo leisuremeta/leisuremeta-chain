@@ -11,10 +11,13 @@ object SearchView:
           value   := s"${model.searchValue}",
           `class` := "search-text xy-center DOM-search ",
           `placeholder` := (
-            "block hash, tx hash, account ... ",
+            "block hash, tx hash, account ... "
           ),
         ),
-        div(`class` := "search-icon xy-center material-symbols-outlined")(
+        div(
+          onClick(InputMsg.Patch),
+          `class` := "search-icon xy-center material-symbols-outlined",
+        )(
           "search",
         ),
       ),

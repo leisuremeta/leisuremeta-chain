@@ -1,35 +1,70 @@
-.loader-container {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;    
-    background: rgb(0,0,0,0.7);
-    z-index: 100;
+.loader-case {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 14, 14, 0.4);
+  /* background: rgba(215, 14, 14, 0.074); */
+  /* background: rgba(215, 14, 14, 0.1); */
 }
 
-.loader-container > .loader {
-    position: absolute;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border: 16px solid #f3f3f3;
-    border-radius: 50%;
-    border-top: 16px solid black;
-    width: 40px;
-    height: 40px;
-    -webkit-animation: spin 2s linear infinite; /* Safari */
-    animation: spin 2s linear infinite;
+.loader-container2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;    
+  /* background: rgba(95, 62, 62, 0.263) !important; */
+  /* background: linear-gradient(2deg, #000000, #000000) !important; */
+  /* background: black !important; */
+  z-index: 100;
 }
 
-  /* Safari */
+.loader-container2 .loader {
+  position: relative;
+  transform: translate(-50%, -50%);
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid black;
+  width: 40px;
+  height: 40px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+  
+  
+}
+.loader-container2 .loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  border: 10px solid;
+  border-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.55) rgba(255, 255, 255, 0.95);
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  
+
+}
+
+/* Safari */
 @-webkit-keyframes spin {
-    0% { -webkit-transform: rotate(0deg); }
-    100% { -webkit-transform: rotate(360deg); }
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+} 
+
+.position-relative{
+  position: relative;
 }

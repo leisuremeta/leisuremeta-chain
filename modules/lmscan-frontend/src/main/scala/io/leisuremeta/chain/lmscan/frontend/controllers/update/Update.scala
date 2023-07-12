@@ -5,25 +5,11 @@ import Log.log
 
 object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
-
-    // component handle
-    case inputMsg: InputMsg       => SearchUpdate.update(model)(inputMsg)
-    case toggleMsg: ToggleMsg     => ToggleUpdate.update(model)(toggleMsg)
-    case pageMoveMsg: PageMoveMsg => PageMoveUpdate.update(model)(pageMoveMsg)
-
-    // api handle
-    case apiMsg: ApiMsg   => ApiUpdate.update(model)(apiMsg)
-    case pageMsg: PageMsg => PageUpdate.update(model)(pageMsg)
-
-    // NO MORE USE============================================================
-    // case navMsg: NavMsg           => NavUpdate.update(model)(navMsg)
-    // case txMsg: TxMsg             => TxUpdate.update(model)(txMsg)
-    // case txDetailMsg: TxDetailMsg => TxDetailUpdate.update(model)(txDetailMsg)
-    // case blockMsg: BlockMsg       => BlockUpdate.update(model)(blockMsg)
-    // case blockDetailMsg: BlockDetailMsg =>
-    //   BlockDetailUpdate.update(model)(blockDetailMsg)
-    // case nftDetailMsg: NftDetailMsg =>
-    //   NftDetailUpdate.update(model)(nftDetailMsg)
-    // case accountDetailMsg: AccountDetailMsg =>
-    //   AccountDetailUpdate.update(model)(accountDetailMsg)
-    // case dashboardMsg: DashboardMsg => Board.update(model)(dashboardMsg)
+    case routerMsg: RouterMsg   => (model, Cmd.None)
+    case pageMsg: PageMsg       => PageUpdate.update(model)(pageMsg)
+    case inputMsg: InputMsg     => SearchUpdate.update(model)(inputMsg)
+    case toggleMsg: ToggleMsg   => ToggleUpdate.update(model)(toggleMsg)
+    case popupMsg: PopupMsg     => PopupUpdate.update(model)(popupMsg)
+    case commandMsg: CommandMsg => CommandUpdate.update(model)(commandMsg)
+    case detailButtonMsg: DetailButtonMsg =>
+      DetailButtonUpdate.update(model)(detailButtonMsg)

@@ -4,6 +4,10 @@ package io.leisuremeta.chain.lmscan.frontend
 object Log:
   def log[A](x: A): A =
     println(x); x
+  def log2[A](s: String)(x: A): A =
+    println(s);
+    println(x);
+    x
 
   // log(a,b,c,d,....z)
   // output : (a,b,c,...z)

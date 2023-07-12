@@ -59,8 +59,8 @@ trait CommonQuery:
             })
             .map(Either.right(_))
         yield
-          scribe.info(s"seqQuery Result: $result")
-          result
+        // scribe.info(s"seqQuery Result: $result")
+        result
       } {
         case e: SQLException =>
           Left(s"sql exception occured: " + e.getMessage())

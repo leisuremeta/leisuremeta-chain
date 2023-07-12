@@ -13,6 +13,9 @@ import io.leisuremeta.chain.lmscan.common.model.NftDetail
 import io.leisuremeta.chain.lmscan.common.model.NftFileModel
 import cats.implicits.*
 import cats.effect.IO
+import io.leisuremeta.chain.lmscan.backend.repository.NftOwnerRepository
+import io.leisuremeta.chain.lmscan.backend.entity.NftOwner
+import io.leisuremeta.chain.lmscan.backend.entity.NftOwnerModel
 object NftService:
 
   def getNftDetail[F[_]: Async](
@@ -32,6 +35,8 @@ object NftService:
           Some(nft.eventTime),
         ),
       )
+      nftOwner <- NftOwnerRepository.get(tokenId)
+
       // nftFile <- NftFileRepository.get(tokenId)
       nft <- NftFileRepository.get(tokenId)
       nftFile = nft.map(nftFile =>
@@ -47,7 +52,7 @@ object NftService:
           Some(nftFile.creator),
           Some(nftFile.eventTime),
           Some(nftFile.createdAt),
-          Some(nftFile.owner),
-        )
+          Some(nftOwner.getOrElse(new NftOwner).owner),
+        ),
       )
     yield Some(NftDetail(nftFile, Some(activities)))

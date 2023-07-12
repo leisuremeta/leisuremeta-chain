@@ -10,7 +10,12 @@ import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.{TxDetail, TxInfo, BlockInfo, BlockDetail}
+import io.leisuremeta.chain.lmscan.common.model.{
+  TxDetail,
+  TxInfo,
+  BlockInfo,
+  BlockDetail,
+}
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 import io.circe.*
@@ -63,7 +68,8 @@ object ExploreApi:
     )
     .in(
       query[Option[String]]("accountAddr")
-        .and(query[Option[String]]("blockHash")),
+        .and(query[Option[String]]("blockHash"))
+        .and(query[Option[String]]("subtype")),
     )
     .out(jsonBody[PageResponse[TxInfo]])
 
@@ -108,6 +114,24 @@ object ExploreApi:
     .in("summary")
     .in("main")
     .out(jsonBody[Option[SummaryModel]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTotalBalance = baseEndpoint.get
+    .in("total")
+    .in("balance")
+    .out(jsonBody[Option[String]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getValanceFromChainDev = baseEndpoint.get
+    .in("dev")
+    .in("chain")
+    .out(jsonBody[Option[String]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getValanceFromChainProd = baseEndpoint.get
+    .in("prod")
+    .in("chain")
+    .out(jsonBody[Option[String]])
 
   // @SuppressWarnings(Array("org.wartremover.warts.Any"))
   // val getSearchTargetType = baseEndpoint.get

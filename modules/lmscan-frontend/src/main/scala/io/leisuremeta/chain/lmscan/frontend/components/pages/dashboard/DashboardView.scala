@@ -4,7 +4,7 @@ import tyrian.*
 
 object DashboardView:
   def view(model: Model): Html[Msg] =
-    div(`class` := "")(
+    div(`class` := "color-white")(
       BoardView.view(model),
       CommonTableView.view(model),
     )

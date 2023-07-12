@@ -72,9 +72,9 @@ nav #title #body {
     
 }
 
-#buttons {
-    padding-top: 10px;
-}
+/* #buttons { */
+    /* padding-top: 10px; */
+/* } */
 
 #buttons button.false:hover {
     background-color: #00ae87;

@@ -12,5 +12,5 @@ final case class NftFile(
     creator: String,
     eventTime: Long,
     createdAt: Long,
-    owner: String,
+    // owner: String,
 )
