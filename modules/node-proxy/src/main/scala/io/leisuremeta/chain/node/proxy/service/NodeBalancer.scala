@@ -107,7 +107,6 @@ case class NodeBalancer[F[_]: Async] (
       else if (code.isServerError || res.body.isEmpty) && retries > 0
         then Async[F].sleep(delay) 
               *> postTxWithExponentialRetry(line, retries - 1, delay * 2)
-      // else Async[F].raiseError(new RuntimeException(s"post tx $retries times failure: ${res.code} ${res.body}"))
       else Async[F].pure("")
     }
 
@@ -185,40 +184,30 @@ case class NodeBalancer[F[_]: Async] (
   def run(): F[Unit] =
     def loop(endBlockNumber: BigNat, lastTxsOpt: Option[String]): F[Unit] = 
       val newNodeAddr = nodeConfig.newNodeAddress.get
-      scribe.info(s"newNode: $newNodeAddr")
       val oldNodeAddr = nodeConfig.oldNodeAddress
-      scribe.info(s"oldNode: $oldNodeAddr")
-      scribe.info(s"endBlockNumber: $endBlockNumber")
+      scribe.info(s"[oldNode: $oldNodeAddr]", s"-> [newNode: $newNodeAddr]")
       for 
-        // bestBlock in old blockchain
         response   <- apiService.bestBlock(oldNodeAddr)
         (_, startBlock) = response
-        _          <- Async[F].delay(println(s"startBlock: $startBlock"))
         _          <- if (startBlock.header.number == endBlockNumber) {
                         for 
                           _ <- blocker.set(false)
-                          // _ <- Async[F].delay(scribe.info("테스트 트랜잭션을 날려주세요."))
-                          // _ <- Async[F].sleep(30.second)
                           _ <- queue.pollsAfter(lastTxsOpt).flatMap { jsons => 
-                                 println(s"jsons: $jsons")
                                  jsons.traverse { txs => postTxWithExponentialRetry(txs, 5, 1.second)}
                                } 
-                          // _ <- Async[F].delay(scribe.info("양쪽 모두 릴레이 되는지 테스트 하세요."))
                           _ <- baseUrlsLock.getAndUpdate{_.appended(nodeConfig.newNodeAddress.get)} 
                           _ <- blocker.set(true) // 양쪽 모두 릴레이 시작.
-                          // _ <- Async[F].delay(scribe.info("마이그레이션 성공. 양쪽 모두 API 릴레이 시작"))
+                          _ <- Async[F].delay(scribe.info("마이그레이션 성공. 양쪽 모두 API 릴레이 시작"))
                           newNodeCfg <- NodeWatchService.waitTerminateSig
                           _ <- Async[F].delay(scribe.info(s"now api request only relayed to ${newNodeCfg.oldNodeAddress}"))
                           _ <- baseUrlsLock.set(List(newNodeCfg.oldNodeAddress))
                         yield ()
                       } else {
-                        scribe.info("NodeBalancer.loop() else branch")
                         logDiffTxsLoop(startBlock, endBlockNumber)
                         >> createTxsToNewBlockchain.flatMap { lastTxs => 
                           val validLastTxs = lastTxs match
                             case Some(lastTxs) => Some(lastTxs)
                             case None => lastTxsOpt
-                          Async[F].delay(scribe.info(s"마지막 라인: $validLastTxs"))
                           deleteAllFiles
                           >> loop(startBlock.header.number, validLastTxs) 
                         }
