@@ -40,7 +40,7 @@ object BoardView:
   def parseToNumber(strNum: String) =
     strNum.length() > 18 match
       case true =>
-        String.format("%.0f", strNum.dropRight(18).toDouble)
+        f"${BigDecimal(strNum) / Math.pow(10, 18)}%,.3f"
       case false => String.format("%.0f", strNum.toDouble)
 
   def addComma(numberString: String) =
@@ -104,7 +104,7 @@ object BoardView:
                 data.total_balance
                   .map(_.toString)
                   .getOrElse("0"),
-              ).pipe(addComma),
+              ),
             ),
           ), {
             data != new SummaryModel match
@@ -121,7 +121,8 @@ object BoardView:
               Board.Accounts,
             ),
             div(`class` := "color-white font-bold")(
-              plainStr(data.totalAccounts).pipe(addComma),
+              plainStr(data.totalAccounts)
+                .pipe(addComma),
             ),
           ), {
             data != new SummaryModel match
