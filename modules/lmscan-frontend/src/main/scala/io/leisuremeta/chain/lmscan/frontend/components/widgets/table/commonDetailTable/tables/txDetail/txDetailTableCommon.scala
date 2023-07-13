@@ -192,6 +192,13 @@ object TxDetailTableCommon:
                   genTxDetail("Name", nft.name.toString()),
                 ),
               )
+            case nft: DefineTokenWithPrecision =>
+              List(
+                List(
+                  genTxDetail("Definition ID", nft.definitionId.toString),
+                  genTxDetail("Name", nft.name.toString()),
+                ),
+              )
             case nft: MintNFT =>
               List(
                 List(
