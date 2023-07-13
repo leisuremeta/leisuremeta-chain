@@ -38,7 +38,6 @@ object BoardView:
       case false => commaDecimal + sosu
 
   def parseToNumber(strNum: String) =
-    //  strNum.toDouble() / 1_000_000_000_000
     strNum.length() > 18 match
       case true =>
         String.format("%.0f", strNum.dropRight(18).toDouble)
@@ -50,9 +49,7 @@ object BoardView:
       case _   => f"${BigInt(numberString)}%,d"
 
   def view(model: Model): Html[Msg] =
-    val data2 = get_PageResponseViewCase(model).board
-    log2("data2")(data2)
-    // val data = 1
+    val data = get_PageResponseViewCase(model).board
 
     div(`class` := "board-area")(
       div(`class` := "board-list x ")(
@@ -64,11 +61,10 @@ object BoardView:
               Board.LM_Price,
             ),
             div(`class` := "color-white font-bold")(
-              plainStr(data2.lmPrice).take(6) + " USDT",
-              // "as",
+              plainStr(data.lmPrice).take(6) + " USDT",
             ),
           ), {
-            data2 != new SummaryModel match
+            data != new SummaryModel match
               case false =>
                 LoaderView.view(model)
 
@@ -104,28 +100,14 @@ object BoardView:
               Board.Transactions,
             ),
             div(`class` := "color-white font-bold")(
-              {
-
-                // String
-                //   .format(
-                //     "%.3f",
-                //     plainLong(
-                //       data.totalTxSize,
-                //     ).toDouble / (1024 * 1024).toDouble,
-                //   ) + " MB"
-
-                // parseToNumber(
-                //   data2
-                //     .pipe(log2("data??"))
-                //     .total_balance
-                //     .map(_.toString)
-                //     .getOrElse("0"),
-                // ).pipe(addComma)
-                "43,788,633.259"
-              },
+              parseToNumber(
+                data.total_balance
+                  .map(_.toString)
+                  .getOrElse("0"),
+              ).pipe(addComma),
             ),
           ), {
-            data2 != new SummaryModel match
+            data != new SummaryModel match
               case false =>
                 LoaderView.view(model)
               case _ => div()
@@ -139,11 +121,10 @@ object BoardView:
               Board.Accounts,
             ),
             div(`class` := "color-white font-bold")(
-              plainStr(data2.totalAccounts).pipe(addComma),
-              // "as",
+              plainStr(data.totalAccounts).pipe(addComma),
             ),
           ), {
-            data2 != new SummaryModel match
+            data != new SummaryModel match
               case false =>
                 LoaderView.view(model)
               case _ => div()

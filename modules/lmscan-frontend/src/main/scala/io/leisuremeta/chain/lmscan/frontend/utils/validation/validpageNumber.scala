@@ -13,15 +13,6 @@ def limit_value(page: String, limit: Int = 50000) =
         case false => page.toInt
     case "Development" => page.toInt
 
-// def limit_value2(page: String, limit: Int = 50000) =
-//   getLimit_value(
-//     page, {
-//       window.localStorage.getItem("commandMode") match
-//         case "Production"  => window.localStorage.getItem("limit").toInt
-//         case "Development" => 10000000
-//     },
-//   )
-
 def validPageNumber(t: "Block" | "Tx")(model: Model) =
   t match
     case "Block" =>

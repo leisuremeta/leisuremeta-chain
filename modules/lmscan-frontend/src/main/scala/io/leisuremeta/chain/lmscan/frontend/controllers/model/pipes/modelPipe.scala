@@ -44,13 +44,6 @@ object ModelPipe:
       .pipe(in_appStates)
       .pipe(find_PageCase(model.appStates.length))
 
-  // def find_subtype(model: Model) =
-  //   model
-  //     .pipe(find_curent_State)
-  //     .pipe(a=>a.pageCase)
-  //     .pipe(in_PubCases)
-  //     .pipe(a=>a)
-
   def find_tx_curpage(model: Model) =
     model
       .pipe(find_current_PageCase)

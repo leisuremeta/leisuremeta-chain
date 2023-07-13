@@ -102,22 +102,6 @@ object ValidPageName:
               ),
             )
 
-//   def getPageFromStr(search: String): PageName =
-//     search match
-//       case "DashBoard"                 => PageName.DashBoard
-//       case s"Blocks($page)"            => PageName.Blocks(page.toInt)
-//       case s"Transactions($page)"      => PageName.Transactions(page.toInt)
-//       case s"BlockDetail($hash)"       => PageName.BlockDetail(hash)
-//       case s"AccountDetail($hash)"     => PageName.AccountDetail(hash)
-//       case s"TransactionDetail($hash)" => PageName.TransactionDetail(hash)
-//       case s"NftDetail($hash)"         => PageName.NftDetail(hash)
-//       case _ =>
-//         search.length() match
-//           case 40 => PageName.AccountDetail(search)
-//           case 25 => PageName.NftDetail(search)
-//           case 64 => PageName.Page64(search)
-//           case _  => PageName.NoPage
-
   def getPageCaseFromUrl(url: String): PageCase =
     url match
       case s"/dashboard" => PageCase.DashBoard()

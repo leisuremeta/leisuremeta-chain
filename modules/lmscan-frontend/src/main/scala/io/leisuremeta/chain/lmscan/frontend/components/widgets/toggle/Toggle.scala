@@ -31,7 +31,6 @@ object Toggle:
               `class` := s"${model.detail_button}",
               onClick(DetailButtonMsg.OnClick(model.detail_button)),
             )("details")
-            // details 비활성화
             div()
           case false => div(),
       ),

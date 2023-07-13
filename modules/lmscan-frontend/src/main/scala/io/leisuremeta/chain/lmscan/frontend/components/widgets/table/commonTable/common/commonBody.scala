@@ -72,20 +72,6 @@ object Body:
               // pipe_PubCase_Page(state.pageCase).toString(),
             ),
           ),
-
-          // : PubCases |> map - pipe_PubCase_Page |> reduce
-          // div(`class` := "cell")(
-          //   span(
-          //     pipe_PageCase_PubCase__Page_All(state.pageCase).toString(),
-          //   ),
-          // ),
-
-          // : pub_m2
-          // div(`class` := "cell")(
-          //   span(
-          //     pipe_PageCase_PubCase__pub_m1_All(state.pageCase).toString(),
-          //   ),
-          // ),
         ),
       ),
     )
@@ -101,9 +87,6 @@ object Body:
             Cell.ACCOUNT_HASH(v.signer),
             Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
-          // Cell.PlainInt(v.blockNumber),
-          // Cell.PlainStr(v.txType),
-          // Cell.PlainStr(v.subType),
         ),
       )
   def txlist_txtable_on = (payload: List[TxInfo]) =>
@@ -119,9 +102,6 @@ object Body:
             Cell.PlainStr(v.subType), // subtype 추가
             Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
-          // Cell.PlainInt(v.blockNumber),
-          // Cell.PlainStr(v.txType),
-          // Cell.PlainStr(v.subType),
         ),
       )
   def dashboard_txtable = (payload: List[TxInfo]) =>
@@ -157,12 +137,9 @@ object Body:
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
-            // Cell.PlainInt(v.blockNumber),
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
-            // Cell.PlainStr(v.txType),
-            // Cell.PlainStr(v.subType),
             Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
         ),
@@ -174,12 +151,9 @@ object Body:
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
-            // Cell.PlainInt(v.blockNumber),
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
-            // Cell.PlainStr(v.txType),
-            // Cell.PlainStr(v.subType),
             Cell.Tx_VALUE2(
               (
                 v.subType,

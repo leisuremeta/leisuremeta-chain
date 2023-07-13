@@ -38,18 +38,6 @@ object PageUpdate:
                 .pipe(_.getOrElse(PubCase.BlockPub()))
                 .pipe(in_Page)
                 .pipe(_.toString),
-              // tx_total_page =
-              //   get_PageResponseViewCase(model).tx.totalPages match
-              //     case 1 => model.tx_total_page
-              //     case _ =>
-              //       get_PageResponseViewCase(model).tx.totalPages.toString()
-              // ,
-              // block_total_page =
-              //   get_PageResponseViewCase(model).block.totalPages match
-              //     case 1 => model.block_total_page
-              //     case _ =>
-              //       get_PageResponseViewCase(model).block.totalPages.toString()
-              // ,
               pointer = get_latest_number(model) + 1,
               appStates = model.appStates ++ Seq(
                 StateCase(

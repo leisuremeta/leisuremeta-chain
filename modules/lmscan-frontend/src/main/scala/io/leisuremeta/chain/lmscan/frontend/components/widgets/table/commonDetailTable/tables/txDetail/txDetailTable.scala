@@ -17,5 +17,4 @@ object TxDetailTable:
       // TxDetailTableInput.view(data),
       // TxDetailTableOutput.view(data),
       // TxDetailTableCommon.view(data),
-
     )

@@ -68,20 +68,6 @@ object PageCasePipe:
       )
     resulte
 
-  // # PageCase |> [Pubcase] |> [in page] |> all page :: NOT USE
-  def pipe_PageCase_PubCase__Page_All(pageCase: PageCase) =
-    pageCase
-      .pipe(in_PubCases)
-      .map(d => in_Page(d))
-      .reduce((a, b) => a + b)
-
-  // # PageCase |> [Pubcase] |> [in pub_m1] |> all page :: NOT USE
-  def pipe_PageCase_PubCase__pub_m1_All(pageCase: PageCase) =
-    pageCase
-      .pipe(in_PubCases)
-      .map(d => in_pub_m1(d))
-      .reduce((a, b) => a + b)
-
   def pipe_PageResponseViewCase(pageCase: PageCase): PageResponseViewCase =
     var resulte = new PageResponseViewCase()
     pageCase

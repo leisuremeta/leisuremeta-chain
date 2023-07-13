@@ -48,8 +48,6 @@ object TransactionTable:
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
               Table.blockDetail_txtable(model),
-              // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
-              // Search.search_tx(model),
             ),
             TransactionTableCommon.loader(model),
           ),
@@ -60,8 +58,6 @@ object TransactionTable:
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
               Table.accountDetail_txtable(model),
-              // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
-              // Search.search_tx(model),
             ),
             current_ViewCase(model).txInfo(0) != new TxInfo match
               case false => div(`class` := "")()
@@ -74,8 +70,6 @@ object TransactionTable:
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
               Table.nftDetail_txtable(model),
-              // TODO :: 리스트가 1페이지 이상일때만 search 보여주기
-              // Search.search_tx(model),
             ),
             new NftActivity != get_PageResponseViewCase(
               model,

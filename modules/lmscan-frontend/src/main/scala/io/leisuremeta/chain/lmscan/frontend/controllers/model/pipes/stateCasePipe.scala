@@ -5,7 +5,6 @@ import io.leisuremeta.chain.lmscan.common.model.*
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.update_PageCase_PubCases
 
-// TODO:: go, pipe 함수로 redesign!
 object StateCasePipe:
   def in_pageCase(state: StateCase) = state.pageCase
   def in_number(state: StateCase)   = state.number

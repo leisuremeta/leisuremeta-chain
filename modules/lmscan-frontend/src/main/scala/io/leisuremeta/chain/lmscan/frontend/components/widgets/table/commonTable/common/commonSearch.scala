@@ -272,48 +272,6 @@ object Search:
                           ),
                         ),
                       ),
-
-                  // PageMsg.PreUpdate(
-                  //   find_current_PageCase(model) match
-                  //     case page: PageCase.Transactions =>
-                  //       page.copy(
-                  //         url = s"transactions/${limit_value(idx.toString())}",
-                  //         pubs = List(
-                  //           PubCase.TxPub(page = limit_value(idx.toString())),
-                  //         ),
-                  //       )
-
-                  //     // TODO:: replaced with values ​​received from the cache.
-                  //     // TODO:: fix 필요
-                  //     case page: PageCase.AccountDetail =>
-                  //       page.copy(
-                  //         url = s"account/${idx}",
-                  //         pubs = List(
-                  //           PubCase.BoardPub(1, "", SummaryModel()),
-                  //           PubCase.AccountDetailPub(hash =
-                  //             page.pubs.filter(pub =>
-                  //               pub match
-                  //                 case pub: PubCase.TxPub => true
-                  //                 case _                  => false,
-                  //             )(0) match
-                  //               case pub: PubCase.TxPub => pub.accountAddr
-                  //               case _                  => "",
-                  //           ),
-                  //           PubCase.TxPub(
-                  //             accountAddr = page.pubs.filter(pub =>
-                  //               pub match
-                  //                 case pub: PubCase.TxPub => true
-                  //                 case _                  => false,
-                  //             )(0) match
-                  //               case pub: PubCase.TxPub => pub.accountAddr
-                  //               case _                  => ""
-                  //             ,
-                  //             page = idx,
-                  //           ),
-                  //         ),
-                  //       )
-                  //     case _ => find_current_PageCase(model),
-                  // ),
                 ),
               )(idx.toString()),
             ),
