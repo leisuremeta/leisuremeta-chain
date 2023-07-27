@@ -132,7 +132,13 @@ object TxDetailTableCommon:
     Cell.ACCOUNT_HASH_Long(
       Some(output.toString),
     ),
-    Cell.PlainStr(Some(v.toString), "cell type-detail-body"),
+    Cell.PlainStr(
+      Some(
+        BigDecimal(v.toString.pipe(_Down18).toString)
+          .pipe(set_MaximumPoint(4)),
+      ),
+      "cell type-detail-body",
+    ),
   )
   def genTxDetail_outputs_body(
       outputs: (Account, BigNat),
