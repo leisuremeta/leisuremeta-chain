@@ -13,18 +13,31 @@ import io.circe.Json
 
 object BalanceRepository:
 
-  val config = ConfigFactory.load()
-  val url    = config.getString("ctx.getBalanceapi_url")
+  val config          = ConfigFactory.load()
+  val contractaddress = config.getString("ctx.contractaddress")
+  val address         = config.getString("ctx.address").split(",")
+  val apikey          = config.getString("ctx.apikey")
 
-  def getBalanceOption[F[_]: Async]: EitherT[F, String, Option[String]] =
-    val result = Source.fromURL(url).mkString
-    EitherT.rightT(Some(result))
+  def urlFunction = (
+    address: String
+  ) =>
+    s"https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=${contractaddress}&address=${address}&apikey=${apikey}"
 
-  def getBalance =
-    val balanceJson = Source.fromURL(url).mkString
-    parse(balanceJson)
+  def getBalanceFromUrl = (address: String) =>
+
+    val resultJsonString =
+      Source.fromURL(urlFunction(address)).mkString
+
+    parse(resultJsonString)
       .getOrElse(Json.Null)
       .hcursor
       .downField("result")
       .as[String]
-      .getOrElse("")
+      .getOrElse("0")
+
+  def getBalance =
+    address
+      .foldRight(BigDecimal(0))((url, acc) =>
+        BigDecimal(getBalanceFromUrl(url)) + acc,
+      )
+      .toString()

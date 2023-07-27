@@ -165,17 +165,6 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  def totalBalance[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getTotalBalance.serverLogic { Unit =>
-      scribe.info(s"totalBalance")
-      val result = SummaryService.getBalance
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
   // 대체
   def playnommBalance[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getValanceFromChainDev.serverLogic { Unit =>
@@ -198,7 +187,6 @@ object BackendMain extends IOApp:
       nftDetail[F],
       // searchTargetType[F],
       summaryMain[F],
-      totalBalance[F],
       playnommBalance[F],
     )
 

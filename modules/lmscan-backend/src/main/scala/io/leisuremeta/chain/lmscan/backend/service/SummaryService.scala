@@ -19,11 +19,7 @@ object SummaryService:
           Some(s.totalAccounts),
           Some(s.createdAt),
           Some(s.totalTxSize),
-          Some(s.total_balance.toString()),
+          Some(BalanceRepository.getBalance),
         ),
       )
     yield model
-
-  def getBalance[F[_]: Async]: EitherT[F, String, Option[String]] =
-    for balance <- BalanceRepository.getBalanceOption
-    yield balance
