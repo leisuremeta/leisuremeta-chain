@@ -189,9 +189,12 @@ object BulkInsertMain extends IOApp:
 
           fileResource[IO]("txs.archive")
             .use: source =>
-              FungibleBalanceState.build(source).flatTap: state =>
+              NftBalanceState.build(source).flatTap: state =>
                 IO.pure:
                   ()
+//              FungibleBalanceState.build(source).flatTap: state =>
+//                IO.pure:
+//                  ()
 //                  state.free.foreach(println)
 //                  state.locked.foreach(println)
             .as(ExitCode.Success)
