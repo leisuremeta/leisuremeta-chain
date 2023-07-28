@@ -13,9 +13,10 @@ import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object Board:
-  val LM_Price     = "LM PRICE"
-  val Block_Number = "BLOCK NUMBER"
-  val Transactions = "TOTAL BALANCE"
+  val LM_Price = "LM PRICE"
+  // val Block_Number = "BLOCK NUMBER"
+  val Total_TxCount = "TOTAL TRANSACTIONS"
+  val Transactions  = "TOTAL BALANCE"
   // val Transactions = "TOTAL DATA SIZE"
   val Accounts = "TOTAL ACCOUNTS"
 
@@ -76,12 +77,13 @@ object BoardView:
             `class` := "board-text y-center gap-10px",
           )(
             div(`class` := "font-16px color-white font-bold")(
-              Board.Block_Number,
+              Board.Total_TxCount,
             ),
             div(`class` := "color-white font-bold")(
-              plainStr(
-                current_ViewCase(model).blockInfo(0).number,
-              ).pipe(addComma),
+              // plainStr(
+              //   current_ViewCase(model).blockInfo(0).number,
+              // ).pipe(addComma),
+              plainLong(data.totalTxCount).pipe(addComma),
             ),
           ), {
             current_ViewCase(model).blockInfo(0) != new BlockInfo match
