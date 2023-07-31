@@ -165,6 +165,14 @@ object TransactionRepository extends CommonQuery:
       new PageResponse(totalCnt, totalPages, r)
     }
 
+  def countTotalTx[F[_]: Async]: EitherT[F, String, Long] =
+    val cntQuery = quote {
+      query[Tx]
+    }
+
+    for cnt <- countQuery(cntQuery)
+    yield cnt
+
   // EitherT {
   //   Async[F].recover {
   //     for tx <- Async[F]

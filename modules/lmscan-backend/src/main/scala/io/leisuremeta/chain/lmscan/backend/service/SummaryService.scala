@@ -11,6 +11,7 @@ object SummaryService:
   def get[F[_]: Async]: EitherT[F, String, Option[SummaryModel]] =
     for
       summary <- SummaryRepository.get
+      txCnt   <- TransactionService.countTotalTx
       model = summary.map(s =>
         SummaryModel(
           Some(s.id),
@@ -20,6 +21,7 @@ object SummaryService:
           Some(s.createdAt),
           Some(s.totalTxSize),
           Some(BalanceRepository.getBalance),
+          txCnt,
         ),
       )
     yield model
