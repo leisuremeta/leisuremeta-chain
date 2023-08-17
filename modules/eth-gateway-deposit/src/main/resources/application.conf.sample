@@ -1,15 +1,3 @@
-//eth-chain-id = 5777
-//eth-contract-address = "0x02886136510172E313932EA66FE7bDC4d4C2fcc4"
-//gateway-eth-address = "0x3E984778B16b5a0fE489Aac0b716078202400b6A"
-//gateway-endpoint = "http://127.0.0.1:8081"
-//local-server-port = 8082
-//lm-endpoint = "http://127.0.0.1:8080"
-//kms-alias = "gateway_withdraw_key"
-//encrypted-eth-endpoint = "..."
-//encrypted-database-endpoint = "..."
-//database-table-name = "..."
-//database-value-column = "..."
-
 eth-chain-id = 11155111
 eth-lm-contract-address = "0x02886136510172E313932EA66FE7bDC4d4C2fcc4"
 eth-multisig-contract-address = "0x02886136510172E313932EA66FE7bDC4d4C2fcc4"
