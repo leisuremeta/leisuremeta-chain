@@ -440,7 +440,7 @@ object EthGatewayWithdrawMain extends IOApp:
       txData: String,
       gatewayEthAddress: String,
       encryptedEthPrivate: String,
-  ): F[BigInt] = GatewayDecryptService
+  ): F[Unit] = GatewayDecryptService
     .getSimplifiedPlainTextResource[F](encryptedEthPrivate)
     .value
     .flatMap:
@@ -482,7 +482,7 @@ object EthGatewayWithdrawMain extends IOApp:
 
           def loop(
               lastTrial: Option[(BigInteger, BigInteger, String)],
-          ): F[BigInt] =
+          ): F[Unit] =
 
             def getMaxPriorityFeePerGas(): F[BigInteger] =
               requestToF(web3j.ethMaxPriorityFeePerGas()):
@@ -576,34 +576,39 @@ object EthGatewayWithdrawMain extends IOApp:
                 case _ =>
                   sendNewTx(baseFee, maxPriorityFeePerGas).map:
                     _.orElse(lastTrial.map(_._3))
-              blockNumber <- txIdOption match
+              _ <- txIdOption match
                 case Some(txId) =>
                   for
                     receiptEither <- getReceipt(txId)
-                    blockNumber <- receiptEither match
+                    _ <- receiptEither match
                       case Left(e) =>
                         e match
                           case te: TransactionException =>
                             scribe.info(s"Timeout: ${te.getMessage()}")
-                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
+                            Async[F].delay(())
+//                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
                           case _ =>
                             scribe.error:
                               s"Fail to send transaction: ${e.getMessage()}"
-                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
+                            Async[F].delay(())
+//                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
                       case Right(receipt) =>
                         if receipt.isStatusOK() then
                           Async[F].delay:
                             scribe.info:
                               s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}"
-                            BigInt(receipt.getBlockNumber())
+                            //BigInt(receipt.getBlockNumber())
+                            ()
                         else
                           scribe.error:
                             s"transaction ${receipt.getTransactionHash()} failed with receipt:${receipt}"
-                          loop(None)
-                  yield blockNumber
+                          Async[F].delay(())
+//                          loop(None)
+                  yield ()
                 case None =>
-                  Async[F].sleep(1.minute) *> loop(None)
-            yield blockNumber
+//                  Async[F].sleep(1.minute) *> loop(None)
+                  Async[F].delay(())
+            yield ()
 
           loop(None)
 
