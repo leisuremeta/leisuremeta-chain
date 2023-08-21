@@ -112,7 +112,7 @@ object PageUpdate:
           appStates = model.appStates.dropRight(1),
         ),
         Cmd.emit(
-          PageMsg.PreUpdate(PageCase.NoPage(name = find_name(model))),
+          PageMsg.PreUpdate(NoPage(name = find_name(model))),
         ),
       )
 
@@ -162,7 +162,7 @@ object PageUpdate:
         model.copy(block_current_page = validPage),
         Cmd.emit(
           PageMsg.PreUpdate(
-            PageCase.Blocks(
+            Blocks(
               url = s"blocks/${validPage}",
               pubs = List(
                 PubCase.BlockPub(page = validPage.toInt),
@@ -177,7 +177,7 @@ object PageUpdate:
         model.copy(tx_current_page = validPage),
         Cmd.emit(
           PageMsg.PreUpdate(
-            PageCase.Transactions(
+            Transactions(
               url = s"transactions/${validPage}",
               pubs = List(
                 PubCase.TxPub(page = validPage.toInt),

@@ -20,7 +20,7 @@ object TransactionTableCommon:
 object TransactionTable:
   def view(model: Model): Html[Msg] =
     find_current_PageCase(model) match
-      case PageCase.Transactions(_, _, _, _) =>
+      case _ :Transactions =>
         div(`class` := "table-container  position-relative y-center  ")(
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
@@ -30,7 +30,7 @@ object TransactionTable:
             TransactionTableCommon.loader(model),
           ),
         )
-      case PageCase.DashBoard(_, _, _, _) =>
+      case _ :DashBoard =>
         div(`class` := "table-container  position-relative y-center  ")(
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
@@ -43,41 +43,41 @@ object TransactionTable:
           ),
         )
 
-      case PageCase.BlockDetail(_, _, _, _) =>
-        div(`class` := "table-container  position-relative y-center  ")(
-          div(`class` := "m-10px w-[100%] ")(
-            div(`class` := "  ")(
-              Table.blockDetail_txtable(model),
-            ),
-            TransactionTableCommon.loader(model),
-          ),
-        )
+      // case _ :BlockDetail =>
+      //   div(`class` := "table-container  position-relative y-center  ")(
+      //     div(`class` := "m-10px w-[100%] ")(
+      //       div(`class` := "  ")(
+      //         Table.blockDetail_txtable(model),
+      //       ),
+      //       TransactionTableCommon.loader(model),
+      //     ),
+      //   )
 
-      case PageCase.AccountDetail(_, _, _, _) =>
-        div(`class` := "table-container  position-relative y-center  ")(
-          div(`class` := "m-10px w-[100%] ")(
-            div(`class` := "  ")(
-              Table.accountDetail_txtable(model),
-            ),
-            current_ViewCase(model).txInfo(0) != new TxInfo match
-              case false => div(`class` := "")()
-              case _     => div(`class` := "")(),
-          ),
-        )
+      // case _ :AccountDetail =>
+      //   div(`class` := "table-container  position-relative y-center  ")(
+      //     div(`class` := "m-10px w-[100%] ")(
+      //       div(`class` := "  ")(
+      //         Table.accountDetail_txtable(model),
+      //       ),
+      //       current_ViewCase(model).txInfo(0) != new TxInfo match
+      //         case false => div(`class` := "")()
+      //         case _     => div(`class` := "")(),
+      //     ),
+      //   )
 
-      case PageCase.NftDetail(_, _, _, _) =>
-        div(`class` := "table-container  position-relative y-center  ")(
-          div(`class` := "m-10px w-[100%] ")(
-            div(`class` := "  ")(
-              Table.nftDetail_txtable(model),
-            ),
-            new NftActivity != get_PageResponseViewCase(
-              model,
-            ).nftDetail.activities
-              .getOrElse(List(new NftActivity))
-              .toList(0) match
-              case false => LoaderView.view(model)
-              case _     => div(`class` := "")(),
-          ),
-        )
+      // case _ :NftDetail =>
+      //   div(`class` := "table-container  position-relative y-center  ")(
+      //     div(`class` := "m-10px w-[100%] ")(
+      //       div(`class` := "  ")(
+      //         Table.nftDetail_txtable(model),
+      //       ),
+      //       new NftActivity != get_PageResponseViewCase(
+      //         model,
+      //       ).nftDetail.activities
+      //         .getOrElse(List(new NftActivity))
+      //         .toList(0) match
+      //         case false => LoaderView.view(model)
+      //         case _     => div(`class` := "")(),
+      //     ),
+      //   )
       case _ => div()

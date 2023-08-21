@@ -8,16 +8,16 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object DetailTables:
   def render(model: Model): Html[Msg] =
     find_current_PageCase(model) match
-      case PageCase.BlockDetail(_, _, _, _) =>
+      case BlockDetail(_, _, _, _) =>
         BlockDetailTable.view(model)
 
-      case PageCase.TxDetail(_, _, _, _) =>
+      case TxDetail(_, _, _, _) =>
         TxDetailTable.view(model)
 
-      case PageCase.NftDetail(_, _, _, _) =>
+      case NftDetail(_, _, _, _) =>
         NftDetailTable.view(model)
 
-      case PageCase.AccountDetail(_, _, _, _) =>
+      case AccountDetail(_, _, _, _) =>
         AccountDetailTable.view(model)
 
       case _ =>

@@ -45,7 +45,7 @@ object Search:
             case false =>
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.Blocks(
+                  Blocks(
                     url = s"blocks/${1}",
                     pubs = List(PubCase.BlockPub(page = 1)),
                   ),
@@ -60,7 +60,7 @@ object Search:
             case false =>
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.Blocks(
+                  Blocks(
                     url = s"blocks/${curPage - 10}",
                     pubs = List(PubCase.BlockPub(page = curPage - 10)),
                   ),
@@ -83,7 +83,7 @@ object Search:
                       PopupMsg.OnClick(true)
                     case false =>
                       PageMsg.PreUpdate(
-                        PageCase.Blocks(
+                        Blocks(
                           url = s"blocks/${limit_value(idx.toString())}",
                           pubs = List(
                             PubCase.BlockPub(page = limit_value(idx.toString())),
@@ -110,7 +110,7 @@ object Search:
                     PopupMsg.OnClick(true)
                   case false =>
                     PageMsg.PreUpdate(
-                      PageCase.Blocks(
+                      Blocks(
                         url =
                           s"blocks/${limit_value((curPage + 10).toString())}",
                         pubs = List(
@@ -142,7 +142,7 @@ object Search:
                     PopupMsg.OnClick(true)
                   case false =>
                     PageMsg.PreUpdate(
-                      PageCase.Blocks(
+                      Blocks(
                         url = s"blocks/${limit_value(totalPage.toString())}",
                         pubs = List(
                           PubCase.BlockPub(page =
@@ -214,7 +214,7 @@ object Search:
             case false =>
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.Transactions(
+                  Transactions(
                     url = s"transactions/${1}",
                     pubs = List(
                       PubCase.TxPub(page = 1, subtype = model.subtype),
@@ -231,7 +231,7 @@ object Search:
             case false =>
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.Transactions(
+                  Transactions(
                     url = s"transactions/${curPage - 10}",
                     pubs = List(
                       PubCase.TxPub(
@@ -262,7 +262,7 @@ object Search:
                       PopupMsg.OnClick(true)
                     case false =>
                       PageMsg.PreUpdate(
-                        PageCase.Transactions(
+                        Transactions(
                           url = s"transactions/${limit_value(idx.toString())}",
                           pubs = List(
                             PubCase.TxPub(
@@ -292,7 +292,7 @@ object Search:
                     PopupMsg.OnClick(true)
                   case false =>
                     PageMsg.PreUpdate(
-                      PageCase.Transactions(
+                      Transactions(
                         url =
                           s"transactions/${limit_value((curPage + 10).toString())}",
                         pubs = List(
@@ -322,7 +322,7 @@ object Search:
                     PopupMsg.OnClick(true)
                   case false =>
                     PageMsg.PreUpdate(
-                      PageCase.Transactions(
+                      Transactions(
                         url =
                           s"transactions/${limit_value(totalPage.toString())}",
                         pubs = List(

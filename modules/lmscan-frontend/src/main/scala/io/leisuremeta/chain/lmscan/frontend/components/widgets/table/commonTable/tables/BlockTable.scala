@@ -13,7 +13,7 @@ object BlockTable:
           Title.block(model),
           Table.block(model), {
             find_current_PageCase(model) match
-              case PageCase.DashBoard(_, _, _, _) => div(`class` := "hidden")()
+              case DashBoard(_, _, _, _) => div(`class` := "hidden")()
               case _                              => Search.search_block(model)
           },
         ),

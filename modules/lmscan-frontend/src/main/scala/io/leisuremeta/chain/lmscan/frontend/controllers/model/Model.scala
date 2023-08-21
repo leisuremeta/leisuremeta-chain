@@ -3,10 +3,10 @@ import io.circe.Json
 
 final case class Model(
     appStates: List[StateCase],
-    pointer: Int,
-    searchValue: String,
-    toggle: Boolean,
-    temp: String,
+    pointer: Int = 1,
+    searchValue: String = "",
+    toggle: Boolean = false,
+    temp: String = "",
     commandMode: CommandCaseMode = CommandCaseMode.Production,
     commandLink: CommandCaseLink,
     detail_button: Boolean = false,

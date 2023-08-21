@@ -8,7 +8,7 @@ object Title:
     div(
       // TODO :: only show dashboard
       `class` := s"table-title ${find_current_PageCase(model) match
-          case PageCase.Blocks(_, _, _, _) => "hidden"
+          case Blocks(_, _, _, _) => "hidden"
           case _                           => ""
         }",
     )(
@@ -20,9 +20,9 @@ object Title:
       )(
         {
           find_current_PageCase(model) match
-            case PageCase.DashBoard(_, _, _, _) =>
+            case DashBoard(_, _, _, _) =>
               span(
-                onClick(PageMsg.PreUpdate(PageCase.Blocks())),
+                onClick(PageMsg.PreUpdate(Blocks())),
               )("More")
             case _ => div()
         },
@@ -31,7 +31,7 @@ object Title:
   def tx = (model: Model) =>
     div(
       `class` := s"table-title ${find_current_PageCase(model) match
-          case PageCase.Transactions(_, _, _, _) => "hidden"
+          case Transactions(_, _, _, _) => "hidden"
           case _                                 => ""
         }",
     )(
@@ -43,9 +43,9 @@ object Title:
       )(
         {
           find_current_PageCase(model) match
-            case PageCase.DashBoard(_, _, _, _) =>
+            case DashBoard(_, _, _, _) =>
               span(
-                onClick(PageMsg.PreUpdate(PageCase.Transactions())),
+                onClick(PageMsg.PreUpdate(Transactions())),
               )("More")
             case _ => div()
         },

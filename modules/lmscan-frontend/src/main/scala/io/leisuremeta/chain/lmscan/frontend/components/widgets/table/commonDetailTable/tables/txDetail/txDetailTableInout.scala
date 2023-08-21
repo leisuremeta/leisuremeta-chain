@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import V.*
-import io.leisuremeta.chain.lmscan.common.model.TxDetail
+import io.leisuremeta.chain.lmscan.common.model
 
 object TxDetailTableINOUT:
 
@@ -19,8 +19,8 @@ object TxDetailTableINOUT:
         span(
           onClick(
             PageMsg.PreUpdate(
-              PageCase.TxDetail(
-                name = PageCase.Transactions().name,
+              TxDetail(
+                name = Transactions().name,
                 url = s"txDetail/${plainStr(Some(data))}",
                 pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
               ),
@@ -36,8 +36,8 @@ object TxDetailTableINOUT:
         span(
           onClick(
             PageMsg.PreUpdate(
-              PageCase.TxDetail(
-                name = PageCase.Transactions().name,
+              TxDetail(
+                name = Transactions().name,
                 url = s"txDetail/${plainStr(Some(data))}",
                 pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
               ),

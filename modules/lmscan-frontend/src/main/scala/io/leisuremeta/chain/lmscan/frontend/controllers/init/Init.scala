@@ -26,14 +26,10 @@ object Init:
       Model(
         appStates = List(
           StateCase(
-            pageCase = PageCase.DashBoard(),
+            pageCase = DashBoard(),
             number = 1,
           ),
         ),
-        pointer = 1,
-        searchValue = "",
-        toggle = false,
-        temp = "",
         commandMode =
           window.location.href.contains("https://scan.leisuremeta.io") match
             case true =>

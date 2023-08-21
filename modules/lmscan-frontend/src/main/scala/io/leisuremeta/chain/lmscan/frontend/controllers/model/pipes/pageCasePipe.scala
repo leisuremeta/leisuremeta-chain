@@ -9,39 +9,39 @@ import io.leisuremeta.chain.lmscan.frontend.Log.log2
 object PageCasePipe:
   def in_Name(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(name, _, _, _)        => name
-      case PageCase.Transactions(name, _, _, _)  => name
-      case PageCase.DashBoard(name, _, _, _)     => name
-      case PageCase.BlockDetail(name, _, _, _)   => name
-      case PageCase.TxDetail(name, _, _, _)      => name
-      case PageCase.AccountDetail(name, _, _, _) => name
-      case PageCase.Observer(name, _, _, _)      => name
-      case PageCase.NftDetail(name, _, _, _)     => name
-      case PageCase.NoPage(name, _, _, _)        => name
+      case Blocks(name, _, _, _)        => name
+      case Transactions(name, _, _, _)  => name
+      case DashBoard(name, _, _, _)     => name
+      case BlockDetail(name, _, _, _)   => name
+      case TxDetail(name, _, _, _)      => name
+      case AccountDetail(name, _, _, _) => name
+      case Observer(name, _, _, _)      => name
+      case NftDetail(name, _, _, _)     => name
+      case NoPage(name, _, _, _)        => name
 
   def in_url(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(_, url, _, _)        => url
-      case PageCase.Transactions(_, url, _, _)  => url
-      case PageCase.DashBoard(_, url, _, _)     => url
-      case PageCase.BlockDetail(_, url, _, _)   => url
-      case PageCase.TxDetail(_, url, _, _)      => url
-      case PageCase.AccountDetail(_, url, _, _) => url
-      case PageCase.Observer(_, url, _, _)      => url
-      case PageCase.NftDetail(_, url, _, _)     => url
-      case PageCase.NoPage(_, url, _, _)        => url
+      case Blocks(_, url, _, _)        => url
+      case Transactions(_, url, _, _)  => url
+      case DashBoard(_, url, _, _)     => url
+      case BlockDetail(_, url, _, _)   => url
+      case TxDetail(_, url, _, _)      => url
+      case AccountDetail(_, url, _, _) => url
+      case Observer(_, url, _, _)      => url
+      case NftDetail(_, url, _, _)     => url
+      case NoPage(_, url, _, _)        => url
 
   def in_PubCases(pageCase: PageCase) =
     pageCase match
-      case PageCase.Blocks(_, _, pubs, _)        => pubs
-      case PageCase.Transactions(_, _, pubs, _)  => pubs
-      case PageCase.DashBoard(_, _, pubs, _)     => pubs
-      case PageCase.BlockDetail(_, _, pubs, _)   => pubs
-      case PageCase.TxDetail(_, _, pubs, _)      => pubs
-      case PageCase.AccountDetail(_, _, pubs, _) => pubs
-      case PageCase.Observer(_, _, pubs, _)      => pubs
-      case PageCase.NftDetail(_, _, pubs, _)     => pubs
-      case PageCase.NoPage(_, _, pubs, _)        => pubs
+      case Blocks(_, _, pubs, _)        => pubs
+      case Transactions(_, _, pubs, _)  => pubs
+      case DashBoard(_, _, pubs, _)     => pubs
+      case BlockDetail(_, _, pubs, _)   => pubs
+      case TxDetail(_, _, pubs, _)      => pubs
+      case AccountDetail(_, _, pubs, _) => pubs
+      case Observer(_, _, pubs, _)      => pubs
+      case NftDetail(_, _, pubs, _)     => pubs
+      case NoPage(_, _, pubs, _)        => pubs
 
   // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
   // todo :: 리팩토링 필요
@@ -81,7 +81,6 @@ object PageCasePipe:
             resulte.tx = pub_m2
 
           case PubCase.BoardPub(_, _, pub_m2) =>
-            log2("PubCase.BoardPub")(pub_m2)
             resulte.board = pub_m2
 
           case PubCase.BlockDetailPub(_, _, pub_m2) =>
@@ -101,21 +100,21 @@ object PageCasePipe:
   def update_PageCase_PubCases(pageCase: PageCase, pub: PubCase) =
     pageCase match
       // fixed :: create class => copy class 로 변경
-      case pageCase: PageCase.Blocks =>
+      case pageCase: Blocks =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.Transactions =>
+      case pageCase: Transactions =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.DashBoard =>
+      case pageCase: DashBoard =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.BlockDetail =>
+      case pageCase: BlockDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.TxDetail =>
+      case pageCase: TxDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.AccountDetail =>
+      case pageCase: AccountDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.Observer =>
+      case pageCase: Observer =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.NftDetail =>
+      case pageCase: NftDetail =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))
-      case pageCase: PageCase.NoPage =>
+      case pageCase: NoPage =>
         pageCase.copy(pubs = in_PubCases(pageCase) ++ List(pub))

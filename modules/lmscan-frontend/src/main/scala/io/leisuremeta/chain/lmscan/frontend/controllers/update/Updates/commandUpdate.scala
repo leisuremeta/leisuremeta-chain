@@ -26,6 +26,6 @@ object CommandUpdate:
               commandLink = m,
             ),
             Cmd.emit(
-              PageMsg.PreUpdate(PageCase.DashBoard()),
+              PageMsg.PreUpdate(DashBoard()),
             ),
           )

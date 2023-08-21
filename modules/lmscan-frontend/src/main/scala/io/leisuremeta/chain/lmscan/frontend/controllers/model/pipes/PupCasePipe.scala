@@ -77,10 +77,9 @@ object PupCasePipe:
 
       case PubCase.BoardPub(_, _, _) =>
         PubCase.BoardPub(
-          pub_m1 = data.pipe(log2("BoardPub >> data")),
+          pub_m1 = data,
           pub_m2 = ApiParser
             .decodeParser(data)
-            .pipe(log2("PubCase.BoardPub 파싱결과"))
             .getOrElse(new SummaryModel),
         )
 
@@ -117,15 +116,7 @@ object PupCasePipe:
         )
 
   def get_api_link(pub: PubCase, model: Model) =
-    // var base = js.Dynamic.global.process.env.BASE_API_URL_DEV
-    var base =
-      model.commandLink match
-        case CommandCaseLink.Development =>
-          js.Dynamic.global.process.env.BASE_API_URL_DEV
-        case CommandCaseLink.Production =>
-          js.Dynamic.global.process.env.BASE_API_URL_PROD
-        case CommandCaseLink.Local =>
-          js.Dynamic.global.process.env.BASE_API_URL_LOCAL
+    var base = js.Dynamic.global.process.env.BASE_API_URL
 
     pub match
 

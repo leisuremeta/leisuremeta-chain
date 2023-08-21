@@ -45,14 +45,14 @@ object ValidPageName:
       case ":dev"   => CommandCaseLink.Development
       case ":local" => CommandCaseLink.Local
       case subtype if subtypeList.contains(subtype.replaceAll(" ", "")) =>
-        PageCase.Transactions(pubs =
+        Transactions(pubs =
           List(PubCase.TxPub(subtype = subtype.replaceAll(" ", "").tail)),
         )
       case _ =>
         search.length() match
           case 40 =>
-            PageCase.AccountDetail(
-              name = PageCase.AccountDetail().name,
+            AccountDetail(
+              name = AccountDetail().name,
               url = s"account/${search}",
               pubs = List(
                 PubCase.AccountDetailPub(hash = search),
@@ -64,8 +64,8 @@ object ValidPageName:
               ),
             )
           case 42 =>
-            PageCase.AccountDetail(
-              name = PageCase.AccountDetail().name,
+            AccountDetail(
+              name = AccountDetail().name,
               url = s"account/${search}",
               pubs = List(
                 PubCase.AccountDetailPub(hash = search),
@@ -77,19 +77,19 @@ object ValidPageName:
               ),
             )
           case 25 =>
-            PageCase.NftDetail(
+            NftDetail(
               url = s"nft/${search}",
               pubs = List(PubCase.NftDetailPub(hash = search)),
             )
           case 64 =>
-            PageCase.TxDetail(
-              name = PageCase.Transactions().name,
+            TxDetail(
+              name = Transactions().name,
               url = s"transaction/${search}",
               pubs = List(PubCase.TxDetailPub(hash = search)),
             )
           case _ =>
-            PageCase.AccountDetail(
-              name = PageCase.AccountDetail().name,
+            AccountDetail(
+              name = AccountDetail().name,
               url = s"account/${search}",
               pubs = List(
                 // PubCase.BoardPub(),
@@ -104,50 +104,50 @@ object ValidPageName:
 
   def getPageCaseFromUrl(url: String): PageCase =
     url match
-      case s"/dashboard" => PageCase.DashBoard()
-      case s"/blocks"    => PageCase.Blocks()
+      case s"/dashboard" => DashBoard()
+      case s"/blocks"    => Blocks()
       case s"/blocks/${page}"
           if page.forall(
             Character.isDigit,
           ) =>
-        PageCase.Blocks(
+        Blocks(
           url = s"blocks/${limit_value(page)}",
           pubs = List(PubCase.BlockPub(page = limit_value(page))),
         )
-      case s"/transactions" => PageCase.Transactions()
+      case s"/transactions" => Transactions()
       case s"/transactions/${page}"
           if page.forall(
             Character.isDigit,
           ) =>
-        PageCase.Transactions(
+        Transactions(
           url = s"transactions/${limit_value(page)}",
           pubs = List(PubCase.TxPub(page = limit_value(page))),
         )
-      case s"/txs" => PageCase.Transactions()
+      case s"/txs" => Transactions()
       case s"/txs/${page}"
           if page.forall(
             Character.isDigit,
           ) =>
-        PageCase.Transactions(
+        Transactions(
           url = s"transactions/${limit_value(page)}",
           pubs = List(PubCase.TxPub(page = limit_value(page))),
         )
 
       case s"/transaction/${hash}" if hash.length() == 64 =>
-        PageCase.TxDetail(
-          name = PageCase.Transactions().name,
+        TxDetail(
+          name = Transactions().name,
           url = s"transaction/${hash}",
           pubs = List(PubCase.TxDetailPub(hash = hash)),
         )
       case s"/tx/${hash}" if hash.length() == 64 =>
-        PageCase.TxDetail(
-          name = PageCase.Transactions().name,
+        TxDetail(
+          name = Transactions().name,
           url = s"transaction/${hash}",
           pubs = List(PubCase.TxDetailPub(hash = hash)),
         )
       case s"/block/${hash}" if hash.length() == 64 =>
-        PageCase.BlockDetail(
-          name = PageCase.Blocks().name,
+        BlockDetail(
+          name = Blocks().name,
           url = s"block/${hash}",
           pubs = List(
             PubCase.BlockDetailPub(
@@ -162,13 +162,13 @@ object ValidPageName:
         )
 
       case s"/nft/${hash}" if hash.length() == 25 =>
-        PageCase.NftDetail(
+        NftDetail(
           url = s"nft/${hash}",
           pubs = List(PubCase.NftDetailPub(hash = hash)),
         )
       case s"/account/${hash}" =>
-        PageCase.AccountDetail(
-          name = PageCase.AccountDetail().name,
+        AccountDetail(
+          name = AccountDetail().name,
           url = s"account/${hash}",
           pubs = List(
             PubCase.AccountDetailPub(hash = hash),
@@ -181,4 +181,4 @@ object ValidPageName:
           ),
         )
 
-      case _ => PageCase.DashBoard()
+      case _ => DashBoard()

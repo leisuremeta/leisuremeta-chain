@@ -27,8 +27,8 @@ object UnderDataProcess:
         pub match
           case PubCase.TxDetailPub(hash, _, _) =>
             PageMsg.PreUpdate(
-              PageCase.BlockDetail(
-                name = PageCase.Blocks().name,
+              BlockDetail(
+                name = Blocks().name,
                 url = s"block/${hash}",
                 pubs = List(
                   PubCase.BlockDetailPub(

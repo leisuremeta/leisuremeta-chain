@@ -87,8 +87,8 @@ object gen:
                 case true =>
                   onClick(
                     PageMsg.PreUpdate(
-                      PageCase.NftDetail(
-                        name = PageCase.AccountDetail().name,
+                      NftDetail(
+                        name = AccountDetail().name,
                         url = s"nft/${plainStr(value)}",
                         pubs = List(
                           PubCase.NftDetailPub(
@@ -159,8 +159,8 @@ object gen:
                 case true =>
                   onClick(
                     PageMsg.PreUpdate(
-                      PageCase.NftDetail(
-                        name = PageCase.AccountDetail().name,
+                      NftDetail(
+                        name = AccountDetail().name,
                         url = s"nft/${plainStr(value)}",
                         pubs = List(
                           PubCase.NftDetailPub(
@@ -183,8 +183,8 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.AccountDetail(
-                    name = PageCase.AccountDetail().name,
+                  AccountDetail(
+                    name = AccountDetail().name,
                     url = s"account/${plainStr(hash)}",
                     pubs = List(
                       // PubCase.BoardPub(1, "", SummaryModel()),
@@ -207,8 +207,8 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.AccountDetail(
-                    name = PageCase.AccountDetail().name,
+                  AccountDetail(
+                    name = AccountDetail().name,
                     url = s"account/${plainStr(hash)}",
                     pubs = List(
                       // PubCase.BoardPub(1, "", SummaryModel()),
@@ -273,8 +273,8 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.BlockDetail(
-                    name = PageCase.Blocks().name,
+                  BlockDetail(
+                    name = Blocks().name,
                     url = s"block/${plainStr(hash)}",
                     pubs = List(
                       PubCase.BlockDetailPub(
@@ -297,8 +297,8 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.BlockDetail(
-                    name = PageCase.Blocks().name,
+                  BlockDetail(
+                    name = Blocks().name,
                     url = s"block/${plainStr(hash)}",
                     pubs = List(
                       PubCase.BlockDetailPub(hash = plainStr(hash)),
@@ -319,8 +319,8 @@ object gen:
             span(
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.TxDetail(
-                    name = PageCase.Transactions().name,
+                  TxDetail(
+                    name = Transactions().name,
                     url = s"transaction/${plainStr(hash)}",
                     pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
                   ),
@@ -336,8 +336,8 @@ object gen:
               dataAttr("tooltip-text", plainStr(hash)),
               onClick(
                 PageMsg.PreUpdate(
-                  PageCase.TxDetail(
-                    name = PageCase.Transactions().name,
+                  TxDetail(
+                    name = Transactions().name,
                     url = s"transaction/${plainStr(hash)}",
                     pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
                   ),
