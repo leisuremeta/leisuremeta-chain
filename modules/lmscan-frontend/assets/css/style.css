@@ -11,17 +11,10 @@ nav #title #head img{max-width: 100%;}
 nav #title #head:hover{color:#51ff00;}
 nav #title #body{background-color: #000;color:#fff;}
 nav #title{position: relative;z-index: 2;}
-nav #buttons{position: relative;z-index: 2;background-color: #000;}
-nav #buttons button{color:#51ff00;}
-nav #buttons button.true{background-color: #24a3da;}
-nav #buttons button.false:hover{background-color: #51ff00;color:#000;}
-
-/* #head{
-    position: relative; 
-    background: url('../img/logo_w.png') center center no-repeat;  
-    background-size: 50%;
-    
-} */
+nav .buttons{position: relative;z-index: 2;background-color: #000;}
+nav .buttons button{color:#51ff00;}
+nav .buttons button.true{background-color: #24a3da;}
+nav .buttons button.false:hover{background-color: #51ff00;color:#000;}
 
 #page{position: relative; background: url('../img/bg02_.jpg') no-repeat left bottom;background-size: cover;}
 
@@ -60,15 +53,3 @@ nav #buttons button.false:hover{background-color: #51ff00;color:#000;}
 ._search .type-text-btn > span{min-width:20px;text-align: center;}
 
 .nft-image {background-color:#ffffff; border-radius:5px;}
-
-
-
-
-
-
-
-
-
-
-
-
