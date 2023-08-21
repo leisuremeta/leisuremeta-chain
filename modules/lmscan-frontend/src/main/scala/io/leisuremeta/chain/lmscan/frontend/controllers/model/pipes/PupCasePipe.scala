@@ -2,9 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.common.model.*
 import scala.scalajs.js
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 import scala.reflect.ClassTag
-import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object PupCasePipe:
   def in_Page(pubCase: PubCase) =

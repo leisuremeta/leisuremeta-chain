@@ -5,7 +5,6 @@ import org.scalajs.dom
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.PopStateEvent
 import tyrian.*
-import Log.*
 import org.scalajs.dom.MouseEvent
 
 object Subscriptions:

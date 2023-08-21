@@ -4,7 +4,6 @@ import tyrian.Html.*
 import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 
-import Log.*
 import io.leisuremeta.chain.lmscan.common.model.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 

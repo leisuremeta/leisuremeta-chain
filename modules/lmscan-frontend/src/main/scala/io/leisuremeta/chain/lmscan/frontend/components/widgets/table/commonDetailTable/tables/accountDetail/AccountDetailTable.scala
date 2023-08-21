@@ -9,7 +9,6 @@ import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
-import io.leisuremeta.chain.lmscan.frontend.Log.log2
 import scala.util.chaining.*
 
 object AccountDetailTable:
@@ -38,7 +37,8 @@ object AccountDetailTable:
                   gen.cell(
                     Cell.Head("Balance", "cell type-detail-head"),
                     Cell.Any(
-                      data.balance.pipe(Pipe.accountDetailPageBalance),
+                      "",
+                      // data.balance.pipe(Pipe.accountDetailPageBalance),
                       "cell type-detail-body",
                     ),
                   ),
@@ -47,7 +47,8 @@ object AccountDetailTable:
                   gen.cell(
                     Cell.Head("Value", "cell type-detail-head"),
                     Cell.Any(
-                      Pipe.accountDetailPageValue(model.lmprice, data.balance),
+                      "",
+                      // Pipe.accountDetailPageValue(model.lmprice, data.balance),
                       "cell type-detail-body",
                     ),
                   ),

@@ -1,5 +1,4 @@
 package io.leisuremeta.chain.lmscan.frontend
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 
 import org.scalajs.dom.window
 

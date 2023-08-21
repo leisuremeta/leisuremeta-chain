@@ -27,7 +27,7 @@ object MainPage extends Page:
       Cmd.Batch(
         OnDataProcess.getData("a"),
         OnDataProcess.getData("b"),
-        // OnDataProcess.getData("c"),
+        OnDataProcess.getData("c"),
       )
     )
 

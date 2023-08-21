@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
 
-import Log.log
 import cats.effect.IO
 import tyrian.Html.*
 import tyrian.*

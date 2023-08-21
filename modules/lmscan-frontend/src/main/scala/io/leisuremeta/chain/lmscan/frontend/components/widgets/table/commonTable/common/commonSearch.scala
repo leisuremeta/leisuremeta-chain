@@ -3,14 +3,12 @@ import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object Search:
   val search_block = (model: Model) =>

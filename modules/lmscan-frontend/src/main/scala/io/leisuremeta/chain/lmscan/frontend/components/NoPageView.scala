@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
-import Log.log
 
 object NoPageView:
   def view(model: Model): Html[Msg] =

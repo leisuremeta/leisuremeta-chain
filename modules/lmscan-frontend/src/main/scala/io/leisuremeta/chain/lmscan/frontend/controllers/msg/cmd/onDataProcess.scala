@@ -13,7 +13,6 @@ import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 import io.circe.syntax.*

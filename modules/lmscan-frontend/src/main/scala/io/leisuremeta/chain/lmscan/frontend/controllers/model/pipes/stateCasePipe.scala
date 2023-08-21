@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
 import scala.scalajs.js
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.*
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.update_PageCase_PubCases

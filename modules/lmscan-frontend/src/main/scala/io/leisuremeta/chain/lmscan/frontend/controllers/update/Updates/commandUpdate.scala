@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
 
-import Log.log
 import cats.effect.IO
 import tyrian.Html.*
 import tyrian.*
@@ -11,7 +10,6 @@ import io.leisuremeta.chain.lmscan.frontend.Init.setMode
 object CommandUpdate:
   def update(model: Model): CommandMsg => (Model, Cmd[IO, Msg]) =
     case CommandMsg.OnClick(msg) =>
-      log((find_current_Pub_m1s(model) ::: List("")).filter(d => d != ""))
       msg match
         case m: CommandCaseMode =>
           (

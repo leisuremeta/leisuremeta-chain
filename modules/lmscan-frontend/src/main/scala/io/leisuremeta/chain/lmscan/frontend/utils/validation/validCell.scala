@@ -7,7 +7,6 @@ import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-import io.leisuremeta.chain.lmscan.frontend.Log.*
 
 enum Cell:
   case Image(data: Option[String])                              extends Cell

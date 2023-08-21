@@ -1,10 +1,8 @@
 package io.leisuremeta.chain.lmscan.frontend
 import scala.util.chaining.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.Log.log
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import cats.instances.seq
-import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object PageCasePipe:
   def in_Name(pageCase: PageCase) = pageCase.name

@@ -4,7 +4,6 @@ import tyrian.*
 import V.*
 import io.leisuremeta.chain.lmscan.common.model.TxDetail
 import scala.util.chaining.*
-import io.leisuremeta.chain.lmscan.frontend.Log.log2
 import io.circe.parser.decode
 import cats.data.EitherT
 import io.leisuremeta.chain.api.model.Transaction
@@ -20,8 +19,6 @@ import io.leisuremeta.chain.api.model.token.*
 import io.leisuremeta.chain.lib.crypto.Hash.Value
 import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.api.model.Signed.TxHash
-import io.leisuremeta.chain.lmscan.frontend.TestoLogic.set_MaximumPoint
-import io.leisuremeta.chain.lmscan.frontend.Pipe._Down18
 
 object TxDetailTableCommon:
   def genTable(d: List[Html[PageMsg]]) = div(`class` := "x")(
@@ -133,10 +130,11 @@ object TxDetailTableCommon:
       Some(output.toString),
     ),
     Cell.PlainStr(
-      Some(
-        BigDecimal(v.toString.pipe(_Down18).toString)
-          .pipe(set_MaximumPoint(4)),
-      ),
+      Some(""),
+      // Some(
+      //   BigDecimal(v.toString.pipe(_Down18).toString)
+      //     .pipe(set_MaximumPoint(4)),
+      // ),
       "cell type-detail-body",
     ),
   )
@@ -151,11 +149,10 @@ object TxDetailTableCommon:
     ),
     Cell.PlainStr(
       Some(
-        BigDecimal(outputs._2.toString.pipe(_Down18).toString)
-          .pipe(set_MaximumPoint(4)),
-          // "1",
+        BigDecimal(outputs._2.toString).toString
+        // BigDecimal(outputs._2.toString.pipe(_Down18).toString)
+          // .pipe(set_MaximumPoint(4)),
       ),
-      // Some(outputs._2.toString()),
       "cell type-detail-body",
     ),
   )
@@ -172,8 +169,8 @@ object TxDetailTableCommon:
       Some(
         outputs._2
           .toString()
-          .pipe(_Down18)
-          .pipe(set_MaximumPoint(4)),
+          // .pipe(_Down18)
+          // .pipe(set_MaximumPoint(4)),
       ),
       "cell type-detail-body",
     ),

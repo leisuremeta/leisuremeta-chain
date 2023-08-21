@@ -24,7 +24,7 @@ object TxDetailTableOutput:
         )(getOptionValue(data.toAddress, "-").toString()),
       ),
       div(`class` := "cell type-detail-body")(
-        data.value.pipe(s => Pipe.txDetailTableOutput(s)),
+        // data.value.pipe(s => Pipe.txDetailTableOutput(s)),
       ),
     )
   val genOutput_NFT = (data: TransferHist, i: Any) =>

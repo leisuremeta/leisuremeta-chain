@@ -3,8 +3,6 @@ import scala.util.chaining.*
 import io.circe.*, io.circe.generic.semiauto.*
 import io.circe.syntax.*
 import io.circe.parser.*
-import io.leisuremeta.chain.lmscan.frontend.Log.log
-import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object ValidPageName:
   val subtypeList =
