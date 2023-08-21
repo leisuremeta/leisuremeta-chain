@@ -16,45 +16,51 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
+    case PageMsg.Update(target: String, value: SummaryModel) =>
+      // Window.History( in_url(page), in_url(page),)
+      (
+        model.copy(
+          mainPage = model.mainPage.copy(_1 = value) 
+        ),
+        Cmd.None
+      )
 
     case PageMsg.PreUpdate(page: PageCase) =>
-      page match
-        case _ =>
-          Window.History(
-            in_url(page),
-            in_url(page),
-          )
-          (
-            model.copy(
-              tx_current_page = page
-                .pipe(in_PubCases)
-                .pipe(getPubCase[PubCase.TxPub])
-                .pipe(_.getOrElse(PubCase.TxPub()))
-                .pipe(in_Page)
-                .pipe(_.toString),
-              block_current_page = page
-                .pipe(in_PubCases)
-                .pipe(getPubCase[PubCase.BlockPub])
-                .pipe(_.getOrElse(PubCase.BlockPub()))
-                .pipe(in_Page)
-                .pipe(_.toString),
-              pointer = get_latest_number(model) + 1,
-              appStates = model.appStates ++ Seq(
-                StateCase(
-                  number = get_latest_number(model) + 1,
-                  pageCase = page,
-                ),
-              ),
+      Window.History(
+        in_url(page),
+        in_url(page),
+      )
+      (
+        model.copy(
+          tx_current_page = page
+            .pipe(in_PubCases)
+            .pipe(getPubCase[PubCase.TxPub])
+            .pipe(_.getOrElse(PubCase.TxPub()))
+            .pipe(in_Page)
+            .pipe(_.toString),
+          block_current_page = page
+            .pipe(in_PubCases)
+            .pipe(getPubCase[PubCase.BlockPub])
+            .pipe(_.getOrElse(PubCase.BlockPub()))
+            .pipe(in_Page)
+            .pipe(_.toString),
+          pointer = get_latest_number(model) + 1,
+          appStates = model.appStates ++ Seq(
+            StateCase(
+              number = get_latest_number(model) + 1,
+              pageCase = page,
             ),
-            Cmd.Batch(
-              in_PubCases(page).map(pub =>
-                OnDataProcess.getData(
-                  pub,
-                  model,
-                ),
-              ),
+          ),
+        ),
+        Cmd.Batch(
+          in_PubCases(page).map(pub =>
+            OnDataProcess.getData(
+              pub,
+              model,
             ),
-          )
+          ),
+        ),
+      )
 
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(page)

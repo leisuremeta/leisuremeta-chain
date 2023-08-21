@@ -7,41 +7,9 @@ import cats.instances.seq
 import io.leisuremeta.chain.lmscan.frontend.Log.log2
 
 object PageCasePipe:
-  def in_Name(pageCase: PageCase) =
-    pageCase match
-      case Blocks(name, _, _, _)        => name
-      case Transactions(name, _, _, _)  => name
-      case DashBoard(name, _, _, _)     => name
-      case BlockDetail(name, _, _, _)   => name
-      case TxDetail(name, _, _, _)      => name
-      case AccountDetail(name, _, _, _) => name
-      case Observer(name, _, _, _)      => name
-      case NftDetail(name, _, _, _)     => name
-      case NoPage(name, _, _, _)        => name
-
-  def in_url(pageCase: PageCase) =
-    pageCase match
-      case Blocks(_, url, _, _)        => url
-      case Transactions(_, url, _, _)  => url
-      case DashBoard(_, url, _, _)     => url
-      case BlockDetail(_, url, _, _)   => url
-      case TxDetail(_, url, _, _)      => url
-      case AccountDetail(_, url, _, _) => url
-      case Observer(_, url, _, _)      => url
-      case NftDetail(_, url, _, _)     => url
-      case NoPage(_, url, _, _)        => url
-
-  def in_PubCases(pageCase: PageCase) =
-    pageCase match
-      case Blocks(_, _, pubs, _)        => pubs
-      case Transactions(_, _, pubs, _)  => pubs
-      case DashBoard(_, _, pubs, _)     => pubs
-      case BlockDetail(_, _, pubs, _)   => pubs
-      case TxDetail(_, _, pubs, _)      => pubs
-      case AccountDetail(_, _, pubs, _) => pubs
-      case Observer(_, _, pubs, _)      => pubs
-      case NftDetail(_, _, pubs, _)     => pubs
-      case NoPage(_, _, pubs, _)        => pubs
+  def in_Name(pageCase: PageCase) = pageCase.name
+  def in_url(pageCase: PageCase) = pageCase.url
+  def in_PubCases(pageCase: PageCase) = pageCase.pubs
 
   // # PageCase |> [Pubcase] |> [pub_m2] |> ViewCase(tx,block,.....)
   // todo :: 리팩토링 필요

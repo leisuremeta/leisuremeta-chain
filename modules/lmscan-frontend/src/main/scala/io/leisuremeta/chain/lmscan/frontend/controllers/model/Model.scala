@@ -1,5 +1,8 @@
-package io.leisuremeta.chain.lmscan.frontend
+package io.leisuremeta.chain.lmscan
+package frontend
+
 import io.circe.Json
+import common.model._
 
 final case class Model(
     appStates: List[StateCase],
@@ -18,4 +21,7 @@ final case class Model(
     pageLimit: Int = 50,
     popup: Boolean = false,
     lmprice: Double = 0.0,
+
+    // for mainpage ,,
+    mainPage: (SummaryModel, List[BlockInfo], List[TxInfo]) = (SummaryModel(), List(), List()),
 )
