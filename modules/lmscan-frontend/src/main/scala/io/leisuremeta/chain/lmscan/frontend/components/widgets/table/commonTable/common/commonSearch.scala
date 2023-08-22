@@ -6,7 +6,6 @@ import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 
@@ -14,7 +13,7 @@ object Search:
   val search_block = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = find_current_PubPage(model)
+    val curPage = 0
 
     val totalPage = model.block_total_page.toInt
 
@@ -183,7 +182,7 @@ object Search:
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe
-    val curPage = find_current_PubPage(model)
+    val curPage = 0
 
     val totalPage = model.tx_total_page.toInt
 

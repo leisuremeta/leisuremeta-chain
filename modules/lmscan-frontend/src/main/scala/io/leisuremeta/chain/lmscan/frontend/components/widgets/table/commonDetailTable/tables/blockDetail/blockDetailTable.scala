@@ -6,11 +6,11 @@ import _root_.io.circe.Decoder.state
 import V.*
 import Dom.{_hidden, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.BlockDetail
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object BlockDetailTable:
   val view = (model: Model) =>
-    val data: BlockDetail = get_PageResponseViewCase(model).blockDetail
-    genView(model, data)
+    div()
+    // val data: BlockDetail = get_PageResponseViewCase(model).blockDetail
+    // genView(model, data)
 
   val genView = (model: Model, data: BlockDetail) =>
     div(

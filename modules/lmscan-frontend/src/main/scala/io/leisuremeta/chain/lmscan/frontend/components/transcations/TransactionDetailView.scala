@@ -2,8 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.current_ViewCase
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.get_PageResponseViewCase
 
 object TransactionDetailView:
   def view(model: Model): Html[Msg] =

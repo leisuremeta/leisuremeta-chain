@@ -3,7 +3,6 @@ import tyrian.Html.*
 import tyrian.*
 import V.*
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import Dom.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLElement

@@ -4,7 +4,11 @@ import cats.effect.IO
 
 object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
-    case routerMsg: RouterMsg   => (model, Cmd.None)
+    case routerMsg: RouterMsg   => routerMsg match
+      case RouterMsg.NavigateTo(page) => 
+        model.copy(page = page.name.toLowerCase)
+        page.update(model)(routerMsg)
+      case _ => (model, Cmd.None)
     case pageMsg: PageMsg       => PageUpdate.update(model)(pageMsg)
     case inputMsg: InputMsg     => SearchUpdate.update(model)(inputMsg)
     case toggleMsg: ToggleMsg   => ToggleUpdate.update(model)(toggleMsg)

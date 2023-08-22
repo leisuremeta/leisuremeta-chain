@@ -23,12 +23,6 @@ object Init:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
     (
       Model(
-        appStates = List(
-          StateCase(
-            pageCase = DashBoard(),
-            number = 1,
-          ),
-        ),
         commandMode =
           window.location.href.contains("https://scan.leisuremeta.io") match
             case true =>

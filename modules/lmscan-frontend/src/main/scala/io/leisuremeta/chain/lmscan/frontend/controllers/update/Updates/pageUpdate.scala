@@ -7,7 +7,6 @@ import tyrian.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.in_Page
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.getPubCase
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.in_SummaryModel_pub
@@ -15,6 +14,8 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
+    case PageMsg.Update(value: BlocksModel) =>
+      (model.copy(blcPage = model.blcPage.copy(blcList = value.blcList)), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) =>
       (model.copy(mainPage = model.mainPage.copy(summary = value)), Cmd.None)
     case PageMsg.Update2(value: BlcList) =>
@@ -41,13 +42,6 @@ object PageUpdate:
             .pipe(_.getOrElse(PubCase.BlockPub()))
             .pipe(in_Page)
             .pipe(_.toString),
-          pointer = get_latest_number(model) + 1,
-          appStates = model.appStates ++ Seq(
-            StateCase(
-              number = get_latest_number(model) + 1,
-              pageCase = page,
-            ),
-          ),
         ),
         Cmd.Batch(
           in_PubCases(page).map(pub =>
@@ -61,17 +55,6 @@ object PageUpdate:
 
     case PageMsg.GotoObserver(page: Int) =>
       val safeNumber = Num.Int_Positive(page)
-      Window.History(
-        model
-          .pipe(in_appStates)
-          .pipe(find_PageCase(safeNumber))
-          .pipe(in_url),
-        model
-          .pipe(in_appStates)
-          .pipe(find_PageCase(safeNumber))
-          .pipe(in_url),
-      )
-
       (
         model.copy(pointer = page),
         Cmd.None,
@@ -79,44 +62,17 @@ object PageUpdate:
 
     case PageMsg.BackObserver =>
       val safeNumber = Num.Int_Positive(model.pointer - 1)
-
-      Window.History(
-        model
-          .pipe(in_appStates)
-          .pipe(find_PageCase(safeNumber))
-          .pipe(in_url),
-        model
-          .pipe(in_appStates)
-          .pipe(find_PageCase(safeNumber))
-          .pipe(in_url),
-      )
-
       (
         model.copy(pointer = safeNumber),
         Cmd.None,
       )
     case PageMsg.RolloBack =>
       val safeNumber = Num.Int_Positive(model.pointer - 1)
-
-      Window.History(
-        model
-          .pipe(in_appStates)
-          .pipe(find_PageCase(safeNumber))
-          .pipe(in_url),
-        model
-          .pipe(in_appStates)
-          .pipe(find_PageCase(safeNumber))
-          .pipe(in_url),
-      )
-
       (
         model.copy(
           pointer = safeNumber,
-          appStates = model.appStates.dropRight(1),
         ),
-        Cmd.emit(
-          PageMsg.PreUpdate(NoPage(name = find_name(model))),
-        ),
+        Cmd.None
       )
 
     case PageMsg.DataUpdate(pub: PubCase) =>
@@ -135,9 +91,6 @@ object PageUpdate:
             case pub: PubCase.BlockPub => pub.pub_m2.totalPages.toString()
             case _                     => model.block_total_page
           ,
-          appStates = model
-            .pipe(in_appStates)
-            .map(update_PubData(pub, model.appStates.length)),
           lmprice = List(pub)
             .pipe(getPubCase[PubCase.BoardPub])
             .pipe(

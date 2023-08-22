@@ -6,13 +6,13 @@ import _root_.io.circe.Decoder.state
 import V.*
 import io.leisuremeta.chain.lmscan.common.model.NftDetail
 import io.leisuremeta.chain.lmscan.common.model.NftFileModel
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object NftDetailTable:
   val view = (model: Model) =>
     // TODO :: 다시보기
-    val data: NftDetail = get_PageResponseViewCase(model).nftDetail
-    genView(model, data)
+    div()
+    // val data: NftDetail = get_PageResponseViewCase(model).nftDetail
+    // genView(model, data)
 
   val genView = (model: Model, data: NftDetail) =>
     val nftFile = getOptionValue(data.nftFile, new NftFileModel)

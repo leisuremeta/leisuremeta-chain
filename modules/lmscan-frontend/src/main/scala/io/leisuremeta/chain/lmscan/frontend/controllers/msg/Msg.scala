@@ -19,6 +19,7 @@ enum PageMsg extends Msg:
 
   // 데이터 업데이트
   case DataUpdate(sub: PubCase) extends PageMsg
+  case Update(value: BlocksModel) extends PageMsg
   case Update1(value: SummaryModel) extends PageMsg
   case Update2(value: BlcList) extends PageMsg
   case Update3(value: TxList) extends PageMsg
@@ -43,3 +44,5 @@ enum PopupMsg extends Msg:
 
 enum RouterMsg extends Msg:
   case NoOp
+  case NavigateTo(page: Page)
+  case NavigateToUrl(url: String)

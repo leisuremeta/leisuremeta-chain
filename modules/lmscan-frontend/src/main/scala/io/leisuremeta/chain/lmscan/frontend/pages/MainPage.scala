@@ -3,27 +3,10 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 
-trait Page extends TyrianApp[Msg, Model]:
-
-  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = Update.update(model)
-
-  def subscriptions(model: Model): Sub[IO, Msg] = Subscriptions.subscriptions(model)
-
-  def router: Location => Msg = Routing.none(RouterMsg.NoOp)
-
-object MainPage extends Page:
-  def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) =
-    (
-      Model(
-        appStates = List(
-          StateCase(
-            DashBoard(),
-            number = 1,
-          ),
-        ),
-        commandMode = CommandCaseMode.Production,
-        commandLink = CommandCaseLink.Production,
-      ),
+case object MainPage extends Page:
+  val name = "Dashboard"
+  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
+      model,
       Cmd.Batch(
         OnDataProcess.getData("a"),
         OnDataProcess.getData("b"),
@@ -34,12 +17,10 @@ object MainPage extends Page:
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "pb-32px")(
-        if (model.toggle)
-          JsonPages.render(model)
-        else 
-          render(model)
-      ),
+      if (model.toggle)
+        JsonPages.render(model)
+      else 
+        render(model)
     )
   
   def render(model: Model): Html[Msg] =

@@ -14,7 +14,9 @@ object DefaultLayout:
             case CommandCaseMode.Development => Toggle.view(model)
             case CommandCaseMode.Production  => div(),
         ), 
-        contents,
+        div(`class` := "pb-32px")(
+          contents,
+        ),
       ),
       PopupView.view(model),
     )

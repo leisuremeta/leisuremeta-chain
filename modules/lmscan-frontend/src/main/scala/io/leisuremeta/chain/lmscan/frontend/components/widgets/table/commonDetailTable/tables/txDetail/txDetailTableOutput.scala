@@ -7,7 +7,6 @@ import V.*
 import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.TxDetail
 import io.leisuremeta.chain.lmscan.common.model.TransferHist
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object TxDetailTableOutput:
 

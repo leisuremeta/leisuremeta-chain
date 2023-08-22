@@ -8,15 +8,14 @@ import V.*
 import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.common.model.AccountDetail
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 import scala.util.chaining.*
 
 object AccountDetailTable:
   val view = (model: Model) =>
-    val apiData: SummaryModel = get_PageResponseViewCase(model).board
-    val data: AccountDetail   = get_PageResponseViewCase(model).accountDetail
-
-    genView(model, data, apiData)
+    // val apiData: SummaryModel = get_PageResponseViewCase(model).board
+    // val data: AccountDetail   = get_PageResponseViewCase(model).accountDetail
+    // genView(model, data, apiData)
+    div()
 
   val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
     div(`class` := "y-start gap-10px w-[100%] ")(

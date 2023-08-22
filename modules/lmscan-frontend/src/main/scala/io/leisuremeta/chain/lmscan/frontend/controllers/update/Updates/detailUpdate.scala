@@ -3,7 +3,6 @@ package io.leisuremeta.chain.lmscan.frontend
 import cats.effect.IO
 import tyrian.Html.*
 import tyrian.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.find_current_Pub_m1s
 
 object DetailButtonUpdate:
   def update(model: Model): DetailButtonMsg => (Model, Cmd[IO, Msg]) =

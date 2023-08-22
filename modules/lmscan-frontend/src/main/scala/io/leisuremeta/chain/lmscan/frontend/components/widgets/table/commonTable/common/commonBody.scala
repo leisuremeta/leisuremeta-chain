@@ -15,8 +15,6 @@ import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
-
 object Body:
   def blocks = (payload: List[BlockInfo]) =>
     payload
@@ -32,48 +30,49 @@ object Body:
         ),
       )
   def observer = (model: Model) =>
-    model.appStates.map(state =>
-      div()(
-        div(
-          `class` := s"row table-body ${state.number == get_latest_number(model)}_state ${model.pointer == state.number}_state_click",
-          onClick(PageMsg.GotoObserver(state.number)),
-        )(
-          // #
-          div(
-            `class` := s"cell type-3 ",
-          )(
-            span()(state.number.toString()),
-          ),
-          // name
-          div(`class` := "cell type-3")(
-            span()(
-              in_Name(state.pageCase),
-            ),
-          ),
+    div()
+    // model.appStates.map(state =>
+    //   div()(
+    //     div(
+    //       `class` := s"row table-body ${state.number == get_latest_number(model)}_state ${model.pointer == state.number}_state_click",
+    //       onClick(PageMsg.GotoObserver(state.number)),
+    //     )(
+    //       // #
+    //       div(
+    //         `class` := s"cell type-3 ",
+    //       )(
+    //         span()(state.number.toString()),
+    //       ),
+    //       // name
+    //       div(`class` := "cell type-3")(
+    //         span()(
+    //           in_Name(state.pageCase),
+    //         ),
+    //       ),
 
-          // url
-          div(`class` := "cell")(
-            span(
-              in_url(state.pageCase),
-            ),
-          ),
+    //       // url
+    //       div(`class` := "cell")(
+    //         span(
+    //           in_url(state.pageCase),
+    //         ),
+    //       ),
 
-          // pubs
-          div(`class` := "cell")(
-            span(
-              in_PubCases(state.pageCase).length.toString(),
-            ),
-          ),
+    //       // pubs
+    //       div(`class` := "cell")(
+    //         span(
+    //           in_PubCases(state.pageCase).length.toString(),
+    //         ),
+    //       ),
 
-          // :page
-          div(`class` := "cell")(
-            span(
-              // pipe_PubCase_Page(state.pageCase).toString(),
-            ),
-          ),
-        ),
-      ),
-    )
+    //       // :page
+    //       div(`class` := "cell")(
+    //         span(
+    //           // pipe_PubCase_Page(state.pageCase).toString(),
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // )
   def txlist_txtable_off = (payload: List[TxInfo]) =>
     payload
       // List(new TxInfo)

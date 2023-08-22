@@ -6,7 +6,6 @@ import io.circe.generic.semiauto._
 import common.model._
 
 final case class Model(
-    appStates: List[StateCase],
     pointer: Int = 1,
     searchValue: String = "",
     toggle: Boolean = false,
@@ -23,9 +22,19 @@ final case class Model(
     popup: Boolean = false,
     lmprice: Double = 0.0,
 
+    page: String = "blocks",
     // for mainpage ,,
     mainPage: MainModel = MainModel(SummaryModel(), BlcList(), TxList()),
+    blcPage: BlocksModel = BlocksModel(0, BlcList()),
 )
+
+final case class BlocksModel(
+    page: Int,
+    blcList: BlcList,
+)
+object BlocksModel:
+    given Decoder[BlocksModel] = deriveDecoder[BlocksModel]
+    def apply(): BlcList = BlcList(None, None, List())
 
 final case class MainModel(
     summary: SummaryModel,
