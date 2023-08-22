@@ -7,9 +7,7 @@ object BlockPage extends Page:
   val name = "Blocks"
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
       model,
-      Cmd.Batch(
-        OnDataProcess.getData(model.blcPage)
-      )
+      Cmd.Emit(PageMsg.UpdateBlcs)
     )
 
   def view(model: Model): Html[Msg] =

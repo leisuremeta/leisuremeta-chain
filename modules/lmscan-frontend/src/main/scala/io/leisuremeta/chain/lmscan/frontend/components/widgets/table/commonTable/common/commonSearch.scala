@@ -10,175 +10,88 @@ import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 
 object Search:
-  val search_block = (model: Model) =>
-
-    // todo :: make as pipe
-    val curPage = 0
-
-    val totalPage = model.block_total_page.toInt
-
+  def toInt(s: String) =
+    try
+      Some(Integer.parseInt(s))
+    catch
+      case _ => None 
+  def checkAndMake(v: Int, last: Int) =
+    if v < 1 then PageMsg.UpdateBlcsSearch(1)
+    else if v > last then PageMsg.UpdateBlcsSearch(last)
+    else PageMsg.UpdateBlcsSearch(v)
+  def view(model: BlocksModel) =
+    val curPage = model.page
+    val totalPage = model.blcList.totalPages match
+      case None => 0
+      case Some(v) => v.toInt
+    
     val btnFistPage = curPage match
-      case x if (x == 1 || x == 2) => 1
-      case x
-          if (x == limit_value(totalPage.toString())) || (x == (limit_value(
-            totalPage.toString(),
-          ) - 1)) => (
-        limit_value(totalPage.toString()) - 4
-      )
+      case x if (x <= 2) => 1
+      case x if (x >= (totalPage - 1)) => totalPage - 4
       case x => (curPage - 2)
-
     val btnLastPage = btnFistPage + 5
+    val goTo = PageMsg.UpdateBlockPage
 
     div(
-      // TODO :: fix class name => fix css
-      `class` := s"state DashBoard _search table-search xy-center ",
+      `class` := s"table-search xy-center",
     )(
       div(`class` := "xy-center")(
         div(
           `class` := s"type-arrow",
-          curPage == 1 match
-            case true =>
-              style(Style("color" -> "lightgray"))
-            case false =>
-              onClick(
-                PageMsg.PreUpdate(
-                  Blocks(
-                    url = s"blocks/${1}",
-                    pubs = List(PubCase.BlockPub(page = 1)),
-                  ),
-                ),
-              ),
+          curPage match
+            case 1 => style(Style("color" -> "gray"))
+            case _ => onClick(goTo(1))
         )("<<"),
         div(
           `class` := s"type-arrow",
           curPage <= 10 match
-            case true =>
-              style(Style("color" -> "lightgray"))
-            case false =>
-              onClick(
-                PageMsg.PreUpdate(
-                  Blocks(
-                    url = s"blocks/${curPage - 10}",
-                    pubs = List(PubCase.BlockPub(page = curPage - 10)),
-                  ),
-                ),
-              ),
+            case true => style(Style("color" -> "gray"))
+            case false => onClick(goTo(curPage - 10))
         )("<"),
         div(`class` := s"type-text-btn")(
-          List
-            .range(btnFistPage, btnLastPage)
+          List.range(btnFistPage, btnLastPage)
             .map(idx =>
               span(
-                `class` := s"${_selectedPage[Int](curPage, idx)}",
-                onClick(
-                  (limit_value(
-                    idx.toString(),
-                  ) == 50000 && block_validPageNumber(
-                    model,
-                  ) == 50000) match
-                    case true =>
-                      PopupMsg.OnClick(true)
-                    case false =>
-                      PageMsg.PreUpdate(
-                        Blocks(
-                          url = s"blocks/${limit_value(idx.toString())}",
-                          pubs = List(
-                            PubCase.BlockPub(page = limit_value(idx.toString())),
-                          ),
-                        ),
-                      ),
-                ),
+                `class` := _selectedPage(curPage, idx),
+                onClick(goTo(idx))
               )(idx.toString()),
             ),
         ),
         div(
           `class` := s"type-arrow",
-          curPage >= (limit_value(totalPage.toString()) - 10) match
-            case true =>
-              style(Style("color" -> "gray"))
-            case false =>
-              onClick(
-                (limit_value(
-                  (curPage + 10).toString(),
-                ) == 50000 && block_validPageNumber(
-                  model,
-                ) == 50000) match
-                  case true =>
-                    PopupMsg.OnClick(true)
-                  case false =>
-                    PageMsg.PreUpdate(
-                      Blocks(
-                        url =
-                          s"blocks/${limit_value((curPage + 10).toString())}",
-                        pubs = List(
-                          PubCase.BlockPub(page =
-                            limit_value((curPage + 10).toString()),
-                          ),
-                        ),
-                      ),
-                    ),
-              ),
+          curPage >= totalPage - 10 match
+            case true => style(Style("color" -> "gray"))
+            case false => onClick(goTo(curPage + 10)),
         )(">"),
         div(
           `class` := s"type-arrow",
-          (limit_value(
-            totalPage.toString(),
-          ) == 50000 && block_validPageNumber(
-            model,
-          ) == 50000) match
-            case true =>
-              style(Style("color" -> "gray"))
-            case false =>
-              onClick(
-                (limit_value(
-                  totalPage.toString(),
-                ) == 50000 && block_validPageNumber(
-                  model,
-                ) == 50000) match
-                  case true =>
-                    PopupMsg.OnClick(true)
-                  case false =>
-                    PageMsg.PreUpdate(
-                      Blocks(
-                        url = s"blocks/${limit_value(totalPage.toString())}",
-                        pubs = List(
-                          PubCase.BlockPub(page =
-                            limit_value(totalPage.toString()),
-                          ),
-                        ),
-                      ),
-                    ),
-              ),
+          curPage == totalPage match
+            case true => style(Style("color" -> "gray"))
+            case _ => onClick(goTo(totalPage))
         )(">>"),
         div(
           style(Style("margin-left" -> "10px")),
         )(
           input(
-            onInput(s => PageMsg.GetFromBlockSearch(s)),
+            onInput(s => 
+              toInt(s) match
+                case Some(v) => checkAndMake(v, totalPage)
+                case None => PageMsg.None
+            ),
             onKeyUp(e =>
               e.key match
-                case "Enter" =>
-                  block_validPageNumber(model) == 50000 match
-                    case true =>
-                      PopupMsg.OnClick(true)
-                    case false =>
-                      PageMsg.PatchFromBlockSearch(
-                        block_validPageNumber(model).toString(),
-                      )
-
+                case "Enter" => goTo(model.searchPage)
                 case _ => PageMsg.None,
             ),
-            value := s"${model.block_current_page}",
+            value := s"${curPage}",
             `class` := "type-search xy-center DOM-page1 margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
-          div(`class` := "type-plain-text margin-right")({
-            limit_value(model.block_total_page).toString()
-          }),
+          div(`class` := "type-plain-text margin-right")(totalPage.toString),
         ),
       ),
     )
-    // )
+
   val search_tx = (model: Model) =>
 
     // todo :: make as pipe

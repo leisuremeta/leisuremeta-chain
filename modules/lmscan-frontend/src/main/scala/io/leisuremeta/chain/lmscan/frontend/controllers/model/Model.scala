@@ -25,11 +25,13 @@ final case class Model(
     page: String = "blocks",
     // for mainpage ,,
     mainPage: MainModel = MainModel(SummaryModel(), BlcList(), TxList()),
-    blcPage: BlocksModel = BlocksModel(0, BlcList()),
+    blcPage: BlocksModel = BlocksModel(1, 10, 1, BlcList()),
 )
 
 final case class BlocksModel(
     page: Int,
+    size: Int,
+    searchPage: Int,
     blcList: BlcList,
 )
 object BlocksModel:

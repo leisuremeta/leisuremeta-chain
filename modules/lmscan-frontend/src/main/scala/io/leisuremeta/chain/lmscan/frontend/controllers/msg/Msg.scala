@@ -12,14 +12,17 @@ enum PageMsg extends Msg:
   case BackObserver                        extends PageMsg
   case RolloBack                           extends PageMsg
   case None                                extends PageMsg
-  case GetFromBlockSearch(value: String)   extends PageMsg
   case PatchFromBlockSearch(value: String) extends PageMsg
   case GetFromTxSearch(value: String)      extends PageMsg
   case PatchFromTxSearch(value: String)    extends PageMsg
 
+  case UpdateBlcs extends PageMsg
+  case UpdateBlcsSearch(v: Int) extends PageMsg
+
   // 데이터 업데이트
   case DataUpdate(sub: PubCase) extends PageMsg
-  case Update(value: BlocksModel) extends PageMsg
+  case UpdateBlockPage(value: Int) extends PageMsg
+  case Update(value: BlcList) extends PageMsg
   case Update1(value: SummaryModel) extends PageMsg
   case Update2(value: BlcList) extends PageMsg
   case Update3(value: TxList) extends PageMsg

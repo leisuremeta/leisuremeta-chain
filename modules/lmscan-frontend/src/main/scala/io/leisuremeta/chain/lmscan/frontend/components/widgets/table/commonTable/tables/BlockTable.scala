@@ -6,8 +6,8 @@ import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object BlockTable:
   def mainView(model: Model) =
-    div(`class` := "table-container  position-relative y-center  ")(
-      div(`class` := "m-10px w-[100%] ")(
+    div(`class` := "table-container position-relative y-center")(
+      div(`class` := "m-10px w-[100%]")(
         div(
           `class` := s"table-title",
         )(
@@ -30,12 +30,12 @@ object BlockTable:
     )
 
   def view(model: Model) =
-    div(`class` := "table-container  position-relative y-center  ")(
-      div(`class` := "m-10px w-[100%] ")(
+    div(`class` := "table-container position-relative y-center")(
+      div(`class` := "m-10px w-[100%]")(
         div(
           Title.block,
           Table.block(model.blcPage.blcList),
-          Search.search_block(model),
+          Search.view(model.blcPage),
         ),
         model.blcPage.blcList.totalCount match
           case None => LoaderView.view

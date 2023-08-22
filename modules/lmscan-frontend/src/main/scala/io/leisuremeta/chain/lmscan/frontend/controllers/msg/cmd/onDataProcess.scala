@@ -59,7 +59,7 @@ object UnderDataProcess:
     parse(response.body) match
       case Left(parsingError) => PageMsg.RolloBack
       case Right(json) =>
-        PageMsg.Update(decode[BlocksModel](response.body).getOrElse(pub))
+        PageMsg.Update(decode[BlcList](response.body).getOrElse(pub.blcList))
 
   private def onResponse(pub: String): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
@@ -85,13 +85,15 @@ object UnderDataProcess:
     Decoder[Msg](onResponse(pub), onError)
 
 object OnDataProcess:
-  def getList(api: (Int, Int) => String, page: Int = 0, size: Int = 0) = api(page, size)
-  def blcList(page: Int, size: Int) = s"block/list?pageNo=${page}&sizePerRequest=${size}"
+  val base = js.Dynamic.global.process.env.BASE_API_URL
+  def getList(api: (Int, Int) => String, page: Int = 0, size: Int = 10) = api(page, size)
+  def blcList(page: Int, size: Int) = s"${base}block/list?pageNo=${page}&sizePerRequest=${size}"
+  def txList(page: Int, size: Int) = s"${base}tx/list?pageNo=${page}&sizePerRequest=${size}"
   def getData(
       blcPage: BlocksModel,
   ): Cmd[IO, Msg] =
     Http.send(
-      Request.get(getList(api = blcList, page = blcPage.page)).withTimeout(30.seconds),
+      Request.get(getList(api = blcList, page = blcPage.page - 1, size = blcPage.size)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(blcPage),
     )
   def getData(
@@ -102,11 +104,10 @@ object OnDataProcess:
       UnderDataProcess.fromHttpResponse(pub),
     )
   def getApi(target: String) =
-    val base = js.Dynamic.global.process.env.BASE_API_URL
     target match
       case "a" => s"${base}summary/main"
-      case "b" => s"${base}${getList(blcList)}"
-      case "c" => s"${base}tx/list?pageNo=0&sizePerRequest=10"
+      case "b" => getList(blcList)
+      case "c" => getList(txList)
       case _ => s""
 
   def getData(

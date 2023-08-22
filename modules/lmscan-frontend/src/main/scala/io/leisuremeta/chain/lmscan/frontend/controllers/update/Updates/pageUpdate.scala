@@ -14,8 +14,14 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
-    case PageMsg.Update(value: BlocksModel) =>
-      (model.copy(blcPage = model.blcPage.copy(blcList = value.blcList)), Cmd.None)
+    case PageMsg.UpdateBlcs =>
+      (model, Cmd.Batch(OnDataProcess.getData(model.blcPage)))
+    case PageMsg.UpdateBlcsSearch(v: Int) =>
+      (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
+    case PageMsg.UpdateBlockPage(page: Int) =>
+      (model.copy(blcPage = model.blcPage.copy(page = page)), Cmd.Emit(PageMsg.UpdateBlcs))
+    case PageMsg.Update(value: BlcList) =>
+      (model.copy(blcPage = model.blcPage.copy(blcList = value)), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) =>
       (model.copy(mainPage = model.mainPage.copy(summary = value)), Cmd.None)
     case PageMsg.Update2(value: BlcList) =>
@@ -106,9 +112,6 @@ object PageUpdate:
         Cmd.None,
       )
     case PageMsg.None => (model, Cmd.None)
-
-    case PageMsg.GetFromBlockSearch(s) =>
-      (model.copy(block_current_page = s), Cmd.None)
 
     case PageMsg.GetFromTxSearch(s) =>
       (model.copy(tx_current_page = s), Cmd.None)
