@@ -6,14 +6,6 @@ import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 object CommonTableView:
   def view(model: Model): Html[Msg] =
     find_current_PageCase(model) match
-      case DashBoard(_, _, _, _) =>
-        div(`class` := "table-area")(
-          div(id := "oop-table-blocks", `class` := "table-list x")(
-            BlockTable.view(model),
-            TransactionTable.view(model),
-          ),
-        )
-
       case Blocks(_, _, _, _) =>
         div(`class` := "table-area")(
           div(`class` := "font-40px pt-16px font-block-detail color-white")(

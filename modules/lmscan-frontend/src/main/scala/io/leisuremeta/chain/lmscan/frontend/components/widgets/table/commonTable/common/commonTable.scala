@@ -8,6 +8,18 @@ import io.leisuremeta.chain.lmscan.common.model.*
 import io.leisuremeta.chain.lmscan.frontend.ModelPipe.*
 
 object Table:
+  def block(blcList: BlcList) =
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.block :: Body.blocks(blcList.payload),
+      ),
+    )
+  def txList_txtable(txList: TxList) =
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.tx :: Body.txlist_txtable_off(txList.payload)
+      ),
+    )
   def block = (model: Model) =>
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
@@ -21,7 +33,7 @@ object Table:
                 current_ViewCase(model).blockInfo
           },
         ),
-      ),
+    ),
     )
 
   def txList_txtable = (model: Model) =>
@@ -68,17 +80,10 @@ object Table:
             ),
       ),
     )
-  def dashboard_txtable = (model: Model) =>
+  def dashboard_txtable(txList: TxList) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
-        Head.tx_dashBoard :: Body.dashboard_txtable(
-          // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
-          new TxInfo == current_ViewCase(model).txInfo(0) match
-            case true =>
-              find_ViewCase(model.pointer - 1)(model).txInfo
-            case _ =>
-              current_ViewCase(model).txInfo,
-        ),
+        Head.tx_dashBoard :: Body.dashboard_txtable(txList.payload),
       ),
     )
   def observer_table = (model: Model) =>

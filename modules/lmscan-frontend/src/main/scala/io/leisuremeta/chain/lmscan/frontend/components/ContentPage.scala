@@ -9,9 +9,6 @@ object Pages:
       case _ :Observer =>
         ObserverView.view(model)
 
-      case _ :DashBoard =>
-          DashboardView.view(model)
-
       case _ :Blocks =>
           BlocksView.view(model)
 

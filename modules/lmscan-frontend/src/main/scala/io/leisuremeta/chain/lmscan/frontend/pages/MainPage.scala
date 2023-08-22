@@ -34,5 +34,21 @@ object MainPage extends Page:
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "pb-32px")(if (model.toggle) JsonPages.render(model) else Pages.render(model)),
+      div(`class` := "pb-32px")(
+        if (model.toggle)
+          JsonPages.render(model)
+        else 
+          render(model)
+      ),
+    )
+  
+  def render(model: Model): Html[Msg] =
+    div(`class` := "color-white")(
+      BoardView.view(model),
+      div(`class` := "table-area")(
+        div(id := "oop-table-blocks", `class` := "table-list x")(
+          BlockTable.mainView(model),
+          TransactionTable.mainView(model),
+        ),
+      )
     )

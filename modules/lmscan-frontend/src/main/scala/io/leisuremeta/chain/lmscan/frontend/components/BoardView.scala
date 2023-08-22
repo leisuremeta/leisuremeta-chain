@@ -48,7 +48,7 @@ object BoardView:
     )
 
   def view(model: Model): Html[Msg] =
-    val (summary, _, _) = model.mainPage
+    val summary = model.mainPage.summary
 
     div(`class` := "board-area")(
       List(

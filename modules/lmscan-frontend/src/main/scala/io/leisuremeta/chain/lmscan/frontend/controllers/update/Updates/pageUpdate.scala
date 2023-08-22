@@ -15,14 +15,12 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object PageUpdate:
   def update(model: Model): PageMsg => (Model, Cmd[IO, Msg]) =
-    case PageMsg.Update(target: String, value: SummaryModel) =>
-      // Window.History( in_url(page), in_url(page),)
-      (
-        model.copy(
-          mainPage = model.mainPage.copy(_1 = value) 
-        ),
-        Cmd.None
-      )
+    case PageMsg.Update1(value: SummaryModel) =>
+      (model.copy(mainPage = model.mainPage.copy(summary = value)), Cmd.None)
+    case PageMsg.Update2(value: BlcList) =>
+      (model.copy(mainPage = model.mainPage.copy(blcList = value)), Cmd.None)
+    case PageMsg.Update3(value: TxList) =>
+      (model.copy(mainPage = model.mainPage.copy(txList = value)), Cmd.None)
 
     case PageMsg.PreUpdate(page: PageCase) =>
       Window.History(

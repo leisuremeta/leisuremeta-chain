@@ -62,8 +62,9 @@ object UnderDataProcess:
       case Left(parsingError) => PageMsg.RolloBack
       case Right(json) =>
         pub match
-          case "a" => PageMsg.Update(pub, decode[SummaryModel](response.body).getOrElse(SummaryModel()))
-          // case "a" => PageMsg.RolloBack
+          case "a" => PageMsg.Update1(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
+          case "b" => PageMsg.Update2(decode[BlcList](response.body).getOrElse(BlcList()))
+          case "c" => PageMsg.Update3(decode[TxList](response.body).getOrElse(TxList()))
           case "_" => PageMsg.RolloBack
 
   private val onError: HttpError => Msg = e => PageMsg.BackObserver

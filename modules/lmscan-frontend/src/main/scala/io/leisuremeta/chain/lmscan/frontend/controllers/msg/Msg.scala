@@ -19,7 +19,9 @@ enum PageMsg extends Msg:
 
   // 데이터 업데이트
   case DataUpdate(sub: PubCase) extends PageMsg
-  case Update(sub: String, value: SummaryModel) extends PageMsg
+  case Update1(value: SummaryModel) extends PageMsg
+  case Update2(value: BlcList) extends PageMsg
+  case Update3(value: TxList) extends PageMsg
 
 enum InputMsg extends Msg:
   case Get(value: String) extends InputMsg
