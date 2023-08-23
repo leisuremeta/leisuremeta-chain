@@ -21,7 +21,6 @@ import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import node.NodeConfig
 import scodec.bits.ByteVector
-import io.leisuremeta.chain.node.service.TransactionService
 
 
 object JvmClientMain extends IOApp:
@@ -41,8 +40,6 @@ object JvmClientMain extends IOApp:
   val alice    = Account(Utf8.unsafeFrom("alice"))
   val bob    = Account(Utf8.unsafeFrom("bob"))
   val carol  = Account(Utf8.unsafeFrom("carol"))
-
-  val testAddr = Account(Utf8.unsafeFrom("b695195cef53729a974f0a164d454698e3f11e61"))
 
   def sign(account: Account, key: KeyPair)(tx: Transaction): Signed.Tx =
     key.sign(tx).map { sig =>
@@ -124,32 +121,30 @@ object JvmClientMain extends IOApp:
 //    selectedOption = Utf8.unsafeFrom(s"1"),
 //  )
 
-  // val tx: Transaction = Transaction.TokenTx.DefineTokenWithPrecision(
-  //   networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-  //   createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
-  //   definitionId = TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
-  //   name = Utf8.unsafeFrom("NFT with precision"),
-  //   symbol = Some(Utf8.unsafeFrom("NFTWP")),
-  //   minterGroup = Some(GroupId(Utf8.unsafeFrom("mint-group"))),
-  //   nftInfo = Some(NftInfoWithPrecision(
-  //     minter = alice,
-  //     rarity = Map(
-  //       Rarity(Utf8.unsafeFrom("LGDY")) -> BigNat.unsafeFromLong(100),
-  //       Rarity(Utf8.unsafeFrom("UNIQ")) -> BigNat.unsafeFromLong(66),
-  //       Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(33),
-  //       Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(10),
-  //     ),
-  //     precision = BigNat.unsafeFromLong(2),
-  //     dataUrl = Utf8.unsafeFrom("https://www.playnomm.com/data/nft-with-precision.json"),
-  //     contentHash = UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get,
-  //   )),
-  // )
-  val tx: Transaction = TransactionService.get(
-    Hash.Value[TransactionResult]{UInt256.from(hex"dcd79109b67dd33c900a35a64d70d7d751ded53c0680f655915a47276c0fb1d3").toOption.get})
+  val tx: Transaction = Transaction.TokenTx.DefineTokenWithPrecision(
+    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+    createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
+    definitionId = TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+    name = Utf8.unsafeFrom("NFT with precision"),
+    symbol = Some(Utf8.unsafeFrom("NFTWP")),
+    minterGroup = Some(GroupId(Utf8.unsafeFrom("mint-group"))),
+    nftInfo = Some(NftInfoWithPrecision(
+      minter = alice,
+      rarity = Map(
+        Rarity(Utf8.unsafeFrom("LGDY")) -> BigNat.unsafeFromLong(100),
+        Rarity(Utf8.unsafeFrom("UNIQ")) -> BigNat.unsafeFromLong(66),
+        Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(33),
+        Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(10),
+      ),
+      precision = BigNat.unsafeFromLong(2),
+      dataUrl = Utf8.unsafeFrom("https://www.playnomm.com/data/nft-with-precision.json"),
+      contentHash = UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get,
+    )),
+  )
 
-  // val signedTx = signAlice(tx)
+  val signedTx = signAlice(tx)
 
-  // val json = Seq(signedTx).asJson.spaces2
+  val json = Seq(signedTx).asJson.spaces2
 
   override def run(args: List[String]): IO[ExitCode] =
     ArmeriaCatsBackend.resource[IO]().use { backend =>
@@ -165,7 +160,7 @@ object JvmClientMain extends IOApp:
             backend,
           )
 
-          // println(json)
+          println(json)
           println(Seq(tx.toHash).asJson.noSpaces)
 
           IO.unit.as(ExitCode.Success)
