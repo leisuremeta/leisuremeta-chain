@@ -20,14 +20,22 @@ object PageUpdate:
       (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
     case PageMsg.UpdateBlockPage(page: Int) =>
       (model.copy(blcPage = model.blcPage.copy(page = page)), Cmd.Emit(PageMsg.UpdateBlcs))
-    case PageMsg.Update(value: BlcList) =>
-      (model.copy(blcPage = model.blcPage.copy(blcList = value)), Cmd.None)
+    case PageMsg.UpdateTxs =>
+      (model, Cmd.Batch(OnDataProcess.getData(model.txPage)))
+    case PageMsg.UpdateTxsSearch(v: Int) =>
+      (model.copy(txPage = model.txPage.copy(searchPage = v)), Cmd.None)
+    case PageMsg.UpdateTxPage(page: Int) =>
+      (model.copy(txPage = model.txPage.copy(page = page)), Cmd.Emit(PageMsg.UpdateTxs))
+    case PageMsg.UpdateTx(value: TxList) =>
+      (model.copy(txPage = model.txPage.copy(list = value)), Cmd.None)
+    case PageMsg.UpdateBlc(value: BlcList) =>
+      (model.copy(blcPage = model.blcPage.copy(list = value)), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) =>
       (model.copy(mainPage = model.mainPage.copy(summary = value)), Cmd.None)
     case PageMsg.Update2(value: BlcList) =>
-      (model.copy(mainPage = model.mainPage.copy(blcList = value)), Cmd.None)
+      (model.copy(mainPage = model.mainPage.copy(bList = value)), Cmd.None)
     case PageMsg.Update3(value: TxList) =>
-      (model.copy(mainPage = model.mainPage.copy(txList = value)), Cmd.None)
+      (model.copy(mainPage = model.mainPage.copy(tList = value)), Cmd.None)
 
     case PageMsg.PreUpdate(page: PageCase) =>
       Window.History(
@@ -35,20 +43,7 @@ object PageUpdate:
         in_url(page),
       )
       (
-        model.copy(
-          tx_current_page = page
-            .pipe(in_PubCases)
-            .pipe(getPubCase[PubCase.TxPub])
-            .pipe(_.getOrElse(PubCase.TxPub()))
-            .pipe(in_Page)
-            .pipe(_.toString),
-          block_current_page = page
-            .pipe(in_PubCases)
-            .pipe(getPubCase[PubCase.BlockPub])
-            .pipe(_.getOrElse(PubCase.BlockPub()))
-            .pipe(in_Page)
-            .pipe(_.toString),
-        ),
+        model,
         Cmd.Batch(
           in_PubCases(page).map(pub =>
             OnDataProcess.getData(
@@ -81,67 +76,4 @@ object PageUpdate:
         Cmd.None
       )
 
-    case PageMsg.DataUpdate(pub: PubCase) =>
-      (
-        model.copy(
-          // DataUpdate => 후처리 로직으로 바꾸는것 고려하기
-          subtype = pub match
-            case pub: PubCase.TxPub => pub.subtype
-            case _                  => model.subtype
-          ,
-          tx_total_page = pub match
-            case pub: PubCase.TxPub => pub.pub_m2.totalPages.toString()
-            case _                  => model.tx_total_page
-          ,
-          block_total_page = pub match
-            case pub: PubCase.BlockPub => pub.pub_m2.totalPages.toString()
-            case _                     => model.block_total_page
-          ,
-          lmprice = List(pub)
-            .pipe(getPubCase[PubCase.BoardPub])
-            .pipe(
-              _.getOrElse(
-                PubCase.BoardPub(pub_m2 =
-                  SummaryModel(lmPrice = Some(model.lmprice)),
-                ),
-              ),
-            )
-            .pipe(in_SummaryModel_pub(model))
-            .pipe(d => Math.floor(d * 10000) / 10000),
-        ),
-        Cmd.None,
-      )
     case PageMsg.None => (model, Cmd.None)
-
-    case PageMsg.GetFromTxSearch(s) =>
-      (model.copy(tx_current_page = s), Cmd.None)
-
-    case PageMsg.PatchFromBlockSearch(validPage) =>
-      (
-        model.copy(block_current_page = validPage),
-        Cmd.emit(
-          PageMsg.PreUpdate(
-            Blocks(
-              url = s"blocks/${validPage}",
-              pubs = List(
-                PubCase.BlockPub(page = validPage.toInt),
-              ),
-            ),
-          ),
-        ),
-      )
-
-    case PageMsg.PatchFromTxSearch(validPage) =>
-      (
-        model.copy(tx_current_page = validPage),
-        Cmd.emit(
-          PageMsg.PreUpdate(
-            Transactions(
-              url = s"transactions/${validPage}",
-              pubs = List(
-                PubCase.TxPub(page = validPage.toInt),
-              ),
-            ),
-          ),
-        ),
-      )

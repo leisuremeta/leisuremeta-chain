@@ -13,7 +13,7 @@ object NavBar:
       List(
         MainPage,
         BlockPage,
-        // Transactions(),
+        TxPage,
       ).map(page =>
         div(
           `class` := "buttons",

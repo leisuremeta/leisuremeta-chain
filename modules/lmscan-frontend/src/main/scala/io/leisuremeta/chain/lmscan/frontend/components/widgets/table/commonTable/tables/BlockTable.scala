@@ -22,8 +22,8 @@ object BlockTable:
             )("More"),
           ),
         ),
-        Table.block(model.mainPage.blcList),
-        model.mainPage.blcList.totalCount match 
+        Table.block(model.mainPage.bList),
+        model.mainPage.bList.totalCount match 
           case None => LoaderView.view
           case Some(_) => div(),
       ),
@@ -34,11 +34,11 @@ object BlockTable:
       div(`class` := "m-10px w-[100%]")(
         div(
           Title.block,
-          Table.block(model.blcPage.blcList),
+          Table.block(model.blcPage.list),
           Search.view(model.blcPage),
         ),
-        model.blcPage.blcList.totalCount match
+        model.blcPage.list.totalCount match
           case None => LoaderView.view
-          case Some(_) => div(),
+          case Some(_) => div()
       ),
     )

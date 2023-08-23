@@ -6,6 +6,7 @@ object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
     case routerMsg: RouterMsg   => routerMsg match
       case RouterMsg.NavigateTo(page) => 
+        // (model, Nav.pushUrl(page.name.toLowerCase))
         page.update(model.copy(page = page.name.toLowerCase))(routerMsg)
       case _ => (model, Cmd.None)
     case pageMsg: PageMsg       => PageUpdate.update(model)(pageMsg)

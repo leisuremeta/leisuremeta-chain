@@ -22,6 +22,7 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
   def view(model: Model): Html[Msg] = 
     model.page match
       case "blocks" => BlockPage.view(model)
+      case "transactions" => TxPage.view(model)
       case _ => MainPage.view(model)
 
   def subscriptions(model: Model): Sub[IO, Msg] =
@@ -32,6 +33,7 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
       loc.pathName match
         case "/dashboard" => RouterMsg.NavigateTo(MainPage)
         case "/blocks/1" => RouterMsg.NavigateTo(BlockPage)
+        case "/transactions" => RouterMsg.NavigateTo(TxPage)
         case "/" => RouterMsg.NavigateTo(MainPage)
         case _   => RouterMsg.NoOp
     case loc: Location.External =>

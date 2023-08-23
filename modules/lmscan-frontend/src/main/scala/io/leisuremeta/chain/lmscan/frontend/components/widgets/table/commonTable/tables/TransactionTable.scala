@@ -7,8 +7,7 @@ import io.circe.syntax.*
 import io.leisuremeta.chain.lmscan.common.model.*
 
 object TransactionTableCommon:
-  def loader(model: Model) =
-      div()
+  def loader = div()
 
 object TransactionTable:
   def mainView(model: Model): Html[Msg] =
@@ -28,8 +27,8 @@ object TransactionTable:
             )("More"),
           ),
         ),
-        Table.dashboard_txtable(model.mainPage.txList),
-        model.mainPage.txList.totalCount match
+        Table.dashboard_txtable(model.mainPage.tList),
+        model.mainPage.tList.totalCount match
           case None => LoaderView.view
           case Some(_) => div(),
       ),
@@ -39,9 +38,11 @@ object TransactionTable:
         div(`class` := "table-container  position-relative y-center  ")(
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
-              Table.txList_txtable(model),
-              Search.search_tx(model),
+              Table.txList_txtable(model.txPage.list),
+              Search.view(model.txPage),
             ),
-            TransactionTableCommon.loader(model),
+            model.txPage.list.totalCount match
+              case None => LoaderView.view
+              case Some(_) => div()
           ),
         )

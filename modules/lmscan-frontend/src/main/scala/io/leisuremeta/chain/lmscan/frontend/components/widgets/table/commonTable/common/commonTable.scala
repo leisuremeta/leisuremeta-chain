@@ -7,38 +7,20 @@ import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
 import io.leisuremeta.chain.lmscan.common.model.*
 
 object Table:
-  def block(blcList: BlcList) =
+  def block(list: BlcList) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
-        Head.block :: Body.blocks(blcList.payload),
+        Head.block :: Body.blocks(list.payload),
       ),
     )
-  def txList_txtable(txList: TxList) =
+  def txList_txtable(list: TxList) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
-        Head.tx :: Body.txlist_txtable_off(txList.payload)
-      ),
-    )
-
-  def txList_txtable = (model: Model) =>
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        {
-          model.commandMode == CommandCaseMode.Development match
-            case true =>
-              Head.tx2 :: Body.txlist_txtable_on(
-                List()
-              )
-            case false =>
-              Head.tx :: Body.txlist_txtable_off(
-                List()
-              )
-        },
+        Head.tx :: Body.txlist_txtable_off(list.payload)
       ),
     )
 
   def accountDetail_txtable = (model: Model) =>
-    // log(current_ViewCase(model).txInfo)
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
         Head.tx :: Body.accountDetail_txtable(
@@ -46,10 +28,10 @@ object Table:
         ),
       ),
     )
-  def dashboard_txtable(txList: TxList) =
+  def dashboard_txtable(list: TxList) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
-        Head.tx_dashBoard :: Body.dashboard_txtable(txList.payload),
+        Head.tx_dashBoard :: Body.dashboard_txtable(list.payload),
       ),
     )
   def observer_table = (model: Model) =>

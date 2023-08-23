@@ -13,11 +13,7 @@ final case class Model(
     commandMode: CommandCaseMode = CommandCaseMode.Production,
     commandLink: CommandCaseLink,
     detail_button: Boolean = false,
-    tx_total_page: String = "1",
-    tx_current_page: String = "1",
     subtype: String = "",
-    block_total_page: String = "1",
-    block_current_page: String = "1",
     pageLimit: Int = 50,
     popup: Boolean = false,
     lmprice: Double = 0.0,
@@ -25,30 +21,52 @@ final case class Model(
     page: String = "blocks",
     // for mainpage ,,
     mainPage: MainModel = MainModel(SummaryModel(), BlcList(), TxList()),
-    blcPage: BlocksModel = BlocksModel(1, 10, 1, BlcList()),
+    blcPage: BlockModel = BlockModel(1, 10, 1, BlcList()),
+    txPage: TxModel = TxModel(1, 10, 1, TxList()),
 )
 
-final case class BlocksModel(
+trait ListPage[T]:
+    val page: Int
+    val size: Int
+    val searchPage: Int
+    val list: ListType[T]
+
+trait ListType[T]:
+    val totalCount: Option[Long]
+    val totalPages: Option[Long]
+    val payload: List[T]
+
+final case class TxModel(
     page: Int,
     size: Int,
     searchPage: Int,
-    blcList: BlcList,
-)
-object BlocksModel:
-    given Decoder[BlocksModel] = deriveDecoder[BlocksModel]
-    def apply(): BlcList = BlcList(None, None, List())
+    list: TxList,
+) extends ListPage[TxInfo]
+
+object TxModel:
+    given Decoder[TxModel] = deriveDecoder[TxModel]
+
+final case class BlockModel(
+    page: Int,
+    size: Int,
+    searchPage: Int,
+    list: BlcList,
+) extends ListPage[BlockInfo]
+
+object BlockModel:
+    given Decoder[BlockModel] = deriveDecoder[BlockModel]
 
 final case class MainModel(
     summary: SummaryModel,
-    blcList: BlcList,
-    txList: TxList,
+    bList: BlcList,
+    tList: TxList,
 )
 
 final case class BlcList(
     totalCount: Option[Long],
     totalPages: Option[Long],
     payload: List[BlockInfo],
-)
+) extends ListType[BlockInfo]
 
 object BlcList:
     given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
@@ -59,7 +77,7 @@ final case class TxList(
     totalCount: Option[Long],
     totalPages: Option[Long],
     payload: List[TxInfo],
-)
+) extends ListType[TxInfo]
 
 object TxList:
     given Decoder[TxInfo] = deriveDecoder[TxInfo]
