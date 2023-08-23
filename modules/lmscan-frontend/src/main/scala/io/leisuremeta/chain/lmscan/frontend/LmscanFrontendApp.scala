@@ -9,10 +9,7 @@ import scala.scalajs.js.annotation.*
 @JSExportTopLevel("TyrianApp")
 object LmscanFrontendApp extends TyrianApp[Msg, Model]:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = (
-    Model(
-      commandMode = CommandCaseMode.Production,
-      commandLink = CommandCaseLink.Production,
-    ),
+    Model(),
     Cmd.None,
   )
 

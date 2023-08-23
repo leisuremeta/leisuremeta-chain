@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
-import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
 import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 
 object BlockTable:
@@ -18,7 +17,7 @@ object BlockTable:
             `class` := s"type-2",
           )(
             span(
-              onClick(PageMsg.PreUpdate(Blocks())),
+              // onClick(),
             )("More"),
           ),
         ),

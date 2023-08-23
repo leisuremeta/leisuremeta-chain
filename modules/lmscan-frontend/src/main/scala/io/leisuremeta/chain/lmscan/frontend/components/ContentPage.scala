@@ -36,9 +36,6 @@ object ContentPage:
     div(id := "page", `class` := "")(
       div(`class` := "x")(
         SearchView.view(model),
-        model.commandMode match
-          case CommandCaseMode.Development => Toggle.view(model)
-          case CommandCaseMode.Production  => div(),
       ), 
       div(`class` := "pb-32px")(if (model.toggle) JsonPages.render(model) else Pages.render(model)),
       PopupView.view(model),

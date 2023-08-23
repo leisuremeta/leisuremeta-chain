@@ -19,6 +19,9 @@ import io.leisuremeta.chain.api.model.token.*
 import io.leisuremeta.chain.lib.crypto.Hash.Value
 import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.api.model.Signed.TxHash
+import io.circe.*, io.circe.generic.semiauto.*
+import io.circe.parser.*
+import io.circe.generic.auto.*
 
 object TxDetailTableCommon:
   def genTable(d: List[Html[Msg]]) = div(`class` := "x")(
@@ -182,8 +185,7 @@ object TxDetailTableCommon:
       Cell.PlainStr(Some(output.toString()), "cell  type-3 type-detail-body"),
     )
 
-  def genTxDetailView(json: String) = TransactionWithResultParser
-    .decodeParser(json)
+  def genTxDetailView(json: String) = decode[TransactionWithResult](json)
     .map(tx =>
       tx.signedTx.value match
         case tokenTx: Transaction.TokenTx =>

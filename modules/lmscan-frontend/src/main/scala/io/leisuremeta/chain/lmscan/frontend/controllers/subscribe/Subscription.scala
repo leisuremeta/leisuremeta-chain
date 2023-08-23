@@ -23,7 +23,8 @@ object Subscriptions:
             e.keyCode match
               case 13 =>
                 // Enter key
-                Some(InputMsg.Patch)
+                // Some(InputMsg.Patch)
+                None
               case _ =>
                 None
           }

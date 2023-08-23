@@ -25,7 +25,7 @@ object TransactionTable:
             `class` := s"type-2",
           )(
             span(
-              onClick(PageMsg.PreUpdate(Transactions())),
+              // onClick()),
             )("More"),
           ),
         ),

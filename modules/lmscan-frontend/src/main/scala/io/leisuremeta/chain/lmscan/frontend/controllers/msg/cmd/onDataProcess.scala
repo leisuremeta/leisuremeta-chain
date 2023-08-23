@@ -12,7 +12,6 @@ import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
-import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 import common.model._
 
 case class ApiPayload(page: String)
@@ -118,12 +117,146 @@ object OnDataProcess:
       case "c" => getList(tlist)
       case _ => s""
 
-  def getData(
-      pub: PubCase,
-      model: Model,
-  ): Cmd[IO, Msg] =
-    Cmd.None
     // Http.send(
     //   Request.get(get_api_link(pub, model)).withTimeout(30.seconds),
     //   UnderDataProcess.fromHttpResponse(pub),
     // )
+
+
+
+      // case PubCase.BoardPub(page, _, _) =>
+      //   s"$base/summary/main"
+
+      // case PubCase.BlockPub(page, sizePerRequest, _, _) =>
+      //   s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=${sizePerRequest}"
+
+      // case PubCase.TxPub(
+      //       page,
+      //       sizePerRequest,
+      //       accountAddr,
+      //       blockHash,
+      //       subtype,
+      //       _,
+      //       _,
+      //     ) =>
+      //   s"$base/tx/list?pageNo=${(page - 1)
+      //       .toString()}&sizePerRequest=${sizePerRequest}" ++ {
+      //     accountAddr match
+      //       case "" => ""
+      //       case _  => s"&accountAddr=${accountAddr}"
+      //   } ++ {
+      //     blockHash match
+      //       case "" => ""
+      //       case _  => s"&blockHash=${blockHash}"
+      //   } ++ {
+      //     subtype match
+      //       case "" => ""
+      //       case _  => s"&subtype=${subtype}"
+      //   }
+
+      // case PubCase.BlockDetailPub(hash, _, _) =>
+      //   s"$base/block/$hash/detail"
+
+      // case PubCase.TxDetailPub(hash, _, _) =>
+      //   s"$base/tx/$hash/detail"
+
+      // case PubCase.NftDetailPub(hash, _, _) =>
+      //   s"$base/nft/$hash/detail"
+
+      // case PubCase.AccountDetailPub(hash, _, _) =>
+      //   s"$base/account/$hash/detail"
+// def getPageFromString(search: String): PageCase | CommandCaseMode |
+  //   CommandCaseLink =
+  //   search match
+  //     case ":on"    => CommandCaseMode.Development
+  //     case ":off"   => CommandCaseMode.Production
+  //     case ":prod"  => CommandCaseLink.Production
+  //     case ":dev"   => CommandCaseLink.Development
+  //     case ":local" => CommandCaseLink.Local
+  //     case subtype if subtypeList.contains(subtype.replaceAll(" ", "")) =>
+  //       Transactions()
+  //     case _ =>
+  //       search.length() match
+  //         case 40 =>
+  //           AccountDetail(
+  //             name = AccountDetail().name,
+  //             url = s"account/${search}",
+  //           )
+  //         case 42 =>
+  //           AccountDetail(
+  //             name = AccountDetail().name,
+  //             url = s"account/${search}",
+  //           )
+  //         case 25 =>
+  //           NftDetail(
+  //             url = s"nft/${search}",
+  //           )
+  //         case 64 =>
+  //           TxDetail(
+  //             name = Transactions().name,
+  //             url = s"transaction/${search}",
+  //             pubs = List(PubCase.TxDetailPub(hash = search)),
+  //           )
+  //         case _ =>
+  //           AccountDetail(
+  //             name = AccountDetail().name,
+  //             url = s"account/${search}",
+  //           )
+
+  // def getPageCaseFromUrl(url: String): PageCase =
+  //   url match
+  //     case s"/dashboard" => DashBoard()
+  //     case s"/blocks"    => Blocks()
+  //     case s"/blocks/${page}"
+  //         if page.forall(
+  //           Character.isDigit,
+  //         ) =>
+  //       Blocks(
+  //         url = s"blocks/${limit_value(page)}",
+  //       )
+  //     case s"/transactions" => Transactions()
+  //     case s"/transactions/${page}"
+  //         if page.forall(
+  //           Character.isDigit,
+  //         ) =>
+  //       Transactions(
+  //         url = s"transactions/${limit_value(page)}",
+  //       )
+  //     case s"/txs" => Transactions()
+  //     case s"/txs/${page}"
+  //         if page.forall(
+  //           Character.isDigit,
+  //         ) =>
+  //       Transactions(
+  //         url = s"transactions/${limit_value(page)}",
+  //       )
+
+  //     case s"/transaction/${hash}" if hash.length() == 64 =>
+  //       TxDetail(
+  //         name = Transactions().name,
+  //         url = s"transaction/${hash}",
+  //         pubs = List(PubCase.TxDetailPub(hash = hash)),
+  //       )
+  //     case s"/tx/${hash}" if hash.length() == 64 =>
+  //       TxDetail(
+  //         name = Transactions().name,
+  //         url = s"transaction/${hash}",
+  //         pubs = List(PubCase.TxDetailPub(hash = hash)),
+  //       )
+  //     case s"/block/${hash}" if hash.length() == 64 =>
+  //       BlockDetail(
+  //         name = Blocks().name,
+  //         url = s"block/${hash}",
+  //       )
+
+  //     case s"/nft/${hash}" if hash.length() == 25 =>
+  //       NftDetail(
+  //         url = s"nft/${hash}",
+  //       )
+  //     case s"/account/${hash}" =>
+  //       AccountDetail(
+  //         name = AccountDetail().name,
+  //         url = s"account/${hash}",
+  //       )
+
+  //     case _ => DashBoard()

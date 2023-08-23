@@ -10,9 +10,6 @@ object DefaultLayout:
       div(id := "page", `class` := "")(
         div(`class` := "x")(
           SearchView.view(model),
-          model.commandMode match
-            case CommandCaseMode.Development => Toggle.view(model)
-            case CommandCaseMode.Production  => div(),
         ), 
         div(`class` := "pb-32px")(
           contents,

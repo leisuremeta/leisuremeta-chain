@@ -10,8 +10,6 @@ final case class Model(
     searchValue: String = "",
     toggle: Boolean = false,
     temp: String = "",
-    commandMode: CommandCaseMode = CommandCaseMode.Production,
-    commandLink: CommandCaseLink,
     detail_button: Boolean = false,
     subtype: String = "",
     pageLimit: Int = 50,

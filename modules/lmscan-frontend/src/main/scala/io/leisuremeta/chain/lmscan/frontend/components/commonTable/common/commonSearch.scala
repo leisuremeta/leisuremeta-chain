@@ -5,8 +5,6 @@ import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
-import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 
 object Search:
   def toInt(s: String) =

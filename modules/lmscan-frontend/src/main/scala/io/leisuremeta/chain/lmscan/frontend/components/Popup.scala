@@ -17,7 +17,7 @@ object PopupView:
         br,
         div(
           `class` := "close",
-          onClick(PopupMsg.OnClick(false)),
+          onClick(PopupMsg(false)),
         )("×"),
         div(`class` := "content")(
           "sorry, page limit is 50,000",
