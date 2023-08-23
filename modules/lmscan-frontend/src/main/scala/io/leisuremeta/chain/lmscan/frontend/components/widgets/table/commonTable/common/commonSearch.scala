@@ -3,10 +3,9 @@ import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
 import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
-import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
 
 object Search:
@@ -28,7 +27,9 @@ object Search:
       case x if (x >= (totalPage - 1)) => totalPage - 4
       case x                           => (curPage - 2)
     val btnLastPage = btnFistPage + 5
-    val goTo        = PageMsg.UpdateBlockPage
+    def goTo(v: Int) = model match
+      case _: BlockModel => PageMsg.UpdateBlockPage(v)
+      case _: TxModel => PageMsg.UpdateTxPage(v)
 
     div(
       `class` := s"_search table-search xy-center",

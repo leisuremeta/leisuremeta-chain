@@ -82,22 +82,22 @@ object gen:
               }",
           )(
             span(
-              plainStr(subType).contains("Nft") match
-                case true =>
-                  onClick(
-                    PageMsg.PreUpdate(
-                      NftDetail(
-                        name = AccountDetail().name,
-                        url = s"nft/${plainStr(value)}",
-                        pubs = List(
-                          PubCase.NftDetailPub(
-                            hash = plainStr(value),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                case _ => EmptyAttribute,
+              // plainStr(subType).contains("Nft") match
+              //   case true =>
+              //     onClick(
+              //       PageMsg.PreUpdate(
+              //         NftDetail(
+              //           name = AccountDetail().name,
+              //           url = s"nft/${plainStr(value)}",
+              //           pubs = List(
+              //             PubCase.NftDetailPub(
+              //               hash = plainStr(value),
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     )
+              //   case _ => EmptyAttribute,
             )(
               plainStr(subType).contains("Nft") match
                 case true =>
@@ -154,22 +154,22 @@ object gen:
                   )(plainStr(inout))
             },
             span(
-              plainStr(subType).contains("Nft") match
-                case true =>
-                  onClick(
-                    PageMsg.PreUpdate(
-                      NftDetail(
-                        name = AccountDetail().name,
-                        url = s"nft/${plainStr(value)}",
-                        pubs = List(
-                          PubCase.NftDetailPub(
-                            hash = plainStr(value),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                case _ => EmptyAttribute,
+              // plainStr(subType).contains("Nft") match
+              //   case true =>
+              //     onClick(
+              //       PageMsg.PreUpdate(
+              //         NftDetail(
+              //           name = AccountDetail().name,
+              //           url = s"nft/${plainStr(value)}",
+              //           pubs = List(
+              //             PubCase.NftDetailPub(
+              //               hash = plainStr(value),
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     )
+              //   case _ => EmptyAttribute,
             )(
               plainStr(subType).contains("Nft") match
                 case true =>
@@ -180,23 +180,6 @@ object gen:
         case Cell.ACCOUNT_HASH(hash, css) =>
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  AccountDetail(
-                    name = AccountDetail().name,
-                    url = s"account/${plainStr(hash)}",
-                    pubs = List(
-                      // PubCase.BoardPub(1, "", SummaryModel()),
-                      PubCase.AccountDetailPub(hash = plainStr(hash)),
-                      PubCase.TxPub(
-                        page = 1,
-                        accountAddr = plainStr(hash),
-                        sizePerRequest = 10,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             )(
               accountHash(hash),
             ),
@@ -204,23 +187,23 @@ object gen:
         case Cell.ACCOUNT_HASH_Long(hash, css) =>
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  AccountDetail(
-                    name = AccountDetail().name,
-                    url = s"account/${plainStr(hash)}",
-                    pubs = List(
-                      // PubCase.BoardPub(1, "", SummaryModel()),
-                      PubCase.AccountDetailPub(hash = plainStr(hash)),
-                      PubCase.TxPub(
-                        page = 1,
-                        accountAddr = plainStr(hash),
-                        sizePerRequest = 10,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // onClick(
+              //   PageMsg.PreUpdate(
+              //     AccountDetail(
+              //       name = AccountDetail().name,
+              //       url = s"account/${plainStr(hash)}",
+              //       pubs = List(
+              //         // PubCase.BoardPub(1, "", SummaryModel()),
+              //         PubCase.AccountDetailPub(hash = plainStr(hash)),
+              //         PubCase.TxPub(
+              //           page = 1,
+              //           accountAddr = plainStr(hash),
+              //           sizePerRequest = 10,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
             )(
               accountHash_DETAIL(hash),
             ),
@@ -270,46 +253,28 @@ object gen:
         case Cell.BLOCK_NUMBER((hash, number)) =>
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  BlockDetail(
-                    name = Blocks().name,
-                    url = s"block/${plainStr(hash)}",
-                    pubs = List(
-                      PubCase.BlockDetailPub(
-                        hash = plainStr(hash),
-                      ),
-                      PubCase.TxPub(
-                        page = 1,
-                        blockHash = plainStr(hash),
-                        sizePerRequest = 10,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             )(plainLong(number)),
           )
 
         case Cell.BLOCK_HASH(hash) =>
           div(`class` := "cell type-3")(
             span(
-              onClick(
-                PageMsg.PreUpdate(
-                  BlockDetail(
-                    name = Blocks().name,
-                    url = s"block/${plainStr(hash)}",
-                    pubs = List(
-                      PubCase.BlockDetailPub(hash = plainStr(hash)),
-                      PubCase.TxPub(
-                        page = 1,
-                        blockHash = plainStr(hash),
-                        sizePerRequest = 10,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // onClick(
+              //   PageMsg.PreUpdate(
+              //     BlockDetail(
+              //       name = Blocks().name,
+              //       url = s"block/${plainStr(hash)}",
+              //       pubs = List(
+              //         PubCase.BlockDetailPub(hash = plainStr(hash)),
+              //         PubCase.TxPub(
+              //           page = 1,
+              //           blockHash = plainStr(hash),
+              //           sizePerRequest = 10,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
               dataAttr("tooltip-text", plainStr(hash)),
             )(hash10(hash)),
           )
@@ -317,13 +282,8 @@ object gen:
           div(`class` := "cell type-3")(
             span(
               onClick(
-                PageMsg.PreUpdate(
-                  TxDetail(
-                    name = Transactions().name,
-                    url = s"transaction/${plainStr(hash)}",
-                    pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
-                  ),
-                ),
+                // PageMsg.UpdateTxDetailPage(s"${plainStr(hash)}")
+                RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse("")))
               ),
             )(
               plainStr(hash),
@@ -334,13 +294,8 @@ object gen:
             span(
               dataAttr("tooltip-text", plainStr(hash)),
               onClick(
-                PageMsg.PreUpdate(
-                  TxDetail(
-                    name = Transactions().name,
-                    url = s"transaction/${plainStr(hash)}",
-                    pubs = List(PubCase.TxDetailPub(hash = plainStr(hash))),
-                  ),
-                ),
+                // PageMsg.UpdateTxDetailPage(s"${plainStr(hash)}")
+                RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse("")))
               ),
             )(
               hash10(hash),

@@ -27,6 +27,9 @@ enum PageMsg extends Msg:
   case Update2(value: BlcList) extends PageMsg
   case Update3(value: TxList) extends PageMsg
 
+  case UpdateTxDetailPage(hash: String) extends PageMsg
+  case UpdateTxDetail(v: TxDetail) extends PageMsg
+
 enum InputMsg extends Msg:
   case Get(value: String) extends InputMsg
 

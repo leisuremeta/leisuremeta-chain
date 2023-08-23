@@ -10,9 +10,6 @@ object DetailTables:
     //   case BlockDetail(_, _, _, _) =>
     //     BlockDetailTable.view(model)
 
-    //   case TxDetail(_, _, _, _) =>
-    //     TxDetailTable.view(model)
-
     //   case NftDetail(_, _, _, _) =>
     //     NftDetailTable.view(model)
 

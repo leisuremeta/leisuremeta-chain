@@ -48,15 +48,6 @@ final case class BlockDetail(
     status: Boolean = false,
 ) extends PageCase
 
-final case class TxDetail(
-    name: String = "Transactions",
-    url: String = "transaction/hash...",
-    pubs: List[PubCase] = List(
-      PubCase.TxDetailPub(),
-    ),
-    status: Boolean = false,
-) extends PageCase
-
 final case class NftDetail(
     name: String = "Transactions",
     url: String = "nft/hash...",

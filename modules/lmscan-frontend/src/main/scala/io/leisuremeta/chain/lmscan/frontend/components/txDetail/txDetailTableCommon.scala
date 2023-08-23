@@ -21,7 +21,7 @@ import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.api.model.Signed.TxHash
 
 object TxDetailTableCommon:
-  def genTable(d: List[Html[PageMsg]]) = div(`class` := "x")(
+  def genTable(d: List[Html[Msg]]) = div(`class` := "x")(
     div(`class` := "type-TableDetail  table-container")(
       div(`class` := "table w-[100%] ")(
         d,
@@ -29,7 +29,7 @@ object TxDetailTableCommon:
     ),
   )
 
-  def genRow(d: List[Html[PageMsg]]) = div(`class` := "row")(
+  def genRow(d: List[Html[Msg]]) = div(`class` := "row")(
     d,
   )
 

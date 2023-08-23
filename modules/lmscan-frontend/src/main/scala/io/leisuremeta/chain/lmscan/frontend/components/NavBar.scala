@@ -19,7 +19,7 @@ object NavBar:
           `class` := "buttons",
         )(
           button(
-            `class` := s"${page.name == model.page}",
+            `class` := s"${page.name == model.page.name}",
             onClick(RouterMsg.NavigateTo(page)),
           )(span(page.name))
         )

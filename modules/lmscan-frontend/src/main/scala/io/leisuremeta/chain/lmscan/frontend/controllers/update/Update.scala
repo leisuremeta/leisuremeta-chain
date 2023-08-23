@@ -7,7 +7,8 @@ object Update:
     case routerMsg: RouterMsg   => routerMsg match
       case RouterMsg.NavigateTo(page) => 
         // (model, Nav.pushUrl(page.name.toLowerCase))
-        page.update(model.copy(page = page.name.toLowerCase))(routerMsg)
+        println(s"call update ${page.name}")
+        page.update(model.copy(page = page))(routerMsg)
       case _ => (model, Cmd.None)
     case pageMsg: PageMsg       => PageUpdate.update(model)(pageMsg)
     case inputMsg: InputMsg     => SearchUpdate.update(model)(inputMsg)

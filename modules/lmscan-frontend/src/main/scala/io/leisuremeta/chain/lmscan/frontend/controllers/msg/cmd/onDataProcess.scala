@@ -6,19 +6,13 @@ import io.circe.parser.*
 import tyrian.Html.*
 import tyrian.*
 import tyrian.http.*
-import io.circe.syntax.*
 import scala.scalajs.js
 import Dom.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLElement
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.frontend.PupCasePipe.*
-import io.circe.syntax.*
-import io.circe.parser.*
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import common.model._
 
 case class ApiPayload(page: String)
@@ -34,6 +28,15 @@ object UnderDataProcess:
       case Left(parsingError) => PageMsg.RolloBack
       case Right(json) =>
         PageMsg.UpdateBlc(decode[BlcList](response.body).getOrElse(model.list))
+
+  private def onResponse(model: TxDetail): Response => Msg = response =>
+    import io.circe.*, io.circe.generic.semiauto.*
+    given Decoder[TxDetail] = deriveDecoder[TxDetail]
+    given Decoder[TransferHist] = deriveDecoder[TransferHist]
+    parse(response.body) match
+      case Left(parsingError) => PageMsg.RolloBack
+      case Right(json) =>
+        PageMsg.UpdateTxDetail(decode[TxDetail](response.body).getOrElse(model))
 
   private def onResponse(pub: String): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
@@ -53,9 +56,10 @@ object UnderDataProcess:
     Decoder[Msg](onResponse(model), onError)
   def fromHttpResponse(model: BlockModel): Decoder[Msg] =
     Decoder[Msg](onResponse(model), onError)
-
   def fromHttpResponse(pub: String): Decoder[Msg] =
     Decoder[Msg](onResponse(pub), onError)
+  def fromHttpResponse(model: TxDetail): Decoder[Msg] =
+    Decoder[Msg](onResponse(model), onError)
 
 object OnDataProcess:
   val base = js.Dynamic.global.process.env.BASE_API_URL
@@ -82,6 +86,13 @@ object OnDataProcess:
     Http.send(
       Request.get(getApi(pub)).withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(pub),
+    )
+  def getData(
+      detail: TxDetail,
+  ): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(30.seconds),
+      UnderDataProcess.fromHttpResponse(detail),
     )
   def getApi(target: String) =
     target match

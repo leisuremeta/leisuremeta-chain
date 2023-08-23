@@ -3,11 +3,11 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 
-object TxPage extends Page:
-  val name = "tx"
+object BlockDetailPage extends Page:
+  val name = "Block"
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
       model,
-      Cmd.Emit(PageMsg.UpdateTxs)
+      Cmd.Emit(PageMsg.UpdateBlcs)
     )
 
   def view(model: Model): Html[Msg] =
@@ -15,10 +15,10 @@ object TxPage extends Page:
       model,
       div(`class` := "table-area")(
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Transactions",
+          "Blocks",
         ),
         div(id := "oop-table-blocks", `class` := "table-list x")(
-          TransactionTable.view(model),
+          BlockTable.view(model),
         ),
       ),
     )

@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.scalajs.js
 import io.leisuremeta.chain.lmscan.common.model.*
 import scala.util.chaining.*
-import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.update_PageCase_PubCases
 
 object StateCasePipe:
   def in_pageCase(state: StateCase) = state.pageCase
@@ -34,5 +33,5 @@ object StateCasePipe:
   def update_PubData(pub: PubCase, find: Int)(state: StateCase) =
     state.number == find match
       case true =>
-        state.copy(pageCase = update_PageCase_PubCases(state.pageCase, pub))
+        state
       case _ => state

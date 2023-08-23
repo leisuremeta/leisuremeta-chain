@@ -17,15 +17,15 @@ object TxDetailTableINOUT:
       div(`class` := "cell type-detail-body")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          onClick(
-            PageMsg.PreUpdate(
-              TxDetail(
-                name = Transactions().name,
-                url = s"txDetail/${plainStr(Some(data))}",
-                pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
-              ),
-            ),
-          ),
+          // onClick(
+          //   PageMsg.PreUpdate(
+          //     TxDetail(
+          //       name = Transactions().name,
+          //       url = s"txDetail/${plainStr(Some(data))}",
+          //       pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
+          //     ),
+          //   ),
+          // ),
         )(data),
       ),
     )
@@ -34,15 +34,15 @@ object TxDetailTableINOUT:
       div(`class` := "cell type-detail-body")(i.toString()),
       div(`class` := "cell type-3 type-detail-body")(
         span(
-          onClick(
-            PageMsg.PreUpdate(
-              TxDetail(
-                name = Transactions().name,
-                url = s"txDetail/${plainStr(Some(data))}",
-                pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
-              ),
-            ),
-          ),
+          // onClick(
+          //   PageMsg.PreUpdate(
+          //     TxDetail(
+          //       name = Transactions().name,
+          //       url = s"txDetail/${plainStr(Some(data))}",
+          //       pubs = List(PubCase.TxDetailPub(hash = plainStr(Some(data)))),
+          //     ),
+          //   ),
+          // ),
         )(data),
       ),
     )

@@ -79,12 +79,12 @@ object ValidPageName:
               url = s"nft/${search}",
               pubs = List(PubCase.NftDetailPub(hash = search)),
             )
-          case 64 =>
-            TxDetail(
-              name = Transactions().name,
-              url = s"transaction/${search}",
-              pubs = List(PubCase.TxDetailPub(hash = search)),
-            )
+          // case 64 =>
+          //   TxDetail(
+          //     name = Transactions().name,
+          //     url = s"transaction/${search}",
+          //     pubs = List(PubCase.TxDetailPub(hash = search)),
+          //   )
           case _ =>
             AccountDetail(
               name = AccountDetail().name,
@@ -131,18 +131,18 @@ object ValidPageName:
           pubs = List(PubCase.TxPub(page = limit_value(page))),
         )
 
-      case s"/transaction/${hash}" if hash.length() == 64 =>
-        TxDetail(
-          name = Transactions().name,
-          url = s"transaction/${hash}",
-          pubs = List(PubCase.TxDetailPub(hash = hash)),
-        )
-      case s"/tx/${hash}" if hash.length() == 64 =>
-        TxDetail(
-          name = Transactions().name,
-          url = s"transaction/${hash}",
-          pubs = List(PubCase.TxDetailPub(hash = hash)),
-        )
+      // case s"/transaction/${hash}" if hash.length() == 64 =>
+      //   TxDetail(
+      //     name = Transactions().name,
+      //     url = s"transaction/${hash}",
+      //     pubs = List(PubCase.TxDetailPub(hash = hash)),
+      //   )
+      // case s"/tx/${hash}" if hash.length() == 64 =>
+      //   TxDetail(
+      //     name = Transactions().name,
+      //     url = s"transaction/${hash}",
+      //     pubs = List(PubCase.TxDetailPub(hash = hash)),
+      //   )
       case s"/block/${hash}" if hash.length() == 64 =>
         BlockDetail(
           name = Blocks().name,

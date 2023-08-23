@@ -14,7 +14,6 @@ import io.leisuremeta.chain.lmscan.common.model.BlockInfo
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.NftActivity
 import io.leisuremeta.chain.lmscan.frontend.StateCasePipe.*
-import io.leisuremeta.chain.lmscan.frontend.PageCasePipe.*
 object Body:
   def blocks = (payload: List[BlockInfo]) =>
     payload
