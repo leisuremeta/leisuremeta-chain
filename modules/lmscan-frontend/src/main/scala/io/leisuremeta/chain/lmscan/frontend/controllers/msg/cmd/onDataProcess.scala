@@ -37,6 +37,14 @@ object UnderDataProcess:
       case Left(parsingError) => PageMsg.RolloBack
       case Right(json) =>
         PageMsg.UpdateTxDetail(decode[TxDetail](response.body).getOrElse(model))
+  private def onResponse(model: BlockDetail): Response => Msg = response =>
+    import io.circe.*, io.circe.generic.semiauto.*
+    given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
+    given Decoder[TxInfo] = deriveDecoder[TxInfo]
+    parse(response.body) match
+      case Left(parsingError) => PageMsg.RolloBack
+      case Right(json) =>
+        PageMsg.UpdateBlcDetail(decode[BlockDetail](response.body).getOrElse(model))
 
   private def onResponse(pub: String): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
@@ -59,6 +67,8 @@ object UnderDataProcess:
   def fromHttpResponse(pub: String): Decoder[Msg] =
     Decoder[Msg](onResponse(pub), onError)
   def fromHttpResponse(model: TxDetail): Decoder[Msg] =
+    Decoder[Msg](onResponse(model), onError)
+  def fromHttpResponse(model: BlockDetail): Decoder[Msg] =
     Decoder[Msg](onResponse(model), onError)
 
 object OnDataProcess:
@@ -92,6 +102,13 @@ object OnDataProcess:
   ): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(30.seconds),
+      UnderDataProcess.fromHttpResponse(detail),
+    )
+  def getData(
+      detail: BlockDetail,
+  ): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(detail),
     )
   def getApi(target: String) =

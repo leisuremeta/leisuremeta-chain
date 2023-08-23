@@ -14,5 +14,5 @@ object AccountView:
       div(`class` := "font-40px pt-32px font-block-detail pb-16px color-white")(
         "Transaction History",
       ),
-      CommonTableView.view(model),
+      TransactionTable.view(model),
     )

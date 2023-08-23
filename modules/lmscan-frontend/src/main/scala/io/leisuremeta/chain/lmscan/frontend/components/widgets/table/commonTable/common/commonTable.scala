@@ -13,6 +13,12 @@ object Table:
         Head.block :: Body.blocks(list.payload),
       ),
     )
+  def view(list: Seq[TxInfo]) =
+    div(`class` := "m-10px")(
+      div(`class` := "table w-[100%]")(
+        Head.tx :: Body.txlist_txtable_off(list.toList)
+      ),
+    )
   def txList_txtable(list: TxList) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(

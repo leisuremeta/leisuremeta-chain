@@ -30,6 +30,9 @@ enum PageMsg extends Msg:
   case UpdateTxDetailPage(hash: String) extends PageMsg
   case UpdateTxDetail(v: TxDetail) extends PageMsg
 
+  case UpdateBlcDetailPage(hash: String) extends  PageMsg
+  case UpdateBlcDetail(v: BlockDetail) extends  PageMsg
+
 enum InputMsg extends Msg:
   case Get(value: String) extends InputMsg
 

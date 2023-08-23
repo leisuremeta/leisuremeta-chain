@@ -253,28 +253,18 @@ object gen:
         case Cell.BLOCK_NUMBER((hash, number)) =>
           div(`class` := "cell type-3")(
             span(
+              onClick(
+                RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse("")))
+              ),
             )(plainLong(number)),
           )
 
         case Cell.BLOCK_HASH(hash) =>
           div(`class` := "cell type-3")(
             span(
-              // onClick(
-              //   PageMsg.PreUpdate(
-              //     BlockDetail(
-              //       name = Blocks().name,
-              //       url = s"block/${plainStr(hash)}",
-              //       pubs = List(
-              //         PubCase.BlockDetailPub(hash = plainStr(hash)),
-              //         PubCase.TxPub(
-              //           page = 1,
-              //           blockHash = plainStr(hash),
-              //           sizePerRequest = 10,
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              onClick(
+                RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse("")))
+              ),
               dataAttr("tooltip-text", plainStr(hash)),
             )(hash10(hash)),
           )
@@ -282,7 +272,6 @@ object gen:
           div(`class` := "cell type-3")(
             span(
               onClick(
-                // PageMsg.UpdateTxDetailPage(s"${plainStr(hash)}")
                 RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse("")))
               ),
             )(
@@ -294,7 +283,6 @@ object gen:
             span(
               dataAttr("tooltip-text", plainStr(hash)),
               onClick(
-                // PageMsg.UpdateTxDetailPage(s"${plainStr(hash)}")
                 RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse("")))
               ),
             )(

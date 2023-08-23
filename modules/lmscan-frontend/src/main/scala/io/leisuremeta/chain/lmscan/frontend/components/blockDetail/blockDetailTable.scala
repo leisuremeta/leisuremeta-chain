@@ -7,12 +7,7 @@ import V.*
 import Dom.{_hidden, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 object BlockDetailTable:
-  val view = (model: Model) =>
-    div()
-    // val data: BlockDetail = get_PageResponseViewCase(model).blockDetail
-    // genView(model, data)
-
-  val genView = (model: Model, data: BlockDetail) =>
+  val view = (data: BlockDetail) =>
     div(
       `class` := "type-TableDetail table-container position-relative",
     )(
@@ -51,8 +46,8 @@ object BlockDetailTable:
             ),
           ),
         ),
-        data != new BlockDetail match
-          case false => LoaderView.view(model)
-          case _     => div(`class` := "")(),
+        data.timestamp  match
+          case None => LoaderView.view
+          case _     => div(),
       ),
     )

@@ -24,6 +24,7 @@ final case class Model(
     blcPage: BlockModel = BlockModel(1, 10, 1, BlcList()),
     txPage: TxModel = TxModel(1, 10, 1, TxList()),
     txDetail: TxDetail = TxDetail(),
+    blcDetail: BlockDetail = BlockDetail(),
 )
 
 trait ListPage[T]:

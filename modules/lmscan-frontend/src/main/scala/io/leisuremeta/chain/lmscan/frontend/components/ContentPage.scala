@@ -9,14 +9,8 @@ object Pages:
     //   case _ :Observer =>
     //     ObserverView.view(model)
 
-    //   case _ :Transactions =>
-    //       TransactionsView.view(model)
-
     //   case _ :BlockDetail =>
     //       BlockDetailView.view(model)
-
-    //   case _ :TxDetail =>
-    //       TransactionDetailView.view(model)
 
     //   case _ :AccountDetail =>
     //       AccountView.view(model)

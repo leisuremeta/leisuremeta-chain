@@ -33,7 +33,6 @@ object BlockTable:
     div(`class` := "table-container position-relative y-center")(
       div(`class` := "m-10px w-[100%]")(
         div(
-          Title.block,
           Table.block(model.blcPage.list),
           Search.view(model.blcPage),
         ),

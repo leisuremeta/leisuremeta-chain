@@ -51,6 +51,10 @@ object PageUpdate:
       (model, Cmd.Batch(OnDataProcess.getData(TxDetail(hash = Some(hash)))))
     case PageMsg.UpdateTxDetail(v: TxDetail) =>
       (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
+    case PageMsg.UpdateBlcDetailPage(hash: String) =>
+      (model, Cmd.Batch(OnDataProcess.getData(BlockDetail(hash = Some(hash)))))
+    case PageMsg.UpdateBlcDetail(v: BlockDetail) =>
+      (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))
 
     case PageMsg.PreUpdate(page: PageCase) =>
       (
