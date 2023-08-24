@@ -5,10 +5,8 @@ import tyrian.Html.*
 
 object TxPage extends Page:
   val name = "tx"
-  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
-      model,
-      Cmd.Emit(PageMsg.UpdateTxs)
-    )
+  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => 
+    (model, DataProcess.getData(model.txPage))
 
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(

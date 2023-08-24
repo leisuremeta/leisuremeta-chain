@@ -34,9 +34,9 @@ object JsonPages:
 object ContentPage:
   def view(model: Model): Html[Msg] =
     div(id := "page", `class` := "")(
-      div(`class` := "x")(
-        SearchView.view(model),
-      ), 
-      div(`class` := "pb-32px")(if (model.toggle) JsonPages.render(model) else Pages.render(model)),
-      PopupView.view(model),
+      // div(`class` := "x")(
+      //   SearchView.view(model),
+      // ), 
+      // div(`class` := "pb-32px")(if (model.toggle) JsonPages.render(model) else Pages.render(model)),
+      // PopupView.view(model),
     )

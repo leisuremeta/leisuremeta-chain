@@ -7,7 +7,7 @@ import V.*
 import Dom.{timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 object BlockDetailTable:
-  val view = (data: BlockDetail) =>
+  def view(data: BlockDetail) =
     div(
       `class` := "type-TableDetail table-container position-relative",
     )(

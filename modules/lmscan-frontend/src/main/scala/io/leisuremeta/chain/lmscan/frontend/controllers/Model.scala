@@ -1,26 +1,15 @@
 package io.leisuremeta.chain.lmscan
 package frontend
 
-import io.circe._
-import io.circe.generic.semiauto._
 import common.model._
 
 final case class Model(
-    pointer: Int = 1,
-    searchValue: String = "",
-    toggle: Boolean = false,
-    temp: String = "",
-    detail_button: Boolean = false,
-    subtype: String = "",
-    pageLimit: Int = 50,
     popup: Boolean = false,
-    lmprice: Double = 0.0,
-
+    searchValue: String = "",
     page: Page = MainPage,
-    // for mainpage ,,
-    mainPage: MainModel = MainModel(SummaryModel(), BlcList(), TxList()),
-    blcPage: BlockModel = BlockModel(1, 10, 1, BlcList()),
-    txPage: TxModel = TxModel(1, 10, 1, TxList()),
+    summary: SummaryModel = SummaryModel(),
+    blcPage: BlockModel = BlockModel(),
+    txPage: TxModel = TxModel(),
     txDetail: TxDetail = TxDetail(),
     blcDetail: BlockDetail = BlockDetail(),
     accDetail: AccountDetail = AccountDetail(),
@@ -38,56 +27,27 @@ trait ListType[T]:
     val payload: List[T]
 
 final case class TxModel(
-    page: Int,
-    size: Int,
-    searchPage: Int,
-    list: TxList,
+    page: Int = 1,
+    size: Int = 10,
+    searchPage: Int = 1,
+    list: TxList = TxList(),
 ) extends ListPage[TxInfo]
 
-object TxModel:
-    given Decoder[TxModel] = deriveDecoder[TxModel]
-
 final case class BlockModel(
-    page: Int,
-    size: Int,
-    searchPage: Int,
-    list: BlcList,
+    page: Int = 1,
+    size: Int = 10,
+    searchPage: Int = 1,
+    list: BlcList = BlcList(),
 ) extends ListPage[BlockInfo]
 
-object BlockModel:
-    given Decoder[BlockModel] = deriveDecoder[BlockModel]
-
-final case class MainModel(
-    summary: SummaryModel,
-    bList: BlcList,
-    tList: TxList,
-)
-
 final case class BlcList(
-    totalCount: Option[Long],
-    totalPages: Option[Long],
-    payload: List[BlockInfo],
+    totalCount: Option[Long] = None,
+    totalPages: Option[Long] = None,
+    payload: List[BlockInfo] = List(),
 ) extends ListType[BlockInfo]
 
-object BlcList:
-    given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
-    given Decoder[BlcList] = deriveDecoder[BlcList]
-    def apply(): BlcList = BlcList(None, None, List())
-
 final case class TxList(
-    totalCount: Option[Long],
-    totalPages: Option[Long],
-    payload: List[TxInfo],
+    totalCount: Option[Long] = None,
+    totalPages: Option[Long] = None,
+    payload: List[TxInfo] = List(),
 ) extends ListType[TxInfo]
-
-object TxList:
-    given Decoder[TxInfo] = deriveDecoder[TxInfo]
-    given Decoder[TxList] = deriveDecoder[TxList]
-    def apply(): TxList = TxList(None, None, List())
-
-object MainModel:
-    given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
-    given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
-    given Decoder[TxInfo] = deriveDecoder[TxInfo]
-    given Decoder[BlcList] = deriveDecoder[BlcList]
-    given Decoder[TxList] = deriveDecoder[TxList]

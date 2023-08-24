@@ -8,7 +8,7 @@ import common.model.TxDetail
 
 case class TxDetailPage(name: String, hash: String) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
-    (model, Cmd.Emit(PageMsg.UpdateTxDetailPage(hash)))
+    (model, Cmd.Emit(UpdateTxDetailPage(hash)))
 
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(

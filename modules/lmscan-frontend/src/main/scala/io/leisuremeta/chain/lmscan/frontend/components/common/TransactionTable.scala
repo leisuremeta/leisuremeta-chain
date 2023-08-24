@@ -31,8 +31,8 @@ object TransactionTable:
             )("More"),
           ),
         ),
-        Table.dashboard_txtable(model.mainPage.tList),
-        model.mainPage.tList.totalCount match
+        Table.dashboard_txtable(model.txPage.list),
+        model.txPage.list.totalCount match
           case None => LoaderView.view
           case Some(_) => div(),
       ),
@@ -43,7 +43,7 @@ object TransactionTable:
           div(`class` := "m-10px w-[100%] ")(
             div(`class` := "  ")(
               Table.txList_txtable(model.txPage.list),
-              Search.view(model.txPage),
+              Pagination.view(model.txPage),
             ),
             model.txPage.list.totalCount match
               case None => LoaderView.view

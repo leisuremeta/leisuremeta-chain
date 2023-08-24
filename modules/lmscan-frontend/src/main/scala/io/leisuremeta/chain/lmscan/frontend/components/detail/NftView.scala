@@ -6,6 +6,6 @@ import tyrian.*
 object NftView:
   def view(model: Model): Html[Msg] =
     div(`class` := "pb-32px p-16px color-white")(
-      CommonDetailTable.view(model),
+      NftDetailTable.view(model),
       TransactionTable.view(model),
     )

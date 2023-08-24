@@ -7,7 +7,7 @@ case class AccountDetailPage(name: String, hash: String) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
     (
       model,
-      Cmd.Emit(PageMsg.UpdateAccDetailPage(hash)),
+      Cmd.Emit(UpdateAccDetailPage(hash)),
     )
 
   def view(model: Model): Html[Msg] =

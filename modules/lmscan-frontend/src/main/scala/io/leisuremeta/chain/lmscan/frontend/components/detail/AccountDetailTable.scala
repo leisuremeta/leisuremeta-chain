@@ -11,10 +11,7 @@ import io.leisuremeta.chain.lmscan.common.model.AccountDetail
 import scala.util.chaining.*
 
 object AccountDetailTable:
-  val view = (model: Model) =>
-    // val apiData: SummaryModel = get_PageResponseViewCase(model).board
-    // val data: AccountDetail   = get_PageResponseViewCase(model).accountDetail
-  // val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
+  def view(model: Model) =
     val data = model.accDetail
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
@@ -52,7 +49,7 @@ object AccountDetailTable:
               ),
             ),
             data != new AccountDetail match
-              case false => LoaderView.view(model)
+              case false => LoaderView.view
               case _     => div(`class` := "")(),
           ),
         ),

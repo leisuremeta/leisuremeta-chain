@@ -7,7 +7,7 @@ case class BlockDetailPage(name: String, hash: String, bn: Long) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
     (
       model,
-      Cmd.Emit(PageMsg.UpdateBlcDetailPage(hash)),
+      Cmd.Emit(UpdateBlcDetailPage(hash)),
     )
 
   def view(model: Model): Html[Msg] =

@@ -5,10 +5,8 @@ import tyrian.Html.*
 
 object BlockPage extends Page:
   val name = "Blocks"
-  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
-      model,
-      Cmd.Emit(PageMsg.UpdateBlcs)
-    )
+  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => 
+    (model, DataProcess.getData(model.blcPage))
 
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(

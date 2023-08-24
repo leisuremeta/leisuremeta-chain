@@ -1,12 +1,12 @@
 package io.leisuremeta.chain.lmscan.frontend
-import scala.util.chaining.*
+
 import tyrian.Html.*
 import tyrian.*
 import Dom.{timeAgo, yyyy_mm_dd_time, _selectedPage}
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 
-object Search:
+object Pagination:
   def toInt(s: String) =
     try Some(Integer.parseInt(s))
     catch case _ => None
@@ -26,8 +26,8 @@ object Search:
       case x                           => (curPage - 2)
     val btnLastPage = btnFistPage + 5
     def goTo(v: Int) = model match
-      case _: BlockModel => PageMsg.UpdateBlockPage(v)
-      case _: TxModel => PageMsg.UpdateTxPage(v)
+      case _: BlockModel => UpdateBlockPage(v)
+      case _: TxModel => UpdateTxPage(v)
 
     div(
       `class` := s"_search table-search xy-center",
@@ -74,12 +74,12 @@ object Search:
             onInput(s =>
               toInt(s) match
                 case Some(v) => goTo(checkAndMake(v, totalPage))
-                case None    => PageMsg.None,
+                case None    => NoneMsg,
             ),
             onKeyUp(e =>
               e.key match
                 case "Enter" => goTo(model.searchPage)
-                case _       => PageMsg.None,
+                case _       => NoneMsg,
             ),
             value := s"${curPage}",
             `class` := "type-search xy-center DOM-page1 margin-right text-center",

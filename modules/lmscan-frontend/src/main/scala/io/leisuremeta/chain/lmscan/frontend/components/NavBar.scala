@@ -11,17 +11,17 @@ object NavBar:
       )
       ::
       List(
-        MainPage,
-        BlockPage,
-        TxPage,
-      ).map(page =>
+        ("Dashboard", MainPage),
+        ("Blocks", BlockPage),
+        ("Transactions", TxPage),
+      ).map((name, page) =>
         div(
           `class` := "buttons",
         )(
           button(
-            `class` := s"${page.name == model.page.name}",
+            `class` := s"${name == model.page.name}",
             onClick(RouterMsg.NavigateTo(page)),
-          )(span(page.name))
+          )(span(name))
         )
       ),
     )

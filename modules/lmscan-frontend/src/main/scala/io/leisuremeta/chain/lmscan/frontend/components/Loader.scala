@@ -15,9 +15,3 @@ object LoaderView:
         div(`class` := "loader")(),
       ),
     )
-  def view(model: Model): Html[Msg] =
-    div(`class` := "loader-case")(
-      div(`class` := "loader-container2 xy-center")(
-        div(`class` := "loader")(),
-      ),
-    )
