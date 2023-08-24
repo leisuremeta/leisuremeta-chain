@@ -16,7 +16,7 @@ object TxPage extends Page:
           "Transactions",
         ),
         div(id := "oop-table-blocks", `class` := "table-list x")(
-          TransactionTable.view(model),
+          Table.view(model),
         ),
       ),
     )

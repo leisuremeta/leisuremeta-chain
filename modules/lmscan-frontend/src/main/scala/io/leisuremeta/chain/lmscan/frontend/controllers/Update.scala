@@ -14,7 +14,12 @@ object Update:
     case ErrorMsg => (model, Cmd.None)
     case NoneMsg => (model, Cmd.None)
 
+    case GlobalInput(s) => (model.copy(searchValue = s), Cmd.None)
+    case GlobalSearch => 
+      (model, DataProcess.globalSearch(model.searchValue))
+
     case UpdateAccDetailPage(address) => (model, Cmd.Batch(DataProcess.getData(AccountDetail(address = Some(address)))))
+    case UpdateNftDetailPage(tokenId) => (model, Cmd.Batch(DataProcess.getData(NftFileModel(tokenId = Some(tokenId)))))
     case UpdateTxDetailPage(hash) => (model, DataProcess.getData(TxDetail(hash = Some(hash))))
     case UpdateBlcDetailPage(hash) => (model, DataProcess.getData(BlockDetail(hash = Some(hash))))
     case UpdateBlockPage(page: Int) =>
@@ -37,11 +42,13 @@ object Update:
 
     case UpdateBlcsSearch(v: Int) => (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
     case UpdateTxsSearch(v: Int) => (model.copy(txPage = model.txPage.copy(searchPage = v)), Cmd.None)
-    case PageMsg.UpdateTx(value: TxList) => (model.copy(txPage = model.txPage.copy(list = value)), Cmd.None)
-    case PageMsg.UpdateBlc(value: BlcList) => (model.copy(blcPage = model.blcPage.copy(list = value)), Cmd.None)
+    case PageMsg.UpdateTx(value: TxList) => (model.copy(txPage = model.txPage.copy(list = Some(value))), Cmd.None)
+    case PageMsg.UpdateBlc(value: BlcList) => (model.copy(blcPage = model.blcPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) => (model.copy(summary = value), Cmd.None)
     case PageMsg.UpdateTxDetail(v: TxDetail) => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
     case PageMsg.UpdateBlcDetail(v: BlockDetail) =>
       (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))
     case PageMsg.UpdateAccDetail(v: AccountDetail) =>
       (model.copy(accDetail = v), Nav.pushUrl(s"/account/${v.address.getOrElse("")}"))
+    case PageMsg.UpdateNftDetail(v: NftDetail) =>
+      (model.copy(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.get.tokenId.get}"))

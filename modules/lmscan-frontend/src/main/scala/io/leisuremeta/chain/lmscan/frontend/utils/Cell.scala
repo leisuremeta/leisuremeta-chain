@@ -4,9 +4,7 @@ import tyrian.*
 import V.*
 import scala.util.matching.Regex
 import Dom.{yyyy_mm_dd_time, timeAgo}
-import io.leisuremeta.chain.lmscan.common.model.TxInfo
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.common.model.SummaryModel
+import io.leisuremeta.chain.lmscan.common.model._
 
 enum Cell:
   case Image(data: Option[String])                              extends Cell

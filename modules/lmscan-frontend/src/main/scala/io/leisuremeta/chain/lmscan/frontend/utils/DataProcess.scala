@@ -27,17 +27,20 @@ object Parse:
   given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
   given Decoder[TxInfo] = deriveDecoder[TxInfo]
   given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
+  given Decoder[NftDetail] = deriveDecoder[NftDetail]
+  given Decoder[NftFileModel] = deriveDecoder[NftFileModel]
+  given Decoder[NftActivity] = deriveDecoder[NftActivity]
 
   def onResponse(model: TxModel): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateTx(decode[TxList](response.body).getOrElse(model.list))
+        PageMsg.UpdateTx(decode[TxList](response.body).getOrElse(TxList()))
   def onResponse(model: BlockModel): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateBlc(decode[BlcList](response.body).getOrElse(model.list))
+        PageMsg.UpdateBlc(decode[BlcList](response.body).getOrElse(BlcList()))
 
   def onResponse(model: TxDetail): Response => Msg = response =>
     parse(response.body) match
@@ -54,6 +57,11 @@ object Parse:
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
         PageMsg.UpdateAccDetail(decode[AccountDetail](response.body).getOrElse(model))
+  def onResponse(model: NftDetail): Response => Msg = response =>
+    parse(response.body) match
+      case Left(parsingError) => ErrorMsg
+      case Right(json) =>
+        PageMsg.UpdateNftDetail(decode[NftDetail](response.body).getOrElse(model))
 
   def onResponse(model: SummaryModel): Response => Msg = response =>
     parse(response.body) match
@@ -91,11 +99,24 @@ object DataProcess:
       Request.get(s"${base}account/${detail.address.getOrElse("")}/detail").withTimeout(30.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
+  def getData(model: NftFileModel): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(30.seconds),
+      Decoder[Msg](Parse.onResponse(NftDetail()), onError)
+    )
   def getData(model: SummaryModel): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}summary/main"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
+  def globalSearch(v: String) = 
+    val msg = v.length match
+      case 40 => UpdateAccDetailPage(v)
+      case 42 => UpdateAccDetailPage(v)
+      case 25 => UpdateNftDetailPage(v)
+      case 64 => UpdateTxDetailPage(v)
+      case _ => UpdateAccDetailPage(v)
+    Cmd.Emit(msg)
 
     // Http.send(
     //   Request.get(get_api_link(pub, model)).withTimeout(30.seconds),
@@ -153,32 +174,6 @@ object DataProcess:
   //     case subtype if subtypeList.contains(subtype.replaceAll(" ", "")) =>
   //       Transactions()
   //     case _ =>
-  //       search.length() match
-  //         case 40 =>
-  //           AccountDetail(
-  //             name = AccountDetail().name,
-  //             url = s"account/${search}",
-  //           )
-  //         case 42 =>
-  //           AccountDetail(
-  //             name = AccountDetail().name,
-  //             url = s"account/${search}",
-  //           )
-  //         case 25 =>
-  //           NftDetail(
-  //             url = s"nft/${search}",
-  //           )
-  //         case 64 =>
-  //           TxDetail(
-  //             name = Transactions().name,
-  //             url = s"transaction/${search}",
-  //             pubs = List(PubCase.TxDetailPub(hash = search)),
-  //           )
-  //         case _ =>
-  //           AccountDetail(
-  //             name = AccountDetail().name,
-  //             url = s"account/${search}",
-  //           )
 
   //     case s"/nft/${hash}" if hash.length() == 25 =>
   //       NftDetail(

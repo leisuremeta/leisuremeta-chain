@@ -27,7 +27,7 @@ case object MainPage extends Page:
       div(`class` := "table-area")(
         div(id := "oop-table-blocks", `class` := "table-list x")(
           BlockTable.mainView(model),
-          TransactionTable.mainView(model),
+          Table.mainView(model),
         ),
       )
     )

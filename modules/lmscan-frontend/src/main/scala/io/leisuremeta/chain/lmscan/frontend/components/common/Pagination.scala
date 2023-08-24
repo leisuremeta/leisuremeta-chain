@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import Dom.{timeAgo, yyyy_mm_dd_time, _selectedPage}
+import Dom._selectedPage
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 
@@ -16,9 +16,9 @@ object Pagination:
     else v
   def view[T](model: ListPage[T]) =
     val curPage = model.page
-    val totalPage = model.list.totalPages match
+    val totalPage = model.list match
       case None    => 0
-      case Some(v) => v.toInt
+      case Some(v) => v.totalPages.get.toInt
 
     val btnFistPage = curPage match
       case x if (x <= 2)               => 1

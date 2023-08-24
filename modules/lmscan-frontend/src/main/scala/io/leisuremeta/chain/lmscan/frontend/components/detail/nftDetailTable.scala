@@ -2,20 +2,12 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import _root_.io.circe.Decoder.state
 import V.*
-import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.NftFileModel
+import io.leisuremeta.chain.lmscan.common.model._
 
 object NftDetailTable:
-  val view = (model: Model) =>
-    // TODO :: 다시보기
-    div()
-    // val data: NftDetail = get_PageResponseViewCase(model).nftDetail
-    // genView(model, data)
-
-  val genView = (model: Model, data: NftDetail) =>
-    val nftFile = getOptionValue(data.nftFile, new NftFileModel)
+  def view(data: NftDetail) =
+    val nftFile = data.nftFile.getOrElse(NftFileModel())
 
     div(`class` := "table-area")(
       div(id := "oop-table-blocks", `class` := "table-list x")(

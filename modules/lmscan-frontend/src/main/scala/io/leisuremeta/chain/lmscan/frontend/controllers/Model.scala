@@ -13,13 +13,14 @@ final case class Model(
     txDetail: TxDetail = TxDetail(),
     blcDetail: BlockDetail = BlockDetail(),
     accDetail: AccountDetail = AccountDetail(),
+    nftDetail: NftDetail = NftDetail(),
 )
 
 trait ListPage[T]:
     val page: Int
     val size: Int
     val searchPage: Int
-    val list: ListType[T]
+    val list: Option[ListType[T]]
 
 trait ListType[T]:
     val totalCount: Option[Long]
@@ -30,14 +31,14 @@ final case class TxModel(
     page: Int = 1,
     size: Int = 10,
     searchPage: Int = 1,
-    list: TxList = TxList(),
+    list: Option[TxList] = None,
 ) extends ListPage[TxInfo]
 
 final case class BlockModel(
     page: Int = 1,
     size: Int = 10,
     searchPage: Int = 1,
-    list: BlcList = BlcList(),
+    list: Option[BlcList] = None,
 ) extends ListPage[BlockInfo]
 
 final case class BlcList(

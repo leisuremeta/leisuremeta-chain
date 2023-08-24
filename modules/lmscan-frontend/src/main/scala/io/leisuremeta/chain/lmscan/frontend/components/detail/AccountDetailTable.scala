@@ -2,13 +2,9 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import _root_.io.circe.Decoder.state
 import scala.compiletime.ops.any
 import V.*
-import java.math.RoundingMode
-import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-import io.leisuremeta.chain.lmscan.common.model.AccountDetail
-import scala.util.chaining.*
+import io.leisuremeta.chain.lmscan.common.model._
 
 object AccountDetailTable:
   def view(model: Model) =
@@ -50,7 +46,7 @@ object AccountDetailTable:
             ),
             data != new AccountDetail match
               case false => LoaderView.view
-              case _     => div(`class` := "")(),
+              case _     => div()
           ),
         ),
       ),

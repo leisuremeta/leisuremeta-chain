@@ -1,11 +1,91 @@
-package io.leisuremeta.chain.lmscan.frontend
+package io.leisuremeta.chain.lmscan
+package frontend
 
 import tyrian.Html.*
 import tyrian.*
-import Dom.{timeAgo, yyyy_mm_dd_time}
-import io.leisuremeta.chain.lmscan.common.model.*
+import common.model.*
 
 object Table:
+  def mainView(model: Model): Html[Msg] =
+    div(`class` := "table-container  position-relative y-center  ")(
+      div(`class` := "m-10px w-[100%] ")(
+        div(
+          `class` := s"table-title",
+        )(
+          div(
+            `class` := s"type-1",
+          )(span()("Latest transactions")),
+          div(
+            `class` := s"type-2",
+          )(
+            span(
+              onClick(
+                RouterMsg.NavigateTo(TxPage),
+              ),
+            )("More"),
+          ),
+        ),
+        model.txPage.list match
+          case None => LoaderView.view
+          case Some(v) =>
+            div(`class` := "m-10px")(
+              div(`class` := "table w-[100%]")(
+                Head.tx_dashBoard :: Body.dashboard_txtable(v.payload),
+              ),
+            ),
+      ),
+    )
+
+  def view(model: Model): Html[Msg] =
+    div(`class` := "table-container  position-relative y-center  ")(
+      div(`class` := "m-10px w-[100%] ")(
+        model.txPage.list match
+          case None    => LoaderView.view
+          case Some(v) => div(`class` := "m-10px")(
+            div(`class` := "table w-[100%]")(
+              Head.tx :: Body.txlist_txtable_off(v.payload)
+            ),
+          )
+        ,
+        Pagination.view(model.txPage)
+      ),
+    )
+  def view(model: BlockDetail): Html[Msg] =
+    div(`class` := "table-area")(
+      div(`class` := "table-container  position-relative y-center")(
+        div(`class` := "w-[100%] ")(
+          model.txs match
+            case None    => LoaderView.view
+            case Some(v) => Table.view(v),
+        ),
+      ),
+    )
+  def view(model: AccountDetail): Html[Msg] =
+    div(`class` := "table-area")(
+      div(`class` := "table-container  position-relative y-center")(
+        div(`class` := "w-[100%] ")(
+          model.txHistory match
+            case None    => LoaderView.view
+            case Some(v) => Table.view(v),
+        ),
+      ),
+    )
+  def view(model: NftDetail): Html[Msg] =
+    div(`class` := "table-area")(
+      div(`class` := "table-container  position-relative y-center")(
+        div(`class` := "w-[100%] ")(
+          model.activities match
+            case None => LoaderView.view
+            case Some(v) =>
+              div(`class` := "m-10px")(
+                div(`class` := "table w-[100%]")(
+                  Head.nft :: Body.nft(v.toList),
+                ),
+              ),
+        ),
+      ),
+    )
+
   def block(list: BlcList) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
@@ -17,47 +97,4 @@ object Table:
       div(`class` := "table w-[100%]")(
         Head.tx :: Body.txlist_txtable_off(list.toList)
       ),
-    )
-  def txList_txtable(list: TxList) =
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        Head.tx :: Body.txlist_txtable_off(list.payload)
-      ),
-    )
-
-  def accountDetail_txtable = (model: Model) =>
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        Head.tx :: Body.accountDetail_txtable(
-          List()
-        ),
-      ),
-    )
-  def dashboard_txtable(list: TxList) =
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        Head.tx_dashBoard :: Body.dashboard_txtable(list.payload),
-      ),
-    )
-  def observer_table = (model: Model) =>
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        // Head.observer :: Body.observer(model),
-      ),
-    )
-  def blockDetail_txtable = (model: Model) =>
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        Head.tx :: Body.blockDetail_txtable(
-          List()
-          // 데이터가 변경되었을때는 현재 데이터, 변경되지 않았을경우 이전데이터로 보여준다
-        ),
-      ),
-    )
-
-  def nftDetail_txtable = (model: Model) =>
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        Head.nft :: Body.nft(List()),
-      )
     )

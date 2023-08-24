@@ -2,8 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import io.circe.*, io.circe.parser.*, io.circe.generic.semiauto.*
-import io.circe.syntax.*
 import Dom.{yyyy_mm_dd_time, timeAgo}
 import V.*
 import io.leisuremeta.chain.lmscan.common.model._
@@ -119,39 +117,6 @@ object Body:
             Cell.PlainStr(v.action),
             Cell.ACCOUNT_HASH(v.fromAddr),
             Cell.ACCOUNT_HASH(v.toAddr),
-          ),
-        ),
-      )
-  def blockDetail_txtable = (payload: List[TxInfo]) =>
-    payload
-      .map(v =>
-        div(`class` := "row table-body")(
-          gen.cell(
-            Cell.TX_HASH(v.hash),
-            Cell.PlainLong(v.blockNumber),
-            Cell.AGE(v.createdAt),
-            Cell.ACCOUNT_HASH(v.signer),
-            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
-          ),
-        ),
-      )
-
-  def accountDetail_txtable = (payload: List[TxInfo]) =>
-    payload
-      .map(v =>
-        div(`class` := "row table-body")(
-          gen.cell(
-            Cell.TX_HASH(v.hash),
-            Cell.PlainLong(v.blockNumber),
-            Cell.AGE(v.createdAt),
-            Cell.ACCOUNT_HASH(v.signer),
-            Cell.Tx_VALUE2(
-              (
-                v.subType,
-                V.validNull(v.value),
-                v.inOut,
-              ),
-            ),
           ),
         ),
       )

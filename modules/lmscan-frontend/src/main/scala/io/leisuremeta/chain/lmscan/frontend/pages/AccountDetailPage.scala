@@ -22,7 +22,7 @@ case class AccountDetailPage(name: String, hash: String) extends Page:
           `class` := "font-40px pt-16px font-block-detail pb-16px color-white",
         )("Transaction History"),
         div(`class` := "y-start gap-10px w-[100%] ")(
-          TransactionTable.view(model.accDetail)
+          Table.view(model.accDetail)
         ),
       ),
     )

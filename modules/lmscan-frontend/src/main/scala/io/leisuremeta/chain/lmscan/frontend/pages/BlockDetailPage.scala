@@ -22,7 +22,7 @@ case class BlockDetailPage(name: String, hash: String, bn: Long) extends Page:
         div(`class` := "x")(
           div(`class` := "y-start gap-10px w-[100%] ")(
             BlockDetailTable.view(model.blcDetail),
-            TransactionTable.view(model.blcDetail)
+            Table.view(model.blcDetail)
           ),
         )
       ),

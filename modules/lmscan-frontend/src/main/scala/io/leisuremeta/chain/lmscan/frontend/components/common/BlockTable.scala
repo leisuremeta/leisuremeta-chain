@@ -23,10 +23,9 @@ object BlockTable:
             )("More"),
           ),
         ),
-        Table.block(model.blcPage.list),
-        model.blcPage.list.totalCount match 
+        model.blcPage.list match 
           case None => LoaderView.view
-          case Some(_) => div(),
+          case Some(v) => Table.block(v),
       ),
     )
 
@@ -34,10 +33,10 @@ object BlockTable:
     div(`class` := "table-container position-relative y-center")(
       div(`class` := "m-10px w-[100%]")(
         div(
-          Table.block(model.blcPage.list),
+          Table.block(model.blcPage.list.get),
           Pagination.view(model.blcPage),
         ),
-        model.blcPage.list.totalCount match
+        model.blcPage.list match
           case None => LoaderView.view
           case Some(_) => div()
       ),
