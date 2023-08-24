@@ -8,11 +8,7 @@ object Dom:
   def select(className: String) =
     window.document.getElementsByClassName(s"$className").item(0)
 
-  def _hidden[A](a: A, b: A) = if (a == b) then "hidden" else ""
-
   def _selectedPage[A](a: A, b: A) = if (a == b) then "selectedPage" else ""
-
-  def isEqGet[A](a: A, b: A, c: Any) = if (a == b) then s"$c" else ""
 
   def isEqGetElse[A](a: A, b: A, c: Any, d: Any) =
     if (a == b) then s"$c" else s"$d"

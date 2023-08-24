@@ -23,6 +23,7 @@ final case class Model(
     txPage: TxModel = TxModel(1, 10, 1, TxList()),
     txDetail: TxDetail = TxDetail(),
     blcDetail: BlockDetail = BlockDetail(),
+    accDetail: AccountDetail = AccountDetail(),
 )
 
 trait ListPage[T]:

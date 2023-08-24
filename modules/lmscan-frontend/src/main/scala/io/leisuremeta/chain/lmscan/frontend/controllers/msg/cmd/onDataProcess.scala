@@ -19,12 +19,12 @@ case class ApiPayload(page: String)
 object UnderDataProcess:
   private def onResponse(model: TxModel): Response => Msg = response =>
     parse(response.body) match
-      case Left(parsingError) => PageMsg.RolloBack
+      case Left(parsingError) => PageMsg.Error
       case Right(json) =>
         PageMsg.UpdateTx(decode[TxList](response.body).getOrElse(model.list))
   private def onResponse(model: BlockModel): Response => Msg = response =>
     parse(response.body) match
-      case Left(parsingError) => PageMsg.RolloBack
+      case Left(parsingError) => PageMsg.Error
       case Right(json) =>
         PageMsg.UpdateBlc(decode[BlcList](response.body).getOrElse(model.list))
 
@@ -33,7 +33,7 @@ object UnderDataProcess:
     given Decoder[TxDetail] = deriveDecoder[TxDetail]
     given Decoder[TransferHist] = deriveDecoder[TransferHist]
     parse(response.body) match
-      case Left(parsingError) => PageMsg.RolloBack
+      case Left(parsingError) => PageMsg.Error
       case Right(json) =>
         PageMsg.UpdateTxDetail(decode[TxDetail](response.body).getOrElse(model))
   private def onResponse(model: BlockDetail): Response => Msg = response =>
@@ -41,23 +41,31 @@ object UnderDataProcess:
     given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
     given Decoder[TxInfo] = deriveDecoder[TxInfo]
     parse(response.body) match
-      case Left(parsingError) => PageMsg.RolloBack
+      case Left(parsingError) => PageMsg.Error
       case Right(json) =>
         PageMsg.UpdateBlcDetail(decode[BlockDetail](response.body).getOrElse(model))
+  private def onResponse(model: AccountDetail): Response => Msg = response =>
+    import io.circe.*, io.circe.generic.semiauto.*
+    given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
+    given Decoder[TxInfo] = deriveDecoder[TxInfo]
+    parse(response.body) match
+      case Left(parsingError) => PageMsg.Error
+      case Right(json) =>
+        PageMsg.UpdateAccDetail(decode[AccountDetail](response.body).getOrElse(model))
 
   private def onResponse(pub: String): Response => Msg = response =>
     import io.circe.*, io.circe.generic.semiauto.*
     given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
     parse(response.body) match
-      case Left(parsingError) => PageMsg.RolloBack
+      case Left(parsingError) => PageMsg.Error
       case Right(json) =>
         pub match
           case "a" => PageMsg.Update1(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
           case "b" => PageMsg.Update2(decode[BlcList](response.body).getOrElse(BlcList()))
           case "c" => PageMsg.Update3(decode[TxList](response.body).getOrElse(TxList()))
-          case "_" => PageMsg.RolloBack
+          case "_" => PageMsg.None
 
-  private val onError: HttpError => Msg = e => PageMsg.BackObserver
+  private val onError: HttpError => Msg = e => PageMsg.Error
 
   def fromHttpResponse(model: TxModel): Decoder[Msg] =
     Decoder[Msg](onResponse(model), onError)
@@ -68,6 +76,8 @@ object UnderDataProcess:
   def fromHttpResponse(model: TxDetail): Decoder[Msg] =
     Decoder[Msg](onResponse(model), onError)
   def fromHttpResponse(model: BlockDetail): Decoder[Msg] =
+    Decoder[Msg](onResponse(model), onError)
+  def fromHttpResponse(model: AccountDetail): Decoder[Msg] =
     Decoder[Msg](onResponse(model), onError)
 
 object OnDataProcess:
@@ -108,6 +118,13 @@ object OnDataProcess:
   ): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(30.seconds),
+      UnderDataProcess.fromHttpResponse(detail),
+    )
+  def getData(
+      detail: AccountDetail,
+  ): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}account/${detail.address.getOrElse("")}/detail").withTimeout(30.seconds),
       UnderDataProcess.fromHttpResponse(detail),
     )
   def getApi(target: String) =

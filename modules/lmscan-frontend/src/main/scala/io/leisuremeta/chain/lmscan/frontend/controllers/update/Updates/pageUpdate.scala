@@ -52,26 +52,10 @@ object PageUpdate:
     case PageMsg.UpdateBlcDetail(v: BlockDetail) =>
       (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))
 
-    case PageMsg.GotoObserver(page: Int) =>
-      val safeNumber = 0
-      (
-        model.copy(pointer = page),
-        Cmd.None,
-      )
+    case PageMsg.UpdateAccDetailPage(address: String) =>
+      (model, Cmd.Batch(OnDataProcess.getData(AccountDetail(address = Some(address)))))
+    case PageMsg.UpdateAccDetail(v: AccountDetail) =>
+      (model.copy(accDetail = v), Nav.pushUrl(s"/account/${v.address.getOrElse("")}"))
 
-    case PageMsg.BackObserver =>
-      val safeNumber = 0
-      (
-        model.copy(pointer = safeNumber),
-        Cmd.None,
-      )
-    case PageMsg.RolloBack =>
-      val safeNumber = 0
-      (
-        model.copy(
-          pointer = safeNumber,
-        ),
-        Cmd.None
-      )
-
+    case PageMsg.Error => (model, Cmd.None)
     case PageMsg.None => (model, Cmd.None)

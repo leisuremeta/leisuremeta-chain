@@ -4,7 +4,7 @@ import tyrian.Html.*
 import tyrian.*
 import _root_.io.circe.Decoder.state
 import V.*
-import Dom.{_hidden, timeAgo}
+import Dom.{timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 object BlockDetailTable:
   val view = (data: BlockDetail) =>

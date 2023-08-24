@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
-import Dom.{_hidden, timeAgo, yyyy_mm_dd_time, _selectedPage}
+import Dom.{timeAgo, yyyy_mm_dd_time, _selectedPage}
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 

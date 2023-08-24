@@ -2,7 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import Dom.{_hidden, timeAgo, yyyy_mm_dd_time}
+import Dom.{timeAgo, yyyy_mm_dd_time}
 
 import io.leisuremeta.chain.lmscan.common.model.*
 

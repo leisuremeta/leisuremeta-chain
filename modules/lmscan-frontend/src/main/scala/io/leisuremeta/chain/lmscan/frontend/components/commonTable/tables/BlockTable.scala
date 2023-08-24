@@ -17,7 +17,9 @@ object BlockTable:
             `class` := s"type-2",
           )(
             span(
-              // onClick(),
+              onClick(
+                RouterMsg.NavigateTo(BlockPage)
+              ),
             )("More"),
           ),
         ),

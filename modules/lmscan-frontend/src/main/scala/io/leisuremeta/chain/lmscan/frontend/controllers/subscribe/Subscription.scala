@@ -49,6 +49,6 @@ object Subscriptions:
           }
       ,
       Sub.fromEvent("popstate", window) { e =>
-        Some(PageMsg.BackObserver)
+        None
       },
     )

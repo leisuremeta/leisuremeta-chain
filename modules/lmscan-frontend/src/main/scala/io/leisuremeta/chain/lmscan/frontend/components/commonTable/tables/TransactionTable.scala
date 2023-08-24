@@ -25,7 +25,9 @@ object TransactionTable:
             `class` := s"type-2",
           )(
             span(
-              // onClick()),
+              onClick(
+                RouterMsg.NavigateTo(TxPage)
+              ),
             )("More"),
           ),
         ),
@@ -57,6 +59,20 @@ object TransactionTable:
                 case Some(v) => Table.view(v)
               ,
               model.txs match
+                case None => LoaderView.view
+                case Some(_) => div()
+            ),
+          )
+        )
+  def view(model: AccountDetail): Html[Msg] =
+        div(`class` := "table-area")(
+          div(`class` := "table-container  position-relative y-center")(
+            div(`class` := "w-[100%] ")(
+              model.txHistory match
+                case None => div()
+                case Some(v) => Table.view(v)
+              ,
+              model.txHistory match
                 case None => LoaderView.view
                 case Some(_) => div()
             ),

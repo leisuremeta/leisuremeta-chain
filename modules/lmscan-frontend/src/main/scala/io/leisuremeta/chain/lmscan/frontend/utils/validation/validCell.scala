@@ -3,7 +3,7 @@ import tyrian.Html.*
 import tyrian.*
 import V.*
 import scala.util.matching.Regex
-import Dom.{_hidden, isEqGet, yyyy_mm_dd_time, timeAgo}
+import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.TxInfo
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
@@ -12,6 +12,7 @@ enum Cell:
   case Image(data: Option[String])                              extends Cell
   case Head(data: String, css: String = "cell")                 extends Cell
   case Any(data: String, css: String = "cell")                  extends Cell
+  case Balance(data: Option[BigDecimal], css: String = "cell")                  extends Cell
   case AGE(data: Option[Long])                                  extends Cell
   case DATE(data: Option[Long], css: String = "cell")           extends Cell
   case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
@@ -62,6 +63,9 @@ object gen:
 
         case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
         case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
+        case Cell.Balance(data, css)  => div(`class` := s"$css")(span(
+          data.map(_.toString).getOrElse("")
+        ))
         case Cell.PlainStr(data, css) =>
           div(`class` := s"$css")(span()(plainStr(data)))
         case Cell.PlainInt(data) =>
@@ -180,6 +184,9 @@ object gen:
         case Cell.ACCOUNT_HASH(hash, css) =>
           div(`class` := "cell type-3")(
             span(
+              onClick(
+                RouterMsg.NavigateTo(AccountDetailPage(hash.getOrElse("")))
+              ),
             )(
               accountHash(hash),
             ),
@@ -187,33 +194,18 @@ object gen:
         case Cell.ACCOUNT_HASH_Long(hash, css) =>
           div(`class` := "cell type-3")(
             span(
-              // onClick(
-              //   PageMsg.PreUpdate(
-              //     AccountDetail(
-              //       name = AccountDetail().name,
-              //       url = s"account/${plainStr(hash)}",
-              //       pubs = List(
-              //         // PubCase.BoardPub(1, "", SummaryModel()),
-              //         PubCase.AccountDetailPub(hash = plainStr(hash)),
-              //         PubCase.TxPub(
-              //           page = 1,
-              //           accountAddr = plainStr(hash),
-              //           sizePerRequest = 10,
-              //         ),
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              onClick(
+                RouterMsg.NavigateTo(AccountDetailPage(hash.getOrElse("")))
+              ),
             )(
-              accountHash_DETAIL(hash),
+              // accountHash_DETAIL(hash),
+              "??"
             ),
           )
         case Cell.ACCOUNT_HASH_DETAIL(data, css) =>
           div(`class` := s"$css")(
-            span(
-            )(
-              accountHash_DETAIL(data),
-            ),
+            // span(accountHash_DETAIL(data)),
+            "??"
           )
         case Cell.AGE(data) =>
           div(`class` := "cell")(

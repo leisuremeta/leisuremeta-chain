@@ -18,11 +18,6 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
 
   def view(model: Model): Html[Msg] = 
     model.page.view(model)
-    //  match
-    //   case "blocks" => BlockPage.view(model)
-    //   case "transactions" => TxPage.view(model)
-    //   case "tx" => TxDetailPage.view(model)
-    //   case _ => MainPage.view(model)
 
   def subscriptions(model: Model): Sub[IO, Msg] =
     Subscriptions.subscriptions(model)
@@ -35,6 +30,7 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
         case s"/txs/$page" => RouterMsg.NavigateTo(TxPage)
         case s"/tx/${hash}" => RouterMsg.NavigateTo(TxDetailPage(hash))
         case s"/block/${hash}" => RouterMsg.NavigateTo(BlockDetailPage(hash))
+        case s"/account/${hash}" => RouterMsg.NavigateTo(AccountDetailPage(hash))
         case "/" => RouterMsg.NavigateTo(MainPage)
         case _   => RouterMsg.NoOp
     case loc: Location.External =>

@@ -14,10 +14,8 @@ object AccountDetailTable:
   val view = (model: Model) =>
     // val apiData: SummaryModel = get_PageResponseViewCase(model).board
     // val data: AccountDetail   = get_PageResponseViewCase(model).accountDetail
-    // genView(model, data, apiData)
-    div()
-
-  val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
+  // val genView = (model: Model, data: AccountDetail, apiData: SummaryModel) =>
+    val data = model.accDetail
     div(`class` := "y-start gap-10px w-[100%] ")(
       div(`class` := "x")(
         div(
@@ -35,9 +33,8 @@ object AccountDetailTable:
                 div(`class` := "row")(
                   gen.cell(
                     Cell.Head("Balance", "cell type-detail-head"),
-                    Cell.Any(
-                      "",
-                      // data.balance.pipe(Pipe.accountDetailPageBalance),
+                    Cell.Balance(
+                      data.balance,
                       "cell type-detail-body",
                     ),
                   ),

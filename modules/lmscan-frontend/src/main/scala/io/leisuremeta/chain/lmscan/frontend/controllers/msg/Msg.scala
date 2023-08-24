@@ -7,10 +7,8 @@ import io.circe.Json
 sealed trait Msg
 
 enum PageMsg extends Msg:
-  case GotoObserver(page: Int)             extends PageMsg
-  case BackObserver                        extends PageMsg
-  case RolloBack                           extends PageMsg
   case None                                extends PageMsg
+  case Error extends PageMsg
 
   case UpdateBlcs extends PageMsg
   case UpdateBlcsSearch(v: Int) extends PageMsg
@@ -31,6 +29,9 @@ enum PageMsg extends Msg:
 
   case UpdateBlcDetailPage(hash: String) extends  PageMsg
   case UpdateBlcDetail(v: BlockDetail) extends  PageMsg
+
+  case UpdateAccDetailPage(hash: String) extends  PageMsg
+  case UpdateAccDetail(v: AccountDetail) extends  PageMsg
 
 case class PopupMsg(value: Boolean) extends Msg
 
