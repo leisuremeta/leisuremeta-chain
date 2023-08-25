@@ -14,8 +14,6 @@ case class  BlockPage(page: Int) extends Page:
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
           "Blocks",
         ),
-        div(id := "oop-table-blocks", `class` := "table-list x")(
-          BlockTable.view(model),
-        ),
+        Table.view(model.blcPage),
       ),
     )

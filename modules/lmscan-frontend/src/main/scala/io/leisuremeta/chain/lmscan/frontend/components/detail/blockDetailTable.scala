@@ -9,7 +9,7 @@ import io.leisuremeta.chain.lmscan.common.model.BlockDetail
 object BlockDetailTable:
   def view(data: BlockDetail) =
     div(
-      `class` := "type-TableDetail table-container position-relative",
+      `class` := "app-table detail table-container position-relative",
     )(
       div(`class` := "m-10px w-[100%] ")(
         div()(

@@ -19,11 +19,7 @@ case class BlockDetailPage(hash: String) extends Page:
         )(
           "Block Details",
         ),
-        div(`class` := "x")(
-          div(`class` := "y-start gap-10px w-[100%] ")(
-            BlockDetailTable.view(model.blcDetail),
-            Table.view(model.blcDetail)
-          ),
-        )
+        BlockDetailTable.view(model.blcDetail),
+        Table.view(model.blcDetail)
       ),
     )

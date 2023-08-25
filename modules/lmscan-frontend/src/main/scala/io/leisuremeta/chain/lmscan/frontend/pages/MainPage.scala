@@ -19,11 +19,6 @@ case object MainPage extends Page:
       model,
       div(`class` := "color-white")(
         BoardView.view(model),
-        div(`class` := "table-area")(
-          div(id := "oop-table-blocks", `class` := "table-list x")(
-            BlockTable.mainView(model),
-            Table.mainView(model),
-          ),
-        )
+        Table.mainView(model),
       )
     )

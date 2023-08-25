@@ -19,22 +19,19 @@ object Body:
       ),
     )
   def txlist_txtable_off = (payload: List[TxInfo]) =>
-    payload
-      // List(new TxInfo)
-      .map(v =>
-        div(`class` := "row table-body")(
-          gen.cell(
-            Cell.TX_HASH(v.hash),
-            Cell.PlainLong(v.blockNumber),
-            Cell.AGE(v.createdAt),
-            Cell.ACCOUNT_HASH(v.signer),
-            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
-          ),
+    payload.map(v =>
+      div(`class` := "row table-body")(
+        gen.cell(
+          Cell.TX_HASH(v.hash),
+          Cell.PlainLong(v.blockNumber),
+          Cell.AGE(v.createdAt),
+          Cell.ACCOUNT_HASH(v.signer),
+          Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
         ),
-      )
+      ),
+    )
   def txlist_txtable_on = (payload: List[TxInfo]) =>
     payload
-      // List(new TxInfo)
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(

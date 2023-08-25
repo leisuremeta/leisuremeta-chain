@@ -7,14 +7,37 @@ import common.model.*
 
 object Table:
   def mainView(model: Model): Html[Msg] =
-    div(`class` := "table-container  position-relative y-center  ")(
-      div(`class` := "m-10px w-[100%] ")(
+    div(`class` := "table-area main-table")(
+      div(
+        `class` := "app-table blc table-container position-relative y-center",
+      )(
         div(
           `class` := s"table-title",
         )(
           div(
             `class` := s"type-1",
-          )(span()("Latest transactions")),
+          )(span("Latest Blocks")),
+          div(
+            `class` := s"type-2",
+          )(
+            span(
+              onClick(
+                RouterMsg.NavigateTo(BlockPage(1)),
+              ),
+            )("More"),
+          ),
+        ),
+        block(model.blcPage.list),
+      ),
+      div(
+        `class` := "app-table tx-m table-container position-relative y-center",
+      )(
+        div(
+          `class` := s"table-title",
+        )(
+          div(
+            `class` := s"type-1",
+          )(span("Latest transactions")),
           div(
             `class` := s"type-2",
           )(
@@ -28,75 +51,56 @@ object Table:
         model.txPage.list match
           case None => LoaderView.view
           case Some(v) =>
-            div(`class` := "m-10px")(
-              div(`class` := "table w-[100%]")(
-                Head.tx_dashBoard :: Body.dashboard_txtable(v.payload),
-              ),
+            div(`class` := "app-table")(
+              Head.tx_dashBoard :: Body.dashboard_txtable(v.payload),
             ),
       ),
     )
 
-  def view(model: Model): Html[Msg] =
-    div(`class` := "table-container  position-relative y-center  ")(
-      div(`class` := "m-10px w-[100%] ")(
-        model.txPage.list match
-          case None    => LoaderView.view
-          case Some(v) => div(`class` := "m-10px")(
-            div(`class` := "table w-[100%]")(
-              Head.tx :: Body.txlist_txtable_off(v.payload)
-            ),
+  def view(model: BlockModel) =
+    div(`class` := "table-container position-relative y-center")(
+      Table.block(model.list),
+      Pagination.view(model),
+      model.list match
+        case None    => LoaderView.view
+        case Some(_) => div(),
+    )
+
+  def view(model: TxModel): Html[Msg] =
+    div(`class` := "table-container app-table tx w-[100%]")(
+      model.list match
+        case None => LoaderView.view
+        case Some(v) =>
+          div(`class` := "")(
+            Head.tx :: Body.txlist_txtable_off(v.payload),
           )
-        ,
-        Pagination.view(model.txPage)
-      ),
+      ,
+      Pagination.view(model),
     )
   def view(model: BlockDetail): Html[Msg] =
-    div(`class` := "table-area")(
-      div(`class` := "table-container  position-relative y-center")(
-        div(`class` := "w-[100%] ")(
-          model.txs match
-            case None    => LoaderView.view
-            case Some(v) => Table.view(v),
-        ),
-      ),
+    div(`class` := "table-container app-table mt-15 tx w-[100%]")(
+      model.txs match
+        case None    => List(LoaderView.view)
+        case Some(v) => Table.view(v),
     )
   def view(model: AccountDetail): Html[Msg] =
-    div(`class` := "table-area")(
-      div(`class` := "table-container  position-relative y-center")(
-        div(`class` := "w-[100%] ")(
-          model.txHistory match
-            case None    => LoaderView.view
-            case Some(v) => Table.view(v),
-        ),
-      ),
+    div(`class` := "table-container app-table tx w-[100%]")(
+      model.txHistory match
+        case None    => List(LoaderView.view)
+        case Some(v) => Table.view(v),
     )
   def view(model: NftDetail): Html[Msg] =
-    div(`class` := "table-area")(
-      div(`class` := "table-container  position-relative y-center")(
-        div(`class` := "w-[100%] ")(
-          model.activities match
-            case None => LoaderView.view
-            case Some(v) =>
-              div(`class` := "m-10px")(
-                div(`class` := "table w-[100%]")(
-                  Head.nft :: Body.nft(v.toList),
-                ),
-              ),
-        ),
-      ),
+    div(`class` := "table-container app-table nft w-[100%]")(
+      model.activities match
+        case None    => List(Head.nft, LoaderView.view)
+        case Some(v) => Head.nft :: Body.nft(v.toList),
     )
 
   def block(list: Option[BlcList]) =
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        list match 
-          case Some(v) => Head.block :: Body.blocks(v.payload)
-          case None => List(Head.block, LoaderView.view)
-      ),
+    div(`class` := "app-table blc w-[100%]")(
+      list match
+        case Some(v) => Head.block :: Body.blocks(v.payload)
+        case None    => List(Head.block),
     )
   def view(list: Seq[TxInfo]) =
-    div(`class` := "m-10px")(
-      div(`class` := "table w-[100%]")(
-        Head.tx :: Body.txlist_txtable_off(list.toList)
-      ),
-    )
+    Head.tx :: Body.txlist_txtable_off(list.toList)

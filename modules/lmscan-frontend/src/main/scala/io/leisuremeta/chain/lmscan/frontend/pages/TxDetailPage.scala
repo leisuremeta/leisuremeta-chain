@@ -18,13 +18,8 @@ case class TxDetailPage(hash: String) extends Page:
           `class` := "font-40px pt-16px font-block-detail pb-16px color-white",
         )(
           "Transaction details",
-        ),
-        div(`class` := "x")(
-          div(`class` := "y-start gap-10px w-[100%] ")(
-            TxDetailTableMain.view(model.txDetail) :: TxDetailTableCommon.view(
-              model.txDetail,
-            ),
-          ),
+        ) :: TxDetailTableMain.view(model.txDetail) :: TxDetailTableCommon.view(
+          model.txDetail,
         ),
       ),
     )

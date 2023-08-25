@@ -20,12 +20,10 @@ case class AccountDetailPage(hash: String) extends Page:
         div(
           `class` := "font-40px pt-16px font-block-detail pb-16px color-white",
         )("Account"),
-        div(`class` := "x")(AccountDetailTable.view(model)),
+        AccountDetailTable.view(model),
         div(
           `class` := "font-40px pt-16px font-block-detail pb-16px color-white",
         )("Transaction History"),
-        div(`class` := "y-start gap-10px w-[100%] ")(
-          Table.view(model.accDetail)
-        ),
+        Table.view(model.accDetail)
       ),
     )

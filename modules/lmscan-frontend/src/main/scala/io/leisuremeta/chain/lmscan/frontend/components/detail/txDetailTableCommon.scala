@@ -24,13 +24,10 @@ import io.circe.parser.*
 import io.circe.generic.auto.*
 
 object TxDetailTableCommon:
-  def genTable(d: List[Html[Msg]]) = div(`class` := "x")(
-    div(`class` := "type-TableDetail  table-container")(
-      div(`class` := "table w-[100%] ")(
+  def genTable(d: List[Html[Msg]]) =
+    div(`class` := "app-table detail table-container position-relative")(
         d,
-      ),
-    ),
-  )
+    )
 
   def genRow(d: List[Html[Msg]]) = div(`class` := "row")(
     d,
@@ -152,8 +149,8 @@ object TxDetailTableCommon:
     ),
     Cell.PlainStr(
       Some(
-        BigDecimal(outputs._2.toString).toString
-        // BigDecimal(outputs._2.toString.pipe(_Down18).toString)
+        BigDecimal(outputs._2.toString).toString,
+          // BigDecimal(outputs._2.toString.pipe(_Down18).toString)
           // .pipe(set_MaximumPoint(4)),
       ),
       "cell type-detail-body",
@@ -171,7 +168,7 @@ object TxDetailTableCommon:
     Cell.PlainStr(
       Some(
         outputs._2
-          .toString()
+          .toString(),
           // .pipe(_Down18)
           // .pipe(set_MaximumPoint(4)),
       ),

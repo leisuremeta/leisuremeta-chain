@@ -127,8 +127,7 @@ object gen:
           ),
         )
       case Cell.AGE(data) =>
-        div(`class` := "cell")(
-          span(
+        div(`class` := "cell",
             dataAttr(
               "tooltip-text",
               Dom.yyyy_mm_dd_time(plainLong(data).toInt),
@@ -142,13 +141,10 @@ object gen:
                 case x if x.contains("53 years") => "-"
                 case _                           => age
             },
-          ),
-        )
+          )
 
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
-          span(
-          )(
             {
               val date = Dom.yyyy_mm_dd_time(
                 plainLong(data).toInt,
@@ -158,33 +154,30 @@ object gen:
                 case _                       => date
 
             },
-          ),
         )
 
       case Cell.BLOCK_NUMBER((hash, number)) =>
-        div(`class` := "cell type-3")(
-          span(
-            onClick(
-              RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
-            ),
-          )(plainLong(number)),
-        )
-
-      case Cell.BLOCK_HASH(hash) =>
-        div(`class` := "cell type-3")(
-          span(
-            onClick(
-              RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
-            ),
-          )(plainStr(hash)),
-        )
-      case Cell.TX_HASH(hash) =>
         div(`class` := "cell type-3",
             onClick(
-              RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse(""))),
+              RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
             ),
-          )(
-            plainStr(hash)
+          )(plainLong(number))
+
+      case Cell.BLOCK_HASH(hash) =>
+        div(
+          `class` := "cell type-3",
+          onClick(
+            RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
+          ),
+        )(plainStr(hash))
+      case Cell.TX_HASH(hash) =>
+        div(
+          `class` := "cell type-3",
+          onClick(
+            RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse(""))),
+          ),
+        )(
+          plainStr(hash),
         )
 
       case _ => div(`class` := "cell")(span()),
