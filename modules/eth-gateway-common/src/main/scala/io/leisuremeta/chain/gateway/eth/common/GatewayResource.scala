@@ -43,3 +43,21 @@ object GatewayResource:
       .make[F](dispatcher, conf.localServerPort, db, kms)
       .mapK(EitherT.liftK[F, String])
   yield (kms, web3j, db, sttp)
+
+  def getSimpleResource[F[_]: Async](
+      conf: GatewaySimpleConf,
+  ): Resource[EitherT[F, String, *], (GatewayKmsClient[F], Web3j, SttpBackend[F, Any])] = for
+    kms <- GatewayKmsClient
+      .make[F](conf.kmsAlias)
+      .mapK(EitherT.liftK[F, String])
+    web3jBytes <- Resource.eval:
+      EitherT.fromEither:
+        ByteVector.fromBase64Descriptive(conf.encryptedEthEndpoint)
+    web3jPlaintextResource <- Resource.eval(kms.decrypt(web3jBytes.toArray))
+    web3jPlaintext <- web3jPlaintextResource.mapK(EitherT.liftK[F, String])
+    web3jEndpoint = String(web3jPlaintext, "UTF-8")
+    web3j <- GatewayWeb3Service
+      .web3Resource[F](web3jEndpoint)
+      .mapK(EitherT.liftK[F, String])
+    sttp <- ArmeriaCatsBackend.resource[F]().mapK(EitherT.liftK[F, String])
+  yield (kms, web3j, sttp)

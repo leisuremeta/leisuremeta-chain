@@ -215,59 +215,59 @@ object EthGatewaySetupMain extends IOApp:
 
   def run(args: List[String]): IO[ExitCode] =
 
-    val config = EthGatewaySetupConfig()
-
-    val resources = for
-      kmsClient <- connectKms[IO]
-      depositDb <- connectDatabase[IO](
-        config.depositDb.host,
-        config.depositDb.db,
-        config.depositDb.table,
-        config.dbWriteAccount.user,
-        config.dbWriteAccount.password,
-      )
-      withdrawDb <- connectDatabase[IO](
-        config.withdrawDb.host,
-        config.withdrawDb.db,
-        config.withdrawDb.table,
-        config.dbWriteAccount.user,
-        config.dbWriteAccount.password,
-      )
-    yield (kmsClient, depositDb, withdrawDb)
-
-    connectKms[IO].use: kmsClient =>
-      def dbEndpoint(conf: EthGatewaySetupConfig.DbConfig): Array[Byte] =
-        s"jdbc:mysql://${conf.host}:${conf.port}/${conf.db}?user=${conf.user}&password=${conf.password}".getBytes("UTF-8")
-
-      val depositEndpoint = dbEndpoint(config.depositDb)
-      val withdrawEndpoint = dbEndpoint(config.withdrawDb)
-
-      def toBase64(bytes: Array[Byte]): String =
-        ByteVector.view(bytes).toBase64
-
-      for
-        encryptedDepositDb <- encrypt[IO](kmsClient, config.depositKmsAlias)(depositEndpoint)
-        decryptedDepositDb <- decrypt[IO](kmsClient, config.depositKmsAlias)(encryptedDepositDb)
-        encryptedWithdrawDb <- encrypt[IO](kmsClient, config.withdrawKmsAlias)(withdrawEndpoint)
-        decryptedWithdrawDb <- decrypt[IO](kmsClient, config.withdrawKmsAlias)(encryptedWithdrawDb)
-        encryptedEthEndpointWithDepositKey <- encrypt[IO](kmsClient, config.depositKmsAlias):
-          config.ethEndpoint.getBytes("UTF-8")
-        encryptedEthEndpointWithWithdrawKey <- encrypt[IO](kmsClient, config.withdrawKmsAlias):
-          config.ethEndpoint.getBytes("UTF-8")
-        decryptedEthEndpointWithDepositKey <- decrypt[IO](kmsClient, config.depositKmsAlias):
-          encryptedEthEndpointWithDepositKey
-        decryptedEthEndpointWithWithdrawKey <- decrypt[IO](kmsClient, config.withdrawKmsAlias):
-          encryptedEthEndpointWithWithdrawKey
-      yield
-        println(s"Deposit DB: ${toBase64(encryptedDepositDb)}")
-        println(s"Decrypted Deposit DB: ${String(decryptedDepositDb, "UTF-8")}")
-        println(s"Withdraw DB: ${toBase64(encryptedWithdrawDb)}")
-        println(s"Decrypted Withdraw DB: ${String(decryptedWithdrawDb, "UTF-8")}")
-        println(s"ETH Endpoint with Deposit Key: ${toBase64(encryptedEthEndpointWithDepositKey)}")
-        println(s"ETH Endpoint with Withdraw Key: ${toBase64(encryptedEthEndpointWithWithdrawKey)}")
-        println(s"Decrypted ETH Endpoint with Deposit Key: ${String(decryptedEthEndpointWithDepositKey, "UTF-8")}")
-        println(s"Decrypted ETH Endpoint with Withdraw Key: ${String(decryptedEthEndpointWithWithdrawKey, "UTF-8")}")
-        ExitCode.Success
+//    val config = EthGatewaySetupConfig()
+//
+//    val resources = for
+//      kmsClient <- connectKms[IO]
+//      depositDb <- connectDatabase[IO](
+//        config.depositDb.host,
+//        config.depositDb.db,
+//        config.depositDb.table,
+//        config.dbWriteAccount.user,
+//        config.dbWriteAccount.password,
+//      )
+//      withdrawDb <- connectDatabase[IO](
+//        config.withdrawDb.host,
+//        config.withdrawDb.db,
+//        config.withdrawDb.table,
+//        config.dbWriteAccount.user,
+//        config.dbWriteAccount.password,
+//      )
+//    yield (kmsClient, depositDb, withdrawDb)
+//
+//    connectKms[IO].use: kmsClient =>
+//      def dbEndpoint(conf: EthGatewaySetupConfig.DbConfig): Array[Byte] =
+//        s"jdbc:mysql://${conf.host}:${conf.port}/${conf.db}?user=${conf.user}&password=${conf.password}".getBytes("UTF-8")
+//
+//      val depositEndpoint = dbEndpoint(config.depositDb)
+//      val withdrawEndpoint = dbEndpoint(config.withdrawDb)
+//
+//      def toBase64(bytes: Array[Byte]): String =
+//        ByteVector.view(bytes).toBase64
+//
+//      for
+//        encryptedDepositDb <- encrypt[IO](kmsClient, config.depositKmsAlias)(depositEndpoint)
+//        decryptedDepositDb <- decrypt[IO](kmsClient, config.depositKmsAlias)(encryptedDepositDb)
+//        encryptedWithdrawDb <- encrypt[IO](kmsClient, config.withdrawKmsAlias)(withdrawEndpoint)
+//        decryptedWithdrawDb <- decrypt[IO](kmsClient, config.withdrawKmsAlias)(encryptedWithdrawDb)
+//        encryptedEthEndpointWithDepositKey <- encrypt[IO](kmsClient, config.depositKmsAlias):
+//          config.ethEndpoint.getBytes("UTF-8")
+//        encryptedEthEndpointWithWithdrawKey <- encrypt[IO](kmsClient, config.withdrawKmsAlias):
+//          config.ethEndpoint.getBytes("UTF-8")
+//        decryptedEthEndpointWithDepositKey <- decrypt[IO](kmsClient, config.depositKmsAlias):
+//          encryptedEthEndpointWithDepositKey
+//        decryptedEthEndpointWithWithdrawKey <- decrypt[IO](kmsClient, config.withdrawKmsAlias):
+//          encryptedEthEndpointWithWithdrawKey
+//      yield
+//        println(s"Deposit DB: ${toBase64(encryptedDepositDb)}")
+//        println(s"Decrypted Deposit DB: ${String(decryptedDepositDb, "UTF-8")}")
+//        println(s"Withdraw DB: ${toBase64(encryptedWithdrawDb)}")
+//        println(s"Decrypted Withdraw DB: ${String(decryptedWithdrawDb, "UTF-8")}")
+//        println(s"ETH Endpoint with Deposit Key: ${toBase64(encryptedEthEndpointWithDepositKey)}")
+//        println(s"ETH Endpoint with Withdraw Key: ${toBase64(encryptedEthEndpointWithWithdrawKey)}")
+//        println(s"Decrypted ETH Endpoint with Deposit Key: ${String(decryptedEthEndpointWithDepositKey, "UTF-8")}")
+//        println(s"Decrypted ETH Endpoint with Withdraw Key: ${String(decryptedEthEndpointWithWithdrawKey, "UTF-8")}")
+//        ExitCode.Success
 
 //    resources.use: (kmsClient, depositDb, withdrawDb) =>
 //      allEncryptAndDivide[IO](config, kmsClient)
@@ -286,3 +286,27 @@ object EthGatewaySetupMain extends IOApp:
 //
 //      allSaveFrontAndBack[IO](config, depositDb, withdrawDb, keys)
 //        .as(ExitCode.Success)
+
+    val config = EthGatewaySetupSimpleConfig()
+    extension (ba: Array[Byte])
+      def toHex: String = ByteVector.view(ba).toHex
+      def toBase64: String = ByteVector.view(ba).toBase64
+
+    connectKms[IO].use: kmsClient =>
+      val Right(ethPrivate) = ByteVector.fromHexDescriptive(config.ethPrivate): @unchecked
+      val Right(lmPrivate) = ByteVector.fromHexDescriptive(config.lmPrivate): @unchecked
+      for
+        encryptedEthEndpoint <- encrypt[IO](kmsClient, config.kmsAlias)(config.ethEndpoint.getBytes("UTF-8"))
+        decryptedEthEndpoint <- decrypt[IO](kmsClient, config.kmsAlias)(encryptedEthEndpoint)
+        encryptedEthPrivate <- encrypt[IO](kmsClient, config.kmsAlias)(ethPrivate.toArrayUnsafe)
+        decryptedEthPrivate <- decrypt[IO](kmsClient, config.kmsAlias)(encryptedEthPrivate)
+        encryptedLmPrivate <- encrypt[IO](kmsClient, config.kmsAlias)(lmPrivate.toArrayUnsafe)
+        decryptedLmPrivate <- decrypt[IO](kmsClient, config.kmsAlias)(encryptedLmPrivate)
+      yield
+        println(s"Encrypted Eth Endpoint: ${encryptedEthEndpoint.toBase64}")
+        println(s"Decrypted Eth Endpoint: ${new String(decryptedEthEndpoint, "UTF-8")}")
+        println(s"Encrypted Eth Private: ${encryptedEthPrivate.toBase64}")
+        println(s"Decrypted Eth Private: ${decryptedEthPrivate.toHex}")
+        println(s"Encrypted LM Private: ${encryptedLmPrivate.toBase64}")
+        println(s"Decrypted LM Private: ${decryptedLmPrivate.toHex}")
+        ExitCode.Success

@@ -40,3 +40,11 @@ object GatewayDecryptService:
     : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient]
       : EitherT[F, String, Resource[F, Array[Byte]]] =
     getPlainTextResource[F]("LM-D")
+  
+  def getSimplifiedPlainTextResource[F[_]: Async: GatewayKmsClient](
+      encryptedBase64: String,
+  ): EitherT[F, String, Resource[F, Array[Byte]]] = for
+    bytes <- EitherT.fromEither:
+      ByteVector.fromBase64Descriptive(encryptedBase64)
+    plaintextResource <- GatewayKmsClient[F].decrypt(bytes.toArrayUnsafe)
+  yield plaintextResource

@@ -60,7 +60,7 @@ import software.amazon.awssdk.services.kms.model.DecryptRequest
 import sttp.client3.*
 import sttp.model.{MediaType, StatusCode}
 
-import lib.crypto.{CryptoOps, KeyPair}
+import lib.crypto.{CryptoOps, Hash, KeyPair}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.*
@@ -74,19 +74,25 @@ import common.client.*
 
 object EthGatewayWithdrawMain extends IOApp:
 
-  def submitTx[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def submitTx[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       lmAddress: String,
       account: Account,
       tx: Transaction,
+      encryptedLmPrivateBase64: String,
   ): F[Unit] = GatewayDecryptService
-    .getLm[F]
+    .getSimplifiedPlainTextResource[F](encryptedLmPrivateBase64)
     .value
     .flatMap:
       case Left(msg) =>
         scribe.error(s"Failed to get LM private: $msg")
-        Async[F].sleep(10.seconds) *> submitTx[F](sttp, lmAddress, account, tx)
+        Async[F].sleep(10.seconds) *> submitTx[F](
+          sttp,
+          lmAddress,
+          account,
+          tx,
+          encryptedLmPrivateBase64,
+        )
       case Right(lmPrivateResource) =>
         lmPrivateResource.use: lmPrivateArray =>
           val keyPair    = CryptoOps.fromPrivate(BigInt(lmPrivateArray))
@@ -108,11 +114,36 @@ object EthGatewayWithdrawMain extends IOApp:
             .map: response =>
               scribe.info(s"Response: $response")
 
-  def checkLoop[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def initialLmSecretCheck[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      conf: GatewayConf,
+      conf: GatewaySimpleConf,
+  ): EitherT[F, String, Unit] = for
+    gatewayInfoResponse <- EitherT.liftF:
+      basicRequest
+        .response(asStringAlways)
+        .get(uri"http://${conf.lmEndpoint}/account/${conf.targetGateway}")
+        .send(sttp)
+    gatewayAccountInfo <- EitherT.fromEither[F]:
+      decode[AccountInfo](gatewayInfoResponse.body).leftMap(_.getMessage())
+    lmSecretResource <- GatewayDecryptService
+      .getSimplifiedPlainTextResource[F](conf.encryptedLmPrivate)
+    pks <- EitherT.liftF:
+      lmSecretResource.use: lmSecretArray =>
+        Async[F].delay:
+          val keyPair = CryptoOps.fromPrivate(BigInt(1, lmSecretArray))
+          PublicKeySummary.fromPublicKeyHash(keyPair.publicKey.toHash)
+    _ <- EitherT.cond[F](
+      gatewayAccountInfo.publicKeySummaries.contains(pks),
+      (),
+      s"Fail to check lm secret. ${conf.targetGateway} does not have pks ${pks}",
+    )
+  yield ()
+
+  def checkLoop[F[_]: Async: GatewayKmsClient](
+      sttp: SttpBackend[F, Any],
+      web3j: Web3j,
+      conf: GatewaySimpleConf,
   ): F[Unit] =
     def run: F[Unit] = for
       _ <- Async[F].delay(scribe.info(s"Withdrawal check started"))
@@ -204,11 +235,10 @@ object EthGatewayWithdrawMain extends IOApp:
         scribe.error(s"Error getting account info: ${response.body}")
         None
 
-  def checkLmWithdrawal[F[_]
-    : Async: Clock: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def checkLmWithdrawal[F[_]: Async: Clock: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      conf: GatewayConf,
+      conf: GatewaySimpleConf,
   ): F[Unit] = getFungibleBalance(sttp, conf.lmEndpoint, conf.targetGateway)
     .flatMap { (balanceMap: Map[TokenDefinitionId, BalanceInfo]) =>
 
@@ -244,11 +274,13 @@ object EthGatewayWithdrawMain extends IOApp:
                     s"No eth address of ${txWithResult.signedTx.sig.account}",
                   )
                   _ <- EitherT.liftF:
-                    transferEthLM(
+                    requestEthLmMultisigTransfer(
                       web3j = web3j,
                       ethChainId = conf.ethChainId,
-                      ethLmContract = conf.ethContractAddress,
+                      multiSigContractAddress = conf.ethMultisigContractAddress,
+                      encryptedEthPrivate = conf.encryptedEthPrivate,
                       gatewayEthAddress = conf.gatewayEthAddress,
+                      txId = txHash,
                       receiverEthAddress = ethAddress.utf8.value,
                       amount = amount,
                     )
@@ -264,7 +296,13 @@ object EthGatewayWithdrawMain extends IOApp:
                     }),
                   )
                   _ <- EitherT.liftF:
-                    submitTx(sttp, conf.lmEndpoint, gatewayAccount, tx1)
+                    submitTx(
+                      sttp,
+                      conf.lmEndpoint,
+                      gatewayAccount,
+                      tx1,
+                      conf.encryptedLmPrivate,
+                    )
                 yield ()
               }.leftMap { msg =>
                 scribe.error(msg)
@@ -275,61 +313,91 @@ object EthGatewayWithdrawMain extends IOApp:
     }
     .as(())
 
-  def checkNftWithdrawal[F[_]
-    : Async: Clock: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
-      sttp: SttpBackend[F, Any],
-      web3j: Web3j,
-      conf: GatewayConf,
-  ): F[Unit] = getNftBalance(sttp, conf.lmEndpoint, conf.targetGateway)
-    .flatMap { (balanceMap: Map[TokenId, NftBalanceInfo]) =>
+//  def checkNftWithdrawal[F[_]
+//    : Async: Clock: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+//      sttp: SttpBackend[F, Any],
+//      web3j: Web3j,
+//      conf: GatewayConf,
+//  ): F[Unit] = getNftBalance(sttp, conf.lmEndpoint, conf.targetGateway)
+//    .flatMap { (balanceMap: Map[TokenId, NftBalanceInfo]) =>
+//
+//      val gatewayAccount = Account(Utf8.unsafeFrom(conf.targetGateway))
+//
+//      balanceMap.toSeq.traverse { case (tokenId, balanceInfo) =>
+//        balanceInfo.tx.signedTx.value match
+//          case tx: Transaction.TokenTx.TransferNFT
+//              if balanceInfo.tx.signedTx.sig.account =!= gatewayAccount =>
+//            {
+//              for
+//                info <- OptionT:
+//                  getAccountInfo(
+//                    sttp,
+//                    conf.lmEndpoint,
+//                    balanceInfo.tx.signedTx.sig.account,
+//                  )
+//                ethAddress <- OptionT.fromOption[F](info.ethAddress)
+//                _ <- OptionT.liftF:
+//                  mintEthNft[F](
+//                    web3j = web3j,
+//                    ethChainId = conf.ethChainId,
+//                    ethNftContract = conf.ethContractAddress,
+//                    gatewayEthAddress = conf.gatewayEthAddress,
+//                    receiverEthAddress = ethAddress.utf8.value,
+//                    tokenId = tokenId,
+//                  )
+//                now <- OptionT.liftF(Clock[F].realTimeInstant)
+//                tx1 = tx.copy(
+//                  createdAt = now,
+//                  input = balanceInfo.tx.signedTx.toHash,
+//                  output = gatewayAccount,
+//                  memo =
+//                    Some(Utf8.unsafeFrom("gateway balance after withdrawal")),
+//                )
+//                _ <- OptionT.liftF:
+//                  submitTx[F](sttp, conf.lmEndpoint, gatewayAccount, tx1)
+//              yield ()
+//            }.value
+//          case _ => Async[F].delay(None)
+//      }
+//    }
+//    .as(())
 
-      val gatewayAccount = Account(Utf8.unsafeFrom(conf.targetGateway))
+//  def transferEthLM[F[_]
+//    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+//      web3j: Web3j,
+//      ethChainId: Int,
+//      ethLmContract: String,
+//      gatewayEthAddress: String,
+//      receiverEthAddress: String,
+//      amount: BigNat,
+//  ): F[Unit] =
+//
+//    scribe.info(s"Transfer eth LM to ${receiverEthAddress}")
+//
+//    val mintParams = new ArrayList[Type[?]]()
+//    mintParams.add(new Address(receiverEthAddress))
+//    mintParams.add(new Uint256(amount.toBigInt.bigInteger))
+//
+//    val returnTypes = Collections.emptyList[TypeReference[?]]()
+//
+//    val transferTxData = FunctionEncoder.encode:
+//      new Function("transfer", mintParams, returnTypes)
+//
+//    sendEthTransaction[F](
+//      web3j = web3j,
+//      ethChainId = ethChainId,
+//      contractAddress = ethLmContract,
+//      txData = transferTxData,
+//      gatewayEthAddress = gatewayEthAddress,
+//    ).as(())
 
-      balanceMap.toSeq.traverse { case (tokenId, balanceInfo) =>
-        balanceInfo.tx.signedTx.value match
-          case tx: Transaction.TokenTx.TransferNFT
-              if balanceInfo.tx.signedTx.sig.account =!= gatewayAccount =>
-            {
-              for
-                info <- OptionT:
-                  getAccountInfo(
-                    sttp,
-                    conf.lmEndpoint,
-                    balanceInfo.tx.signedTx.sig.account,
-                  )
-                ethAddress <- OptionT.fromOption[F](info.ethAddress)
-                _ <- OptionT.liftF:
-                  mintEthNft[F](
-                    web3j = web3j,
-                    ethChainId = conf.ethChainId,
-                    ethNftContract = conf.ethContractAddress,
-                    gatewayEthAddress = conf.gatewayEthAddress,
-                    receiverEthAddress = ethAddress.utf8.value,
-                    tokenId = tokenId,
-                  )
-                now <- OptionT.liftF(Clock[F].realTimeInstant)
-                tx1 = tx.copy(
-                  createdAt = now,
-                  input = balanceInfo.tx.signedTx.toHash,
-                  output = gatewayAccount,
-                  memo =
-                    Some(Utf8.unsafeFrom("gateway balance after withdrawal")),
-                )
-                _ <- OptionT.liftF:
-                  submitTx[F](sttp, conf.lmEndpoint, gatewayAccount, tx1)
-              yield ()
-            }.value
-          case _ => Async[F].delay(None)
-      }
-    }
-    .as(())
-
-  def transferEthLM[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def requestEthLmMultisigTransfer[F[_]: Async: GatewayKmsClient](
       web3j: Web3j,
       ethChainId: Int,
-      ethLmContract: String,
       gatewayEthAddress: String,
+      multiSigContractAddress: String,
+      encryptedEthPrivate: String,
+      txId: Hash.Value[TransactionWithResult],
       receiverEthAddress: String,
       amount: BigNat,
   ): F[Unit] =
@@ -337,51 +405,53 @@ object EthGatewayWithdrawMain extends IOApp:
     scribe.info(s"Transfer eth LM to ${receiverEthAddress}")
 
     val mintParams = new ArrayList[Type[?]]()
+    mintParams.add(new Uint256(txId.toUInt256Bytes.toBigInt.bigInteger))
     mintParams.add(new Address(receiverEthAddress))
     mintParams.add(new Uint256(amount.toBigInt.bigInteger))
 
     val returnTypes = Collections.emptyList[TypeReference[?]]()
 
     val transferTxData = FunctionEncoder.encode:
-      new Function("transfer", mintParams, returnTypes)
+      new Function("addTransaction", mintParams, returnTypes)
 
     sendEthTransaction[F](
       web3j = web3j,
       ethChainId = ethChainId,
-      contractAddress = ethLmContract,
+      contractAddress = multiSigContractAddress,
       txData = transferTxData,
       gatewayEthAddress = gatewayEthAddress,
+      encryptedEthPrivate = encryptedEthPrivate,
     ).as(())
 
-  def mintEthNft[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
-      web3j: Web3j,
-      ethChainId: Int,
-      ethNftContract: String,
-      gatewayEthAddress: String,
-      receiverEthAddress: String,
-      tokenId: TokenId,
-  ): F[Unit] =
-
-    val tokenIdBigInt = BigInt(tokenId.utf8.value)
-
-    val mintParams = new ArrayList[Type[?]]()
-    mintParams.add(new Address(receiverEthAddress))
-    mintParams.add(new Uint256(tokenIdBigInt.bigInteger))
-
-    val returnTypes = Collections.emptyList[TypeReference[?]]()
-
-    val mintTxData = FunctionEncoder.encode {
-      new Function("safeMint", mintParams, returnTypes)
-    }
-
-    sendEthTransaction[F](
-      web3j = web3j,
-      ethChainId = ethChainId,
-      contractAddress = ethNftContract,
-      txData = mintTxData,
-      gatewayEthAddress = gatewayEthAddress,
-    ).as(())
+//  def mintEthNft[F[_]
+//    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+//      web3j: Web3j,
+//      ethChainId: Int,
+//      ethNftContract: String,
+//      gatewayEthAddress: String,
+//      receiverEthAddress: String,
+//      tokenId: TokenId,
+//  ): F[Unit] =
+//
+//    val tokenIdBigInt = BigInt(tokenId.utf8.value)
+//
+//    val mintParams = new ArrayList[Type[?]]()
+//    mintParams.add(new Address(receiverEthAddress))
+//    mintParams.add(new Uint256(tokenIdBigInt.bigInteger))
+//
+//    val returnTypes = Collections.emptyList[TypeReference[?]]()
+//
+//    val mintTxData = FunctionEncoder.encode {
+//      new Function("safeMint", mintParams, returnTypes)
+//    }
+//
+//    sendEthTransaction[F](
+//      web3j = web3j,
+//      ethChainId = ethChainId,
+//      contractAddress = ethNftContract,
+//      txData = mintTxData,
+//      gatewayEthAddress = gatewayEthAddress,
+//    ).as(())
 
   def requestToF[F[_]: Async, A, B, C <: Web3jResponse[B], D](
       request: Web3jRequest[A, C],
@@ -396,15 +466,15 @@ object EthGatewayWithdrawMain extends IOApp:
           scribe.error(t)
           Async[F].sleep(10.seconds) *> requestToF(request)(map)
 
-  def sendEthTransaction[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def sendEthTransaction[F[_]: Async: GatewayKmsClient](
       web3j: Web3j,
       ethChainId: Int,
       contractAddress: String,
       txData: String,
       gatewayEthAddress: String,
-  ): F[BigInt] = GatewayDecryptService
-    .getEth[F]
+      encryptedEthPrivate: String,
+  ): F[Unit] = GatewayDecryptService
+    .getSimplifiedPlainTextResource[F](encryptedEthPrivate)
     .value
     .flatMap:
       case Left(msg) =>
@@ -415,13 +485,15 @@ object EthGatewayWithdrawMain extends IOApp:
           contractAddress,
           txData,
           gatewayEthAddress,
+          encryptedEthPrivate,
         )
       case Right(ethResource) =>
         ethResource.use: ethPrivateByteArray =>
           val ethPrivate = ByteVector.view(ethPrivateByteArray).toHex
           val credential = Credentials.create(ethPrivate)
           assert(
-            credential.getAddress() === gatewayEthAddress.toLowerCase(Locale.ENGLISH),
+            credential.getAddress() === gatewayEthAddress
+              .toLowerCase(Locale.ENGLISH),
             s"invalid gateway eth address: ${credential.getAddress} vs $gatewayEthAddress",
           )
           val TX_END_CHECK_DURATION = 20000
@@ -443,7 +515,7 @@ object EthGatewayWithdrawMain extends IOApp:
 
           def loop(
               lastTrial: Option[(BigInteger, BigInteger, String)],
-          ): F[BigInt] =
+          ): F[Unit] =
 
             def getMaxPriorityFeePerGas(): F[BigInteger] =
               requestToF(web3j.ethMaxPriorityFeePerGas()):
@@ -537,54 +609,56 @@ object EthGatewayWithdrawMain extends IOApp:
                 case _ =>
                   sendNewTx(baseFee, maxPriorityFeePerGas).map:
                     _.orElse(lastTrial.map(_._3))
-              blockNumber <- txIdOption match
+              _ <- txIdOption match
                 case Some(txId) =>
                   for
                     receiptEither <- getReceipt(txId)
-                    blockNumber <- receiptEither match
+                    _ <- receiptEither match
                       case Left(e) =>
                         e match
                           case te: TransactionException =>
                             scribe.info(s"Timeout: ${te.getMessage()}")
-                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
+                            Async[F].delay(())
+//                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
                           case _ =>
                             scribe.error:
                               s"Fail to send transaction: ${e.getMessage()}"
-                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
+                            Async[F].delay(())
+//                            loop(Some(baseFee, maxPriorityFeePerGas, txId))
                       case Right(receipt) =>
                         if receipt.isStatusOK() then
                           Async[F].delay:
                             scribe.info:
                               s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}"
-                            BigInt(receipt.getBlockNumber())
+                            // BigInt(receipt.getBlockNumber())
+                            ()
                         else
                           scribe.error:
                             s"transaction ${receipt.getTransactionHash()} failed with receipt:${receipt}"
-                          loop(None)
-                  yield blockNumber
+                          Async[F].delay(())
+//                          loop(None)
+                  yield ()
                 case None =>
-                  Async[F].sleep(1.minute) *> loop(None)
-            yield blockNumber
+//                  Async[F].sleep(1.minute) *> loop(None)
+                  Async[F].delay(())
+            yield ()
 
           loop(None)
 
   def run(args: List[String]): IO[ExitCode] =
-    val conf = GatewayConf.loadOrThrow()
+    val conf = GatewaySimpleConf.loadOrThrow()
     GatewayResource
-      .getAllResource[IO](conf)
-      .use: (kms, web3j, db, sttp) =>
-        given GatewayApiClient[IO] =
-          GatewayApiClient.make[IO](sttp, uri"${conf.gatewayEndpoint}")
-        given GatewayDatabaseClient[IO] = db
-        given GatewayKmsClient[IO]      = kms
-        EitherT.liftF:
+      .getSimpleResource[IO](conf)
+      .use: (kms, web3j, sttp) =>
+        given GatewayKmsClient[IO] = kms
+        initialLmSecretCheck[IO](sttp, web3j, conf) *> EitherT.liftF:
           checkLoop[IO](
             sttp = sttp,
             web3j = web3j,
-            conf= conf,
+            conf = conf,
           )
       .value
       .map:
-        case Left(error) => scribe.error(s"Error: $error")
+        case Left(error)   => scribe.error(s"Error: $error")
         case Right(result) => scribe.info(s"Result: $result")
       .as(ExitCode.Success)

@@ -200,19 +200,19 @@ object EthGatewayDepositMain extends IOApp:
       .map: ethLog =>
         ethLog.getLogs.asScala.map(_.toTransferTokenEvent).toSeq
 
-  def submitTx[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def submitTx[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       lmEndpoint: String,
+      encryptedLmPrivate: String,
       account: Account,
       tx: Transaction,
   ): F[Unit] = GatewayDecryptService
-    .getLmD[F]
+    .getSimplifiedPlainTextResource[F](encryptedLmPrivate)
     .value
     .flatMap:
       case Left(msg) =>
         scribe.error(s"Failed to get LM private: $msg")
-        Async[F].sleep(10.seconds) *> submitTx[F](sttp, lmEndpoint, account, tx)
+        Async[F].sleep(10.seconds) *> submitTx[F](sttp, lmEndpoint, encryptedLmPrivate, account, tx)
       case Right(lmPrivateResource) =>
         lmPrivateResource.use: lmPrivateArray =>
           val keyPair    = CryptoOps.fromPrivate(BigInt(lmPrivateArray))
@@ -234,10 +234,10 @@ object EthGatewayDepositMain extends IOApp:
             .map: response =>
               scribe.info(s"Response: $response")
 
-  def mintLM[F[_]
-    : Async: Clock: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def mintLM[F[_]: Async: Clock: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       lmEndpoint: String,
+      encryptedLmPrivate: String,
       toAccount: Account,
       amount: BigInt,
       targetGateway: String,
@@ -256,7 +256,7 @@ object EthGatewayDepositMain extends IOApp:
         outputs = Map(toAccount -> BigNat.unsafeFromBigInt(amount)),
       )
 
-      submitTx[F](sttp, lmEndpoint, account, mintFungibleToken)
+      submitTx[F](sttp, lmEndpoint, encryptedLmPrivate, account, mintFungibleToken)
 
   def findAccountByEthAddress[F[_]: Async](
       sttp: SttpBackend[F, Any],
@@ -291,13 +291,14 @@ object EthGatewayDepositMain extends IOApp:
         findAccountByEthAddress0(ethAddress.drop(2))
       else Async[F].pure(accountOption)
 
-  def checkDepositAndMint[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def checkDepositAndMint[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
       lmEndpoint: String,
+      encryptedLmPrivate: String,
       ethContract: String,
-      gatewayEthAddress: String,
+      multisigContractAddress: String,
+      exemptAddressSet: Set[String],
       startBlockNumber: BigInt,
       endBlockNumber: BigInt,
       targetGateway: String,
@@ -305,13 +306,14 @@ object EthGatewayDepositMain extends IOApp:
     for
       events <- getTransferTokenEvents[F](
         web3j,
-        ethContract,
+        ethContract.toLowerCase(Locale.ENGLISH),
         DefaultBlockParameter.valueOf(startBlockNumber.bigInteger),
         DefaultBlockParameter.valueOf(endBlockNumber.bigInteger),
       )
       _ <- Async[F].delay(scribe.info(s"events: $events"))
-      depositEvents = events.filter:
-        _.to.toLowerCase(Locale.ENGLISH) === gatewayEthAddress.toLowerCase(Locale.ENGLISH)
+      depositEvents = events.filter: e =>
+        e.to.toLowerCase(Locale.ENGLISH) === multisigContractAddress.toLowerCase(Locale.ENGLISH)
+          && !exemptAddressSet.contains(e.to.toLowerCase(Locale.ENGLISH))
       _ <- Async[F].delay:
         scribe.info(s"current deposit events: $depositEvents")
       oldEvents <- readUnsentDeposits[F]()
@@ -335,18 +337,17 @@ object EthGatewayDepositMain extends IOApp:
           Nil
       _ <- Async[F].delay(scribe.info(s"toMints: $toMints"))
       _ <- toMints.traverse: (account, event) =>
-        mintLM[F](sttp, lmEndpoint, account, event.value, targetGateway)
+        mintLM[F](sttp, lmEndpoint, encryptedLmPrivate, account, event.value, targetGateway)
       _ <- logSentDeposits[F](toMints.map(_._1).zip(known.map(_._1)))
       unsent = unknown.map(_._1)
       _ <- Async[F].delay(scribe.info(s"unsent: $unsent"))
       _ <- writeUnsentDeposits[F](unsent)
     yield ()
 
-  def checkLoop[F[_]
-    : Async: GatewayApiClient: GatewayDatabaseClient: GatewayKmsClient](
+  def checkLoop[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
-      conf: GatewayConf,
+      conf: GatewaySimpleConf,
   ): F[Unit] =
     def run: F[Unit] = for
       _ <- Async[F].delay:
@@ -358,20 +359,22 @@ object EthGatewayDepositMain extends IOApp:
         .map(_.getBlockNumber)
         .map(BigInt(_))
       _ <- Async[F].delay(scribe.info(s"blockNumber: $blockNumber"))
-      endBlockNumber = (startBlockNumber + 100) min (blockNumber - 6)
+      endBlockNumber = (startBlockNumber + 10000) min (blockNumber - 6)
       _ <- Async[F].delay:
         scribe.info(s"startBlockNumber: $startBlockNumber")
         scribe.info:
           s"blockNumber: $blockNumber, endBlockNumber: $endBlockNumber"
       _ <- checkDepositAndMint[F](
-        sttp,
-        web3j,
-        conf.lmEndpoint,
-        conf.ethContractAddress,
-        conf.gatewayEthAddress,
-        startBlockNumber,
-        endBlockNumber,
-        conf.targetGateway,
+        sttp = sttp,
+        web3j = web3j,
+        lmEndpoint = conf.lmEndpoint,
+        encryptedLmPrivate = conf.encryptedLmPrivate,
+        ethContract = conf.ethLmContractAddress,
+        multisigContractAddress = conf.gatewayEthAddress,
+        exemptAddressSet = conf.depositExempts.map(_.toLowerCase(Locale.ENGLISH)).toSet,
+        startBlockNumber = startBlockNumber,
+        endBlockNumber = endBlockNumber,
+        targetGateway = conf.targetGateway,
       )
       _ <- writeLastBlockRead[F](endBlockNumber)
       _ <- Async[F].delay(scribe.info(s"Deposit check finished."))
@@ -442,13 +445,10 @@ object EthGatewayDepositMain extends IOApp:
           None
 
   def run(args: List[String]): IO[ExitCode] =
-    val conf = GatewayConf.loadOrThrow()
+    val conf = GatewaySimpleConf.loadOrThrow()
     GatewayResource
-      .getAllResource[IO](conf)
-      .use: (kms, web3j, db, sttp) =>
-        given GatewayApiClient[IO] =
-          GatewayApiClient.make[IO](sttp, uri"${conf.gatewayEndpoint}")
-        given GatewayDatabaseClient[IO] = db
+      .getSimpleResource[IO](conf)
+      .use: (kms, web3j, sttp) =>
         given GatewayKmsClient[IO]      = kms
         EitherT.liftF:
           checkLoop[IO](
