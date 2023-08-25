@@ -299,7 +299,13 @@ lazy val ethGatewayDeposit = (project in file("modules/eth-gateway-deposit"))
         oldStrategy(x)
     },
     Compile / compile / wartremoverErrors ++= Warts
-      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion, Wart.SeqApply),
+      .allBut(
+        Wart.Any,
+        Wart.AsInstanceOf,
+        Wart.Nothing,
+        Wart.Recursion,
+        Wart.SeqApply,
+      ),
   )
   .dependsOn(ethGatewayCommon)
 
@@ -318,7 +324,13 @@ lazy val ethGatewayWithdraw = (project in file("modules/eth-gateway-withdraw"))
         oldStrategy(x)
     },
     Compile / compile / wartremoverErrors ++= Warts
-      .allBut(Wart.Any, Wart.AsInstanceOf, Wart.Nothing, Wart.Recursion),
+      .allBut(
+        Wart.Any,
+        Wart.AsInstanceOf,
+        Wart.Nothing,
+        Wart.Recursion,
+        Wart.TripleQuestionMark,
+      ),
   )
   .dependsOn(ethGatewayCommon)
 

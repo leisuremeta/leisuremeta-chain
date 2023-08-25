@@ -74,8 +74,7 @@ import common.client.*
 
 object EthGatewayWithdrawMain extends IOApp:
 
-  def submitTx[F[_]
-    : Async: GatewayKmsClient](
+  def submitTx[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       lmAddress: String,
       account: Account,
@@ -87,7 +86,13 @@ object EthGatewayWithdrawMain extends IOApp:
     .flatMap:
       case Left(msg) =>
         scribe.error(s"Failed to get LM private: $msg")
-        Async[F].sleep(10.seconds) *> submitTx[F](sttp, lmAddress, account, tx, encryptedLmPrivateBase64)
+        Async[F].sleep(10.seconds) *> submitTx[F](
+          sttp,
+          lmAddress,
+          account,
+          tx,
+          encryptedLmPrivateBase64,
+        )
       case Right(lmPrivateResource) =>
         lmPrivateResource.use: lmPrivateArray =>
           val keyPair    = CryptoOps.fromPrivate(BigInt(lmPrivateArray))
@@ -109,8 +114,33 @@ object EthGatewayWithdrawMain extends IOApp:
             .map: response =>
               scribe.info(s"Response: $response")
 
-  def checkLoop[F[_]
-    : Async: GatewayKmsClient](
+  def initialLmSecretCheck[F[_]: Async: GatewayKmsClient](
+      sttp: SttpBackend[F, Any],
+      web3j: Web3j,
+      conf: GatewaySimpleConf,
+  ): EitherT[F, String, Unit] = for
+    gatewayInfoResponse <- EitherT.liftF:
+      basicRequest
+        .response(asStringAlways)
+        .get(uri"http://${conf.lmEndpoint}/account/${conf.targetGateway}")
+        .send(sttp)
+    gatewayAccountInfo <- EitherT.fromEither[F]:
+      decode[AccountInfo](gatewayInfoResponse.body).leftMap(_.getMessage())
+    lmSecretResource <- GatewayDecryptService
+      .getSimplifiedPlainTextResource[F](conf.encryptedLmPrivate)
+    pks <- EitherT.liftF:
+      lmSecretResource.use: lmSecretArray =>
+        Async[F].delay:
+          val keyPair = CryptoOps.fromPrivate(BigInt(1, lmSecretArray))
+          PublicKeySummary.fromPublicKeyHash(keyPair.publicKey.toHash)
+    _ <- EitherT.cond[F](
+      gatewayAccountInfo.publicKeySummaries.contains(pks),
+      (),
+      s"Fail to check lm secret. ${conf.targetGateway} does not have pks ${pks}",
+    )
+  yield ()
+
+  def checkLoop[F[_]: Async: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
       conf: GatewaySimpleConf,
@@ -205,8 +235,7 @@ object EthGatewayWithdrawMain extends IOApp:
         scribe.error(s"Error getting account info: ${response.body}")
         None
 
-  def checkLmWithdrawal[F[_]
-    : Async: Clock: GatewayKmsClient](
+  def checkLmWithdrawal[F[_]: Async: Clock: GatewayKmsClient](
       sttp: SttpBackend[F, Any],
       web3j: Web3j,
       conf: GatewaySimpleConf,
@@ -267,7 +296,13 @@ object EthGatewayWithdrawMain extends IOApp:
                     }),
                   )
                   _ <- EitherT.liftF:
-                    submitTx(sttp, conf.lmEndpoint, gatewayAccount, tx1, conf.encryptedLmPrivate)
+                    submitTx(
+                      sttp,
+                      conf.lmEndpoint,
+                      gatewayAccount,
+                      tx1,
+                      conf.encryptedLmPrivate,
+                    )
                 yield ()
               }.leftMap { msg =>
                 scribe.error(msg)
@@ -356,8 +391,7 @@ object EthGatewayWithdrawMain extends IOApp:
 //      gatewayEthAddress = gatewayEthAddress,
 //    ).as(())
 
-  def requestEthLmMultisigTransfer[F[_]
-    : Async: GatewayKmsClient](
+  def requestEthLmMultisigTransfer[F[_]: Async: GatewayKmsClient](
       web3j: Web3j,
       ethChainId: Int,
       gatewayEthAddress: String,
@@ -432,8 +466,7 @@ object EthGatewayWithdrawMain extends IOApp:
           scribe.error(t)
           Async[F].sleep(10.seconds) *> requestToF(request)(map)
 
-  def sendEthTransaction[F[_]
-    : Async: GatewayKmsClient](
+  def sendEthTransaction[F[_]: Async: GatewayKmsClient](
       web3j: Web3j,
       ethChainId: Int,
       contractAddress: String,
@@ -597,7 +630,7 @@ object EthGatewayWithdrawMain extends IOApp:
                           Async[F].delay:
                             scribe.info:
                               s"transaction ${receipt.getTransactionHash()} saved to block #${receipt.getBlockNumber()}"
-                            //BigInt(receipt.getBlockNumber())
+                            // BigInt(receipt.getBlockNumber())
                             ()
                         else
                           scribe.error:
@@ -618,7 +651,7 @@ object EthGatewayWithdrawMain extends IOApp:
       .getSimpleResource[IO](conf)
       .use: (kms, web3j, sttp) =>
         given GatewayKmsClient[IO] = kms
-        EitherT.liftF:
+        initialLmSecretCheck[IO](sttp, web3j, conf) *> EitherT.liftF:
           checkLoop[IO](
             sttp = sttp,
             web3j = web3j,
