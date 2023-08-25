@@ -18,7 +18,7 @@ object Pagination:
     val curPage = model.page
     val totalPage = model.list match
       case None    => 0
-      case Some(v) => v.totalPages.get.toInt
+      case Some(v) => v.totalPages.toInt
 
     val btnFistPage = curPage match
       case x if (x <= 2)               => 1

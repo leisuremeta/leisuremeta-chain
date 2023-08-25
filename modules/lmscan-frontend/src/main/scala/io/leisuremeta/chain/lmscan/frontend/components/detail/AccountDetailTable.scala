@@ -35,9 +35,9 @@ object AccountDetailTable:
                 div(`class` := "row")(
                   gen.cell(
                     Cell.Head("Value", "cell type-detail-head"),
-                    Cell.Any(
-                      "",
-                      // Pipe.accountDetailPageValue(model.lmprice, data.balance),
+                    Cell.Price(
+                      model.summary.lmPrice,
+                      data.balance,
                       "cell type-detail-body",
                     ),
                   ),

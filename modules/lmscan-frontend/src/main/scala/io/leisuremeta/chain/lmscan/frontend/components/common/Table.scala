@@ -20,7 +20,7 @@ object Table:
           )(
             span(
               onClick(
-                RouterMsg.NavigateTo(TxPage),
+                RouterMsg.NavigateTo(TxPage(1)),
               ),
             )("More"),
           ),
@@ -86,10 +86,12 @@ object Table:
       ),
     )
 
-  def block(list: BlcList) =
+  def block(list: Option[BlcList]) =
     div(`class` := "m-10px")(
       div(`class` := "table w-[100%]")(
-        Head.block :: Body.blocks(list.payload),
+        list match 
+          case Some(v) => Head.block :: Body.blocks(v.payload)
+          case None => List(Head.block, LoaderView.view)
       ),
     )
   def view(list: Seq[TxInfo]) =

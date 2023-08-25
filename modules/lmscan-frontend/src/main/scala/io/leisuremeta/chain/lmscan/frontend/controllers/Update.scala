@@ -51,4 +51,4 @@ object Update:
     case PageMsg.UpdateAccDetail(v: AccountDetail) =>
       (model.copy(accDetail = v), Nav.pushUrl(s"/account/${v.address.getOrElse("")}"))
     case PageMsg.UpdateNftDetail(v: NftDetail) =>
-      (model.copy(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.get.tokenId.get}"))
+      (model.copy(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.getOrElse(NftFileModel()).tokenId.getOrElse("")}"))

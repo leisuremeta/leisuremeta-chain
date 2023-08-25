@@ -3,11 +3,14 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 
-case class AccountDetailPage(name: String, hash: String) extends Page:
+case class AccountDetailPage(hash: String) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
     (
       model,
-      Cmd.Emit(UpdateAccDetailPage(hash)),
+      Cmd.Batch(
+        Cmd.Emit(UpdateSummary),
+        Cmd.Emit(UpdateAccDetailPage(hash)),
+      )
     )
 
   def view(model: Model): Html[Msg] =
@@ -26,8 +29,3 @@ case class AccountDetailPage(name: String, hash: String) extends Page:
         ),
       ),
     )
-
-object AccountDetailPage:
-  val name                              = "account"
-  def apply: AccountDetailPage               = AccountDetailPage(name, "")
-  def apply(hash: String): AccountDetailPage = AccountDetailPage(name, hash)

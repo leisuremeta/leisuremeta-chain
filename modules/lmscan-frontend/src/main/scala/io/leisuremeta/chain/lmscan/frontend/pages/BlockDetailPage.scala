@@ -3,7 +3,7 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 
-case class BlockDetailPage(name: String, hash: String, bn: Long) extends Page:
+case class BlockDetailPage(hash: String) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
     (
       model,
@@ -27,9 +27,3 @@ case class BlockDetailPage(name: String, hash: String, bn: Long) extends Page:
         )
       ),
     )
-
-object BlockDetailPage:
-  val name                              = "block"
-  def apply: BlockDetailPage               = BlockDetailPage(name, "", 0)
-  def apply(hash: String): BlockDetailPage = BlockDetailPage(name, hash, 0)
-  def apply(n: Long): BlockDetailPage = BlockDetailPage(name, "", n)

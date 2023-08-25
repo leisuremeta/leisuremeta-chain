@@ -23,8 +23,8 @@ trait ListPage[T]:
     val list: Option[ListType[T]]
 
 trait ListType[T]:
-    val totalCount: Option[Long]
-    val totalPages: Option[Long]
+    val totalCount: Long
+    val totalPages: Long
     val payload: List[T]
 
 final case class TxModel(
@@ -42,13 +42,17 @@ final case class BlockModel(
 ) extends ListPage[BlockInfo]
 
 final case class BlcList(
-    totalCount: Option[Long] = None,
-    totalPages: Option[Long] = None,
+    // totalCount: Option[Long] = None,
+    // totalPages: Option[Long] = None,
+    totalCount: Long = 0,
+    totalPages: Long = 0,
     payload: List[BlockInfo] = List(),
 ) extends ListType[BlockInfo]
 
 final case class TxList(
-    totalCount: Option[Long] = None,
-    totalPages: Option[Long] = None,
+    // totalCount: Option[Long] = None,
+    // totalPages: Option[Long] = None,
+    totalCount: Long = 0,
+    totalPages: Long = 0,
     payload: List[TxInfo] = List(),
 ) extends ListType[TxInfo]

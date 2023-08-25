@@ -5,11 +5,13 @@ import V.*
 import scala.util.matching.Regex
 import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model._
+import java.text.DecimalFormat
 
 enum Cell:
   case Image(data: Option[String])                              extends Cell
   case Head(data: String, css: String = "cell")                 extends Cell
   case Any(data: String, css: String = "cell")                  extends Cell
+  case Price(price: Option[Double], balance: Option[BigDecimal], css: String = "cell")                  extends Cell
   case Balance(data: Option[BigDecimal], css: String = "cell")                  extends Cell
   case AGE(data: Option[Long])                                  extends Cell
   case DATE(data: Option[Long], css: String = "cell")           extends Cell
@@ -61,8 +63,19 @@ object gen:
 
         case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
         case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
+        case Cell.Price(price, data, css)  => div(`class` := s"$css")(span(
+          (price, data) match
+            case (Some(p), Some(v)) => 
+              val a = v / BigDecimal("1E+18") * BigDecimal(p)
+              "$ " + DecimalFormat("#,###.####").format(a)
+            case _ => "$ 0"
+        ))
         case Cell.Balance(data, css)  => div(`class` := s"$css")(span(
-          data.map(_.toString).getOrElse("")
+          data match
+            case None => "- LM"
+            case Some(v) => 
+              val a = v / BigDecimal("1E+18")
+              DecimalFormat("#,###.####").format(a) + " LM"
         ))
         case Cell.PlainStr(data, css) =>
           div(`class` := s"$css")(span()(plainStr(data)))

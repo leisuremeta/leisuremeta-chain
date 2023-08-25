@@ -3,10 +3,9 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 
-object BlockPage extends Page:
-  val name = "Blocks"
+case class  BlockPage(page: Int) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => 
-    (model, DataProcess.getData(model.blcPage))
+    (model, Cmd.Emit(UpdateBlockPage(page)))
 
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(

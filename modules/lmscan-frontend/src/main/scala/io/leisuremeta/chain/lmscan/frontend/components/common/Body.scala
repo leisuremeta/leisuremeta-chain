@@ -7,63 +7,17 @@ import V.*
 import io.leisuremeta.chain.lmscan.common.model._
 
 object Body:
-  def blocks = (payload: List[BlockInfo]) =>
-    payload
-      .map(v =>
-        div(`class` := "row table-body")(
-          gen.cell(
-            // TODO FIX :: BLOCK_NUMBER,HASH,PlainLong 초기값 할당되지 않을경우, 에러난다
-            Cell.BLOCK_NUMBER(v.hash, v.number),
-            Cell.AGE(v.createdAt),
-            Cell.BLOCK_HASH(v.hash),
-            Cell.PlainLong(v.txCount),
-          ),
+  def blocks(payload: List[BlockInfo]) =
+    payload.map(v =>
+      div(`class` := "row table-body")(
+        gen.cell(
+          Cell.BLOCK_NUMBER(v.hash, v.number),
+          Cell.AGE(v.createdAt),
+          Cell.BLOCK_HASH(v.hash),
+          Cell.PlainLong(v.txCount),
         ),
-      )
-  def observer = (model: Model) =>
-    div()
-    // model.appStates.map(state =>
-    //   div()(
-    //     div(
-    //       `class` := s"row table-body ${state.number == get_latest_number(model)}_state ${model.pointer == state.number}_state_click",
-    //       onClick(PageMsg.GotoObserver(state.number)),
-    //     )(
-    //       // #
-    //       div(
-    //         `class` := s"cell type-3 ",
-    //       )(
-    //         span()(state.number.toString()),
-    //       ),
-    //       // name
-    //       div(`class` := "cell type-3")(
-    //         span()(
-    //           in_Name(state.pageCase),
-    //         ),
-    //       ),
-
-    //       // url
-    //       div(`class` := "cell")(
-    //         span(
-    //           in_url(state.pageCase),
-    //         ),
-    //       ),
-
-    //       // pubs
-    //       div(`class` := "cell")(
-    //         span(
-    //           in_PubCases(state.pageCase).length.toString(),
-    //         ),
-    //       ),
-
-    //       // :page
-    //       div(`class` := "cell")(
-    //         span(
-    //           // pipe_PubCase_Page(state.pageCase).toString(),
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // )
+      ),
+    )
   def txlist_txtable_off = (payload: List[TxInfo]) =>
     payload
       // List(new TxInfo)

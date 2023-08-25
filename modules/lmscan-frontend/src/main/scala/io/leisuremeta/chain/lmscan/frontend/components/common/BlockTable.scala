@@ -18,14 +18,12 @@ object BlockTable:
           )(
             span(
               onClick(
-                RouterMsg.NavigateTo(BlockPage)
+                RouterMsg.NavigateTo(BlockPage(1))
               ),
             )("More"),
           ),
         ),
-        model.blcPage.list match 
-          case None => LoaderView.view
-          case Some(v) => Table.block(v),
+        Table.block(model.blcPage.list),
       ),
     )
 
@@ -33,7 +31,7 @@ object BlockTable:
     div(`class` := "table-container position-relative y-center")(
       div(`class` := "m-10px w-[100%]")(
         div(
-          Table.block(model.blcPage.list.get),
+          Table.block(model.blcPage.list),
           Pagination.view(model.blcPage),
         ),
         model.blcPage.list match
