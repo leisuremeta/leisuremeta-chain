@@ -24,7 +24,7 @@ object Body:
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
-            Cell.TX_HASH10(v.hash),
+            Cell.TX_HASH(v.hash),
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
@@ -38,7 +38,7 @@ object Body:
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
-            Cell.TX_HASH10(v.hash),
+            Cell.TX_HASH(v.hash),
             Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
@@ -52,7 +52,7 @@ object Body:
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
-            Cell.TX_HASH10(v.hash),
+            Cell.TX_HASH(v.hash),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
           ),

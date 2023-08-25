@@ -111,32 +111,13 @@ object DataProcess:
     )
   def globalSearch(v: String) = 
     val msg = v.length match
-      case 40 => UpdateAccDetailPage(v)
-      case 42 => UpdateAccDetailPage(v)
-      case 25 => UpdateNftDetailPage(v)
-      case 64 => UpdateTxDetailPage(v)
-      case _ => UpdateAccDetailPage(v)
-    Cmd.Emit(msg)
+      case 40 => AccountDetailPage(v)
+      case 42 => AccountDetailPage(v)
+      case 25 => NftDetailPage(v)
+      case 64 => TxDetailPage(v)
+      case _ => AccountDetailPage(v)
+    Cmd.Emit(RouterMsg.NavigateTo(msg))
 
-    // Http.send(
-    //   Request.get(get_api_link(pub, model)).withTimeout(30.seconds),
-    //   UnderDataProcess.fromHttpResponse(pub),
-    // )
-      // case PubCase.BoardPub(page, _, _) =>
-      //   s"$base/summary/main"
-
-      // case PubCase.BlockPub(page, sizePerRequest, _, _) =>
-      //   s"$base/block/list?pageNo=${(page - 1).toString()}&sizePerRequest=${sizePerRequest}"
-
-      // case PubCase.TxPub(
-      //       page,
-      //       sizePerRequest,
-      //       accountAddr,
-      //       blockHash,
-      //       subtype,
-      //       _,
-      //       _,
-      //     ) =>
       //   s"$base/tx/list?pageNo=${(page - 1)
       //       .toString()}&sizePerRequest=${sizePerRequest}" ++ {
       //     accountAddr match
@@ -163,17 +144,6 @@ object DataProcess:
 
       // case PubCase.AccountDetailPub(hash, _, _) =>
       //   s"$base/account/$hash/detail"
-// def getPageFromString(search: String): PageCase | CommandCaseMode |
-  //   CommandCaseLink =
-  //   search match
-  //     case ":on"    => CommandCaseMode.Development
-  //     case ":off"   => CommandCaseMode.Production
-  //     case ":prod"  => CommandCaseLink.Production
-  //     case ":dev"   => CommandCaseLink.Development
-  //     case ":local" => CommandCaseLink.Local
-  //     case subtype if subtypeList.contains(subtype.replaceAll(" ", "")) =>
-  //       Transactions()
-  //     case _ =>
 
   //     case s"/nft/${hash}" if hash.length() == 25 =>
   //       NftDetail(

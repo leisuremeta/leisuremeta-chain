@@ -23,8 +23,8 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
         case s"/txs/$page" => RouterMsg.NavigateTo(TxPage(page.toInt))
         case s"/tx/$hash" => RouterMsg.NavigateTo(TxDetailPage(hash))
         case s"/nft/$id" => RouterMsg.NavigateTo(NftDetailPage(id))
-        case s"/block/${hash}" => RouterMsg.NavigateTo(BlockDetailPage(hash))
-        case s"/account/${hash}" => RouterMsg.NavigateTo(AccountDetailPage(hash))
+        case s"/block/$hash" => RouterMsg.NavigateTo(BlockDetailPage(hash))
+        case s"/account/$hash" => RouterMsg.NavigateTo(AccountDetailPage(hash))
         case "/" => RouterMsg.NavigateTo(MainPage)
         case "" => RouterMsg.NavigateTo(MainPage)
         case _   => RouterMsg.NoOp

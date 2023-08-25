@@ -38,9 +38,9 @@ object NftDetailTable:
                     gen.cell(
                       Cell.Head("Owner", "cell type-detail-head"),
                       Cell
-                        .ACCOUNT_HASH_DETAIL(
+                        .ACCOUNT_HASH(
                           nftFile.owner,
-                          "cell type-3 type-detail-body",
+                          "type-detail-body",
                         ),
                     ),
                   ),

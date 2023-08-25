@@ -25,7 +25,7 @@ object TxDetailTableMain:
           div(`class` := "row")(
             gen.cell(
               Cell.Head("Signer", "cell type-detail-head"),
-              Cell.ACCOUNT_HASH_DETAIL(data.signer, "cell type-detail-body"),
+              Cell.ACCOUNT_HASH(data.signer, "type-detail-body"),
             ),
           ),
           div(`class` := "row")(

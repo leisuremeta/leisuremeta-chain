@@ -34,8 +34,8 @@ object V:
   def plainDouble(data: Option[Double]) =
     getOptionValue(data, 0.toDouble).asInstanceOf[Double].toString
 
-  def hash10(data: Option[Any]) =
-    getOptionValue(data, "-").toString().take(10) + "..."
+  // def hash10(data: Option[Any]) =
+  //   getOptionValue(data, "-").toString().take(10) + "..."
 
   def rarity(data: Option[String]) =
     getOptionValue(data, "-") match
@@ -67,28 +67,15 @@ object V:
   def accountHash(data: Option[String]) =
     plainStr(data).length match
       case 40 =>
-        hash10(data)
-      case _ =>
-        plainStr(data).toString() match
-          case "playnomm" =>
-            hash10(Some("010cd45939f064fd82403754bada713e5a9563a1"))
-
-          case "eth-gateway" =>
-            hash10(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
-
-          case _ =>
-            plainStr(data)
-
-  def accountHash_DETAIL(data: Option[String]) =
-    plainStr(data).length match
-      case 40 =>
         plainStr(data)
       case _ =>
         plainStr(data).toString() match
           case "playnomm" =>
+            // hash10(Some("010cd45939f064fd82403754bada713e5a9563a1"))
             plainStr(Some("010cd45939f064fd82403754bada713e5a9563a1"))
 
           case "eth-gateway" =>
+            // hash10(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
             plainStr(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
 
           case _ =>

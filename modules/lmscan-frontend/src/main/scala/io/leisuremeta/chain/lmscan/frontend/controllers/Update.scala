@@ -24,7 +24,7 @@ object Update:
     case UpdateBlcDetailPage(hash) => (model, DataProcess.getData(BlockDetail(hash = Some(hash))))
     case UpdateBlockPage(page: Int) =>
       (
-        model, 
+        model.copy(blcPage = BlockModel(page = page)), 
         Cmd.Batch(
           DataProcess.getData(BlockModel(page = page)),
           Nav.pushUrl(s"/blocks/$page"),
@@ -32,7 +32,7 @@ object Update:
       )
     case UpdateTxPage(page: Int) =>
       (
-        model,
+        model.copy(txPage = TxModel(page = page)), 
         Cmd.Batch(
           DataProcess.getData(TxModel(page = page)),
           Nav.pushUrl(s"/txs/$page"),

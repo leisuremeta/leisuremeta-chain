@@ -8,6 +8,11 @@ object SearchView:
       div(`class` := "search-container xy-center")(
         input(
           onInput(s => GlobalInput(s)),
+          onKeyUp(e =>
+            e.key match
+              case "Enter" => GlobalSearch
+              case _       => NoneMsg
+          ),
           value   := s"${model.searchValue}",
           `class` := "search-text xy-center DOM-search ",
           `placeholder` := (

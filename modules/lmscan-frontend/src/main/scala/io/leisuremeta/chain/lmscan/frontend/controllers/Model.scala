@@ -42,16 +42,12 @@ final case class BlockModel(
 ) extends ListPage[BlockInfo]
 
 final case class BlcList(
-    // totalCount: Option[Long] = None,
-    // totalPages: Option[Long] = None,
     totalCount: Long = 0,
     totalPages: Long = 0,
     payload: List[BlockInfo] = List(),
 ) extends ListType[BlockInfo]
 
 final case class TxList(
-    // totalCount: Option[Long] = None,
-    // totalPages: Option[Long] = None,
     totalCount: Long = 0,
     totalPages: Long = 0,
     payload: List[TxInfo] = List(),

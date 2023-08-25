@@ -119,7 +119,7 @@ object TxDetailTableCommon:
       v: TokenId,
   ) = gen.cell(
     Cell.PlainStr(Some(1), "cell type-detail-body"),
-    Cell.ACCOUNT_HASH_Long(
+    Cell.ACCOUNT_HASH(
       Some(output.toString),
     ),
     Cell.Tx_VALUE(Some("Nft"), Some(v.toString())),
@@ -129,7 +129,7 @@ object TxDetailTableCommon:
       v: BigNat,
   ) = gen.cell(
     Cell.PlainStr(Some(1), "cell type-detail-body"),
-    Cell.ACCOUNT_HASH_Long(
+    Cell.ACCOUNT_HASH(
       Some(output.toString),
     ),
     Cell.PlainStr(
@@ -146,7 +146,7 @@ object TxDetailTableCommon:
       i: Int,
   ) = gen.cell(
     Cell.PlainStr(Some(i + 1), "cell type-detail-body"),
-    Cell.ACCOUNT_HASH_Long(
+    Cell.ACCOUNT_HASH(
       Some(outputs._1.toString),
       // Some("10"),
     ),
@@ -165,7 +165,7 @@ object TxDetailTableCommon:
       i: Int,
   ) = gen.cell(
     Cell.PlainStr(Some(i + 1), "cell type-detail-body"),
-    Cell.ACCOUNT_HASH_Long(
+    Cell.ACCOUNT_HASH(
       Some(outputs._1.toString),
     ),
     Cell.PlainStr(
