@@ -5,8 +5,7 @@ import io.leisuremeta.chain.lmscan.backend.entity.Summary
 import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.getquill.*
-import io.circe.generic.auto.*
-import io.circe.Decoder
+import io.getquill.autoQuote
 
 object SummaryRepository extends CommonQuery:
   import ctx.{*, given}

@@ -6,6 +6,6 @@ final case class Summary(
     blockNumber: Long,
     totalAccounts: Long,
     createdAt: Long,
-    totalTxSize: Long,
-    total_balance: Long,
+    totalTxSize: BigDecimal,
+    total_balance: BigDecimal,
 )

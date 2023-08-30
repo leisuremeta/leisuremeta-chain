@@ -5,13 +5,11 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 import io.leisuremeta.chain.lmscan.backend.repository.SummaryRepository
 import cats.effect.kernel.Async
 import cats.data.EitherT
-import io.leisuremeta.chain.lmscan.backend.repository.BalanceRepository
 
 object SummaryService:
   def get[F[_]: Async]: EitherT[F, String, Option[SummaryModel]] =
     for
       summary <- SummaryRepository.get
-      txCnt   <- TransactionService.countTotalTx
       model = summary.map(s =>
         SummaryModel(
           Some(s.id),
@@ -19,9 +17,9 @@ object SummaryService:
           Some(s.blockNumber),
           Some(s.totalAccounts),
           Some(s.createdAt),
-          Some(s.totalTxSize),
-          Some(BalanceRepository.getBalance),
-          txCnt,
+          Some(s.totalTxSize.toLong),
+          Some(s.total_balance.toString),
+          Some(s.totalTxSize.toLong),
         ),
       )
     yield model
