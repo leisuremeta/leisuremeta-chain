@@ -11,7 +11,6 @@ import io.leisuremeta.chain.lmscan.common.model.{
   PageResponse,
   AccountDetail,
 }
-import io.leisuremeta.chain.lmscan.backend.repository.PlaynommBalanceRepository
 
 object AccountService:
   def get[F[_]: Async](

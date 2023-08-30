@@ -116,15 +116,15 @@ object ExploreApi:
     .out(jsonBody[Option[SummaryModel]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getSummaryChartEndPoint = baseEndpoint.get
+    .in("summary")
+    .in("chart")
+    .out(jsonBody[Option[Seq[SummaryModel]]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTotalBalance = baseEndpoint.get
     .in("total")
     .in("balance")
-    .out(jsonBody[Option[String]])
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getValanceFromChainDev = baseEndpoint.get
-    .in("dev")
-    .in("chain")
     .out(jsonBody[Option[String]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))

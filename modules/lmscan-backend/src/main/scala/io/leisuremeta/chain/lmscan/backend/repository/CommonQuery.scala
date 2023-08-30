@@ -90,6 +90,24 @@ trait CommonQuery:
       }
     }
 
+  inline def optionSeqQuery[F[_]: Async, T](
+      inline query: Query[T],
+  ): EitherT[F, String, Option[Seq[T]]] =
+    EitherT {
+      Async[F].recover {
+        for
+          given ExecutionContext <- Async[F].executionContext
+          detail <- Async[F]
+            .fromFuture(Async[F].delay {
+              ctx.run(query)
+            })
+        yield Right(Some(detail))
+      } {
+        case e: SQLException =>
+          Left(s"sql exception occured: " + e.getMessage())
+        case e: Exception => Left(e.getMessage())
+      }
+    }
   inline def optionQuery[F[_]: Async, T](
       inline query: Query[T],
   ): EitherT[F, String, Option[T]] =

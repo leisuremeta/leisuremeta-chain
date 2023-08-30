@@ -42,7 +42,6 @@ import sttp.tapir.server.armeria.TapirService
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
-import io.leisuremeta.chain.lmscan.backend.repository.PlaynommBalanceRepository
 
 object BackendMain extends IOApp:
 
@@ -165,11 +164,10 @@ object BackendMain extends IOApp:
       result.value
     }
 
-  // 대체
-  def playnommBalance[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getValanceFromChainDev.serverLogic { Unit =>
-      scribe.info(s"totalBalance")
-      val result = TempService.getBalance
+  def summaryChart[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getSummaryChartEndPoint.serverLogic { Unit =>
+      scribe.info(s"summary chart request")
+      val result = SummaryService.getList
         .leftMap { (errMsg: String) =>
           scribe.error(s"errorMsg: $errMsg")
           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
@@ -187,21 +185,10 @@ object BackendMain extends IOApp:
       nftDetail[F],
       // searchTargetType[F],
       summaryMain[F],
-      playnommBalance[F],
+      summaryChart[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
-    // def corsService =
-    //   CorsService
-    //     .builder("*")
-    //     .allowCredentials()
-    //     .allowNullOrigin() // 'Origin: null' will be accepted.
-    //     .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
-    //     .allowRequestHeaders("allow_request_header")
-    //     .exposeHeaders("expose_header_1", "expose_header_2")
-    //     .preflightResponseHeader("x-preflight-cors", "CORS")
-    //     .newDecorator();
-
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(Async[F].async_[Server] { cb =>
@@ -234,11 +221,7 @@ object BackendMain extends IOApp:
       }
     yield server
 
-  // override def run[F[_]: Async: Monad: TransactionRepository, IO](
-  override def run(
-      args: List[String],
-  ): IO[ExitCode] =
-
+  override def run(args: List[String]): IO[ExitCode] =
     val program: Resource[IO, Server] =
       for server <- getServerResource[IO]
       yield server
