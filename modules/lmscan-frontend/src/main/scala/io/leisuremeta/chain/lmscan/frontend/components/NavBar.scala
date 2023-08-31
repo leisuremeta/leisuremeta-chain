@@ -7,6 +7,7 @@ object NavBar:
   val main = "Dashboard"
   val blc = "Blocks"
   val tx = "Transactions"
+  val nft = "Nfts"
   def view(model: Model): Html[Msg] =
     nav()(
       div(id := "title", onClick(RouterMsg.NavigateTo(MainPage)))(
@@ -17,6 +18,7 @@ object NavBar:
         (main, MainPage),
         (blc, BlockPage(1)),
         (tx, TxPage(1)),
+        (nft, NftPage(1)),
       ).map((name, page) =>
         div(
           `class` := "buttons",

@@ -2,6 +2,7 @@ package io.leisuremeta.chain.lmscan
 package frontend
 package chart
 
+import scala.scalajs.js.Date
 import tyrian.Html.*
 import tyrian.*
 import common.model.SummaryModel
@@ -9,13 +10,11 @@ import common.model.SummaryModel
 object AcChart {
   def view(model: Model): Html[Msg] =
     renderDataChart(model.chartData)
-    div(
-      canvas(
-        width := "800px",
-        height := "600px",
-        id := "chart",
-      )("")
-    )  
+    canvas(
+      width := "800px",
+      height := "600px",
+      id := "chart",
+    )("")
 
   def renderDataChart(data: List[SummaryModel]): Unit=
     import typings.chartJs.mod.*

@@ -11,14 +11,17 @@ case object TotalAcChart extends Page:
       model,
       Cmd.Batch(
         Cmd.Emit(UpdateChart),
-        Nav.pushUrl("chart/account")
+        Nav.pushUrl("/chart/account")
       )
     )
 
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "color-white")(
+      div(`class` := "chart-wrap color-white")(
+        div(`class` := "font-40px pt-16px font-block-detail color-white")(
+          "Account Chart",
+        ),
         AcChart.view(model)
       )
     )

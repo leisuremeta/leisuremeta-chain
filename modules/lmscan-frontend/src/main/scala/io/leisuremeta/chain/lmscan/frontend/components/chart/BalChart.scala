@@ -9,13 +9,11 @@ import common.model.SummaryModel
 object BalChart {
   def view(model: Model): Html[Msg] =
     renderDataChart(model.chartData)
-    div(
-      canvas(
-        width := "800px",
-        height := "600px",
-        id := "chart",
-      )("")
-    )  
+    canvas(
+  
+      height := "600px",
+      id := "chart",
+    )("")
 
   def renderDataChart(data: List[SummaryModel]): Unit=
     import typings.chartJs.mod.*

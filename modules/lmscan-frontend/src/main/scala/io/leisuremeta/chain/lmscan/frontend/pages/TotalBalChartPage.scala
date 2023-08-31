@@ -11,14 +11,17 @@ case object TotalBalChart extends Page:
       model,
       Cmd.Batch(
         Cmd.Emit(UpdateChart),
-        Nav.pushUrl("chart/balance")
+        Nav.pushUrl("/chart/balance")
       )
     )
 
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "color-white")(
+      div(`class` := "chart-wrap color-white")(
+        div(`class` := "font-40px pt-16px font-block-detail color-white")(
+          "Balance Chart",
+        ),
         BalChart.view(model)
       )
     )

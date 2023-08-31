@@ -18,7 +18,10 @@ case object TotalTxChart extends Page:
   def view(model: Model): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "color-white")(
+      div(`class` := "chart-wrap color-white")(
+        div(`class` := "font-40px pt-16px font-block-detail color-white")(
+          "Transaction Chart",
+        ),
         TxChart.view(model)
       )
     )
