@@ -67,6 +67,10 @@ object Parse:
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) => PageMsg.Update1(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
+  def onResponse(model: List[SummaryModel]): Response => Msg = response =>
+    parse(response.body) match
+      case Left(parsingError) => ErrorMsg
+      case Right(json) => PageMsg.UpdateChart(decode[List[SummaryModel]](response.body).getOrElse(List()))
 
 object DataProcess:
   val base = js.Dynamic.global.process.env.BASE_API_URL
@@ -107,6 +111,11 @@ object DataProcess:
   def getData(model: SummaryModel): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}summary/main"),
+      Decoder[Msg](Parse.onResponse(model), onError)
+    )
+  def getData(model: List[SummaryModel]): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}summary/chart"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def globalSearch(v: String) = 

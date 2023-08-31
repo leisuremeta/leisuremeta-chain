@@ -14,6 +14,7 @@ final case class Model(
     blcDetail: BlockDetail = BlockDetail(),
     accDetail: AccountDetail = AccountDetail(),
     nftDetail: NftDetail = NftDetail(),
+    chartData: List[SummaryModel] = List(),
 )
 
 trait ListPage[T]:

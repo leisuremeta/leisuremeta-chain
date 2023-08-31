@@ -19,6 +19,8 @@ object LmscanFrontendApp extends TyrianApp[Msg, Model]:
     case loc: Location.Internal =>
       loc.pathName match
         case "/dashboard" => RouterMsg.NavigateTo(MainPage)
+        case s"/chart/$t" => t match
+          case _ => RouterMsg.NavigateTo(TotalTxChart)
         case s"/blocks/$page" => RouterMsg.NavigateTo(BlockPage(page.toInt))
         case s"/txs/$page" => RouterMsg.NavigateTo(TxPage(page.toInt))
         case s"/tx/$hash" => RouterMsg.NavigateTo(TxDetailPage(hash))

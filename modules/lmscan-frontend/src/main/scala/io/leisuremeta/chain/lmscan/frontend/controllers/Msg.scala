@@ -23,6 +23,7 @@ sealed trait ListMsg extends Msg:
   val value: Int
 
 case object UpdateSummary extends Msg
+case object UpdateChart extends Msg
 case class UpdateBlockPage(value: Int) extends ListMsg
 case class UpdateTxPage(value: Int) extends ListMsg
 
@@ -36,6 +37,7 @@ enum PageMsg extends Msg:
   case UpdateBlc(value: BlcList) extends PageMsg
   case UpdateTx(value: TxList) extends PageMsg
   case Update1(value: SummaryModel) extends PageMsg
+  case UpdateChart(value: List[SummaryModel]) extends PageMsg
 
   case UpdateTxDetail(v: TxDetail) extends PageMsg
 

@@ -9,6 +9,7 @@ object Update:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
     case routerMsg: RouterMsg   => routerMsg match
       case RouterMsg.NavigateTo(page) => page.update(model.copy(page = page))(routerMsg)
+      case RouterMsg.NavigateToUrl(url) => (model, Nav.loadUrl(url))
       case _ => (model, Cmd.None)
     case PopupMsg(v)     => (model.copy(popup = v), Cmd.None)
     case ErrorMsg => (model, Cmd.None)
@@ -39,12 +40,14 @@ object Update:
         )
       )
     case UpdateSummary => (model, DataProcess.getData(model.summary))
+    case UpdateChart => (model, DataProcess.getData(model.chartData))
 
     case UpdateBlcsSearch(v: Int) => (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
     case UpdateTxsSearch(v: Int) => (model.copy(txPage = model.txPage.copy(searchPage = v)), Cmd.None)
     case PageMsg.UpdateTx(value: TxList) => (model.copy(txPage = model.txPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.UpdateBlc(value: BlcList) => (model.copy(blcPage = model.blcPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) => (model.copy(summary = value), Cmd.None)
+    case PageMsg.UpdateChart(value: List[SummaryModel]) => (model.copy(chartData = value.reverse), Cmd.None)
     case PageMsg.UpdateTxDetail(v: TxDetail) => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
     case PageMsg.UpdateBlcDetail(v: BlockDetail) =>
       (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))

@@ -7,5 +7,5 @@ final case class SummaryModel(
     totalAccounts: Option[Long] = None,
     createdAt: Option[Long] = None,
     totalTxSize: Option[Long] = None,
-    total_balance: Option[String] = None,
+    total_balance: Option[BigDecimal] = None,
 )

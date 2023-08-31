@@ -11,11 +11,7 @@ object BoardView:
   val Transactions  = "TOTAL BALANCE"
   val Accounts = "TOTAL ACCOUNTS"
 
-  def parseToNumber(strNum: String) =
-    strNum.length > 18 match
-      case true =>
-        f"${BigDecimal(strNum) / Math.pow(10, 18)}%,.3f"
-      case false => String.format("%.0f", strNum.toDouble)
+  def parseToNumber(strNum: BigDecimal) = f"${strNum / Math.pow(10, 18)}%,.3f"
 
   def addComma(numberString: Long) = f"${BigInt(numberString)}%,d"
 
@@ -27,7 +23,7 @@ object BoardView:
     case None => LoaderView.view
     case Some(v) => drawContent(addComma(v))
 
-  def drawBalance(opt: Option[String]): Html[Msg] = opt match
+  def drawBalance(opt: Option[BigDecimal]): Html[Msg] = opt match
     case None => LoaderView.view
     case Some(v) => drawContent(parseToNumber(v))
 
@@ -37,8 +33,11 @@ object BoardView:
 
   def drawContent(s: String) = div(`class` := "color-white font-bold")(s)
 
-  def drawBox(title: String, content: Html[Msg]): Html[Msg] =
-    div(`class` := "board-container xy-center position-relative")(
+  def drawBox(title: String, content: Html[Msg], to: RouterMsg): Html[Msg] =
+    div(
+      `class` := "board-container xy-center position-relative",
+      onClick(to),
+    )(
       div(
         `class` := "board-text y-center gap-10px",
       )(
@@ -52,9 +51,9 @@ object BoardView:
 
     div(`class` := "board-area")(
       List(
-        (LM_Price, drawPrice(summary.lmPrice)),
-        (Total_TxCount, drawTotal(summary.totalTxCount)),
-        (Transactions, drawBalance(summary.total_balance)),
-        (Accounts, drawAccounts(summary.totalAccounts)),
+        (LM_Price, drawPrice(summary.lmPrice), RouterMsg.NavigateToUrl("https://coinmarketcap.com/currencies/leisuremeta/")),
+        (Total_TxCount, drawTotal(summary.totalTxSize), RouterMsg.NavigateTo(TotalTxChart)),
+        (Transactions, drawBalance(summary.total_balance), RouterMsg.NavigateTo(TotalBalChart)),
+        (Accounts, drawAccounts(summary.totalAccounts), RouterMsg.NavigateTo(TotalAcChart)),
       ).map(drawBox)
     )
