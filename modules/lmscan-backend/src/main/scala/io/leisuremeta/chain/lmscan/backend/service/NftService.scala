@@ -66,3 +66,11 @@ object NftService:
         )
       }
     yield PageResponse(page.totalCount, page.totalPages, nftInfos)
+  def getSeasonPage[F[_]: Async](
+      pageNavInfo: PageNavigation,
+      tokenId: String,
+  ): EitherT[F, String, PageResponse[NftSeasonModel]] =
+    for 
+      page <- NftInfoRepository.getSeasonPage(pageNavInfo, tokenId)
+      seasons = page.payload.map(_.toModel)
+    yield PageResponse(page.totalCount, page.totalPages, seasons)

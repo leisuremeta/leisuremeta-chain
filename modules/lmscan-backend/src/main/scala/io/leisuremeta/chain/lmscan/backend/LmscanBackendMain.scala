@@ -137,6 +137,17 @@ object BackendMain extends IOApp:
       result.value
     }
 
+  def nftSeasonPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getNftSeasonEndPoint.serverLogic { (tokenId: String, pageInfo: PageNavigation) =>
+      scribe.info(s"nftSeasonPaging request pageInfo: $pageInfo")
+      val result = NftService
+        .getSeasonPage[F](pageInfo, tokenId)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
   def nftPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getNftPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       scribe.info(s"nftPaging request pageInfo: $pageInfo")
@@ -195,6 +206,7 @@ object BackendMain extends IOApp:
       blockDetail[F],
       accountDetail[F],
       nftPaging[F],
+      nftSeasonPaging[F],
       nftDetail[F],
       // searchTargetType[F],
       summaryMain[F],
