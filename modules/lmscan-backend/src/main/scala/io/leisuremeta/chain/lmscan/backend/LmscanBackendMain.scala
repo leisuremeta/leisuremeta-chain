@@ -137,6 +137,18 @@ object BackendMain extends IOApp:
       result.value
     }
 
+  def nftPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getNftPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+      scribe.info(s"nftPaging request pageInfo: $pageInfo")
+      val result = NftService
+        .getPage[F](pageInfo)
+        .leftMap { (errMsg: String) =>
+          scribe.error(s"errorMsg: $errMsg")
+          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
+        }
+      result.value
+    }
+
   // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
   //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
   //     scribe.info(s"search type request target: $target")
@@ -182,6 +194,7 @@ object BackendMain extends IOApp:
       blockPaging[F],
       blockDetail[F],
       accountDetail[F],
+      nftPaging[F],
       nftDetail[F],
       // searchTargetType[F],
       summaryMain[F],

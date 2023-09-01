@@ -7,3 +7,9 @@ final case class PageResponse[T](
     totalPages: Int,
     payload: Seq[T],
 )
+
+final case class PageResponseOpt[T](
+    totalCount: Long,
+    totalPages: Int,
+    payload: Option[Seq[T]],
+)

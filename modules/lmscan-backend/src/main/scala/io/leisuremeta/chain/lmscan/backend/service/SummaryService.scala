@@ -17,7 +17,7 @@ object SummaryService:
           Some(s.totalAccounts),
           Some(s.createdAt),
           Some(s.totalTxSize.toLong),
-          Some(s.total_balance.toString),
+          Some(s.total_balance),
         ),
       )
     yield model
@@ -33,7 +33,7 @@ object SummaryService:
           Some(s.totalAccounts),
           Some(s.createdAt),
           Some(s.totalTxSize.toLong),
-          Some(s.total_balance.toString),
+          Some(s.total_balance),
         ),
       )
     yield model
@@ -49,7 +49,7 @@ object SummaryService:
           Some(s.totalAccounts),
           Some(s.createdAt),
           Some(s.totalTxSize.toLong),
-          Some(s.total_balance.toString),
+          Some(s.total_balance),
         ),
       ))
     yield model

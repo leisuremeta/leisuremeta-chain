@@ -19,6 +19,7 @@ import io.leisuremeta.chain.lmscan.common.model.{
 import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 import io.circe.*
+import io.leisuremeta.chain.lmscan.common.model.NftInfoModel
 
 object ExploreApi:
   opaque type Utf8 = String
@@ -101,6 +102,14 @@ object ExploreApi:
     .in(path[String]("accountAddr")) // account_address
     .in("detail")
     .out(jsonBody[Option[AccountDetail]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftPageEndPoint = baseEndpoint.get
+    .in("nft" / "list")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[PageResponse[NftInfoModel]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftDetailEndPoint = baseEndpoint.get

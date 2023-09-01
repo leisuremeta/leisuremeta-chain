@@ -3,21 +3,13 @@ package io.leisuremeta.chain.lmscan.backend.service
 import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.backend.entity.Nft
-import io.leisuremeta.chain.lmscan.backend.repository.{
-  NftRepository,
-  NftFileRepository,
-}
-import io.leisuremeta.chain.lmscan.common.model.{PageNavigation, PageResponse}
-import io.leisuremeta.chain.lmscan.common.model.NftActivity
-import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.NftFileModel
+import io.leisuremeta.chain.lmscan.backend.repository._
+import io.leisuremeta.chain.lmscan.common.model._
 import cats.implicits.*
 import cats.effect.IO
 import io.leisuremeta.chain.lmscan.backend.repository.NftOwnerRepository
-import io.leisuremeta.chain.lmscan.backend.entity.NftOwner
-import io.leisuremeta.chain.lmscan.backend.entity.NftOwnerModel
+import io.leisuremeta.chain.lmscan.backend.entity._
 object NftService:
-
   def getNftDetail[F[_]: Async](
       tokenId: String, // tokenId
   ): EitherT[F, String, Option[NftDetail]] =
@@ -56,3 +48,21 @@ object NftService:
         ),
       )
     yield Some(NftDetail(nftFile, Some(activities)))
+
+  def getPage[F[_]: Async](
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[NftInfoModel]] =
+    for 
+      page <- NftInfoRepository.getPage(pageNavInfo)
+      nftInfos = page.payload.map { info =>
+        NftInfoModel(
+          tokenDefId = Some(info.tokenDefId),
+          season = Some(info.season),
+          collectionName = Some(info.collectionName),
+          collectionSn = Some(info.collectionSn),
+          totalSupply = info.totalSupply,
+          startDate = info.startDate.map(_.toInstant()),
+          endDate = info.endDate.map(_.toInstant()),
+        )
+      }
+    yield PageResponse(page.totalCount, page.totalPages, nftInfos)
