@@ -18,9 +18,11 @@ object Parse:
   import io.circe.*, io.circe.generic.semiauto.*
   given Decoder[BlockModel] = deriveDecoder[BlockModel]
   given Decoder[TxModel] = deriveDecoder[TxModel]
+  given Decoder[NftInfoModel] = deriveDecoder[NftInfoModel]
   given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
   given Decoder[BlcList] = deriveDecoder[BlcList]
   given Decoder[TxList] = deriveDecoder[TxList]
+  given Decoder[NftList] = deriveDecoder[NftList]
   given Decoder[TxDetail] = deriveDecoder[TxDetail]
   given Decoder[TransferHist] = deriveDecoder[TransferHist]
   given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
@@ -41,6 +43,11 @@ object Parse:
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
         PageMsg.UpdateBlc(decode[BlcList](response.body).getOrElse(BlcList()))
+  def onResponse(model: NftModel): Response => Msg = response =>
+    parse(response.body) match
+      case Left(parsingError) => ErrorMsg
+      case Right(json) =>
+        PageMsg.UpdateNft(decode[NftList](response.body).getOrElse(NftList()))
 
   def onResponse(model: TxDetail): Response => Msg = response =>
     parse(response.body) match
@@ -78,6 +85,7 @@ object DataProcess:
   def getList(api: (Int, Int) => String, page: Int = 0, size: Int = 10) = api(page, size)
   def blist(page: Int, size: Int) = s"${base}block/list?pageNo=${page}&sizePerRequest=${size}"
   def tlist(page: Int, size: Int) = s"${base}tx/list?pageNo=${page}&sizePerRequest=${size}"
+  def nlist(page: Int, size: Int) = s"${base}nft/list?pageNo=${page}&sizePerRequest=${size}"
   def getData(model: TxModel): Cmd[IO, Msg] =
     Http.send(
       Request.get(getList(api = tlist, page = model.page - 1, size = model.size)).withTimeout(30.seconds),
@@ -86,6 +94,11 @@ object DataProcess:
   def getData(model: BlockModel): Cmd[IO, Msg] =
     Http.send(
       Request.get(getList(api = blist, page = model.page - 1, size = model.size)).withTimeout(30.seconds),
+      Decoder[Msg](Parse.onResponse(model), onError)
+    )
+  def getData(model: NftModel): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(getList(api = nlist, page = model.page - 1, size = model.size)).withTimeout(30.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(detail: TxDetail): Cmd[IO, Msg] =

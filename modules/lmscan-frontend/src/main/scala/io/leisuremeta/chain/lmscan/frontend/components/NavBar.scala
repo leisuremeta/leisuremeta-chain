@@ -37,8 +37,9 @@ object NavBar:
       case _: BlockPage => blc
       case _: BlockDetailPage => blc
       case _: TxPage => tx
+      case _: NftPage => nft
       case _: TxDetailPage => tx
-      case _: NftDetailPage => tx
+      case _: NftDetailPage => nft
       case _: AccountDetailPage => tx
       case _ => ""
 

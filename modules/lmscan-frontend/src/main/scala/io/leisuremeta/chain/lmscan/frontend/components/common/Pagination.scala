@@ -28,6 +28,7 @@ object Pagination:
     def goTo(v: Int) = model match
       case _: BlockModel => UpdateBlockPage(v)
       case _: TxModel => UpdateTxPage(v)
+      case _: NftModel => UpdateNftPage(v)
 
     div(
       `class` := s"_search table-search xy-center",

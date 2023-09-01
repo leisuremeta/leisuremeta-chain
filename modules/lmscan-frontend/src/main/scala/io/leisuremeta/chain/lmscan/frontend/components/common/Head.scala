@@ -12,6 +12,17 @@ object Head:
     ),
   )
 
+  val nfts = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head(""),
+      Cell.Head("Season"),
+      Cell.Head("NFT"),
+      Cell.Head("Total Supply"),
+      Cell.Head("Sale Started"),
+      Cell.Head("Sale Ended"),
+    ),
+  )
+
   val nft = div(`class` := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),

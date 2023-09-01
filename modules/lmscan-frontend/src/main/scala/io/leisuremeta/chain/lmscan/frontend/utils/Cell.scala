@@ -6,6 +6,7 @@ import scala.util.matching.Regex
 import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
+import java.time.Instant
 
 enum Cell:
   case Image(data: Option[String])              extends Cell
@@ -18,8 +19,10 @@ enum Cell:
   )                                                             extends Cell
   case Balance(data: Option[BigDecimal], css: String = "cell")  extends Cell
   case AGE(data: Option[Long])                                  extends Cell
+  case DateS(data: Option[Instant], css: String = "cell")           extends Cell
   case DATE(data: Option[Long], css: String = "cell")           extends Cell
   case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
+  case NftToken(data: NftInfoModel)                         extends Cell
   case BLOCK_HASH(data: Option[String])                         extends Cell
   case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
   case TX_HASH(data: Option[String])                            extends Cell
@@ -143,6 +146,12 @@ object gen:
             },
           )
 
+      case Cell.DateS(data, css) =>
+        div(`class` := s"$css")(
+          data match
+            case None => ""
+            case Some(v) => v.toString
+        )
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
             {
@@ -163,6 +172,13 @@ object gen:
             ),
           )(plainLong(number))
 
+      case Cell.NftToken(nftInfo) =>
+        div(
+          `class` := "cell type-3",
+          // onClick(
+          //   RouterMsg.NavigateTo(BlockDetailPage(nftInfo.tokenDefId)),
+          // ),
+        )(plainStr(nftInfo.collectionName))
       case Cell.BLOCK_HASH(hash) =>
         div(
           `class` := "cell type-3",

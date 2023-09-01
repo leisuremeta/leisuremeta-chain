@@ -739,6 +739,9 @@
     height: 35px;
     gap: 10px;
 }
+.app-table.nfts .table-body {
+    height: 70px;
+}
 
 .row {
     display: grid;
@@ -752,6 +755,12 @@
 }
 .tx .row {
     grid-template-columns: auto 12% 14% 32% 10%;
+}
+.nfts .row {
+    grid-template-columns: 70px 12% auto 10% 15% 15%;
+}
+.nfts .nft-image {
+    height: 100%;
 }
 .nft .row {
     grid-template-columns: auto 12% 14% 25% 25%;

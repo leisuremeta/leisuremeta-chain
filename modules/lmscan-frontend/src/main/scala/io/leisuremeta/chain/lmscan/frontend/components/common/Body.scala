@@ -56,6 +56,23 @@ object Body:
         ),
       )
 
+  def nfts = (payload: List[NftInfoModel]) =>
+    payload
+      .map(v =>
+        div(
+          `class` := "row table-body",
+        )(
+          gen.cell(
+            Cell.Image(v.thumbUrl),
+            Cell.PlainStr(v.season),
+            Cell.NftToken(v),
+            Cell.PlainStr(v.totalSupply),
+            Cell.DateS(v.startDate),
+            Cell.DateS(v.endDate),
+          ),
+        ),
+      )
+
   def nft = (payload: List[NftActivity]) =>
     payload
       .map(v =>

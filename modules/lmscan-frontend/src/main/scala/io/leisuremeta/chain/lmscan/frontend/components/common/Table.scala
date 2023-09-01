@@ -65,6 +65,14 @@ object Table:
         case None    => LoaderView.view
         case Some(_) => div(),
     )
+  def view(model: NftModel) =
+    div(`class` := "table-container position-relative app-table nfts")(
+      Table.nft(model.list),
+      Pagination.view(model),
+      model.list match
+        case None    => LoaderView.view
+        case Some(_) => div(),
+    )
 
   def view(model: TxModel): Html[Msg] =
     div(`class` := "table-container app-table tx w-[100%]")(
@@ -101,6 +109,12 @@ object Table:
       list match
         case Some(v) => Head.block :: Body.blocks(v.payload)
         case None    => List(Head.block),
+    )
+  def nft(list: Option[NftList]) =
+    div(`class` := "app-table blc w-[100%]")(
+      list match
+        case Some(v) => Head.nfts :: Body.nfts(v.payload)
+        case None    => List(Head.nfts),
     )
   def view(list: Seq[TxInfo]) =
     Head.tx :: Body.txlist_txtable_off(list.toList)
