@@ -10,4 +10,11 @@ final case class NftSeasonModel(
     creator: Option[String] = None,
     rarity: Option[String] = None,
     thumbUrl: Option[String] = None,
-)
+):
+  def getCollection =
+    val regex = "collections/(.*)/NFT_ITEM".r
+    regex.findFirstMatchIn(thumbUrl.getOrElse("")) match
+      case Some(m) => m.group(1)
+      case None => ""
+    
+    

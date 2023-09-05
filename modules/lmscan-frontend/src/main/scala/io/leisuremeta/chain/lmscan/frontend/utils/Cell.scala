@@ -23,6 +23,7 @@ enum Cell:
   case DATE(data: Option[Long], css: String = "cell")           extends Cell
   case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
   case NftToken(data: NftInfoModel)                         extends Cell
+  case NftDetail(data: NftSeasonModel, s: Option[String])                         extends Cell
   case BLOCK_HASH(data: Option[String])                         extends Cell
   case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
   case TX_HASH(data: Option[String])                            extends Cell
@@ -175,10 +176,18 @@ object gen:
       case Cell.NftToken(nftInfo) =>
         div(
           `class` := "cell type-3",
-          // onClick(
-          //   RouterMsg.NavigateTo(BlockDetailPage(nftInfo.tokenDefId)),
-          // ),
+          onClick(
+            // RouterMsg.NavigateTo(NftTokenPage(nftInfo.tokenDefId.getOrElse(""))),
+            RouterMsg.NavigateTo(NftTokenPage("202301181200423709")),
+          ),
         )(plainStr(nftInfo.collectionName))
+      case Cell.NftDetail(nftInfo, s) =>
+        div(
+          `class` := "cell type-3",
+          onClick(
+            RouterMsg.NavigateTo(NftDetailPage(nftInfo.tokenId.getOrElse(""))),
+          ),
+        )(plainStr(s))
       case Cell.BLOCK_HASH(hash) =>
         div(
           `class` := "cell type-3",

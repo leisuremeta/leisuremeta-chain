@@ -47,6 +47,14 @@ object Update:
           Nav.pushUrl(s"/nfts/$page"),
         )
       )
+    case UpdateNftTokenPage(id: String, page: Int) =>
+      (
+        model.copy(nftTokenPage = NftTokenModel(id = id, page = page)), 
+        Cmd.Batch(
+          DataProcess.getData(NftTokenModel(id = id, page = page)),
+          Nav.pushUrl(s"/nft/$id/$page"),
+        )
+      )
     case UpdateSummary => (model, DataProcess.getData(model.summary))
     case UpdateChart => (model, DataProcess.getData(model.chartData))
 
@@ -55,6 +63,7 @@ object Update:
     case PageMsg.UpdateTx(value: TxList) => (model.copy(txPage = model.txPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.UpdateBlc(value: BlcList) => (model.copy(blcPage = model.blcPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.UpdateNft(value: NftList) => (model.copy(nftPage = model.nftPage.copy(list = Some(value))), Cmd.None)
+    case PageMsg.UpdateNftToken(value: NftTokenList) => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) => (model.copy(summary = value), Cmd.None)
     case PageMsg.UpdateChart(value: List[SummaryModel]) => (model.copy(chartData = value.reverse), Cmd.None)
     case PageMsg.UpdateTxDetail(v: TxDetail) => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))

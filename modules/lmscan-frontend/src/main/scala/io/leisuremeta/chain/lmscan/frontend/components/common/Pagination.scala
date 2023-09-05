@@ -29,6 +29,7 @@ object Pagination:
       case _: BlockModel => UpdateBlockPage(v)
       case _: TxModel => UpdateTxPage(v)
       case _: NftModel => UpdateNftPage(v)
+      case n: NftTokenModel => UpdateNftTokenPage(n.id, v)
 
     div(
       `class` := s"_search table-search xy-center",

@@ -73,6 +73,23 @@ object Body:
         ),
       )
 
+
+  def nftToken = (payload: List[NftSeasonModel]) =>
+    payload
+      .map(v =>
+        div(
+          `class` := "row table-body",
+        )(
+          gen.cell(
+            Cell.NftDetail(v, v.nftName),
+            Cell.Any(v.getCollection),
+            Cell.NftDetail(v, v.tokenId),
+            Cell.PlainStr(v.creator),
+            Cell.PlainStr(v.rarity),
+          ),
+        ),
+      )
+
   def nft = (payload: List[NftActivity]) =>
     payload
       .map(v =>

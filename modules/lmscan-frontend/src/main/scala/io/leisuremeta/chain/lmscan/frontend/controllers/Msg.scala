@@ -27,6 +27,7 @@ case object UpdateChart extends Msg
 case class UpdateBlockPage(value: Int) extends ListMsg
 case class UpdateTxPage(value: Int) extends ListMsg
 case class UpdateNftPage(value: Int) extends ListMsg
+case class UpdateNftTokenPage(id: String, value: Int) extends ListMsg
 
 sealed trait SearchMsg extends Msg:
   val v: Int
@@ -38,6 +39,7 @@ enum PageMsg extends Msg:
   case UpdateBlc(value: BlcList) extends PageMsg
   case UpdateTx(value: TxList) extends PageMsg
   case UpdateNft(value: NftList) extends PageMsg
+  case UpdateNftToken(value: NftTokenList) extends PageMsg
   case Update1(value: SummaryModel) extends PageMsg
   case UpdateChart(value: List[SummaryModel]) extends PageMsg
 

@@ -762,6 +762,9 @@
 .nfts .nft-image {
     height: 100%;
 }
+.nft-token .row {
+    grid-template-columns: 12% auto 20% 15% 13%;
+}
 .nft .row {
     grid-template-columns: auto 12% 14% 25% 25%;
 }
