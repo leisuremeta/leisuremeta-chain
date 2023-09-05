@@ -97,42 +97,42 @@ object DataProcess:
   def ntlist(id: String, page: Int, size: Int) = s"${base}nft/$id?pageNo=${page}&sizePerRequest=${size}"
   def getData(model: TxModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(getList(api = tlist, page = model.page - 1, size = model.size)).withTimeout(30.seconds),
+      Request.get(getList(api = tlist, page = model.page - 1, size = model.size)).withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(model: BlockModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(getList(api = blist, page = model.page - 1, size = model.size)).withTimeout(30.seconds),
+      Request.get(getList(api = blist, page = model.page - 1, size = model.size)).withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(model: NftModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(getList(api = nlist, page = model.page - 1, size = model.size)).withTimeout(30.seconds),
+      Request.get(getList(api = nlist, page = model.page - 1, size = model.size)).withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(model: NftTokenModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(ntlist(model.id, model.page - 1, model.size)).withTimeout(30.seconds),
+      Request.get(ntlist(model.id, model.page - 1, model.size)).withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(detail: TxDetail): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(30.seconds),
+      Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
   def getData(detail: BlockDetail): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(30.seconds),
+      Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
   def getData(detail: AccountDetail): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}account/${detail.address.getOrElse("")}/detail").withTimeout(30.seconds),
+      Request.get(s"${base}account/${detail.address.getOrElse("")}/detail").withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
   def getData(model: NftFileModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(30.seconds),
+      Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(NftDetail()), onError)
     )
   def getData(model: SummaryModel): Cmd[IO, Msg] =

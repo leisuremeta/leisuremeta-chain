@@ -52,7 +52,7 @@ object Table:
           case None => LoaderView.view
           case Some(v) =>
             div(`class` := "app-table")(
-              Head.tx_dashBoard :: Body.dashboard_txtable(v.payload),
+              Head.tx_dashBoard :: Body.dashboard_txtable(v.payload.toList),
             ),
       ),
     )
@@ -88,7 +88,7 @@ object Table:
         case None => LoaderView.view
         case Some(v) =>
           div(`class` := "")(
-            Head.tx :: Body.txlist_txtable_off(v.payload),
+            Head.tx :: Body.txlist_txtable_off(v.payload.toList),
           )
       ,
       Pagination.view(model),
@@ -115,19 +115,19 @@ object Table:
   def block(list: Option[BlcList]) =
     div(`class` := "app-table blc w-[100%]")(
       list match
-        case Some(v) => Head.block :: Body.blocks(v.payload)
+        case Some(v) => Head.block :: Body.blocks(v.payload.toList)
         case None    => List(Head.block),
     )
   def nft(list: Option[NftList]) =
     div(`class` := "app-table blc w-[100%]")(
       list match
-        case Some(v) => Head.nfts :: Body.nfts(v.payload)
+        case Some(v) => Head.nfts :: Body.nfts(v.payload.toList)
         case None    => List(Head.nfts),
     )
   def nftToken(list: Option[NftTokenList]) =
     div(`class` := "app-table blc w-[100%]")(
       list match
-        case Some(v) => Head.nftToken :: Body.nftToken(v.payload)
+        case Some(v) => Head.nftToken :: Body.nftToken(v.payload.toList)
         case None    => List(Head.nftToken),
     )
   def view(list: Seq[TxInfo]) =

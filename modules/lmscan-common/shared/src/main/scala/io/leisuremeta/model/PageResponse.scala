@@ -7,9 +7,3 @@ final case class PageResponse[T](
     totalPages: Int = 0,
     payload: Seq[T] = Seq(),
 ) extends ApiModel
-
-final case class PageResponseOpt[T](
-    totalCount: Long,
-    totalPages: Int,
-    payload: Option[Seq[T]],
-) extends ApiModel 
