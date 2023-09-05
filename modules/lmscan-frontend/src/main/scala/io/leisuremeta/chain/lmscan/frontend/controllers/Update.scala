@@ -65,7 +65,7 @@ object Update:
     case PageMsg.UpdateNft(value: NftList) => (model.copy(nftPage = model.nftPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.UpdateNftToken(value: NftTokenList) => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(value))), Cmd.None)
     case PageMsg.Update1(value: SummaryModel) => (model.copy(summary = value), Cmd.None)
-    case PageMsg.UpdateChart(value: List[SummaryModel]) => (model.copy(chartData = value.reverse), Cmd.None)
+    case PageMsg.UpdateChart(value: SummaryChart) => (model.copy(chartData = value), Cmd.None)
     case PageMsg.UpdateTxDetail(v: TxDetail) => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
     case PageMsg.UpdateBlcDetail(v: BlockDetail) =>
       (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))

@@ -74,7 +74,7 @@ object Table:
         case Some(_) => div(),
     )
   def view(model: NftTokenModel) =
-    div(`class` := "table-container position-relative app-table nft-token")(
+    div(`class` := "table-container position-relative app-table nft-toekn token")(
       Table.nftToken(model.list),
       Pagination.view(model),
       model.list match

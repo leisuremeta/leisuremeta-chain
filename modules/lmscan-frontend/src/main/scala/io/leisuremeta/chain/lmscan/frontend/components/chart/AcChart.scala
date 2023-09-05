@@ -16,12 +16,12 @@ object AcChart {
       id := "chart",
     )("")
 
-  def renderDataChart(data: List[SummaryModel]): Unit=
+  def renderDataChart(data: SummaryChart): Unit=
     import typings.chartJs.mod.*
-    data match
+    data.list match
       case List() => ()
-      case _ =>
-        val gData = data.map(_.totalAccounts.getOrElse(0L)).map(_.toDouble)
-        val label = data.map(_.createdAt.getOrElse(0)).map(_.toString)
+      case list =>
+        val gData = list.map(_.totalAccounts.getOrElse(0L)).map(_.toDouble)
+        val label = list.map(_.createdAt.getOrElse(0)).map(_.toString)
         val chart = Chart.apply.newInstance2("chart", ChartConfig.config(label, gData, "accounts"))
 }

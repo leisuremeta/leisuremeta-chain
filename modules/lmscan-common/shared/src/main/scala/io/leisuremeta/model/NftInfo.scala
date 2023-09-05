@@ -12,4 +12,4 @@ final case class NftInfoModel(
     startDate: Option[Instant] = None,
     endDate: Option[Instant] = None,
     thumbUrl: Option[String] = None,
-)
+) extends ApiModel 

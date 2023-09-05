@@ -13,4 +13,4 @@ final case class NftFileModel(
     eventTime: Option[Long] = None,
     createdAt: Option[Long] = None,
     owner: Option[String] = None,
-)
+) extends ApiModel 

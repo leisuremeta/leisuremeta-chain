@@ -16,10 +16,12 @@ final case class Model(
     blcDetail: BlockDetail = BlockDetail(),
     accDetail: AccountDetail = AccountDetail(),
     nftDetail: NftDetail = NftDetail(),
-    chartData: List[SummaryModel] = List(),
+    chartData: SummaryChart = SummaryChart(),
 )
 
-trait ListPage[T]:
+case class SummaryChart(list: List[SummaryModel] = List()) extends ApiModel
+
+trait ListPage[T] extends ApiModel:
     val page: Int
     val size: Int
     val searchPage: Int

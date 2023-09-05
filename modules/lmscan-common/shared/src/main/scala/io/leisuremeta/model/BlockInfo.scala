@@ -5,4 +5,4 @@ final case class BlockInfo(
     hash: Option[String] = None,
     txCount: Option[Long] = None,
     createdAt: Option[Long] = None,
-)
+) extends ApiModel

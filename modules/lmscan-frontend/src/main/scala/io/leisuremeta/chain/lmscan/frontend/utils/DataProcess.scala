@@ -30,6 +30,7 @@ object Parse:
   given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
   given Decoder[TxInfo] = deriveDecoder[TxInfo]
   given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
+  given Decoder[SummaryChart] = deriveDecoder[SummaryChart]
   given Decoder[NftDetail] = deriveDecoder[NftDetail]
   given Decoder[NftFileModel] = deriveDecoder[NftFileModel]
   given Decoder[NftActivity] = deriveDecoder[NftActivity]
@@ -81,10 +82,10 @@ object Parse:
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) => PageMsg.Update1(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
-  def onResponse(model: List[SummaryModel]): Response => Msg = response =>
+  def onResponse(model: SummaryChart): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
-      case Right(json) => PageMsg.UpdateChart(decode[List[SummaryModel]](response.body).getOrElse(List()))
+      case Right(json) => PageMsg.UpdateChart(decode[SummaryChart](response.body).getOrElse(SummaryChart()))
 
 object DataProcess:
   val base = js.Dynamic.global.process.env.BASE_API_URL
@@ -139,7 +140,7 @@ object DataProcess:
       Request.get(s"${base}summary/main"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
-  def getData(model: List[SummaryModel]): Cmd[IO, Msg] =
+  def getData(model: SummaryChart): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}summary/chart"),
       Decoder[Msg](Parse.onResponse(model), onError)

@@ -7,4 +7,4 @@ final case class BlockDetail(
     timestamp: Option[Long] = None,
     txCount: Option[Long] = None,
     txs: Option[Seq[TxInfo]] = None,
-)
+) extends ApiModel
