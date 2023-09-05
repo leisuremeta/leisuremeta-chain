@@ -17,7 +17,7 @@ object NftInfoRepository extends CommonQuery:
       defId: String,
   ): EitherT[F, String, PageResponse[NftSeason]] =
     val cntQuery = quote {
-      query[NftInfo]
+      (defId: String) => query[NftFile].filter(s => s.tokenDefId == defId)
     }
 
     def pagedQuery =
@@ -45,7 +45,7 @@ object NftInfoRepository extends CommonQuery:
       }
 
     val res = for
-      a <- countQuery(cntQuery)
+      a <- countQuery(cntQuery(lift(defId)))
       b <- seqQuery(pagedQuery(lift(pageNavInfo), lift(defId)))
     yield (a, b)
 

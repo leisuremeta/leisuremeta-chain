@@ -24,7 +24,7 @@ object Pagination:
       case x if (x <= 2)               => 1
       case x if (x >= (totalPage - 1)) => totalPage - 4
       case x                           => (curPage - 2)
-    val btnLastPage = btnFistPage + 5
+    val btnLastPage = Math.min(totalPage + 1, btnFistPage + 5)
     def goTo(v: Int) = model match
       case _: BlockModel => UpdateBlockPage(v)
       case _: TxModel => UpdateTxPage(v)
