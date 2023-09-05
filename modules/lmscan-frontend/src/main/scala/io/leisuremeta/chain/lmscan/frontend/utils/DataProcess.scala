@@ -40,52 +40,52 @@ object Parse:
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateTx(decode[TxList](response.body).getOrElse(TxList()))
+        UpdateModel(decode[TxList](response.body).getOrElse(TxList()))
   def onResponse(model: BlockModel): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateBlc(decode[BlcList](response.body).getOrElse(BlcList()))
+        UpdateModel(decode[BlcList](response.body).getOrElse(BlcList()))
   def onResponse(model: NftModel): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateNft(decode[NftList](response.body).getOrElse(NftList()))
+        UpdateModel(decode[NftList](response.body).getOrElse(NftList()))
   def onResponse(model: NftTokenModel): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateNftToken(decode[NftTokenList](response.body).getOrElse(NftTokenList()))
+        UpdateModel(decode[NftTokenList](response.body).getOrElse(NftTokenList()))
 
   def onResponse(model: TxDetail): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateTxDetail(decode[TxDetail](response.body).getOrElse(model))
+        UpdateModel(decode[TxDetail](response.body).getOrElse(model))
   def onResponse(model: BlockDetail): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateBlcDetail(decode[BlockDetail](response.body).getOrElse(model))
+        UpdateModel(decode[BlockDetail](response.body).getOrElse(model))
   def onResponse(model: AccountDetail): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateAccDetail(decode[AccountDetail](response.body).getOrElse(model))
+        UpdateModel(decode[AccountDetail](response.body).getOrElse(model))
   def onResponse(model: NftDetail): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
       case Right(json) =>
-        PageMsg.UpdateNftDetail(decode[NftDetail](response.body).getOrElse(model))
+        UpdateModel(decode[NftDetail](response.body).getOrElse(model))
 
   def onResponse(model: SummaryModel): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
-      case Right(json) => PageMsg.Update1(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
+      case Right(json) => UpdateModel(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
   def onResponse(model: SummaryChart): Response => Msg = response =>
     parse(response.body) match
       case Left(parsingError) => ErrorMsg
-      case Right(json) => PageMsg.UpdateChart(decode[SummaryChart](response.body).getOrElse(SummaryChart()))
+      case Right(json) => UpdateModel(decode[SummaryChart](response.body).getOrElse(SummaryChart()))
 
 object DataProcess:
   val base = js.Dynamic.global.process.env.BASE_API_URL

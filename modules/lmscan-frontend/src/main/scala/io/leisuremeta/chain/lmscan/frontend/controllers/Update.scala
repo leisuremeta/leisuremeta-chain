@@ -60,16 +60,15 @@ object Update:
 
     case UpdateBlcsSearch(v: Int) => (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
     case UpdateTxsSearch(v: Int) => (model.copy(txPage = model.txPage.copy(searchPage = v)), Cmd.None)
-    case PageMsg.UpdateTx(value: TxList) => (model.copy(txPage = model.txPage.copy(list = Some(value))), Cmd.None)
-    case PageMsg.UpdateBlc(value: BlcList) => (model.copy(blcPage = model.blcPage.copy(list = Some(value))), Cmd.None)
-    case PageMsg.UpdateNft(value: NftList) => (model.copy(nftPage = model.nftPage.copy(list = Some(value))), Cmd.None)
-    case PageMsg.UpdateNftToken(value: NftTokenList) => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(value))), Cmd.None)
-    case PageMsg.Update1(value: SummaryModel) => (model.copy(summary = value), Cmd.None)
-    case PageMsg.UpdateChart(value: SummaryChart) => (model.copy(chartData = value), Cmd.None)
-    case PageMsg.UpdateTxDetail(v: TxDetail) => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
-    case PageMsg.UpdateBlcDetail(v: BlockDetail) =>
-      (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))
-    case PageMsg.UpdateAccDetail(v: AccountDetail) =>
-      (model.copy(accDetail = v), Nav.pushUrl(s"/account/${v.address.getOrElse("")}"))
-    case PageMsg.UpdateNftDetail(v: NftDetail) =>
-      (model.copy(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.getOrElse(NftFileModel()).tokenId.getOrElse("")}"))
+
+    case UpdateModel(v: ApiModel) => v match
+      case v: TxList => (model.copy(txPage = model.txPage.copy(list = Some(v))), Cmd.None)
+      case v: BlcList => (model.copy(blcPage = model.blcPage.copy(list = Some(v))), Cmd.None)
+      case v: NftList => (model.copy(nftPage = model.nftPage.copy(list = Some(v))), Cmd.None)
+      case v: NftTokenList => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(v))), Cmd.None)
+      case v: SummaryModel => (model.copy(summary = v), Cmd.None)
+      case v: SummaryChart => (model.copy(chartData = v), Cmd.None)
+      case v: TxDetail => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
+      case v: BlockDetail => (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))
+      case v: AccountDetail => (model.copy(accDetail = v), Nav.pushUrl(s"/account/${v.address.getOrElse("")}"))
+      case v: NftDetail => (model.copy(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.getOrElse(NftFileModel()).tokenId.getOrElse("")}"))

@@ -34,22 +34,7 @@ sealed trait SearchMsg extends Msg:
 case class UpdateBlcsSearch(v: Int) extends SearchMsg
 case class UpdateTxsSearch(v: Int) extends SearchMsg
 
-// case class UpdateModel(model: ApiModel) extends Msg
-enum PageMsg extends Msg:
-  // 데이터 업데이트
-  case UpdateBlc(value: BlcList) extends PageMsg
-  case UpdateTx(value: TxList) extends PageMsg
-  case UpdateNft(value: NftList) extends PageMsg
-  case UpdateNftToken(value: NftTokenList) extends PageMsg
-  case Update1(value: SummaryModel) extends PageMsg
-  case UpdateChart(value: SummaryChart) extends PageMsg
-
-  case UpdateTxDetail(v: TxDetail) extends PageMsg
-
-  case UpdateBlcDetail(v: BlockDetail) extends  PageMsg
-
-  case UpdateAccDetail(v: AccountDetail) extends  PageMsg
-  case UpdateNftDetail(v: NftDetail) extends  PageMsg
+case class UpdateModel(model: ApiModel) extends Msg
 
 case class PopupMsg(value: Boolean) extends Msg
 

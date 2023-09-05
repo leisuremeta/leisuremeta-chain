@@ -27,9 +27,9 @@ trait ListPage[T] extends ApiModel:
     val searchPage: Int
     val list: Option[ListType[T]]
 
-trait ListType[T]:
+trait ListType[T] extends ApiModel:
     val totalCount: Long
-    val totalPages: Long
+    val totalPages: Int
     val payload: List[T]
 
 final case class TxModel(
@@ -62,24 +62,24 @@ final case class NftTokenModel(
 
 final case class BlcList(
     totalCount: Long = 0,
-    totalPages: Long = 0,
+    totalPages: Int = 0,
     payload: List[BlockInfo] = List(),
 ) extends ListType[BlockInfo]
 
 final case class TxList(
     totalCount: Long = 0,
-    totalPages: Long = 0,
+    totalPages: Int = 0,
     payload: List[TxInfo] = List(),
 ) extends ListType[TxInfo]
 
 final case class NftList(
     totalCount: Long = 0,
-    totalPages: Long = 0,
+    totalPages: Int = 0,
     payload: List[NftInfoModel] = List(),
 ) extends ListType[NftInfoModel]
 
 final case class NftTokenList(
     totalCount: Long = 0,
-    totalPages: Long = 0,
+    totalPages: Int = 0,
     payload: List[NftSeasonModel] = List(),
 ) extends ListType[NftSeasonModel]
