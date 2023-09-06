@@ -3,7 +3,7 @@ package bulkinsert
 
 import java.time.temporal.ChronoUnit
 
-import cats.data.{EitherT, StateT}
+import cats.data.{EitherT, OptionT, StateT}
 import cats.effect.Async
 import cats.syntax.all.*
 
@@ -17,6 +17,7 @@ import api.model.{
 }
 import api.model.TransactionWithResult.ops.*
 import api.model.account.{ExternalChain, ExternalChainAddress}
+import api.model.token.TokenId
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
@@ -243,24 +244,28 @@ object RecoverTx:
             val txWithResult = TransactionWithResult(Signed(sig, tn))(None)
             val txHash       = txWithResult.toHash
             val utxoKey = (sig.account, tn.tokenId, tn.input.toResultHashValue)
+
             val program = for
               isRemoveSuccessful <- PlayNommState[F].token.nftBalance
                 .remove(utxoKey)
                 .mapK:
                   PlayNommDAppFailure.mapInternal:
                     s"Fail to remove nft balance of $utxoKey"
-              _ <- StateT.liftF:
-                if !isRemoveSuccessful then
-                  EitherT.right:
-                    InvalidTxLogger[F].log:
-                      InvalidTx(
-                        signer = sig.account,
-                        reason = InvalidReason.BalanceNotExist,
-                        amountToBurn = BigNat.Zero,
-                        tx = tn,
-                        wrongNftInput = Some(tn.tokenId),
-                      )
-                else EitherT.pure(())
+              _ <-
+                if isRemoveSuccessful then StateT.liftF(EitherT.pure(()))
+                else if sig.account === Account(Utf8.unsafeFrom("playnomm"))
+                then removePreviousNftBalance(tn.tokenId)
+                else
+                  StateT.liftF:
+                    EitherT.right:
+                      InvalidTxLogger[F].log:
+                        InvalidTx(
+                          signer = sig.account,
+                          reason = InvalidReason.BalanceNotExist,
+                          amountToBurn = BigNat.Zero,
+                          tx = tn,
+                          wrongNftInput = Some(tn.tokenId),
+                        )
               newUtxoKey = (tn.output, tn.tokenId, txHash)
               _ <- PlayNommState[F].token.nftBalance
                 .put(newUtxoKey, ())
@@ -423,30 +428,12 @@ object RecoverTx:
 
           case de: Transaction.TokenTx.DisposeEntrustedNFT =>
             val program = for
-              _ <- PlayNommDAppAccount.verifySignature(sig, tx)
               fromAccount <- PlayNommDAppToken
                 .getEntrustedNFT(
                   de.input.toResultHashValue,
                   sig.account,
                 )
                 .map(_._1)
-                .transformF: eitherT =>
-                  eitherT.recoverWith:
-                    case err: PlayNommDAppFailure =>
-                      val pf: F[(MerkleTrieState, Account)] =
-                        val invalidTx = InvalidTx(
-                          signer = sig.account,
-                          reason = InvalidReason.BalanceNotExist,
-                          amountToBurn = BigNat.Zero,
-                          tx = de,
-                          wrongNftInput = Some(de.tokenId),
-                        )
-                        InvalidTxLogger[F]
-                          .log(invalidTx)
-                          .map(_ => (ms, sig.account))
-                      EitherT.right(pf)
-              txWithResult = TransactionWithResult(Signed(sig, de))(None)
-              txHash       = txWithResult.toHash
               utxoKey = (
                 fromAccount,
                 sig.account,
@@ -458,54 +445,44 @@ object RecoverTx:
                 .mapK:
                   PlayNommDAppFailure.mapInternal:
                     s"Fail to remove entrust nft balance of $utxoKey"
-              txWithResultOption =
-                if isRemoveSuccessful then Some(txWithResult)
-                else
-                  scribe.error(s"No entrust nft balance of $utxoKey in tx $tx")
-                  None
               _ <-
-                if isRemoveSuccessful then
-                  unit[F].flatMapF: _ =>
-                    EitherT.liftF:
+                if isRemoveSuccessful then unit[F]
+                else
+                  removePreviousNftBalance[F](de.tokenId) *> StateT.liftF:
+                    EitherT.right:
                       InvalidTxLogger[F].log:
                         InvalidTx(
                           signer = sig.account,
-                          reason = InvalidReason.InputAlreadyUsed,
+                          reason = InvalidReason.BalanceNotExist,
                           amountToBurn = BigNat.Zero,
                           tx = de,
+                          wrongNftInput = Some(de.tokenId),
                         )
-                else
-                  val newUtxoKey = (
-                    de.output.getOrElse(fromAccount),
-                    de.tokenId,
-                    txHash,
-                  )
-                  for
-                    _ <- PlayNommState[F].token.nftBalance
-                      .put(newUtxoKey, ())
-                      .mapK:
-                        PlayNommDAppFailure.mapInternal:
-                          s"Fail to put nft balance of $newUtxoKey"
-                    _ <- de.output.fold(unit): toAddress =>
-                      for
-                        nftStateOption <- PlayNommState[F].token.nftState
-                          .get(de.tokenId)
-                          .mapK:
-                            PlayNommDAppFailure.mapInternal:
-                              s"Fail to get nft state of ${de.tokenId}"
-                        nftState <- fromOption(
-                          nftStateOption,
-                          s"Empty NFT State: ${de.tokenId}",
-                        )
-                        nftState1 = nftState.copy(currentOwner = toAddress)
-                        _ <- PlayNommState[F].token.nftState
-                          .put(de.tokenId, nftState1)
-                          .mapK:
-                            PlayNommDAppFailure.mapInternal:
-                              s"Fail to put nft state of ${de.tokenId}"
-                      yield ()
-                  yield ()
-            yield txWithResultOption
+              txWithResult = TransactionWithResult(Signed(sig, de))(None)
+              txHash       = txWithResult.toHash
+              toAccount = de.output.getOrElse(fromAccount)
+              newUtxoKey = (toAccount, de.tokenId, txHash)
+              _ <- PlayNommState[F].token.nftBalance
+                .put(newUtxoKey, ())
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put nft balance of $newUtxoKey"
+              nftStateOption <- PlayNommState[F].token.nftState
+                .get(de.tokenId)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to get nft state of ${de.tokenId}"
+              nftState <- fromOption(
+                nftStateOption,
+                s"Empty NFT State: ${de.tokenId}",
+              )
+              nftState1 = nftState.copy(currentOwner = toAccount)
+              _ <- PlayNommState[F].token.nftState
+                .put(de.tokenId, nftState1)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put nft state of ${de.tokenId}"
+            yield Option(txWithResult)
 
             program
               .run(ms)
@@ -593,3 +570,63 @@ object RecoverTx:
               .run(ms)
               .map: (ms, txWithResult) =>
                 (ms, Option(txWithResult))
+
+  def removePreviousNftBalance[F[_]: Async: PlayNommState: TransactionRepository: InvalidTxLogger](
+      tokenId: TokenId,
+  ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Unit] =
+    val removePreviousNftBalanceOptionT = for
+      nftState <- OptionT:
+        PlayNommState[F].token.nftState
+          .get(tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get nft state of ${tokenId}"
+      currentOwner = nftState.currentOwner
+      nftBalanceStream <- OptionT.liftF:
+        PlayNommState[F].token.nftBalance
+          .streamWithPrefix((currentOwner, tokenId).toBytes)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get nft balance of $currentOwner"
+      currentBalance <- OptionT:
+        StateT.liftF:
+          nftBalanceStream.head.compile.toList
+            .leftMap: msg =>
+              PlayNommDAppFailure.internal(
+                s"Fail to get nft balance of $currentOwner: $msg",
+              )
+            .map(_.headOption)
+      currentUtxoHash = currentBalance._1._3
+      _ <- OptionT.liftF:
+        for
+          _ <- PlayNommState[F].token.nftBalance
+            .remove((currentOwner, tokenId, currentUtxoHash))
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to remove nft balance of $currentOwner"
+          _ <- StateT.liftF:
+            for
+              txOption <- TransactionRepository[F]
+                .get(currentUtxoHash)
+                .leftMap: e =>
+                  PlayNommDAppFailure.internal(e.msg)
+              tx <- EitherT.fromOption(
+                txOption,
+                PlayNommDAppFailure.internal(
+                  s"Fail to get tx of $currentUtxoHash",
+                ),
+              )
+              _ <- EitherT.right:
+                InvalidTxLogger[F].log:
+                  InvalidTx(
+                    signer = tx.signedTx.sig.account,
+                    reason = InvalidReason.CanceledBalance,
+                    amountToBurn = BigNat.Zero,
+                    tx = tx.signedTx.value,
+                    wrongNftInput = Some(tokenId),
+                  )
+            yield ()
+        yield ()
+    yield ()
+
+    removePreviousNftBalanceOptionT.value.map(_ => ())

@@ -20,7 +20,7 @@ final case class InvalidTx(
   def txType: String = tx.getClass.getSimpleName
 
 enum InvalidReason:
-  case OutputMoreThanInput, InputAlreadyUsed, BalanceNotExist
+  case OutputMoreThanInput, InputAlreadyUsed, BalanceNotExist, CanceledBalance
 
 trait InvalidTxLogger[F[_]]:
   def log(invalidTx: InvalidTx): F[Unit]

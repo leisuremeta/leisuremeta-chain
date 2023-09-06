@@ -153,9 +153,10 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
 
 object BulkInsertMain extends IOApp:
 
+  val offset: Long = 0L
 //  val offset: Long = 527856L
 //  val offset: Long = 533359L
-  val offset: Long = 534366L
+//  val offset: Long = 534366L
   
   override def run(args: List[String]): IO[ExitCode] =
     NodeConfig
@@ -186,15 +187,14 @@ object BulkInsertMain extends IOApp:
           yield result
 
           program.use(IO.pure)
-
-          fileResource[IO]("txs.archive")
-            .use: source =>
-              NftBalanceState.build(source).flatTap: state =>
-                IO.pure:
-                  ()
+//          fileResource[IO]("txs.archive")
+//            .use: source =>
+//              NftBalanceState.build(source).flatTap: state =>
+//                IO.pure(())
+//                  ()
 //              FungibleBalanceState.build(source).flatTap: state =>
 //                IO.pure:
 //                  ()
 //                  state.free.foreach(println)
 //                  state.locked.foreach(println)
-            .as(ExitCode.Success)
+//            .as(ExitCode.Success)
