@@ -19,8 +19,6 @@ final case class Model(
     chartData: SummaryChart = SummaryChart(),
 )
 
-case class SummaryChart(list: List[SummaryModel] = List()) extends ApiModel
-
 trait ListPage[T] extends ApiModel:
     val page: Int
     val size: Int

@@ -12,9 +12,10 @@ import io.leisuremeta.chain.lmscan.backend.repository.BlockRepository
 object BlockService:
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[BlockInfo]] =
+  ): EitherT[F, Either[String, String], PageResponse[BlockInfo]] =
     for 
-      page <- BlockRepository.getPage(pageNavInfo)
+      page <- BlockRepository.getPage(pageNavInfo).leftMap:
+        e => Left(e)
       blockInfos = page.payload.map { block =>
         BlockInfo(
           Some(block.number),
@@ -27,17 +28,17 @@ object BlockService:
 
   def get[F[_]: Async](
       hash: String,
-  ): EitherT[F, String, Option[Block]] =
-    BlockRepository.get(hash)
+  ): EitherT[F, Either[String, String], Option[Block]] =
+    BlockRepository.get(hash).leftMap(Left(_))
   
   def getByNumber[F[_]: Async](
       number: Long,
-  ): EitherT[F, String, Option[Block]] =
-    BlockRepository.getByNumber(number)
+  ): EitherT[F, Either[String, String], Option[Block]] =
+    BlockRepository.getByNumber(number).leftMap(Left(_))
 
   def getDetail[F[_]: Async](
       hash: String,
-  ): EitherT[F, String, Option[BlockDetail]] =
+  ): EitherT[F, Either[String, String], Option[BlockDetail]] =
     for
       block <- get(hash)
       txPage <- TransactionService.getPageByBlock(

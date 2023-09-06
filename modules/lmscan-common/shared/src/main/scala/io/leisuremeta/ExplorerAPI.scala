@@ -6,21 +6,8 @@ import sttp.tapir.EndpointIO
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 import io.circe.generic.auto.*
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.common.model.PageNavigation
-import io.leisuremeta.chain.lmscan.common.model.AccountDetail
-import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.{
-  TxDetail,
-  TxInfo,
-  BlockInfo,
-  BlockDetail,
-}
-import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-
+import io.leisuremeta.chain.lmscan.common.model._
 import io.circe.*
-import io.leisuremeta.chain.lmscan.common.model.NftInfoModel
-import io.leisuremeta.chain.lmscan.common.model.NftSeasonModel
 
 object ExploreApi:
   opaque type Utf8 = String
@@ -138,7 +125,7 @@ object ExploreApi:
   val getSummaryChartEndPoint = baseEndpoint.get
     .in("summary")
     .in("chart")
-    .out(jsonBody[Option[Seq[SummaryModel]]])
+    .out(jsonBody[SummaryChart])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTotalBalance = baseEndpoint.get

@@ -54,148 +54,105 @@ object BackendMain extends IOApp:
           subType,
       ) =>
         scribe.info(s"txPaging request pageInfo: $pageInfo")
-        val result = TransactionService
+        TransactionService
           .getPageByFilter[F](pageInfo, accountAddr, blockHash, subType)
-          .leftMap { (errMsg: String) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-          }
-        result.value
+          .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def txDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
       scribe.info(s"txDetail request hash: $hash")
-      val result = TransactionService
+      TransactionService
         .getDetail(hash)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
+}
   def blockPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       scribe.info(s"blockPaging request pageInfo: $pageInfo")
-      val result = BlockService
+      BlockService
         .getPage[F](pageInfo)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
-      scribe.info(s"blockDetail request hash: $hash")
-      val result = BlockService
+      BlockService
         .getDetail(hash)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
-
-  // def txPageByBlock[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getTxPageByBlockEndPoint.serverLogic {
-  //     (blockHash: String, pageInfo: PageNavigation) =>
-  //       scribe.info(s"txPageByBlock request pageInfo: $pageInfo")
-  //       val result = TransactionService
-  //         .getPageByBlock[F](blockHash, pageInfo)
-  //         .leftMap { (errMsg: String) =>
-  //           scribe.error(s"errorMsg: $errMsg")
-  //           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-  //         }
-  //       println(s"result.value: ${result.value}")
-  //       result.value
-  //   }
 
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getAccountDetailEndPoint.serverLogic { (address: String) =>
-      scribe.info(s"accountDetail request address: $address")
-      val result = AccountService
+      AccountService
         .get(address)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def nftDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getNftDetailEndPoint.serverLogic { (tokenId: String) =>
       scribe.info(s"nftDetail request tokenId: $tokenId")
-      val result = NftService
+      NftService
         .getNftDetail(tokenId)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def nftSeasonPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getNftSeasonEndPoint.serverLogic { (tokenId: String, pageInfo: PageNavigation) =>
       scribe.info(s"nftSeasonPaging request pageInfo: $pageInfo")
-      val result = NftService
+      NftService
         .getSeasonPage[F](pageInfo, tokenId)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
   def nftPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getNftPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       scribe.info(s"nftPaging request pageInfo: $pageInfo")
-      val result = NftService
+      NftService
         .getPage[F](pageInfo)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
-
-  // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
-  //     scribe.info(s"search type request target: $target")
-  //     val len = target.length()
-
-  //     val targetType = len match
-  //       case 40 => for a <- AccountService.get(target) yield if a.nonEmpty then Some("account")   // account
-  //       case 25 => for n <-NftService.getNftDetail(target) yield if n.nonEmpty then Some("nft")   // token
-  //       case 64 => {
-  //         for t <- TransactionService.get(target) yield if t.nonEmpty then Some("transaction")    // transaction
-  //         else for b <- BlockService.get(target) yield if b.nonEmpty then Some("blockByHash")     // blcokByHash
-  //       }
-  //       case _  => if (target.forall(Character.isDigit)) then
-  //                   for b <- BlockService.getByNumber(target.toLong) yield if b.nonEmpty then Some("blockByNumber")
-  //   }
 
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
       scribe.info(s"summary request")
-      val result = SummaryService.get
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+      SummaryService.get
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def summaryChart[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryChartEndPoint.serverLogic { Unit =>
       scribe.info(s"summary chart request")
-      val result = SummaryService.getList
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+      SummaryService.getList
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
@@ -208,7 +165,6 @@ object BackendMain extends IOApp:
       nftPaging[F],
       nftSeasonPaging[F],
       nftDetail[F],
-      // searchTargetType[F],
       summaryMain[F],
       summaryChart[F],
     )

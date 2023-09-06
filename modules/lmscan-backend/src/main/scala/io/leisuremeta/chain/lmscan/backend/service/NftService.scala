@@ -12,12 +12,12 @@ import io.leisuremeta.chain.lmscan.backend.entity._
 object NftService:
   def getNftDetail[F[_]: Async](
       tokenId: String, // tokenId
-  ): EitherT[F, String, Option[NftDetail]] =
+  ): EitherT[F, Either[String, String], Option[NftDetail]] =
     for
       page <- NftRepository.getPageByTokenId(
         tokenId,
         new PageNavigation(0, 10),
-      )
+      ).leftMap(Left(_))
       activities = page.payload.map(nft =>
         NftActivity(
           Some(nft.txHash),
@@ -27,10 +27,8 @@ object NftService:
           Some(nft.eventTime),
         ),
       )
-      nftOwner <- NftOwnerRepository.get(tokenId)
-
-      // nftFile <- NftFileRepository.get(tokenId)
-      nft <- NftFileRepository.get(tokenId)
+      nftOwner <- NftOwnerRepository.get(tokenId).leftMap(Left(_))
+      nft <- NftFileRepository.get(tokenId).leftMap(Left(_))
       nftFile = nft.map(nftFile =>
         NftFileModel(
           Some(nftFile.tokenId),
@@ -51,9 +49,9 @@ object NftService:
 
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[NftInfoModel]] =
+  ): EitherT[F, Either[String, String], PageResponse[NftInfoModel]] =
     for 
-      page <- NftInfoRepository.getPage(pageNavInfo)
+      page <- NftInfoRepository.getPage(pageNavInfo).leftMap(Left(_))
       nftInfos = page.payload.map { info =>
         NftInfoModel(
           tokenDefId = Some(info.tokenDefId),
@@ -69,8 +67,8 @@ object NftService:
   def getSeasonPage[F[_]: Async](
       pageNavInfo: PageNavigation,
       tokenId: String,
-  ): EitherT[F, String, PageResponse[NftSeasonModel]] =
+  ): EitherT[F, Either[String, String], PageResponse[NftSeasonModel]] =
     for 
-      page <- NftInfoRepository.getSeasonPage(pageNavInfo, tokenId)
+      page <- NftInfoRepository.getSeasonPage(pageNavInfo, tokenId).leftMap(Left(_))
       seasons = page.payload.map(_.toModel)
     yield PageResponse(page.totalCount, page.totalPages, seasons)

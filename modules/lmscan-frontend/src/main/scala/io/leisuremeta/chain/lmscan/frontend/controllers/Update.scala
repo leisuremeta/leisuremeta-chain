@@ -12,7 +12,10 @@ object Update:
       case RouterMsg.NavigateToUrl(url) => (model, Nav.loadUrl(url))
       case _ => (model, Cmd.None)
     case PopupMsg(v)     => (model.copy(popup = v), Cmd.None)
-    case ErrorMsg => (model, Cmd.None)
+    case NotFoundMsg() => 
+      println("erorr ehre!") 
+      (model, Cmd.None)
+    case ErrorMsg => (model.copy(page = ErrorPage), Cmd.None)
     case NoneMsg => (model, Cmd.None)
 
     case GlobalInput(s) => (model.copy(searchValue = s), Cmd.None)

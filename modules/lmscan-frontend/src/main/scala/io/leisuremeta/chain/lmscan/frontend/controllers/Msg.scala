@@ -7,6 +7,7 @@ sealed trait Msg
 
 case object NoneMsg extends Msg
 case object ErrorMsg extends Msg
+case class NotFoundMsg() extends Msg
 
 case class GlobalInput(s: String) extends Msg
 case object GlobalSearch extends Msg

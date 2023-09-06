@@ -9,3 +9,7 @@ final case class SummaryModel(
     totalTxSize: Option[Long] = None,
     total_balance: Option[BigDecimal] = None,
 ) extends ApiModel 
+
+final case class SummaryChart(
+    list: Seq[SummaryModel] = Seq()
+) extends ApiModel

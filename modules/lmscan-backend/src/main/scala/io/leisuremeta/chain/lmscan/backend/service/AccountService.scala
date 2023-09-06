@@ -15,43 +15,24 @@ import io.leisuremeta.chain.lmscan.common.model.{
 object AccountService:
   def get[F[_]: Async](
       address: String,
-  ): EitherT[F, String, Option[AccountDetail]] =
-    val res = for
-      account <- AccountRepository.get(address)
+  ): EitherT[F, Either[String, String], Option[AccountDetail]] =
+    for
+      account <- AccountRepository.get(address).leftMap:
+        e => Left(e)
       txPage <- TransactionService.getPageByAccount(
         address,
         new PageNavigation(0, 20),
       )
-    yield (account, txPage)
-
-    res.map { (accountOpt, page) =>
-      accountOpt match
-        case Some(x) =>
-          val detail = AccountDetail(
-            Some(x.address),
-            Some(x.balance),
-            Some(x.amount),
-            Some(page.payload),
+      res <- account match
+        case Some(x) => 
+          EitherT.rightT[F, Either[String, String]](
+            Some(AccountDetail(
+              Some(x.address),
+              Some(x.balance),
+              Some(x.amount),
+              Some(txPage.payload),
+            ))
           )
-          Some(detail)
         case None =>
-          scribe.info(s"there is no exist account of '$address'")
-          Option.empty
-    }
-
-    // accountOpt match
-    //   case Some(x) => ???
-    //   case None    => None
-    // accountOpt.map {
-    //   (account: Option[Account]) /*Either[String, Option[Account]]*/ =>
-    //     val detail = new AccountDetail(account.get)
-
-    //     val txPage: EitherT[F, String, PageResponse[Tx]] =
-    //       TransactionService.getPage(new PageNavigation(true, 0, 20))
-    //     // val z: Either[String, PageResponse[Tx]] = txPage.value
-    //     txPage.value match
-    //       case Left(errMsg) => scribe.info(s"$errMsg")
-    //       case Right(res: PageResponse[Tx]) =>
-    //         detail.txHistory = res.payload
-
-    //     Some(detail)
+          EitherT.leftT[F, Option[AccountDetail]](Right(s"$address is not exist"))
+    yield res
