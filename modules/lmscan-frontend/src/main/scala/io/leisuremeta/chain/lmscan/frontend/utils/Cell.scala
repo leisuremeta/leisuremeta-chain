@@ -12,6 +12,10 @@ enum Cell:
   case Image(data: Option[String])              extends Cell
   case Head(data: String, css: String = "cell") extends Cell
   case Any(data: String, css: String = "cell")  extends Cell
+  case PriceS(
+      price: Option[BigDecimal],
+      css: String = "cell",
+  )                                                             extends Cell
   case Price(
       price: Option[Double],
       balance: Option[BigDecimal],
@@ -62,6 +66,15 @@ object gen:
 
       case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
       case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
+      case Cell.PriceS(price, css) =>
+        div(`class` := s"$css")(
+          span(
+            price match
+              case Some(p) =>
+                "$ " + DecimalFormat("#,###.####").format(p)
+              case _ => "$ 0",
+          ),
+        )
       case Cell.Price(price, data, css) =>
         div(`class` := s"$css")(
           span(

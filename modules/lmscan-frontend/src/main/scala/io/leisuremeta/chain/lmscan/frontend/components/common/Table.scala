@@ -65,6 +65,14 @@ object Table:
         case None    => LoaderView.view
         case Some(_) => div(),
     )
+  def view(model: AccModel) =
+    div(`class` := "table-container position-relative y-center")(
+      Table.acc(model.list),
+      Pagination.view(model),
+      model.list match
+        case None    => LoaderView.view
+        case Some(_) => div(),
+    )
   def view(model: NftModel) =
     div(`class` := "table-container position-relative app-table nfts")(
       Table.nft(model.list),
@@ -117,6 +125,12 @@ object Table:
       list match
         case Some(v) => Head.block :: Body.blocks(v.payload.toList)
         case None    => List(Head.block),
+    )
+  def acc(list: Option[AccList]) =
+    div(`class` := "app-table accs w-[100%]")(
+      list match
+        case Some(v) => Head.accs :: Body.accs(v.payload.toList)
+        case None    => List(Head.accs),
     )
   def nft(list: Option[NftList]) =
     div(`class` := "app-table blc w-[100%]")(

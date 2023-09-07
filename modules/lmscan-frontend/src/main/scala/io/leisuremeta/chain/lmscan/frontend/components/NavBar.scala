@@ -7,6 +7,7 @@ object NavBar:
   val main = "Dashboard"
   val blc = "Blocks"
   val tx = "Transactions"
+  val acc = "Accounts"
   val nft = "Nfts"
   def view(model: Model): Html[Msg] =
     nav()(
@@ -18,6 +19,7 @@ object NavBar:
         (main, MainPage),
         (blc, BlockPage(1)),
         (tx, TxPage(1)),
+        (acc, AccountPage(1)),
         (nft, NftPage(1)),
       ).map((name, page) =>
         div(
@@ -40,7 +42,8 @@ object NavBar:
       case _: NftPage => nft
       case _: TxDetailPage => tx
       case _: NftDetailPage => nft
-      case _: AccountDetailPage => tx
+      case _: AccountPage => acc
+      case _: AccountDetailPage => acc
       case _ => ""
 
     

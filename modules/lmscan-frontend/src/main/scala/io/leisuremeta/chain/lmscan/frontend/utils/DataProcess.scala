@@ -17,6 +17,7 @@ object Parse:
   given Decoder[NftInfoModel] = deriveDecoder[NftInfoModel]
   given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
   given Decoder[BlcList] = deriveDecoder[BlcList]
+  given Decoder[AccList] = deriveDecoder[AccList]
   given Decoder[TxList] = deriveDecoder[TxList]
   given Decoder[NftList] = deriveDecoder[NftList]
   given Decoder[NftTokenList] = deriveDecoder[NftTokenList]
@@ -24,6 +25,7 @@ object Parse:
   given Decoder[TransferHist] = deriveDecoder[TransferHist]
   given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
   given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
+  given Decoder[AccountInfo] = deriveDecoder[AccountInfo]
   given Decoder[TxInfo] = deriveDecoder[TxInfo]
   given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
   given Decoder[SummaryChart] = deriveDecoder[SummaryChart]
@@ -43,6 +45,7 @@ object Parse:
       case (_, Left(e)) => ErrorMsg
       case (_: TxModel, Right(json)) => UpdateModel(decode[TxList](response.body).getOrElse(TxList()))
       case (_: BlockModel, Right(json)) => UpdateModel(decode[BlcList](response.body).getOrElse(BlcList()))
+      case (_: AccModel, Right(json)) => UpdateModel(decode[AccList](response.body).getOrElse(AccList()))
       case (_: NftModel, Right(json)) => UpdateModel(decode[NftList](response.body).getOrElse(NftList()))
       case (_: NftTokenModel, Right(json)) => UpdateModel(decode[NftTokenList](response.body).getOrElse(NftTokenList()))
       case (_: TxDetail, Right(json)) => UpdateModel(decode[TxDetail](response.body).getOrElse(TxDetail()))
@@ -58,28 +61,15 @@ object DataProcess:
   def onError(e: HttpError): Msg = ErrorMsg
 
   def getList(api: (Int, Int) => String, page: Int = 0, size: Int = 10) = api(page, size)
-  def blist(page: Int, size: Int) = s"${base}block/list?pageNo=${page}&sizePerRequest=${size}"
-  def tlist(page: Int, size: Int) = s"${base}tx/list?pageNo=${page}&sizePerRequest=${size}"
-  def nlist(page: Int, size: Int) = s"${base}nft/list?pageNo=${page}&sizePerRequest=${size}"
-  def ntlist(id: String, page: Int, size: Int) = s"${base}nft/$id?pageNo=${page}&sizePerRequest=${size}"
-  def getData(model: TxModel): Cmd[IO, Msg] =
+  def getData[T](model: ListPage[T]): Cmd[IO, Msg] =
+    val url = model match
+      case _: BlockModel => s"${base}block/list?pageNo=${model.page}&sizePerRequest=${model.size}"
+      case _: TxModel => s"${base}tx/list?pageNo=${model.page}&sizePerRequest=${model.size}"
+      case _: NftModel => s"${base}nft/list?pageNo=${model.page}&sizePerRequest=${model.size}"
+      case m: NftTokenModel => s"${base}nft/${m.id}?pageNo=${model.page}&sizePerRequest=${model.size}"
+      case _: AccModel => s"${base}account/list?pageNo=${model.page}&sizePerRequest=${model.size}"
     Http.send(
-      Request.get(getList(api = tlist, page = model.page - 1, size = model.size)).withTimeout(5.seconds),
-      Decoder[Msg](Parse.responseHandler(model), onError)
-    )
-  def getData(model: BlockModel): Cmd[IO, Msg] =
-    Http.send(
-      Request.get(getList(api = blist, page = model.page - 1, size = model.size)).withTimeout(5.seconds),
-      Decoder[Msg](Parse.onResponse(model), onError)
-    )
-  def getData(model: NftModel): Cmd[IO, Msg] =
-    Http.send(
-      Request.get(getList(api = nlist, page = model.page - 1, size = model.size)).withTimeout(5.seconds),
-      Decoder[Msg](Parse.onResponse(model), onError)
-    )
-  def getData(model: NftTokenModel): Cmd[IO, Msg] =
-    Http.send(
-      Request.get(ntlist(model.id, model.page - 1, model.size)).withTimeout(5.seconds),
+      Request.get(url).withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(detail: TxDetail): Cmd[IO, Msg] =

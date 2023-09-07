@@ -11,6 +11,9 @@ import io.leisuremeta.chain.lmscan.common.model.{
   PageResponse,
   AccountDetail,
 }
+import io.leisuremeta.chain.lmscan.common.model.AccountInfo
+import java.time.Instant
+import io.leisuremeta.chain.lmscan.backend.repository.SummaryRepository
 
 object AccountService:
   def get[F[_]: Async](
@@ -36,3 +39,24 @@ object AccountService:
         case None =>
           EitherT.leftT[F, Option[AccountDetail]](Right(s"$address is not exist"))
     yield res
+
+  def getPage[F[_]: Async](
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, Either[String, String], PageResponse[AccountInfo]] =
+    for 
+      page <- AccountRepository.getPage(pageNavInfo).leftMap(Left(_))
+      summary <- SummaryRepository.get().leftMap(Left(_))
+      price = summary match
+        case Some(s) => s.lmPrice
+        case None => 0.0
+      accInfos = page.payload.map((b) =>
+        val balance = b.free + b.locked
+        AccountInfo(
+          Some(b.address),
+          Some(balance),
+          Some(Instant.ofEpochSecond(b.updatedAt)),
+          Some(balance / BigDecimal("1E+18") * BigDecimal(price))
+          
+        )
+      )
+    yield PageResponse(page.totalCount, page.totalPages, accInfos)

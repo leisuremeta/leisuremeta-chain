@@ -18,6 +18,17 @@ object Body:
         ),
       ),
     )
+  def accs(payload: List[AccountInfo]) =
+    payload.map(v =>
+      div(`class` := "row table-body")(
+        gen.cell(
+          Cell.ACCOUNT_HASH(v.address),
+          Cell.Balance(v.balance),
+          Cell.PriceS(v.value),
+          Cell.DateS(v.updated),
+        ),
+      ),
+    )
   def txlist_txtable_off = (payload: List[TxInfo]) =>
     payload.map(v =>
       div(`class` := "row table-body")(

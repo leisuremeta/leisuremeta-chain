@@ -58,6 +58,14 @@ object Update:
           Nav.pushUrl(s"/nft/$id/$page"),
         )
       )
+    case UpdateAccPage(page: Int) =>
+      (
+        model.copy(accPage = AccModel(page = page)), 
+        Cmd.Batch(
+          DataProcess.getData(AccModel(page = page)),
+          Nav.pushUrl(s"/accounts/$page"),
+        )
+      )
     case UpdateSummary => (model, DataProcess.getData(model.summary))
     case UpdateChart => (model, DataProcess.getData(model.chartData))
 
@@ -68,6 +76,7 @@ object Update:
       case v: TxList => (model.copy(txPage = model.txPage.copy(list = Some(v))), Cmd.None)
       case v: BlcList => (model.copy(blcPage = model.blcPage.copy(list = Some(v))), Cmd.None)
       case v: NftList => (model.copy(nftPage = model.nftPage.copy(list = Some(v))), Cmd.None)
+      case v: AccList => (model.copy(accPage = model.accPage.copy(list = Some(v))), Cmd.None)
       case v: NftTokenList => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(v))), Cmd.None)
       case v: SummaryModel => (model.copy(summary = v), Cmd.None)
       case v: SummaryChart => (model.copy(chartData = v), Cmd.None)

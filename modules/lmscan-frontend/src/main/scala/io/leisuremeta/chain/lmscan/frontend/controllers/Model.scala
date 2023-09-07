@@ -12,6 +12,7 @@ final case class Model(
     txPage: TxModel = TxModel(),
     nftPage: NftModel = NftModel(),
     nftTokenPage: NftTokenModel = NftTokenModel(),
+    accPage: AccModel = AccModel(),
     txDetail: TxDetail = TxDetail(),
     blcDetail: BlockDetail = BlockDetail(),
     accDetail: AccountDetail = AccountDetail(),
@@ -57,6 +58,12 @@ final case class NftTokenModel(
     searchPage: Int = 1,
     list: Option[NftTokenList] = None,
 ) extends ListPage[NftSeasonModel]
+final case class AccModel(
+    page: Int = 1,
+    size: Int = 10,
+    searchPage: Int = 1,
+    list: Option[AccList] = None,
+) extends ListPage[AccountInfo]
 
 final case class BlcList(
     totalCount: Long = 0,
@@ -81,3 +88,9 @@ final case class NftTokenList(
     totalPages: Int = 0,
     payload: Seq[NftSeasonModel] = Seq(),
 ) extends ListType[NftSeasonModel]
+
+final case class AccList(
+    totalCount: Long = 0,
+    totalPages: Int = 0,
+    payload: Seq[AccountInfo] = Seq(),
+) extends ListType[AccountInfo]

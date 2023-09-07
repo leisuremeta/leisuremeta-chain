@@ -12,6 +12,15 @@ object Head:
     ),
   )
 
+  val accs = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head("Address"),
+      Cell.Head("Balance"),
+      Cell.Head("Value"),
+      Cell.Head("Last Seen"),
+    ),
+  )
+
   val nfts = div(`class` := "row table-head")(
     gen.cell(
       Cell.Head(""),

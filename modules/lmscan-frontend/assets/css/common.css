@@ -756,6 +756,9 @@
 .tx .row {
     grid-template-columns: auto 12% 14% 32% 10%;
 }
+.accs .row {
+    grid-template-columns: auto 20% 20% 20%;
+}
 .nfts .row {
     grid-template-columns: 70px 12% auto 10% 15% 15%;
 }

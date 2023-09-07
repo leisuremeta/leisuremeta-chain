@@ -93,6 +93,16 @@ object BackendMain extends IOApp:
         .value
     }
 
+  def accountPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getAccountPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+      AccountService
+        .getPage[F](pageInfo)
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
+    }
+
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getAccountDetailEndPoint.serverLogic { (address: String) =>
       AccountService
@@ -161,6 +171,7 @@ object BackendMain extends IOApp:
       txDetail[F],
       blockPaging[F],
       blockDetail[F],
+      accountPaging[F],
       accountDetail[F],
       nftPaging[F],
       nftSeasonPaging[F],

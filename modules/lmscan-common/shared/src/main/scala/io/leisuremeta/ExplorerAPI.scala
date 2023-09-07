@@ -85,6 +85,14 @@ object ExploreApi:
     .out(jsonBody[Option[BlockDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountPageEndPoint = baseEndpoint.get
+    .in("account" / "list")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[PageResponse[AccountInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountDetailEndPoint = baseEndpoint.get
     .in("account")
     .in(path[String]("accountAddr")) // account_address

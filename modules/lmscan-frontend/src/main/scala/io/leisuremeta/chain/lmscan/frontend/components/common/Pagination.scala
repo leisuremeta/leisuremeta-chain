@@ -28,6 +28,7 @@ object Pagination:
     def goTo(v: Int) = model match
       case _: BlockModel => UpdateBlockPage(v)
       case _: TxModel => UpdateTxPage(v)
+      case _: AccModel => UpdateAccPage(v)
       case _: NftModel => UpdateNftPage(v)
       case n: NftTokenModel => UpdateNftTokenPage(n.id, v)
 
