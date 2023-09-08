@@ -63,11 +63,11 @@ object DataProcess:
   def getList(api: (Int, Int) => String, page: Int = 0, size: Int = 10) = api(page, size)
   def getData[T](model: ListPage[T]): Cmd[IO, Msg] =
     val url = model match
-      case _: BlockModel => s"${base}block/list?pageNo=${model.page}&sizePerRequest=${model.size}"
-      case _: TxModel => s"${base}tx/list?pageNo=${model.page}&sizePerRequest=${model.size}"
-      case _: NftModel => s"${base}nft/list?pageNo=${model.page}&sizePerRequest=${model.size}"
-      case m: NftTokenModel => s"${base}nft/${m.id}?pageNo=${model.page}&sizePerRequest=${model.size}"
-      case _: AccModel => s"${base}account/list?pageNo=${model.page}&sizePerRequest=${model.size}"
+      case _: BlockModel => s"${base}block/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
+      case _: TxModel => s"${base}tx/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
+      case _: NftModel => s"${base}nft/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
+      case m: NftTokenModel => s"${base}nft/${m.id}?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
+      case _: AccModel => s"${base}account/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
     Http.send(
       Request.get(url).withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
