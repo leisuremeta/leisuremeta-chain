@@ -76,7 +76,7 @@ object Pagination:
           input(
             onInput(s =>
               toInt(s) match
-                case Some(v) => goTo(checkAndMake(v, totalPage))
+                case Some(v) => UpdateSearch(checkAndMake(v, totalPage))
                 case None    => NoneMsg,
             ),
             onKeyUp(e =>

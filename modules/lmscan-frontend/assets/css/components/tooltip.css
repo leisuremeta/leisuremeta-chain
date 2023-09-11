@@ -1,5 +1,7 @@
+.row .cell[data-tooltip-text]:hover,
 [data-tooltip-text]:hover {
 	position: relative;
+	overflow: visible;
 }
 
 [data-tooltip-text]:after {

@@ -41,20 +41,6 @@ object Body:
         ),
       ),
     )
-  def txlist_txtable_on = (payload: List[TxInfo]) =>
-    payload
-      .map(v =>
-        div(`class` := "row table-body")(
-          gen.cell(
-            Cell.TX_HASH(v.hash),
-            Cell.PlainLong(v.blockNumber),
-            Cell.AGE(v.createdAt),
-            Cell.ACCOUNT_HASH(v.signer),
-            Cell.PlainStr(v.subType), // subtype 추가
-            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
-          ),
-        ),
-      )
   def dashboard_txtable = (payload: List[TxInfo]) =>
     payload
       .map(v =>

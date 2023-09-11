@@ -10,7 +10,7 @@ object BalChart {
   def view(model: Model): Html[Msg] =
     renderDataChart(model.chartData)
     canvas(
-  
+      width := "800px", 
       height := "600px",
       id := "chart",
     )("")

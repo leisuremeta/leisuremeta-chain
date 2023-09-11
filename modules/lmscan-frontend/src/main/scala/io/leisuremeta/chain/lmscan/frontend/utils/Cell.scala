@@ -161,11 +161,16 @@ object gen:
           )
 
       case Cell.DateS(data, css) =>
-        div(`class` := s"$css")(
-          data match
-            case None => ""
-            case Some(v) => v.toString
-        )
+        data match
+          case None => div()
+          case Some(v) => 
+            div(
+              `class` := s"$css",
+              dataAttr(
+                "tooltip-text",
+                v.toString
+              )
+            )(v.toString.take(10))
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
             {

@@ -30,11 +30,7 @@ case class UpdateTxPage(value: Int) extends ListMsg
 case class UpdateNftPage(value: Int) extends ListMsg
 case class UpdateNftTokenPage(id: String, value: Int) extends ListMsg
 case class UpdateAccPage(value: Int) extends ListMsg
-
-sealed trait SearchMsg extends Msg:
-  val v: Int
-case class UpdateBlcsSearch(v: Int) extends SearchMsg
-case class UpdateTxsSearch(v: Int) extends SearchMsg
+case class UpdateSearch(v: Int) extends Msg
 
 case class UpdateModel(model: ApiModel) extends Msg
 

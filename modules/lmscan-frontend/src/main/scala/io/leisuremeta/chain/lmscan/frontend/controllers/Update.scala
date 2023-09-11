@@ -69,8 +69,13 @@ object Update:
     case UpdateSummary => (model, DataProcess.getData(model.summary))
     case UpdateChart => (model, DataProcess.getData(model.chartData))
 
-    case UpdateBlcsSearch(v: Int) => (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
-    case UpdateTxsSearch(v: Int) => (model.copy(txPage = model.txPage.copy(searchPage = v)), Cmd.None)
+    case UpdateSearch(v: Int) => model.page match
+      case _: BlockPage => (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)
+      case _: TxPage => (model.copy(txPage = model.txPage.copy(searchPage = v)), Cmd.None)
+      case _: AccountPage => (model.copy(accPage = model.accPage.copy(searchPage = v)), Cmd.None)
+      case _: NftPage => (model.copy(nftPage = model.nftPage.copy(searchPage = v)), Cmd.None)
+      case _: NftTokenPage => (model.copy(nftTokenPage = model.nftTokenPage.copy(searchPage = v)), Cmd.None)
+      case _ => (model, Cmd.None)
 
     case UpdateModel(v: ApiModel) => v match
       case v: TxList => (model.copy(txPage = model.txPage.copy(list = Some(v))), Cmd.None)
