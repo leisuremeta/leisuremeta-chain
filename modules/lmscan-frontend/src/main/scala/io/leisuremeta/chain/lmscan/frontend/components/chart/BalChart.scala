@@ -20,7 +20,7 @@ object BalChart {
     data.list match
       case List() => ()
       case list =>
-        val gData = list.map(_.total_balance.getOrElse(BigDecimal(0))).map(a => a / BigDecimal("1e+18")).map(_.toDouble).toList
+        val gData = list.map(_.totalBalance.getOrElse(BigDecimal(0))).map(a => a / BigDecimal("1e+18")).map(_.toDouble).toList
         val label = list.map(_.createdAt.getOrElse(0)).map(_.toString).toList
         val chart = Chart.apply.newInstance2("chart", ChartConfig.config(label, gData, "balance"))
 }

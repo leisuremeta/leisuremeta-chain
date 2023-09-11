@@ -12,27 +12,29 @@ import common.model._
 
 object Parse:
   import io.circe.*, io.circe.generic.semiauto.*
-  given Decoder[BlockModel] = deriveDecoder[BlockModel]
-  given Decoder[TxModel] = deriveDecoder[TxModel]
+  given Decoder[SummaryBoard] = deriveDecoder[SummaryBoard]
+  given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
+  given Decoder[SummaryChart] = deriveDecoder[SummaryChart]
   given Decoder[NftInfoModel] = deriveDecoder[NftInfoModel]
   given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
-  given Decoder[BlcList] = deriveDecoder[BlcList]
-  given Decoder[AccList] = deriveDecoder[AccList]
-  given Decoder[TxList] = deriveDecoder[TxList]
-  given Decoder[NftList] = deriveDecoder[NftList]
-  given Decoder[NftTokenList] = deriveDecoder[NftTokenList]
   given Decoder[TxDetail] = deriveDecoder[TxDetail]
   given Decoder[TransferHist] = deriveDecoder[TransferHist]
   given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
   given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
   given Decoder[AccountInfo] = deriveDecoder[AccountInfo]
   given Decoder[TxInfo] = deriveDecoder[TxInfo]
-  given Decoder[SummaryModel] = deriveDecoder[SummaryModel]
-  given Decoder[SummaryChart] = deriveDecoder[SummaryChart]
   given Decoder[NftDetail] = deriveDecoder[NftDetail]
   given Decoder[NftFileModel] = deriveDecoder[NftFileModel]
   given Decoder[NftActivity] = deriveDecoder[NftActivity]
   given Decoder[NftSeasonModel] = deriveDecoder[NftSeasonModel]
+  given Decoder[BlockModel] = deriveDecoder[BlockModel]
+  given Decoder[TxModel] = deriveDecoder[TxModel]
+  given Decoder[BlcList] = deriveDecoder[BlcList]
+  given Decoder[AccList] = deriveDecoder[AccList]
+  given Decoder[TxList] = deriveDecoder[TxList]
+  given Decoder[NftList] = deriveDecoder[NftList]
+  given Decoder[NftTokenList] = deriveDecoder[NftTokenList]
+  
 
   def responseHandler(model: ApiModel): Response => Msg = res=>
     res.status match
@@ -52,7 +54,7 @@ object Parse:
       case (_: BlockDetail, Right(json)) => UpdateModel(decode[BlockDetail](response.body).getOrElse(BlockDetail()))
       case (_: AccountDetail, Right(json)) => UpdateModel(decode[AccountDetail](response.body).getOrElse(AccountDetail()))
       case (_: NftDetail, Right(json)) => UpdateModel(decode[NftDetail](response.body).getOrElse(NftDetail()))
-      case (_: SummaryModel, Right(json)) => UpdateModel(decode[SummaryModel](response.body).getOrElse(SummaryModel()))
+      case (_: SummaryBoard, Right(json)) => UpdateModel(decode[SummaryBoard](response.body).getOrElse(SummaryBoard()))
       case (_: SummaryChart, Right(json)) => UpdateModel(decode[SummaryChart](response.body).getOrElse(SummaryChart()))
       case (_, Right(json)) => ErrorMsg
 
@@ -92,7 +94,7 @@ object DataProcess:
       Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(5.seconds),
       Decoder[Msg](Parse.onResponse(NftDetail()), onError)
     )
-  def getData(model: SummaryModel): Cmd[IO, Msg] =
+  def getData(model: SummaryBoard): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}summary/main"),
       Decoder[Msg](Parse.onResponse(model), onError)

@@ -810,3 +810,21 @@
 #chart {
     background-color: white;
 }
+
+.diff {
+    font-size: 13px;
+}
+.diff span:first-child  {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0.2em 0.4em;
+    background-color: gray;
+    color: white;
+    margin-right: 1.5em;
+}
+.pos {
+    color: #51ff00b8;
+}
+.neg {
+    color: red;
+}

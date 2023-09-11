@@ -5,6 +5,7 @@ import io.leisuremeta.chain.lmscan.backend.repository.SummaryRepository
 import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.common.model.SummaryChart
+import io.leisuremeta.chain.lmscan.common.model.SummaryBoard
 
 object SummaryService:
   def get[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryModel]] =
@@ -37,6 +38,13 @@ object SummaryService:
           Some(s.total_balance),
         ),
       )
+    yield model
+
+  def getBoard[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryBoard]] =
+    for 
+      todayOpt <- get
+      yesterdayOpt <- getBeforeDay
+      model = todayOpt.zip(yesterdayOpt).map((today, yesterday) => SummaryBoard(today, yesterday))
     yield model
 
   def getList[F[_]: Async]: EitherT[F, Either[String, String], SummaryChart] =

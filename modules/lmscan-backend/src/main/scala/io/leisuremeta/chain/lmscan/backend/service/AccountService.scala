@@ -26,13 +26,17 @@ object AccountService:
         address,
         new PageNavigation(0, 20),
       )
+      summary <- SummaryRepository.get().leftMap(Left(_))
+      price = summary match
+        case Some(s) => s.lmPrice
+        case None => 0.0
       res <- account match
         case Some(x) => 
           EitherT.rightT[F, Either[String, String]](
             Some(AccountDetail(
               Some(x.address),
               Some(x.balance),
-              Some(x.amount),
+              Some(x.balance / BigDecimal("1E+18") * BigDecimal(price)),
               Some(txPage.payload),
             ))
           )
@@ -50,13 +54,12 @@ object AccountService:
         case Some(s) => s.lmPrice
         case None => 0.0
       accInfos = page.payload.map((b) =>
-        val balance = b.free + b.locked
+        val balance = b.free
         AccountInfo(
           Some(b.address),
           Some(balance),
           Some(Instant.ofEpochSecond(b.updatedAt)),
-          Some(balance / BigDecimal("1E+18") * BigDecimal(price))
-          
+          Some(balance / BigDecimal("1E+18") * BigDecimal(price)),
         )
       )
     yield PageResponse(page.totalCount, page.totalPages, accInfos)

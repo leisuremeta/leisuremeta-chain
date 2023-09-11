@@ -148,7 +148,7 @@ object BackendMain extends IOApp:
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
       scribe.info(s"summary request")
-      SummaryService.get
+      SummaryService.getBoard
         .leftMap:
           case Right(msg) => Right(ExploreApi.BadRequest(msg))
           case Left(msg) => Left(ExploreApi.ServerError(msg))

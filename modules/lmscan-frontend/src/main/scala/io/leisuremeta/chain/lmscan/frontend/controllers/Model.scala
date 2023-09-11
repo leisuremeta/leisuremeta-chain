@@ -7,7 +7,7 @@ final case class Model(
     popup: Boolean = false,
     searchValue: String = "",
     page: Page = MainPage,
-    summary: SummaryModel = SummaryModel(),
+    summary: SummaryBoard = SummaryBoard(),
     blcPage: BlockModel = BlockModel(),
     txPage: TxModel = TxModel(),
     nftPage: NftModel = NftModel(),

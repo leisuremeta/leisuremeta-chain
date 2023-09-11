@@ -83,7 +83,7 @@ object Update:
       case v: NftList => (model.copy(nftPage = model.nftPage.copy(list = Some(v))), Cmd.None)
       case v: AccList => (model.copy(accPage = model.accPage.copy(list = Some(v))), Cmd.None)
       case v: NftTokenList => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(v))), Cmd.None)
-      case v: SummaryModel => (model.copy(summary = v), Cmd.None)
+      case v: SummaryBoard => (model.copy(summary = v), Cmd.None)
       case v: SummaryChart => (model.copy(chartData = v), Cmd.None)
       case v: TxDetail => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
       case v: BlockDetail => (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))

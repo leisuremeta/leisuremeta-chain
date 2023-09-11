@@ -127,7 +127,7 @@ object ExploreApi:
   val getSummaryMainEndPoint = baseEndpoint.get
     .in("summary")
     .in("main")
-    .out(jsonBody[Option[SummaryModel]])
+    .out(jsonBody[Option[SummaryBoard]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getSummaryChartEndPoint = baseEndpoint.get

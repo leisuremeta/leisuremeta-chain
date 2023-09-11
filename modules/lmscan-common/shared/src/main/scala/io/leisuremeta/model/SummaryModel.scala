@@ -7,8 +7,13 @@ final case class SummaryModel(
     totalAccounts: Option[Long] = None,
     createdAt: Option[Long] = None,
     totalTxSize: Option[Long] = None,
-    total_balance: Option[BigDecimal] = None,
+    totalBalance: Option[BigDecimal] = None,
 ) extends ApiModel 
+
+final case class SummaryBoard(
+    today: SummaryModel = SummaryModel(),
+    yesterday: SummaryModel = SummaryModel(),
+) extends ApiModel
 
 final case class SummaryChart(
     list: Seq[SummaryModel] = Seq()
