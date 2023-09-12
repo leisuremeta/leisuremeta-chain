@@ -8,26 +8,11 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryChart
 import io.leisuremeta.chain.lmscan.common.model.SummaryBoard
 
 object SummaryService:
-  def get[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryModel]] =
+  def get[F[_]: Async](n: Int): EitherT[F, Either[String, String], Option[SummaryModel]] =
     for
-      summary <- SummaryRepository.get().leftMap(Left(_))
-      model = summary.map(s =>
-        SummaryModel(
-          Some(s.id),
-          Some(s.lmPrice),
-          Some(s.blockNumber),
-          Some(s.totalAccounts),
-          Some(s.createdAt),
-          Some(s.totalTxSize.toLong),
-          Some(s.total_balance),
-        ),
-      )
-    yield model
-
-  def getBeforeDay[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryModel]] =
-    for
-      summary <- SummaryRepository.get(143).leftMap(Left(_))
-      model = summary.map(s =>
+      summary <- SummaryRepository.get(n).leftMap(Left(_))
+      model = summary.map(a =>
+        val s = a.head
         SummaryModel(
           Some(s.id),
           Some(s.lmPrice),
@@ -42,22 +27,41 @@ object SummaryService:
 
   def getBoard[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryBoard]] =
     for 
-      todayOpt <- get
-      yesterdayOpt <- getBeforeDay
+      todayOpt <- get(0)
+      yesterdayOpt <- get(143)
       model = todayOpt.zip(yesterdayOpt).map((today, yesterday) => SummaryBoard(today, yesterday))
     yield model
 
+  def get5List[F[_]: Async]: EitherT[F, Either[String, String], SummaryChart] =
+    for
+      summary <- SummaryRepository.get(0, 144 * 5).leftMap(Left(_))
+      model = summary.map(
+          _.grouped(144).map(_.head).map(s => 
+            SummaryModel(
+              Some(s.id),
+              Some(s.lmPrice),
+              Some(s.blockNumber),
+              Some(s.totalAccounts),
+              Some(s.createdAt),
+              Some(s.totalTxSize.toLong),
+              Some(s.total_balance),
+            )
+          ).toSeq
+        )
+      chart = SummaryChart(model.get)
+    yield chart
+
   def getList[F[_]: Async]: EitherT[F, Either[String, String], SummaryChart] =
     for
-      summary <- SummaryRepository.getDay.leftMap(Left(_))
+      summary <- SummaryRepository.get(0, 144 * 5).leftMap(Left(_))
       model = summary.map(_.map(s =>
         SummaryModel(
-          Some(s.id),
+          None,
           Some(s.lmPrice),
-          Some(s.blockNumber),
-          Some(s.totalAccounts),
+          None,
+          None,
           Some(s.createdAt),
-          Some(s.totalTxSize.toLong),
+          None,
           Some(s.total_balance),
         ),
       ))

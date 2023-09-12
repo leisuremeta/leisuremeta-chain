@@ -6,9 +6,9 @@ import scala.scalajs.js.annotation.*
 import scala.scalajs.js.JSConverters.*
 
 object ChartConfig:
-  def config(labelList: List[String], gData: List[Double], labelName: String) =
+  def config(labelList: List[String], gData: List[Double], labelName: String, chartType: String = "line") =
     new ChartConfiguration {
-      `type` = "line"
+      `type` = chartType 
       data = new ChartData {
         labels = labelList.toJSArray
         datasets = js.Array(

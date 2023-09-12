@@ -10,7 +10,7 @@ case object TotalBalChart extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
       model,
       Cmd.Batch(
-        Cmd.Emit(UpdateChart),
+        Cmd.Emit(UpdateChartAll),
         Nav.pushUrl("/chart/balance")
       )
     )

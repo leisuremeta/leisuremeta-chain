@@ -68,6 +68,7 @@ object Update:
       )
     case UpdateSummary => (model, DataProcess.getData(model.summary))
     case UpdateChart => (model, DataProcess.getData(model.chartData))
+    case UpdateChartAll => (model, DataProcess.getDataAll(model.chartData))
 
     case UpdateSearch(v: Int) => model.page match
       case _: BlockPage => (model.copy(blcPage = model.blcPage.copy(searchPage = v)), Cmd.None)

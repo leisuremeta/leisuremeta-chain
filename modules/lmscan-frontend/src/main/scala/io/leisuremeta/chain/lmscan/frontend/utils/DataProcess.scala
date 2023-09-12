@@ -99,9 +99,14 @@ object DataProcess:
       Request.get(s"${base}summary/main"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
+  def getDataAll(model: SummaryChart): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}summary/chart/balance"),
+      Decoder[Msg](Parse.onResponse(model), onError)
+    )
   def getData(model: SummaryChart): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}summary/chart"),
+      Request.get(s"${base}summary/chart/tx"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def globalSearch(v: String) = 

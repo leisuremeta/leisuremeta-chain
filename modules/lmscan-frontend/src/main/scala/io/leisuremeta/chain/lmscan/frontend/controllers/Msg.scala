@@ -25,6 +25,7 @@ sealed trait ListMsg extends Msg:
 
 case object UpdateSummary extends Msg
 case object UpdateChart extends Msg
+case object UpdateChartAll extends Msg
 case class UpdateBlockPage(value: Int) extends ListMsg
 case class UpdateTxPage(value: Int) extends ListMsg
 case class UpdateNftPage(value: Int) extends ListMsg

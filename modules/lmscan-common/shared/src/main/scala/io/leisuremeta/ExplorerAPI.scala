@@ -133,6 +133,7 @@ object ExploreApi:
   val getSummaryChartEndPoint = baseEndpoint.get
     .in("summary")
     .in("chart")
+    .in(path[String]("chartType"))
     .out(jsonBody[SummaryChart])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))

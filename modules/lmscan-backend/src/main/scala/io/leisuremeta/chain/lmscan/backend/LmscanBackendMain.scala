@@ -156,10 +156,12 @@ object BackendMain extends IOApp:
     }
 
   def summaryChart[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getSummaryChartEndPoint.serverLogic { Unit =>
-      scribe.info(s"summary chart request")
-      SummaryService.getList
-        .leftMap:
+    ExploreApi.getSummaryChartEndPoint.serverLogic { (chartType: String) =>
+      val list = chartType match
+        case "balance" => SummaryService.getList
+        case _ => SummaryService.get5List
+      
+      list.leftMap:
           case Right(msg) => Right(ExploreApi.BadRequest(msg))
           case Left(msg) => Left(ExploreApi.ServerError(msg))
         .value

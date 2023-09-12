@@ -28,7 +28,7 @@ object AccountService:
       )
       summary <- SummaryRepository.get().leftMap(Left(_))
       price = summary match
-        case Some(s) => s.lmPrice
+        case Some(s) => s.head.lmPrice
         case None => 0.0
       res <- account match
         case Some(x) => 
@@ -51,7 +51,7 @@ object AccountService:
       page <- AccountRepository.getPage(pageNavInfo).leftMap(Left(_))
       summary <- SummaryRepository.get().leftMap(Left(_))
       price = summary match
-        case Some(s) => s.lmPrice
+        case Some(s) => s.head.lmPrice
         case None => 0.0
       accInfos = page.payload.map((b) =>
         val balance = b.free
