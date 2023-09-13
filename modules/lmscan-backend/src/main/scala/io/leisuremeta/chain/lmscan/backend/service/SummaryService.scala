@@ -34,7 +34,7 @@ object SummaryService:
 
   def get5List[F[_]: Async]: EitherT[F, Either[String, String], SummaryChart] =
     for
-      summary <- SummaryRepository.get(0, 144 * 5).leftMap(Left(_))
+      summary <- SummaryRepository.get(0, 144 * 5 + 1).leftMap(Left(_))
       model = summary.map(
           _.grouped(144).map(_.head).map(s => 
             SummaryModel(

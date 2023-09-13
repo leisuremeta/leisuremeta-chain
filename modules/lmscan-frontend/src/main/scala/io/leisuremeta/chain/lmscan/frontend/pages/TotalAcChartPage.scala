@@ -20,7 +20,7 @@ case object TotalAcChart extends Page:
       model,
       div(`class` := "chart-wrap color-white")(
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Account Chart",
+          "Daily Accounts Increase",
         ),
         AcChart.view(model)
       )

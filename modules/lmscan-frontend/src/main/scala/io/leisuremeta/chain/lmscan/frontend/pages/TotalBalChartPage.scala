@@ -20,7 +20,7 @@ case object TotalBalChart extends Page:
       model,
       div(`class` := "chart-wrap color-white")(
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Balance Chart",
+          "Total Balance",
         ),
         BalChart.view(model)
       )

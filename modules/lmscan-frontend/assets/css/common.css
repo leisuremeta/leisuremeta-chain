@@ -753,7 +753,7 @@
     grid-template-columns: 40% 100px auto;
 }
 .tx .row {
-    grid-template-columns: auto 12% 14% 32% 10%;
+    grid-template-columns: auto 10% 10% 30% 16%;
 }
 .accs .row {
     grid-template-columns: auto 20% 20% 20%;
@@ -808,19 +808,24 @@
     margin-top: 15px;
 }
 #chart {
-    background-color: white;
+    background-color: rgba(255,255,255,0.7);
+    border-radius: 10px 15px;
+    width: 800px;
 }
 
 .diff {
     font-size: 13px;
+    display: flex;
+    align-items: center;
 }
 .diff span:first-child  {
     display: inline-block;
     border-radius: 5px;
-    padding: 0.2em 0.4em;
+    padding: 0.1em 0.4em;
     background-color: gray;
     color: white;
     margin-right: 1.5em;
+    font-size: 0.8em;
 }
 .pos {
     color: #51ff00b8;

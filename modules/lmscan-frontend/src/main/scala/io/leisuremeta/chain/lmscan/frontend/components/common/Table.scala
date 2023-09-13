@@ -52,7 +52,7 @@ object Table:
           case None => LoaderView.view
           case Some(v) =>
             div(`class` := "app-table")(
-              Head.tx_dashBoard :: Body.dashboard_txtable(v.payload.toList),
+              Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList),
             ),
       ),
     )
@@ -96,7 +96,7 @@ object Table:
         case None => LoaderView.view
         case Some(v) =>
           div(`class` := "")(
-            Head.tx :: Body.txlist_txtable_off(v.payload.toList),
+            Head.tx :: Body.txRow(v.payload.toList),
           )
       ,
       Pagination.view(model),
@@ -145,4 +145,4 @@ object Table:
         case None    => List(Head.nftToken),
     )
   def view(list: Seq[TxInfo]) =
-    Head.tx :: Body.txlist_txtable_off(list.toList)
+    Head.tx :: Body.txRow(list.toList)

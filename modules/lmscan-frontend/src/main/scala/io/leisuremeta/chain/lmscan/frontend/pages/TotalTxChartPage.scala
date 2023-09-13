@@ -20,7 +20,7 @@ case object TotalTxChart extends Page:
       model,
       div(`class` := "chart-wrap color-white")(
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Transaction Chart",
+          "Daily Transactions",
         ),
         TxChart.view(model)
       )

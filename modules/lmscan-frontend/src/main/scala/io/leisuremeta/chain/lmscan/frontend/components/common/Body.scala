@@ -29,7 +29,7 @@ object Body:
         ),
       ),
     )
-  def txlist_txtable_off = (payload: List[TxInfo]) =>
+  def txRow = (payload: List[TxInfo]) =>
     payload.map(v =>
       div(`class` := "row table-body")(
         gen.cell(
@@ -37,11 +37,11 @@ object Body:
           Cell.PlainLong(v.blockNumber),
           Cell.AGE(v.createdAt),
           Cell.ACCOUNT_HASH(v.signer),
-          Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
+          Cell.PlainStr(v.subType),
         ),
       ),
     )
-  def dashboard_txtable = (payload: List[TxInfo]) =>
+  def boardTxRow = (payload: List[TxInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(

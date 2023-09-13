@@ -33,34 +33,34 @@ trait ListType[T] extends ApiModel:
 
 final case class TxModel(
     page: Int = 1,
-    size: Int = 10,
+    size: Int = 20,
     searchPage: Int = 1,
     list: Option[TxList] = None,
 ) extends ListPage[TxInfo]
 
 final case class BlockModel(
     page: Int = 1,
-    size: Int = 10,
+    size: Int = 20,
     searchPage: Int = 1,
     list: Option[BlcList] = None,
 ) extends ListPage[BlockInfo]
 
 final case class NftModel(
     page: Int = 1,
-    size: Int = 10,
+    size: Int = 20,
     searchPage: Int = 1,
     list: Option[NftList] = None,
 ) extends ListPage[NftInfoModel]
 final case class NftTokenModel(
     id: String = "",
     page: Int = 1,
-    size: Int = 10,
+    size: Int = 20,
     searchPage: Int = 1,
     list: Option[NftTokenList] = None,
 ) extends ListPage[NftSeasonModel]
 final case class AccModel(
     page: Int = 1,
-    size: Int = 10,
+    size: Int = 20,
     searchPage: Int = 1,
     list: Option[AccList] = None,
 ) extends ListPage[AccountInfo]

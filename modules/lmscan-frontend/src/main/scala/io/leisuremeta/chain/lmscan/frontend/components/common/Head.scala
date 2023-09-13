@@ -58,7 +58,7 @@ object Head:
       Cell.Head("Block"),
       Cell.Head("Age"),
       Cell.Head("Signer"),
-      Cell.Head("Value"),
+      Cell.Head("Subtype"),
     ),
   )
 
