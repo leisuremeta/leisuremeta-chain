@@ -34,6 +34,11 @@ object V:
   def plainDouble(data: Option[Double]) =
     getOptionValue(data, 0.toDouble).asInstanceOf[Double].toString
 
+  def plainSeason(data: Option[String]) =
+    data match
+      case Some(v) => if("""\d+\.?\d*""".r.matches(v)) s"SEASON $v:" else s"$v:"
+      case _ => ""
+
   // def hash10(data: Option[Any]) =
   //   getOptionValue(data, "-").toString().take(10) + "..."
 

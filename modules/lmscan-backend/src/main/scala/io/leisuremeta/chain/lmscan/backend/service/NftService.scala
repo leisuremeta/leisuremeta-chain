@@ -54,21 +54,20 @@ object NftService:
       page <- NftInfoRepository.getPage(pageNavInfo).leftMap(Left(_))
       nftInfos = page.payload.map { info =>
         NftInfoModel(
-          tokenDefId = Some(info.tokenDefId),
           season = Some(info.season),
-          collectionName = Some(info.collectionName),
-          collectionSn = Some(info.collectionSn),
+          seasonName = Some(info.seasonName),
           totalSupply = info.totalSupply,
           startDate = info.startDate.map(_.toInstant()),
           endDate = info.endDate.map(_.toInstant()),
+          thumbUrl = info.thumbUrl,
         )
       }
     yield PageResponse(page.totalCount, page.totalPages, nftInfos)
   def getSeasonPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-      tokenId: String,
+      season: String,
   ): EitherT[F, Either[String, String], PageResponse[NftSeasonModel]] =
     for 
-      page <- NftInfoRepository.getSeasonPage(pageNavInfo, tokenId).leftMap(Left(_))
+      page <- NftInfoRepository.getSeasonPage(pageNavInfo, season).leftMap(Left(_))
       seasons = page.payload.map(_.toModel)
     yield PageResponse(page.totalCount, page.totalPages, seasons)

@@ -25,7 +25,6 @@ object Head:
     gen.cell(
       Cell.Head(""),
       Cell.Head("Season"),
-      Cell.Head("NFT"),
       Cell.Head("Total Supply"),
       Cell.Head("Sale Started"),
       Cell.Head("Sale Ended"),

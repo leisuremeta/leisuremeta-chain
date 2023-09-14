@@ -7,8 +7,11 @@ import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
 import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
 
 enum Cell:
+  case ImageS(data: Option[String])              extends Cell
   case Image(data: Option[String])              extends Cell
   case Head(data: String, css: String = "cell") extends Cell
   case Any(data: String, css: String = "cell")  extends Cell
@@ -43,6 +46,11 @@ enum Cell:
 object gen:
   def cell(cells: Cell*) = cells
     .map(_ match
+      case Cell.ImageS(nftUri) =>
+        img(
+          `class` := "thumb-img",
+          src     := s"${getOptionValue(nftUri, "-").toString}",
+        )
       case Cell.Image(nftUri) =>
         List("mp3", "mp4")
           .find(data => plainStr(nftUri).contains(data)) match
@@ -170,7 +178,11 @@ object gen:
                 "tooltip-text",
                 v.toString
               )
-            )(v.toString.take(10))
+            )(
+              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm (O)")
+                .withZone(ZoneId.of("+09:00")) 
+                .format(v)
+            )
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
             {
@@ -193,12 +205,14 @@ object gen:
 
       case Cell.NftToken(nftInfo) =>
         div(
-          `class` := "cell type-3",
+          `class` := "cell",
           onClick(
-            // RouterMsg.NavigateTo(NftTokenPage(nftInfo.tokenDefId.getOrElse(""))),
-            RouterMsg.NavigateTo(NftTokenPage("202301181200423709")),
+            RouterMsg.NavigateTo(NftTokenPage(nftInfo.season.getOrElse(""))),
           ),
-        )(plainStr(nftInfo.collectionName))
+        )(
+          span(`class` := "season-nm")(plainSeason(nftInfo.season)),
+          span(`class` := "type-3")(plainStr(nftInfo.seasonName)),
+        )
       case Cell.NftDetail(nftInfo, s) =>
         div(
           `class` := "cell type-3",

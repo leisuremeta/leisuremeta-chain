@@ -2,12 +2,14 @@ package io.leisuremeta.chain.lmscan.backend.entity
 
 import java.util.Date
 
-final case class NftInfo(
+final case class CollectionInfo(
+    tokenDefId: String,
     season: String,
-    seasonName: String,
+    collectionName: String,
+    collectionSn: Int,
     totalSupply: Option[Int],
     startDate: Option[Date],
     endDate: Option[Date],
+    infoProg: Option[Int],
     thumbUrl: Option[String],
-    sort: Int,
 )

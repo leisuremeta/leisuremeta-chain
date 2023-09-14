@@ -110,7 +110,7 @@ object ExploreApi:
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftSeasonEndPoint = baseEndpoint.get
     .in("nft")
-    .in(path[String]("tokenId")) // token_id
+    .in(path[String]("season")) // token_id
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )

@@ -60,8 +60,7 @@ object Body:
           `class` := "row table-body",
         )(
           gen.cell(
-            Cell.Image(v.thumbUrl),
-            Cell.PlainStr(v.season),
+            Cell.ImageS(v.thumbUrl),
             Cell.NftToken(v),
             Cell.PlainStr(v.totalSupply),
             Cell.DateS(v.startDate),

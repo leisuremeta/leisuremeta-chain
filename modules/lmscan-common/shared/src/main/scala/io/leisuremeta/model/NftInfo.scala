@@ -4,10 +4,8 @@ import java.util.Date
 import java.time.Instant
 
 final case class NftInfoModel(
-    tokenDefId: Option[String] = None,
     season: Option[String] = None,
-    collectionName: Option[String] = None,
-    collectionSn: Option[Int] = None,
+    seasonName: Option[String] = None,
     totalSupply: Option[Int] = None,
     startDate: Option[Instant] = None,
     endDate: Option[Instant] = None,

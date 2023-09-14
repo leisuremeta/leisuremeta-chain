@@ -759,7 +759,7 @@
     grid-template-columns: auto 20% 20% 20%;
 }
 .nfts .row {
-    grid-template-columns: 70px 12% auto 10% 15% 15%;
+    grid-template-columns: 100px auto 10% repeat(2, 18%);
 }
 .nfts .nft-image {
     height: 100%;
@@ -832,4 +832,14 @@
 }
 .neg {
     color: red;
+}
+.season-nm {
+    padding-right: 15px;
+}
+.thumb-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    border: 1px solid #44a218b8;
+    justify-self: center;
 }

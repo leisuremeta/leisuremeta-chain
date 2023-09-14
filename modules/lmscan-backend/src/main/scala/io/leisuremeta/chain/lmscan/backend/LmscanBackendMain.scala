@@ -125,10 +125,10 @@ object BackendMain extends IOApp:
     }
 
   def nftSeasonPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getNftSeasonEndPoint.serverLogic { (tokenId: String, pageInfo: PageNavigation) =>
+    ExploreApi.getNftSeasonEndPoint.serverLogic { (season: String, pageInfo: PageNavigation) =>
       scribe.info(s"nftSeasonPaging request pageInfo: $pageInfo")
       NftService
-        .getSeasonPage[F](pageInfo, tokenId)
+        .getSeasonPage[F](pageInfo, season)
         .leftMap:
           case Right(msg) => Right(ExploreApi.BadRequest(msg))
           case Left(msg) => Left(ExploreApi.ServerError(msg))
