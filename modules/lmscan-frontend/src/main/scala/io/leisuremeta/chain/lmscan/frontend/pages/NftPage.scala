@@ -12,7 +12,7 @@ case class NftPage(page: Int) extends Page:
       model,
       div(`class` := "table-area")(
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Nfts",
+          "NFTs",
         ),
         Table.view(model.nftPage),
       ),

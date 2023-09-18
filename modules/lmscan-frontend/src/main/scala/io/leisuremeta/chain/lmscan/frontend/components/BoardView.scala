@@ -32,7 +32,7 @@ object BoardView:
   def drawPriceDiff(optT: Option[Double], optY: Option[Double]): Html[Msg] = (optT, optY) match
     case (Some(v), Some(w)) => 
       val diff = (v - w) / w * 100
-      drawDiff(f"$diff%3.2f %%", diff >= 0)
+      drawDiff(f"$diff%+3.2f %%", diff >= 0)
     case (_, _) => div()
 
   def txPan(summary: SummaryBoard) =
@@ -45,7 +45,7 @@ object BoardView:
   def drawTxDiff(optT: Option[Long], optY: Option[Long]): Html[Msg] = (optT, optY) match
     case (Some(v), Some(w)) => 
       val diff = v - w 
-      drawDiff(f"$diff%+10d", diff >= 0)
+      drawDiff(f"$diff%+d", diff >= 0)
     case (_, _) => div()
 
   def balPan(summary: SummaryBoard) =
@@ -53,12 +53,12 @@ object BoardView:
 
   def drawBal(opt: Option[BigDecimal]): Html[Msg] = opt match
     case None => LoaderView.view
-    case Some(v) => drawContent(parseToNumber(v))
+    case Some(v) => drawContent(f"${v / Math.pow(10, 18)}%,.3f")
 
   def drawBalDiff(optT: Option[BigDecimal], optY: Option[BigDecimal]): Html[Msg] = (optT, optY) match
     case (Some(v), Some(w)) => 
       val diff = v - w 
-      drawDiff(diff.toString, diff >= 0)
+      drawDiff(f"${diff / Math.pow(10, 18)}%+,.3f", diff >= 0)
     case (_, _) => div()
 
   def accPan(summary: SummaryBoard) =
@@ -71,7 +71,7 @@ object BoardView:
   def drawAccDiff(optT: Option[Long], optY: Option[Long]): Html[Msg] = (optT, optY) match
     case (Some(v), Some(w)) => 
       val diff = v - w 
-      drawDiff(s"$diff", diff >= 0)
+      drawDiff(f"$diff%+d", diff >= 0)
     case (_, _) => div()
 
   def drawContent(s: String) = div(`class` := "color-white font-bold")(s)

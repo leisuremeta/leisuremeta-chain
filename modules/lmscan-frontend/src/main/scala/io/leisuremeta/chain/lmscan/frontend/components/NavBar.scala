@@ -8,7 +8,7 @@ object NavBar:
   val blc = "Blocks"
   val tx = "Transactions"
   val acc = "Accounts"
-  val nft = "Nfts"
+  val nft = "NFTs"
   def view(model: Model): Html[Msg] =
     nav()(
       div(id := "title", onClick(RouterMsg.NavigateTo(MainPage)))(

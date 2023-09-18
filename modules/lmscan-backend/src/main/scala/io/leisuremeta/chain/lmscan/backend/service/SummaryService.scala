@@ -10,18 +10,30 @@ import io.leisuremeta.chain.lmscan.common.model.SummaryBoard
 object SummaryService:
   def get[F[_]: Async](n: Int): EitherT[F, Either[String, String], Option[SummaryModel]] =
     for
-      summary <- SummaryRepository.get(n).leftMap(Left(_))
+      summary <- SummaryRepository.get(n, 1).leftMap(Left(_))
       model = summary.map(a =>
-        val s = a.head
-        SummaryModel(
-          Some(s.id),
-          Some(s.lmPrice),
-          Some(s.blockNumber),
-          Some(s.totalAccounts),
-          Some(s.createdAt),
-          Some(s.totalTxSize.toLong),
-          Some(s.total_balance),
-        ),
+        val h = a.headOption
+        h match
+          case Some(s) =>
+            SummaryModel(
+              Some(s.id),
+              Some(s.lmPrice),
+              Some(s.blockNumber),
+              Some(s.totalAccounts),
+              Some(s.createdAt),
+              Some(s.totalTxSize.toLong),
+              Some(s.totalBalance),
+            )
+          case None =>
+            SummaryModel(
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+            )
       )
     yield model
 
@@ -44,7 +56,7 @@ object SummaryService:
               Some(s.totalAccounts),
               Some(s.createdAt),
               Some(s.totalTxSize.toLong),
-              Some(s.total_balance),
+              Some(s.totalBalance),
             )
           ).toSeq
         )
@@ -62,7 +74,7 @@ object SummaryService:
           None,
           Some(s.createdAt),
           None,
-          Some(s.total_balance),
+          Some(s.totalBalance),
         ),
       ))
       chart = SummaryChart(model.get)

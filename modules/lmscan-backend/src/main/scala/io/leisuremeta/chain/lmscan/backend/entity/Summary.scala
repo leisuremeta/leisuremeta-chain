@@ -7,5 +7,5 @@ final case class Summary(
     totalAccounts: Long,
     createdAt: Long,
     totalTxSize: BigDecimal,
-    total_balance: BigDecimal,
+    totalBalance: BigDecimal,
 )

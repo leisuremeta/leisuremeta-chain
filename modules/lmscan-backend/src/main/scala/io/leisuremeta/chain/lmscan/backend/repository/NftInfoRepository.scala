@@ -20,26 +20,24 @@ object NftInfoRepository extends CommonQuery:
     val cntQuery = quote:
       (season: String) => query[NftFile]
         .join(query[CollectionInfo].filter(s => s.season == season))
-        .on((n, c) => n.tokenDefId == c.tokenDefId)
+        .on((n, c) => n.collectionName == c.collectionName)
 
     def pagedQuery =
       quote: (pageNavInfo: PageNavigation, season: String) =>
         val offset         = sizePerRequest * pageNavInfo.pageNo
         val sizePerRequest = pageNavInfo.sizePerRequest
 
-        query[Nft]
-          .join(query[NftFile])
-          .on((n, f) => n.tokenId == f.tokenId)
+        query[NftFile]
           .join(query[CollectionInfo].filter(s => s.season == season))
-          .on((n, c) => n._2.tokenDefId == c.tokenDefId)
+          .on((n, c) => n.collectionName == c.collectionName)
           .map((n, _) => 
             NftSeason(
-              n._2.nftName,
-              n._1.tokenId,
-              n._2.tokenDefId,
-              n._2.creator,
-              n._2.rarity,
-              n._2.dataUrl,
+              n.nftName,
+              n.tokenId,
+              n.tokenDefId,
+              n.creator,
+              n.rarity,
+              n.dataUrl,
             ) 
           )
           .sortBy(s => s.tokenId)(Ord.asc)
