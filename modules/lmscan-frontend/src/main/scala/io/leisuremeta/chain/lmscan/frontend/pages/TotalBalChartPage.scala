@@ -25,3 +25,5 @@ case object TotalBalChart extends Page:
         BalChart.view(model)
       )
     )
+
+  def url = "/chart/bal"

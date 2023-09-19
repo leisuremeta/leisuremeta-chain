@@ -23,3 +23,5 @@ case class BlockDetailPage(hash: String) extends Page:
         Table.view(model.blcDetail)
       ),
     )
+
+  def url = s"/blc/$hash"

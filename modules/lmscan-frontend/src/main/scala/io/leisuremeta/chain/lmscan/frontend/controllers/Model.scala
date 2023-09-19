@@ -3,9 +3,13 @@ package frontend
 
 import common.model._
 
+final case class GlobalModel(
+  popup: Boolean = false,
+  searchValue: String = "",
+)
+
 final case class Model(
-    popup: Boolean = false,
-    searchValue: String = "",
+    global: GlobalModel = GlobalModel(),
     page: Page = MainPage,
     summary: SummaryBoard = SummaryBoard(),
     blcPage: BlockModel = BlockModel(),

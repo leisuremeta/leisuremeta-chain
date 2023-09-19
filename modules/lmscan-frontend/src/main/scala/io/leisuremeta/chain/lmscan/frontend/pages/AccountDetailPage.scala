@@ -24,3 +24,5 @@ case class AccountDetailPage(hash: String) extends Page:
         Table.view(model.accDetail)
       ),
     )
+
+  def url = s"/account/$hash"

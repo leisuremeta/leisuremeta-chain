@@ -25,3 +25,5 @@ case object TotalTxChart extends Page:
         TxChart.view(model)
       )
     )
+  
+  def url = "/chart/tx"

@@ -11,16 +11,16 @@ object Update:
       case RouterMsg.NavigateTo(page) => page.update(model.copy(page = page))(routerMsg)
       case RouterMsg.NavigateToUrl(url) => (model, Nav.loadUrl(url))
       case _ => (model, Cmd.None)
-    case PopupMsg(v)     => (model.copy(popup = v), Cmd.None)
+    case PopupMsg(v)     => (model.copy(global = model.global.copy(popup = v)), Cmd.None)
     case NotFoundMsg() => 
       println("erorr ehre!") 
       (model, Cmd.None)
     case ErrorMsg => (model.copy(page = ErrorPage), Cmd.None)
     case NoneMsg => (model, Cmd.None)
 
-    case GlobalInput(s) => (model.copy(searchValue = s), Cmd.None)
+    case GlobalInput(s) => (model.copy(global = model.global.copy(searchValue = s)), Cmd.None)
     case GlobalSearch => 
-      (model, DataProcess.globalSearch(model.searchValue))
+      (model, DataProcess.globalSearch(model.global.searchValue))
 
     case UpdateAccDetailPage(address) => (model, Cmd.Batch(DataProcess.getData(AccountDetail(address = Some(address)))))
     case UpdateNftDetailPage(tokenId) => (model, Cmd.Batch(DataProcess.getData(NftFileModel(tokenId = Some(tokenId)))))
@@ -28,7 +28,7 @@ object Update:
     case UpdateBlcDetailPage(hash) => (model, DataProcess.getData(BlockDetail(hash = Some(hash))))
     case UpdateBlockPage(page: Int) =>
       (
-        model.copy(blcPage = BlockModel(page = page)), 
+        model.copy(blcPage = BlockModel(page = page)),
         Cmd.Batch(
           DataProcess.getData(BlockModel(page = page)),
           Nav.pushUrl(s"/blocks/$page"),
@@ -86,7 +86,7 @@ object Update:
       case v: NftTokenList => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(v))), Cmd.None)
       case v: SummaryBoard => (model.copy(summary = v), Cmd.None)
       case v: SummaryChart => (model.copy(chartData = v), Cmd.None)
-      case v: TxDetail => (model.copy(txDetail = v), Nav.pushUrl(s"/tx/${v.hash.getOrElse("")}"))
-      case v: BlockDetail => (model.copy(blcDetail = v), Nav.pushUrl(s"/block/${v.hash.getOrElse("")}"))
-      case v: AccountDetail => (model.copy(accDetail = v), Nav.pushUrl(s"/account/${v.address.getOrElse("")}"))
-      case v: NftDetail => (model.copy(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.getOrElse(NftFileModel()).tokenId.getOrElse("")}"))
+      case v: TxDetail => (model.copy(txDetail = v), Nav.pushUrl(model.page.url))
+      case v: BlockDetail => (model.copy(blcDetail = v), Nav.pushUrl(model.page.url))
+      case v: AccountDetail => (model.copy(accDetail = v), Nav.pushUrl(model.page.url))
+      case v: NftDetail => (model.copy(nftDetail = v), Nav.pushUrl(model.page.url))

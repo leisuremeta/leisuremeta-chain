@@ -17,3 +17,5 @@ case class  AccountPage(page: Int) extends Page:
         Table.view(model.accPage),
       ),
     )
+
+  def url = s"/accounts/$page"

@@ -25,3 +25,5 @@ case object TotalAcChart extends Page:
         AcChart.view(model)
       )
     )
+
+  def url = "/chart/account"

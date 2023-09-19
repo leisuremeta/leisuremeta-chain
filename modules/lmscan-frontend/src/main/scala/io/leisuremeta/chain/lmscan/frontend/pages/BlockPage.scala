@@ -17,3 +17,5 @@ case class  BlockPage(page: Int) extends Page:
         Table.view(model.blcPage),
       ),
     )
+
+  def url = s"/blcs/$page"

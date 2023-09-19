@@ -17,3 +17,5 @@ case class NftTokenPage(id: String, page: Int = 1) extends Page:
         Table.view(model.nftTokenPage),
       ),
     )
+
+  def url = s"/nft/$id/$page"

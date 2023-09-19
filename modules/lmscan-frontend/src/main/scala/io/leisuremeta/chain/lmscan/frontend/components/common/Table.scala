@@ -58,32 +58,32 @@ object Table:
     )
 
   def view(model: BlockModel) =
-    div(`class` := "table-container position-relative y-center")(
-      Table.block(model.list),
+    div(`class` := "table-container app-table blc")(
+      block(model.list),
       Pagination.view(model),
       model.list match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
   def view(model: AccModel) =
-    div(`class` := "table-container position-relative y-center")(
-      Table.acc(model.list),
+    div(`class` := "table-container app-table accs")(
+      acc(model.list),
       Pagination.view(model),
       model.list match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
   def view(model: NftModel) =
-    div(`class` := "table-container position-relative app-table nfts")(
-      Table.nft(model.list),
+    div(`class` := "table-container app-table nfts")(
+      nft(model.list),
       Pagination.view(model),
       model.list match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
   def view(model: NftTokenModel) =
-    div(`class` := "table-container position-relative app-table nft-token")(
-      Table.nftToken(model.list),
+    div(`class` := "table-container app-table nft-token")(
+      nftToken(model.list),
       Pagination.view(model),
       model.list match
         case None    => LoaderView.view
@@ -91,7 +91,7 @@ object Table:
     )
 
   def view(model: TxModel): Html[Msg] =
-    div(`class` := "table-container app-table tx w-[100%]")(
+    div(`class` := "table-container app-table tx")(
       model.list match
         case None => LoaderView.view
         case Some(v) =>
@@ -102,44 +102,44 @@ object Table:
       Pagination.view(model),
     )
   def view(model: BlockDetail): Html[Msg] =
-    div(`class` := "table-container app-table mt-15 tx w-[100%]")(
+    div(`class` := "table-container app-table mt-15 tx")(
       model.txs match
         case None    => List(LoaderView.view)
         case Some(v) => Table.view(v),
     )
   def view(model: AccountDetail): Html[Msg] =
-    div(`class` := "table-container app-table tx w-[100%]")(
+    div(`class` := "table-container app-table tx")(
       model.txHistory match
         case None    => List(LoaderView.view)
         case Some(v) => Table.view(v),
     )
   def view(model: NftDetail): Html[Msg] =
-    div(`class` := "table-container app-table nft w-[100%]")(
+    div(`class` := "table-container app-table nft")(
       model.activities match
         case None    => List(Head.nft, LoaderView.view)
         case Some(v) => Head.nft :: Body.nft(v.toList),
     )
 
   def block(list: Option[BlcList]) =
-    div(`class` := "app-table blc w-[100%]")(
+    div(
       list match
         case Some(v) => Head.block :: Body.blocks(v.payload.toList)
         case None    => List(Head.block),
     )
   def acc(list: Option[AccList]) =
-    div(`class` := "app-table accs w-[100%]")(
+    div(
       list match
         case Some(v) => Head.accs :: Body.accs(v.payload.toList)
         case None    => List(Head.accs),
     )
   def nft(list: Option[NftList]) =
-    div(`class` := "app-table blc w-[100%]")(
+    div(
       list match
         case Some(v) => Head.nfts :: Body.nfts(v.payload.toList)
         case None    => List(Head.nfts),
     )
   def nftToken(list: Option[NftTokenList]) =
-    div(`class` := "app-table blc w-[100%]")(
+    div(
       list match
         case Some(v) => Head.nftToken :: Body.nftToken(v.payload.toList)
         case None    => List(Head.nftToken),

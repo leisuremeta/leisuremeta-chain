@@ -17,3 +17,5 @@ case class NftPage(page: Int) extends Page:
         Table.view(model.nftPage),
       ),
     )
+
+  def url = s"/nfts/$page"

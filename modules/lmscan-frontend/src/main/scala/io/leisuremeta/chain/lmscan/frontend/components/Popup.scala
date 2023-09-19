@@ -10,8 +10,8 @@ import org.scalajs.dom.window
 
 object PopupView:
   def view(model: Model): Html[Msg] =
-    div(id := "popup1", `class` := s"overlay ${model.popup}")(
-      div(`class` := s"popup ${model.popup}")(
+    div(id := "popup1", `class` := s"overlay ${model.global.popup}")(
+      div(`class` := s"popup ${model.global.popup}")(
         h2("INFO"),
         br,
         div(

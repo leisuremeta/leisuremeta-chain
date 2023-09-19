@@ -26,3 +26,5 @@ case object ErrorPage extends Page:
         ),
       ),
     )
+
+  def url = "/error"

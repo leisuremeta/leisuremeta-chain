@@ -23,3 +23,5 @@ case class TxDetailPage(hash: String) extends Page:
         ),
       ),
     )
+
+  def url = s"/tx/$hash"
