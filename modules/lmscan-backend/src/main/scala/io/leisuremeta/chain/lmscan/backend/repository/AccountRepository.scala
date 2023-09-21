@@ -37,6 +37,7 @@ object AccountRepository extends CommonQuery:
   ): EitherT[F, String, PageResponse[Balance]] =
     val cntQuery = quote {
       query[Balance]
+        .filter(_.address != "eth-gateway") // filter eth-gateway
     }
 
     def pagedQuery =
@@ -45,6 +46,7 @@ object AccountRepository extends CommonQuery:
         val sizePerRequest = pageNavInfo.sizePerRequest
 
         query[Balance]
+          .filter(_.address != "eth-gateway")
           .sortBy(a => a.updatedAt)(Ord.asc)
           .drop(offset)
           .take(sizePerRequest)

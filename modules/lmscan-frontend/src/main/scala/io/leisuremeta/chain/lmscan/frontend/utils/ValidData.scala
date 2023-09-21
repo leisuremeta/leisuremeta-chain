@@ -75,15 +75,18 @@ object V:
         plainStr(data)
       case _ =>
         plainStr(data).toString() match
-          case "playnomm" =>
-            // hash10(Some("010cd45939f064fd82403754bada713e5a9563a1"))
-            plainStr(Some("010cd45939f064fd82403754bada713e5a9563a1"))
-
-          case "eth-gateway" =>
-            // hash10(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
-            plainStr(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
-
-          case _ =>
-            plainStr(data)
+          case "playnomm" => plainStr(Some("010cd45939f064fd82403754bada713e5a9563a1"))
+          case "reward-posting" => plainStr(Some("d2c442e460e06d652f1d7c8706fd649306a5b9ce"))
+          case "reward-activity" => plainStr(Some("43a57958149a577cd7528f6d79adbc5ba728c9f3"))
+          case "DAO-M" => plainStr(Some("37cd3566cb27e40efdbdb8bf3e8264e7bd1ffffa"))
+          case "DAO-RWD" => plainStr(Some("8010b03a46dd4519965796c011b36d37f841157d"))
+          case "DAO-REWARD" => plainStr(Some("293b1e3cbb57ac8c354456d79a1e9675781650ed"))
+          case "creator-reward-posting" => plainStr(Some("dad9764447ebe3e363cb383cb114aeedc442447c"))
+          case "creator-reward-activity" => plainStr(Some("dca74dec332357ce717ba7702b8421edab2eaeee"))
+          case "reward-nft" => plainStr(Some("2bc3ac647d09f47d1c733d28b4d151313d62864b"))
+          case "creator-rewar-fixqty" => plainStr(Some("f7b90eed2a28d2d41a7ded5e66427b035be0fe9b"))
+          case "moonlabs" => plainStr(Some("ec09ba30ac1038c91fa1ae587fbdf859557cbed1"))
+          case "eth-gateway" => plainStr(Some("ca79f6fb199218fa681b8f441fefaac2e9a3ead3"))
+          case _ => plainStr(data)
 
   def _any(data: Option[Any]) = ""
