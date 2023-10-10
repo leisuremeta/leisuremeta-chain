@@ -27,7 +27,9 @@ object Table:
             )("More"),
           ),
         ),
-        block(model.blcPage.list),
+        model.blcPage.list match
+          case None => LoaderView.view
+          case Some(v) => div(`class` := "w-[100%]")(Head.block :: Body.blocks(v.payload.toList)),
       ),
       div(
         `class` := "app-table tx-m table-container position-relative y-center",
@@ -51,7 +53,7 @@ object Table:
         model.txPage.list match
           case None => LoaderView.view
           case Some(v) =>
-            div(`class` := "app-table")(
+            div(
               Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList),
             ),
       ),

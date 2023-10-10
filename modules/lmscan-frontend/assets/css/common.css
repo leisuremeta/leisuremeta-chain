@@ -11,6 +11,8 @@
     padding: 0px 20px 0px 20px;
     background-image: linear-gradient(141deg,#e9edf3,#c4dced);
     overflow: auto;
+    display: grid;
+    grid-template-rows: 70px auto 223px;
 }
 
 .search-area {

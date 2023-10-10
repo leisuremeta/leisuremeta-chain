@@ -9,18 +9,20 @@ import cats.data.EitherT
 import io.getquill.*
 import io.leisuremeta.chain.lmscan.backend.entity.NftSeason
 import entity.NftInfo
+import java.net.URLDecoder
 
 object NftInfoRepository extends CommonQuery:
   import ctx.{*, given}
 
   def getSeasonPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-      season: String,
+      seasonEnc: String,
   ): EitherT[F, String, PageResponse[NftSeason]] =
+    val season = URLDecoder.decode(seasonEnc, "UTF-8")
     val cntQuery = quote:
       (season: String) => query[NftFile]
         .join(query[CollectionInfo].filter(s => s.season == season))
-        .on((n, c) => n.collectionName == c.collectionName)
+        .on((n, c) => n.tokenDefId == c.tokenDefId)
 
     def pagedQuery =
       quote: (pageNavInfo: PageNavigation, season: String) =>
@@ -29,7 +31,7 @@ object NftInfoRepository extends CommonQuery:
 
         query[NftFile]
           .join(query[CollectionInfo].filter(s => s.season == season))
-          .on((n, c) => n.collectionName == c.collectionName)
+          .on((n, c) => n.tokenDefId == c.tokenDefId)
           .map((n, _) => 
             NftSeason(
               n.nftName,

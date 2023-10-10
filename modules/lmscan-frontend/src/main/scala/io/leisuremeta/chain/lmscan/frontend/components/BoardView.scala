@@ -79,7 +79,7 @@ object BoardView:
   def drawBox(title: String, content: List[Html[Msg]], to: RouterMsg): Html[Msg] =
     div(
       `class` := "board-container xy-center position-relative",
-      onClick(to),
+      // onClick(to),
     )(
       div(
         `class` := "board-text y-center gap-10px",
