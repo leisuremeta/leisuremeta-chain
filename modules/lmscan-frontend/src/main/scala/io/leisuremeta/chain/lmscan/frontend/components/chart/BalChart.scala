@@ -6,22 +6,37 @@ import tyrian.Html.*
 import tyrian.*
 import common.model._
 import java.time.Instant
+import scala.scalajs.js
+import scala.scalajs.js.annotation.*
+import scala.scalajs.js.JSConverters.*
 
 object BalChart {
   def view(model: Model): Html[Msg] =
     renderDataChart(model.chartData)
-    canvas(
-      width := "800px", 
-      height := "600px",
+    div(
       id := "chart",
     )("")
 
-  def renderDataChart(data: SummaryChart): Unit=
-    import typings.chartJs.mod.*
-    data.list match
+  def toVal(b: Option[BigDecimal]): Double =
+    val res = for
+      x <- b
+      y = x / BigDecimal("1e+18")
+      z = y.toDouble
+    yield z
+    res.getOrElse(0.0)
+
+  def toX(t: Option[Long]): String =
+    val res = for
+      x <- t
+      y = Instant.ofEpochSecond(x).toString.dropRight(1).split("T").mkString(s"\n")
+    yield y
+    res.getOrElse("")
+
+  def renderDataChart(data: SummaryChart): Unit =
+    data.list.reverse match
       case List() => ()
-      case list =>
-        val gData = list.map(_.totalBalance.getOrElse(BigDecimal(0))).map(a => a / BigDecimal("1e+18")).map(_.toDouble).toList
-        val label = list.map(_.createdAt.getOrElse(0L)).map(Instant.ofEpochSecond(_).toString).toList
-        val chart = Chart.apply.newInstance2("chart", ChartConfig.configBal(label, gData, "balance"))
+      case list => 
+        val label: Seq[String] = list.map(b => toX(b.createdAt))
+        val arr: Seq[Double] = list.map(b => toVal(b.totalBalance))
+        ChartHandler.drawBal(label, arr) 
 }

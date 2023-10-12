@@ -9,26 +9,21 @@ import common.model._
 object TxChart:
   def view(model: Model): Html[Msg] =
     renderDataChart(model.chartData)
-    canvas(
-      width := "800px",
-      height := "600px",
-      id := "chart",
-    )("")
+    div(id := "chart")("")
 
-  def renderDataChart(data: SummaryChart): Unit=
-    import typings.chartJs.mod.*
+  def renderDataChart(data: SummaryChart): Unit =
     data.list match
       case List() => ()
       case list =>
-        val gData = list.sliding(2).map(x => calData(x.head, x.last)).toList.reverse
-        val label = List("4 Day", "3 Day", "2 Day", "1 Day", "Today")
-        val chart = Chart.apply.newInstance2("chart", ChartConfig.config(
-          labelList = label, 
-          gData = gData, 
-          labelName = "Transactions",
-          chartType = "bar",
-        ))
+        val arr = list.sliding(2).map(x => calData(x.head, x.last)).toList.reverse
+        val label = calLabel(arr.length)
+        ChartHandler.drawChart(label, arr, "Transaction")
+
   def calData(s: SummaryModel, e: SummaryModel): Double =
     (s.totalTxSize, e.totalTxSize) match
       case (Some(st), Some(et)) => (st - et).toDouble
       case (_, _) => 0.0
+    
+  def calLabel(n: Int): List[String] =
+    if (n == 1) List("Today")
+    else s"${n - 1} Day" :: calLabel(n - 1)
