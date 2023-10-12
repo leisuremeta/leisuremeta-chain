@@ -29,6 +29,7 @@ node_modules
 # parcel
 .parcel-cache
 dist
+dist.zip
 .env
 
 # settings
