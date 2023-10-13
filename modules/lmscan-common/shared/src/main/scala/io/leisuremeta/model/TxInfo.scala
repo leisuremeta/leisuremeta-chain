@@ -12,4 +12,4 @@ final case class TxInfo(
     subType: Option[String] = None,
     inOut: Option[String] = None,
     value: Option[String] = None,
-)
+) extends ApiModel 

@@ -14,7 +14,7 @@ case class PageNavigation(
     sizePerRequest: Int,
     // @query
     // orderByProperty: Option[String], // ex) id:desc
-)
+) extends ApiModel 
 // ):
 //   def orderBy(): OrderBy =
 //     val items = this.orderByProperty.get.split(":")

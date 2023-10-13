@@ -1,4 +1,6 @@
-package io.leisuremeta.chain.lmscan.backend.entity
+package io.leisuremeta.chain.lmscan
+package backend
+package entity
 
 final case class Nft(
     txHash: String,

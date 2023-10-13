@@ -42,7 +42,6 @@ import sttp.tapir.server.armeria.TapirService
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
-import io.leisuremeta.chain.lmscan.backend.repository.PlaynommBalanceRepository
 
 object BackendMain extends IOApp:
 
@@ -55,126 +54,117 @@ object BackendMain extends IOApp:
           subType,
       ) =>
         scribe.info(s"txPaging request pageInfo: $pageInfo")
-        val result = TransactionService
+        TransactionService
           .getPageByFilter[F](pageInfo, accountAddr, blockHash, subType)
-          .leftMap { (errMsg: String) =>
-            scribe.error(s"errorMsg: $errMsg")
-            (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-          }
-        result.value
+          .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def txDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getTxDetailEndPoint.serverLogic { (hash: String) =>
       scribe.info(s"txDetail request hash: $hash")
-      val result = TransactionService
+      TransactionService
         .getDetail(hash)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
-    }
-
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
+}
   def blockPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       scribe.info(s"blockPaging request pageInfo: $pageInfo")
-      val result = BlockService
+      BlockService
         .getPage[F](pageInfo)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
-      scribe.info(s"blockDetail request hash: $hash")
-      val result = BlockService
+      BlockService
         .getDetail(hash)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
-  // def txPageByBlock[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getTxPageByBlockEndPoint.serverLogic {
-  //     (blockHash: String, pageInfo: PageNavigation) =>
-  //       scribe.info(s"txPageByBlock request pageInfo: $pageInfo")
-  //       val result = TransactionService
-  //         .getPageByBlock[F](blockHash, pageInfo)
-  //         .leftMap { (errMsg: String) =>
-  //           scribe.error(s"errorMsg: $errMsg")
-  //           (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-  //         }
-  //       println(s"result.value: ${result.value}")
-  //       result.value
-  //   }
+  def accountPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getAccountPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+      AccountService
+        .getPage[F](pageInfo)
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
+    }
 
   def accountDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getAccountDetailEndPoint.serverLogic { (address: String) =>
-      scribe.info(s"accountDetail request address: $address")
-      val result = AccountService
+      AccountService
         .get(address)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def nftDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getNftDetailEndPoint.serverLogic { (tokenId: String) =>
       scribe.info(s"nftDetail request tokenId: $tokenId")
-      val result = NftService
+      NftService
         .getNftDetail(tokenId)
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
-  // def searchTargetType[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-  //   ExploreApi.getSearchTargetType.serverLogic { (target: String) =>
-  //     scribe.info(s"search type request target: $target")
-  //     val len = target.length()
-
-  //     val targetType = len match
-  //       case 40 => for a <- AccountService.get(target) yield if a.nonEmpty then Some("account")   // account
-  //       case 25 => for n <-NftService.getNftDetail(target) yield if n.nonEmpty then Some("nft")   // token
-  //       case 64 => {
-  //         for t <- TransactionService.get(target) yield if t.nonEmpty then Some("transaction")    // transaction
-  //         else for b <- BlockService.get(target) yield if b.nonEmpty then Some("blockByHash")     // blcokByHash
-  //       }
-  //       case _  => if (target.forall(Character.isDigit)) then
-  //                   for b <- BlockService.getByNumber(target.toLong) yield if b.nonEmpty then Some("blockByNumber")
-  //   }
+  def nftSeasonPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getNftSeasonEndPoint.serverLogic { (season: String, pageInfo: PageNavigation) =>
+      scribe.info(s"nftSeasonPaging request pageInfo: $pageInfo")
+      NftService
+        .getSeasonPage[F](pageInfo, season)
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
+    }
+  def nftPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getNftPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
+      scribe.info(s"nftPaging request pageInfo: $pageInfo")
+      NftService
+        .getPage[F](pageInfo)
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
+    }
 
   def summaryMain[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getSummaryMainEndPoint.serverLogic { Unit =>
       scribe.info(s"summary request")
-      val result = SummaryService.get
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+      SummaryService.getBoard
+        .leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
-  // 대체
-  def playnommBalance[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getValanceFromChainDev.serverLogic { Unit =>
-      scribe.info(s"totalBalance")
-      val result = TempService.getBalance
-        .leftMap { (errMsg: String) =>
-          scribe.error(s"errorMsg: $errMsg")
-          (ExploreApi.ServerError(errMsg)).asLeft[ExploreApi.UserError]
-        }
-      result.value
+  def summaryChart[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getSummaryChartEndPoint.serverLogic { (chartType: String) =>
+      val list = chartType match
+        case "balance" => SummaryService.getList
+        case _ => SummaryService.get5List
+      
+      list.leftMap:
+          case Right(msg) => Right(ExploreApi.BadRequest(msg))
+          case Left(msg) => Left(ExploreApi.ServerError(msg))
+        .value
     }
 
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
@@ -183,25 +173,16 @@ object BackendMain extends IOApp:
       txDetail[F],
       blockPaging[F],
       blockDetail[F],
+      accountPaging[F],
       accountDetail[F],
+      nftPaging[F],
+      nftSeasonPaging[F],
       nftDetail[F],
-      // searchTargetType[F],
       summaryMain[F],
-      playnommBalance[F],
+      summaryChart[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
-    // def corsService =
-    //   CorsService
-    //     .builder("*")
-    //     .allowCredentials()
-    //     .allowNullOrigin() // 'Origin: null' will be accepted.
-    //     .allowRequestMethods(HttpMethod.POST, HttpMethod.GET)
-    //     .allowRequestHeaders("allow_request_header")
-    //     .exposeHeaders("expose_header_1", "expose_header_2")
-    //     .preflightResponseHeader("x-preflight-cors", "CORS")
-    //     .newDecorator();
-
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.make(Async[F].async_[Server] { cb =>
@@ -234,11 +215,7 @@ object BackendMain extends IOApp:
       }
     yield server
 
-  // override def run[F[_]: Async: Monad: TransactionRepository, IO](
-  override def run(
-      args: List[String],
-  ): IO[ExitCode] =
-
+  override def run(args: List[String]): IO[ExitCode] =
     val program: Resource[IO, Server] =
       for server <- getServerResource[IO]
       yield server

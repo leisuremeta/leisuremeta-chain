@@ -6,18 +6,7 @@ import sttp.tapir.EndpointIO
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 import io.circe.generic.auto.*
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.common.model.PageNavigation
-import io.leisuremeta.chain.lmscan.common.model.AccountDetail
-import io.leisuremeta.chain.lmscan.common.model.NftDetail
-import io.leisuremeta.chain.lmscan.common.model.{
-  TxDetail,
-  TxInfo,
-  BlockInfo,
-  BlockDetail,
-}
-import io.leisuremeta.chain.lmscan.common.model.SummaryModel
-
+import io.leisuremeta.chain.lmscan.common.model._
 import io.circe.*
 
 object ExploreApi:
@@ -96,11 +85,36 @@ object ExploreApi:
     .out(jsonBody[Option[BlockDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountPageEndPoint = baseEndpoint.get
+    .in("account" / "list")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[PageResponse[AccountInfo]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountDetailEndPoint = baseEndpoint.get
     .in("account")
     .in(path[String]("accountAddr")) // account_address
     .in("detail")
     .out(jsonBody[Option[AccountDetail]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftPageEndPoint = baseEndpoint.get
+    .in("nft" / "list")
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[PageResponse[NftInfoModel]])
+  
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftSeasonEndPoint = baseEndpoint.get
+    .in("nft")
+    .in(path[String]("season")) // token_id
+    .in(
+      sttp.tapir.EndpointInput.derived[PageNavigation],
+    )
+    .out(jsonBody[PageResponse[NftSeasonModel]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftDetailEndPoint = baseEndpoint.get
@@ -113,18 +127,19 @@ object ExploreApi:
   val getSummaryMainEndPoint = baseEndpoint.get
     .in("summary")
     .in("main")
-    .out(jsonBody[Option[SummaryModel]])
+    .out(jsonBody[Option[SummaryBoard]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getSummaryChartEndPoint = baseEndpoint.get
+    .in("summary")
+    .in("chart")
+    .in(path[String]("chartType"))
+    .out(jsonBody[SummaryChart])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTotalBalance = baseEndpoint.get
     .in("total")
     .in("balance")
-    .out(jsonBody[Option[String]])
-
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getValanceFromChainDev = baseEndpoint.get
-    .in("dev")
-    .in("chain")
     .out(jsonBody[Option[String]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))

@@ -17,3 +17,5 @@ case class TxPage(page: Int) extends Page:
         Table.view(model.txPage),
       ),
     )
+
+  def url = s"/txs/$page"

@@ -7,4 +7,4 @@ final case class AccountDetail(
   balance: Option[BigDecimal] = None,
   value: Option[BigDecimal] = None,
   txHistory: Option[Seq[TxInfo]] = None,    
-)
+) extends ApiModel

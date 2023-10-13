@@ -7,6 +7,7 @@ sealed trait Msg
 
 case object NoneMsg extends Msg
 case object ErrorMsg extends Msg
+case class NotFoundMsg() extends Msg
 
 case class GlobalInput(s: String) extends Msg
 case object GlobalSearch extends Msg
@@ -23,26 +24,16 @@ sealed trait ListMsg extends Msg:
   val value: Int
 
 case object UpdateSummary extends Msg
+case object UpdateChart extends Msg
+case object UpdateChartAll extends Msg
 case class UpdateBlockPage(value: Int) extends ListMsg
 case class UpdateTxPage(value: Int) extends ListMsg
+case class UpdateNftPage(value: Int) extends ListMsg
+case class UpdateNftTokenPage(id: String, value: Int) extends ListMsg
+case class UpdateAccPage(value: Int) extends ListMsg
+case class UpdateSearch(v: Int) extends Msg
 
-sealed trait SearchMsg extends Msg:
-  val v: Int
-case class UpdateBlcsSearch(v: Int) extends SearchMsg
-case class UpdateTxsSearch(v: Int) extends SearchMsg
-
-enum PageMsg extends Msg:
-  // 데이터 업데이트
-  case UpdateBlc(value: BlcList) extends PageMsg
-  case UpdateTx(value: TxList) extends PageMsg
-  case Update1(value: SummaryModel) extends PageMsg
-
-  case UpdateTxDetail(v: TxDetail) extends PageMsg
-
-  case UpdateBlcDetail(v: BlockDetail) extends  PageMsg
-
-  case UpdateAccDetail(v: AccountDetail) extends  PageMsg
-  case UpdateNftDetail(v: NftDetail) extends  PageMsg
+case class UpdateModel(model: ApiModel) extends Msg
 
 case class PopupMsg(value: Boolean) extends Msg
 

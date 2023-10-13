@@ -26,9 +26,9 @@ object TransactionService:
 
   def getDetail[F[_]: Async](
       hash: String,
-  ): EitherT[F, String, Option[TxDetail]] =
+  ): EitherT[F, Either[String, String], Option[TxDetail]] =
     for
-      trx <- TransactionRepository.get(hash)
+      trx <- TransactionRepository.get(hash).leftMap(Left(_))
       detail = trx.map { tx =>
         val outputValsOpt: Option[Seq[TransferHist]] = tx.outputVals match
           // [버그리포트] 개발망 devscan 트랜잭션 detail 표시 에러 hot fix
@@ -55,18 +55,6 @@ object TransactionService:
           Some(tx.json),
           Some(tx.subType),
         )
-//         final case class TxDetail(
-//     hash: Option[String] = None,
-//     createdAt: Option[Long] = None,
-//     signer: Option[String] = None,
-//     txType: Option[String] = None,
-//     tokenType: Option[String] = None,
-//     inputHashs: Option[Seq[String]] = None,
-//     transferHist: Option[Seq[TransferHist]] = None,
-//     json: Option[String] = None,
-//     subType: Option[String] = None,
-// )
-
       }
     yield detail
 
@@ -74,36 +62,36 @@ object TransactionService:
   // that makes it easy to compose Eithers and Fs together.
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[TxInfo]] =
+  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
-      page <- TransactionRepository.getPage(pageNavInfo)
+      page <- TransactionRepository.getPage(pageNavInfo).leftMap(Left(_))
       txInfo = convertToInfo(page.payload)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
   def getPageBySubtype[F[_]: Async](
       subType: String,
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[TxInfo]] =
+  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
-      page <- TransactionRepository.getPageBySubtype(subType, pageNavInfo)
+      page <- TransactionRepository.getPageBySubtype(subType, pageNavInfo).leftMap(Left(_))
       txInfo = convertToInfo(page.payload)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
   def getPageByAccount[F[_]: Async](
       address: String,
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[TxInfo]] =
+  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
-      page <- TransactionRepository.getPageByAccount(address, pageNavInfo)
+      page <- TransactionRepository.getPageByAccount(address, pageNavInfo).leftMap(Left(_))
       txInfo = convertToInfoForAccount(page.payload, address)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
   def getPageByBlock[F[_]: Async](
       blockHash: String,
       pageNavInfo: PageNavigation,
-  ): EitherT[F, String, PageResponse[TxInfo]] =
+  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
-      page <- TransactionRepository.getTxPageByBlock(blockHash, pageNavInfo)
+      page <- TransactionRepository.getTxPageByBlock(blockHash, pageNavInfo).leftMap(Left(_))
       txInfo = convertToInfo(page.payload)
     yield PageResponse(page.totalCount, page.totalPages, txInfo)
 
@@ -112,7 +100,7 @@ object TransactionService:
       accountAddr: Option[String],
       blockHash: Option[String],
       subType: Option[String],
-  ): EitherT[F, String, PageResponse[TxInfo]] =
+  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     subType match
       case None =>
         (accountAddr, blockHash) match
@@ -123,7 +111,7 @@ object TransactionService:
           case (Some(accountAddr), None) =>
             getPageByAccount[F](accountAddr, pageInfo)
           case (_, _) =>
-            EitherT.left(Async[F].delay("검색 파라미터를 하나만 입력해주세요."))
+            EitherT.left(Async[F].delay(Left("검색 파라미터를 하나만 입력해주세요.")))
       case Some(subtype) =>
         getPageBySubtype[F](subtype, pageInfo)
 

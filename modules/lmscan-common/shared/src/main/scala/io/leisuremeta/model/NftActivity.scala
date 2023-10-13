@@ -6,4 +6,4 @@ final case class NftActivity(
     fromAddr: Option[String] = None,
     toAddr: Option[String] = None,
     createdAt: Option[Long] = None,
-)
+) extends ApiModel 

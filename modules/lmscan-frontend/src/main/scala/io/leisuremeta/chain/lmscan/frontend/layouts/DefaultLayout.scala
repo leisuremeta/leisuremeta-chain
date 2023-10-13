@@ -14,6 +14,7 @@ object DefaultLayout:
         div(`class` := "pb-32px")(
           contents,
         ),
+        Footer.view(),
       ),
       PopupView.view(model),
     )

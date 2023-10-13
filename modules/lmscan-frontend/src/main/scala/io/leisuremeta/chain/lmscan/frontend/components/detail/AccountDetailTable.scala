@@ -31,9 +31,8 @@ object AccountDetailTable:
         div(`class` := "row")(
           gen.cell(
             Cell.Head("Value", "cell type-detail-head"),
-            Cell.Price(
-              model.summary.lmPrice,
-              data.balance,
+            Cell.PriceS(
+              data.value,
               "cell type-detail-body",
             ),
           ),

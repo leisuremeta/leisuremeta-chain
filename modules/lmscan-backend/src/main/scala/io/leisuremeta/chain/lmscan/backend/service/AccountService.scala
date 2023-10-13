@@ -11,48 +11,57 @@ import io.leisuremeta.chain.lmscan.common.model.{
   PageResponse,
   AccountDetail,
 }
-import io.leisuremeta.chain.lmscan.backend.repository.PlaynommBalanceRepository
+import io.leisuremeta.chain.lmscan.common.model.AccountInfo
+import java.time.Instant
+import io.leisuremeta.chain.lmscan.backend.repository.SummaryRepository
 
 object AccountService:
   def get[F[_]: Async](
       address: String,
-  ): EitherT[F, String, Option[AccountDetail]] =
-    val res = for
-      account <- AccountRepository.get(address)
+  ): EitherT[F, Either[String, String], Option[AccountDetail]] =
+    for
+      account <- AccountRepository.get(address).leftMap:
+        e => Left(e)
       txPage <- TransactionService.getPageByAccount(
         address,
         new PageNavigation(0, 20),
       )
-    yield (account, txPage)
-
-    res.map { (accountOpt, page) =>
-      accountOpt match
-        case Some(x) =>
-          val detail = AccountDetail(
-            Some(x.address),
-            Some(x.balance),
-            Some(x.amount),
-            Some(page.payload),
+      summary <- SummaryRepository.get().leftMap(Left(_))
+      price = summary match
+        case Some(s) => s.head.lmPrice
+        case None => 0.0
+      res <- account match
+        case Some(x) => 
+          EitherT.rightT[F, Either[String, String]](
+            Some(AccountDetail(
+              Some(x.address),
+              Some(x.balance),
+              Some(x.balance / BigDecimal("1E+18") * BigDecimal(price)),
+              Some(txPage.payload),
+            ))
           )
-          Some(detail)
         case None =>
-          scribe.info(s"there is no exist account of '$address'")
-          Option.empty
-    }
+          EitherT.leftT[F, Option[AccountDetail]](Right(s"$address is not exist"))
+    yield res
 
-    // accountOpt match
-    //   case Some(x) => ???
-    //   case None    => None
-    // accountOpt.map {
-    //   (account: Option[Account]) /*Either[String, Option[Account]]*/ =>
-    //     val detail = new AccountDetail(account.get)
-
-    //     val txPage: EitherT[F, String, PageResponse[Tx]] =
-    //       TransactionService.getPage(new PageNavigation(true, 0, 20))
-    //     // val z: Either[String, PageResponse[Tx]] = txPage.value
-    //     txPage.value match
-    //       case Left(errMsg) => scribe.info(s"$errMsg")
-    //       case Right(res: PageResponse[Tx]) =>
-    //         detail.txHistory = res.payload
-
-    //     Some(detail)
+  def getPage[F[_]: Async](
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, Either[String, String], PageResponse[AccountInfo]] =
+    for 
+      page <- AccountRepository.getPage(pageNavInfo).leftMap(Left(_))
+      summary <- SummaryRepository.get().leftMap(Left(_))
+      price = summary match
+        case Some(s) => s.headOption match
+          case Some(h) => h.lmPrice
+          case None => 0.0
+        case None => 0.0
+      accInfos = page.payload.map((b) =>
+        val balance = b.free
+        AccountInfo(
+          Some(b.address),
+          Some(balance),
+          Some(Instant.ofEpochSecond(b.updatedAt)),
+          Some(balance / BigDecimal("1E+18") * BigDecimal(price)),
+        )
+      )
+    yield PageResponse(page.totalCount, page.totalPages, accInfos)

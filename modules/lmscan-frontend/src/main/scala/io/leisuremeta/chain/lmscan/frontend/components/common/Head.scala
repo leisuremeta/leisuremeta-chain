@@ -12,6 +12,35 @@ object Head:
     ),
   )
 
+  val accs = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head("Address"),
+      Cell.Head("Balance"),
+      Cell.Head("Value"),
+      Cell.Head("Last Seen"),
+    ),
+  )
+
+  val nfts = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head(""),
+      Cell.Head("Season"),
+      Cell.Head("Total Supply"),
+      Cell.Head("Sale Started"),
+      Cell.Head("Sale Ended"),
+    ),
+  )
+
+  val nftToken = div(`class` := "row table-head")(
+    gen.cell(
+      Cell.Head("NFT"),
+      Cell.Head("Collection"),
+      Cell.Head("Token ID"),
+      Cell.Head("Creator"),
+      Cell.Head("Rarity"),
+    ),
+  )
+
   val nft = div(`class` := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),
@@ -28,7 +57,7 @@ object Head:
       Cell.Head("Block"),
       Cell.Head("Age"),
       Cell.Head("Signer"),
-      Cell.Head("Value"),
+      Cell.Head("Subtype"),
     ),
   )
 

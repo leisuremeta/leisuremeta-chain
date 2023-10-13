@@ -7,10 +7,7 @@ case class AccountDetailPage(hash: String) extends Page:
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
     (
       model,
-      Cmd.Batch(
-        Cmd.Emit(UpdateSummary),
-        Cmd.Emit(UpdateAccDetailPage(hash)),
-      )
+      Cmd.Emit(UpdateAccDetailPage(hash)),
     )
 
   def view(model: Model): Html[Msg] =
@@ -27,3 +24,5 @@ case class AccountDetailPage(hash: String) extends Page:
         Table.view(model.accDetail)
       ),
     )
+
+  def url = s"/account/$hash"

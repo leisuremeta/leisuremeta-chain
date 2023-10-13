@@ -18,3 +18,5 @@ case class NftDetailPage(hash: String) extends Page:
         Table.view(model.nftDetail)
       ),
     )
+
+  def url = s"/nft/$hash"

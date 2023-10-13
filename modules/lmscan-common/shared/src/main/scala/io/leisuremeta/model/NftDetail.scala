@@ -6,4 +6,4 @@ import io.leisuremeta.chain.lmscan.common.model.NftFileModel
 final case class NftDetail(
     nftFile: Option[NftFileModel] = None,
     activities: Option[Seq[NftActivity]] = None,
-)
+) extends ApiModel 

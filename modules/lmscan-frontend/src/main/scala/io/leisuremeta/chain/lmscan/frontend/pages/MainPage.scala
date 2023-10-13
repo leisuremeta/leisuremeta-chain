@@ -22,3 +22,5 @@ case object MainPage extends Page:
         Table.mainView(model),
       )
     )
+
+  def url = "/"

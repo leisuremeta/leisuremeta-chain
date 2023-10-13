@@ -1,21 +1,22 @@
-package io.leisuremeta.chain.lmscan.frontend
+package io.leisuremeta.chain
+package lmscan.frontend
+
 import tyrian.Html.*
 import tyrian.*
 import V.*
-import io.leisuremeta.chain.lmscan.common.model.TxDetail
+import lmscan.common.model.TxDetail
 import scala.util.chaining.*
 import io.circe.parser.decode
 import cats.data.EitherT
-import io.leisuremeta.chain.api.model.Transaction
-import io.leisuremeta.chain.api.model.Transaction.AccountTx.*
-import io.leisuremeta.chain.api.model.Transaction.TokenTx.*
-import io.leisuremeta.chain.api.model.Transaction.GroupTx.*
-import io.leisuremeta.chain.api.model.Transaction.RewardTx.*
-import io.leisuremeta.chain.api.model.Transaction.AgendaTx.*
-import io.leisuremeta.chain.api.model.account.*
-import io.leisuremeta.chain.api.model.*
+import api.model._
+import api.model.Transaction.AccountTx.*
+import api.model.Transaction.TokenTx.*
+import api.model.Transaction.GroupTx.*
+import api.model.Transaction.RewardTx.*
+import api.model.Transaction.AgendaTx.*
+import api.model.account.*
+import api.model.token.*
 import io.leisuremeta.chain.lib.datatype.Utf8
-import io.leisuremeta.chain.api.model.token.*
 import io.leisuremeta.chain.lib.crypto.Hash.Value
 import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.api.model.Signed.TxHash
@@ -29,9 +30,10 @@ object TxDetailTableCommon:
         d,
     )
 
-  def genRow(d: List[Html[Msg]]) = div(`class` := "row")(
-    d,
-  )
+  def genRow(d: List[Html[Msg]]) = d.length match
+    case 3 =>  div(`class` := "row tri")(d)
+    case 2 =>  div(`class` := "row duo")(d)
+    case _ =>  div(`class` := "row")(d)
 
   def onlyNumber(d: String) =
     """\d+""".r
@@ -129,12 +131,8 @@ object TxDetailTableCommon:
     Cell.ACCOUNT_HASH(
       Some(output.toString),
     ),
-    Cell.PlainStr(
-      Some(""),
-      // Some(
-      //   BigDecimal(v.toString.pipe(_Down18).toString)
-      //     .pipe(set_MaximumPoint(4)),
-      // ),
+    Cell.Balance(
+      Some(BigDecimal(v.toString)),
       "cell type-detail-body",
     ),
   )
@@ -145,14 +143,9 @@ object TxDetailTableCommon:
     Cell.PlainStr(Some(i + 1), "cell type-detail-body"),
     Cell.ACCOUNT_HASH(
       Some(outputs._1.toString),
-      // Some("10"),
     ),
-    Cell.PlainStr(
-      Some(
-        BigDecimal(outputs._2.toString).toString,
-          // BigDecimal(outputs._2.toString.pipe(_Down18).toString)
-          // .pipe(set_MaximumPoint(4)),
-      ),
+    Cell.Balance(
+      Some(BigDecimal(outputs._2.toString)),
       "cell type-detail-body",
     ),
   )
@@ -162,16 +155,9 @@ object TxDetailTableCommon:
       i: Int,
   ) = gen.cell(
     Cell.PlainStr(Some(i + 1), "cell type-detail-body"),
-    Cell.ACCOUNT_HASH(
-      Some(outputs._1.toString),
-    ),
-    Cell.PlainStr(
-      Some(
-        outputs._2
-          .toString(),
-          // .pipe(_Down18)
-          // .pipe(set_MaximumPoint(4)),
-      ),
+    Cell.ACCOUNT_HASH(Some(outputs._1.toString)),
+    Cell.Balance(
+      Some(BigDecimal(outputs._2.toString)),
       "cell type-detail-body",
     ),
   )

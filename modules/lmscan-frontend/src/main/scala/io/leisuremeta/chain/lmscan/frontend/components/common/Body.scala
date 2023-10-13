@@ -18,7 +18,18 @@ object Body:
         ),
       ),
     )
-  def txlist_txtable_off = (payload: List[TxInfo]) =>
+  def accs(payload: List[AccountInfo]) =
+    payload.map(v =>
+      div(`class` := "row table-body")(
+        gen.cell(
+          Cell.ACCOUNT_HASH(v.address),
+          Cell.Balance(v.balance),
+          Cell.PriceS(v.value),
+          Cell.DateS(v.updated),
+        ),
+      ),
+    )
+  def txRow = (payload: List[TxInfo]) =>
     payload.map(v =>
       div(`class` := "row table-body")(
         gen.cell(
@@ -26,32 +37,51 @@ object Body:
           Cell.PlainLong(v.blockNumber),
           Cell.AGE(v.createdAt),
           Cell.ACCOUNT_HASH(v.signer),
-          Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
+          Cell.PlainStr(v.subType),
         ),
       ),
     )
-  def txlist_txtable_on = (payload: List[TxInfo]) =>
+  def boardTxRow = (payload: List[TxInfo]) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
-            Cell.PlainLong(v.blockNumber),
             Cell.AGE(v.createdAt),
             Cell.ACCOUNT_HASH(v.signer),
-            Cell.PlainStr(v.subType), // subtype 추가
-            Cell.Tx_VALUE((v.subType, V.validNull(v.value))),
           ),
         ),
       )
-  def dashboard_txtable = (payload: List[TxInfo]) =>
+
+  def nfts = (payload: List[NftInfoModel]) =>
     payload
       .map(v =>
-        div(`class` := "row table-body")(
+        div(
+          `class` := "row table-body",
+        )(
           gen.cell(
-            Cell.TX_HASH(v.hash),
-            Cell.AGE(v.createdAt),
-            Cell.ACCOUNT_HASH(v.signer),
+            Cell.ImageS(v.thumbUrl),
+            Cell.NftToken(v),
+            Cell.PlainStr(v.totalSupply),
+            Cell.DateS(v.startDate),
+            Cell.DateS(v.endDate),
+          ),
+        ),
+      )
+
+
+  def nftToken = (payload: List[NftSeasonModel]) =>
+    payload
+      .map(v =>
+        div(
+          `class` := "row table-body",
+        )(
+          gen.cell(
+            Cell.NftDetail(v, v.nftName),
+            Cell.Any(v.getCollection),
+            Cell.NftDetail(v, v.tokenId),
+            Cell.PlainStr(v.creator),
+            Cell.PlainStr(v.rarity),
           ),
         ),
       )

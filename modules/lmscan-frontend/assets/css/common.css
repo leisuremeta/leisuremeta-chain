@@ -11,6 +11,8 @@
     padding: 0px 20px 0px 20px;
     background-image: linear-gradient(141deg,#e9edf3,#c4dced);
     overflow: auto;
+    display: grid;
+    grid-template-rows: 70px auto 223px;
 }
 
 .search-area {
@@ -142,13 +144,13 @@
     display: flex;
     padding: 0 5px ;
     width: 400px;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 .board-text::placeholder {
     padding: 0 5px ;
     color: rgba(0, 0, 0, 0.323);
     width: 400px;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 /* oop :: table > row > cell */
 .table-title{
@@ -532,14 +534,12 @@
 }
 
 .type-detail-head {
-    width: 250px;
     font-weight: 700;
 }
 
 .nft-image{
-    width: 60%;
-    height: 400px;
-    background-color: white;
+    width: 40%;
+    height: auto;
 }
 
 /* flex , display */
@@ -739,10 +739,14 @@
     height: 35px;
     gap: 10px;
 }
+.app-table.nfts .table-body {
+    height: 70px;
+}
 
 .row {
     display: grid;
     align-content: center;
+    align-items: center;
 }
 .blc .row {
     grid-template-columns: 15% 15% auto 15%;
@@ -751,7 +755,19 @@
     grid-template-columns: 40% 100px auto;
 }
 .tx .row {
-    grid-template-columns: auto 12% 14% 32% 10%;
+    grid-template-columns: auto 10% 10% 30% 16%;
+}
+.accs .row {
+    grid-template-columns: auto 20% 20% 20%;
+}
+.nfts .row {
+    grid-template-columns: 100px auto 10% repeat(2, 18%);
+}
+.nfts .nft-image {
+    height: 100%;
+}
+.nft-token .row {
+    grid-template-columns: 12% auto 25% 15% 10%;
 }
 .nft .row {
     grid-template-columns: auto 12% 14% 25% 25%;
@@ -759,6 +775,12 @@
 .detail .row {
     grid-template-columns: 30% auto;
     height: 50px;
+}
+.detail .row.duo {
+    grid-template-columns: 10% auto;
+}
+.detail .row.tri {
+    grid-template-columns: 10% auto 30%;
 }
 .row .cell {
     height: 1.3em;
@@ -786,4 +808,43 @@
 }
 .mt-15 {
     margin-top: 15px;
+}
+#chart {
+    background-color: rgba(255,255,255,0.7);
+    border-radius: 10px 15px;
+    width: 90%;
+    max-width: 1000px;
+    height: 70vh;
+    max-height: 700px;
+}
+
+.diff {
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+}
+.diff span:first-child  {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0.1em 0.4em;
+    background-color: gray;
+    color: white;
+    margin-right: 1.5em;
+    font-size: 0.8em;
+}
+.pos {
+    color: #51ff00b8;
+}
+.neg {
+    color: red;
+}
+.season-nm {
+    padding-right: 15px;
+}
+.thumb-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    border: 1px solid #44a218b8;
+    justify-self: center;
 }

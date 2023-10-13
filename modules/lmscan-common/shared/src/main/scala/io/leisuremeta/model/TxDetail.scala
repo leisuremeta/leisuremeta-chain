@@ -10,7 +10,7 @@ final case class TxDetail(
     transferHist: Option[Seq[TransferHist]] = None,
     json: Option[String] = None,
     subType: Option[String] = None,
-)
+) extends ApiModel 
 
 final case class TransferHist(
     toAddress: Option[String] = None,

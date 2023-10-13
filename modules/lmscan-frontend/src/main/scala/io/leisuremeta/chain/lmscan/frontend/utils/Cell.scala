@@ -6,11 +6,19 @@ import scala.util.matching.Regex
 import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
 
 enum Cell:
+  case ImageS(data: Option[String])              extends Cell
   case Image(data: Option[String])              extends Cell
   case Head(data: String, css: String = "cell") extends Cell
   case Any(data: String, css: String = "cell")  extends Cell
+  case PriceS(
+      price: Option[BigDecimal],
+      css: String = "cell",
+  )                                                             extends Cell
   case Price(
       price: Option[Double],
       balance: Option[BigDecimal],
@@ -18,8 +26,11 @@ enum Cell:
   )                                                             extends Cell
   case Balance(data: Option[BigDecimal], css: String = "cell")  extends Cell
   case AGE(data: Option[Long])                                  extends Cell
+  case DateS(data: Option[Instant], css: String = "cell")           extends Cell
   case DATE(data: Option[Long], css: String = "cell")           extends Cell
   case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
+  case NftToken(data: NftInfoModel)                         extends Cell
+  case NftDetail(data: NftSeasonModel, s: Option[String])                         extends Cell
   case BLOCK_HASH(data: Option[String])                         extends Cell
   case ACCOUNT_HASH(data: Option[String], css: String = "cell") extends Cell
   case TX_HASH(data: Option[String])                            extends Cell
@@ -35,6 +46,11 @@ enum Cell:
 object gen:
   def cell(cells: Cell*) = cells
     .map(_ match
+      case Cell.ImageS(nftUri) =>
+        img(
+          `class` := "thumb-img",
+          src     := s"${getOptionValue(nftUri, "-").toString}",
+        )
       case Cell.Image(nftUri) =>
         List("mp3", "mp4")
           .find(data => plainStr(nftUri).contains(data)) match
@@ -58,6 +74,15 @@ object gen:
 
       case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
       case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
+      case Cell.PriceS(price, css) =>
+        div(`class` := s"$css")(
+          span(
+            price match
+              case Some(p) =>
+                "$ " + DecimalFormat("#,###.####").format(p)
+              case _ => "$ 0",
+          ),
+        )
       case Cell.Price(price, data, css) =>
         div(`class` := s"$css")(
           span(
@@ -143,6 +168,21 @@ object gen:
             },
           )
 
+      case Cell.DateS(data, css) =>
+        data match
+          case None => div()
+          case Some(v) => 
+            div(
+              `class` := s"$css",
+              dataAttr(
+                "tooltip-text",
+                v.toString
+              )
+            )(
+              DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm (O)")
+                .withZone(ZoneId.of("+09:00")) 
+                .format(v)
+            )
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
             {
@@ -163,6 +203,23 @@ object gen:
             ),
           )(plainLong(number))
 
+      case Cell.NftToken(nftInfo) =>
+        div(
+          `class` := "cell",
+          onClick(
+            RouterMsg.NavigateTo(NftTokenPage(nftInfo.season.getOrElse(""))),
+          ),
+        )(
+          span(`class` := "season-nm")(plainSeason(nftInfo.season)),
+          span(`class` := "type-3")(plainStr(nftInfo.seasonName)),
+        )
+      case Cell.NftDetail(nftInfo, s) =>
+        div(
+          `class` := "cell type-3",
+          onClick(
+            RouterMsg.NavigateTo(NftDetailPage(nftInfo.tokenId.getOrElse(""))),
+          ),
+        )(plainStr(s))
       case Cell.BLOCK_HASH(hash) =>
         div(
           `class` := "cell type-3",
