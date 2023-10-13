@@ -144,13 +144,13 @@
     display: flex;
     padding: 0 5px ;
     width: 400px;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 .board-text::placeholder {
     padding: 0 5px ;
     color: rgba(0, 0, 0, 0.323);
     width: 400px;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 /* oop :: table > row > cell */
 .table-title{

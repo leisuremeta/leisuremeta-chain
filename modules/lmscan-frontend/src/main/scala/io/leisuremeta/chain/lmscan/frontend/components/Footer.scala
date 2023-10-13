@@ -13,7 +13,7 @@ object Footer:
           ),
           p("A block explorer for LeisureMeta Chain")
         ),
-        p(`class` := "copyright")("Copyright &copy; LM LLC All Rights Reserved")
+        p(`class` := "copyright")("Copyright © LM LLC All Rights Reserved")
       ),
       div(`class` := "footer-right")(
         dl(`class` := "family-lick")(

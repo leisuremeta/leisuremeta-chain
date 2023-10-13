@@ -131,12 +131,8 @@ object TxDetailTableCommon:
     Cell.ACCOUNT_HASH(
       Some(output.toString),
     ),
-    Cell.PlainStr(
-      Some(""),
-      // Some(
-      //   BigDecimal(v.toString.pipe(_Down18).toString)
-      //     .pipe(set_MaximumPoint(4)),
-      // ),
+    Cell.Balance(
+      Some(BigDecimal(v.toString)),
       "cell type-detail-body",
     ),
   )
@@ -147,14 +143,9 @@ object TxDetailTableCommon:
     Cell.PlainStr(Some(i + 1), "cell type-detail-body"),
     Cell.ACCOUNT_HASH(
       Some(outputs._1.toString),
-      // Some("10"),
     ),
-    Cell.PlainStr(
-      Some(
-        BigDecimal(outputs._2.toString).toString,
-          // BigDecimal(outputs._2.toString.pipe(_Down18).toString)
-          // .pipe(set_MaximumPoint(4)),
-      ),
+    Cell.Balance(
+      Some(BigDecimal(outputs._2.toString)),
       "cell type-detail-body",
     ),
   )
@@ -164,16 +155,9 @@ object TxDetailTableCommon:
       i: Int,
   ) = gen.cell(
     Cell.PlainStr(Some(i + 1), "cell type-detail-body"),
-    Cell.ACCOUNT_HASH(
-      Some(outputs._1.toString),
-    ),
-    Cell.PlainStr(
-      Some(
-        outputs._2
-          .toString(),
-          // .pipe(_Down18)
-          // .pipe(set_MaximumPoint(4)),
-      ),
+    Cell.ACCOUNT_HASH(Some(outputs._1.toString)),
+    Cell.Balance(
+      Some(BigDecimal(outputs._2.toString)),
       "cell type-detail-body",
     ),
   )
