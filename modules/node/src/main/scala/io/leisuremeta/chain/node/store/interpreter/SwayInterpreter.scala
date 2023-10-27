@@ -10,7 +10,6 @@ import scala.concurrent.ExecutionContext
 import cats.Monad
 import cats.data.EitherT
 import cats.effect.{IO, Resource}
-import cats.effect.unsafe.IORuntime
 import cats.implicits._
 
 import scodec.bits.ByteVector

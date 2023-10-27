@@ -1,18 +1,13 @@
 package io.leisuremeta.chain
 package node
 
-import java.nio.file.{Path, Paths}
 import java.time.Instant
 
 import cats.effect.{ExitCode, Resource, IO, IOApp}
-//import cats.effect.unsafe.implicits.global
 import com.typesafe.config.{Config, ConfigFactory}
 
 import api.{LeisureMetaChainApi as Api}
 import api.model.*
-import api.model.account.EthAddress
-import api.model.reward.*
-import api.model.token.*
 import dapp.PlayNommState
 import lib.codec.byte.ByteCodec
 import lib.crypto.Hash

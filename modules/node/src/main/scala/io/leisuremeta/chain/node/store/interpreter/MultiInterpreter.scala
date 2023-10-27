@@ -5,23 +5,10 @@ package interpreter
 
 import java.nio.file.Path
 
-import scala.concurrent.ExecutionContext
-
-import cats.Monad
 import cats.data.EitherT
 import cats.effect.{IO, Resource}
-import cats.effect.unsafe.IORuntime
-import cats.implicits._
 
-import scodec.bits.ByteVector
-import swaydb.Map
-import swaydb.data.order.KeyOrder
-import swaydb.data.slice.Slice
-import swaydb.serializers.Serializer
-import swaydb.serializers.Default.ByteArraySerializer
-
-import lib.codec.byte.{ByteCodec, ByteDecoder, ByteEncoder, DecodeResult}
-import lib.datatype.BigNat
+import lib.codec.byte.{ByteCodec, DecodeResult}
 import lib.failure.DecodingFailure
 import io.leisuremeta.chain.node.NodeConfig.RedisConfig
 import java.nio.file.Paths

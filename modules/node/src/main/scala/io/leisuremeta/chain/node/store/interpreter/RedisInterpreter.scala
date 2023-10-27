@@ -10,21 +10,16 @@ import scala.concurrent.ExecutionContext
 import cats.Monad
 import cats.data.EitherT
 import cats.effect.{IO, Resource}
-import cats.effect.unsafe.IORuntime
-import cats.implicits._
 
 import scodec.bits.ByteVector
 import io.lettuce.core._
 
 import lib.codec.byte.{ByteCodec, ByteDecoder, ByteEncoder, DecodeResult}
-import lib.datatype.BigNat
 import lib.failure.DecodingFailure
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.RedisCodec
 import java.nio.ByteBuffer
-import swaydb.serializers.Decode
 import scala.util.Try
-import io.leisuremeta.chain.lib.datatype.Utf8.bytes
 import io.leisuremeta.chain.lib.datatype.Utf8
 import scala.util.Success
 import io.leisuremeta.chain.lib.datatype.UInt256
