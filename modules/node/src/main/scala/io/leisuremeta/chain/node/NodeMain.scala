@@ -22,47 +22,46 @@ import lib.merkle.MerkleTrieNode.MerkleHash
 import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 import store.*
-import store.interpreter.StoreIndexSwayInterpreter
+import store.interpreter._
+import io.leisuremeta.chain.lib.failure.DecodingFailure
+import cats.data.EitherT
 
 object NodeMain extends IOApp:
-  def sway[K: ByteCodec, V: ByteCodec](
-      dir: Path,
-  ): Resource[IO, StoreIndex[IO, K, V]] =
-    StoreIndexSwayInterpreter[K, V](dir)
+  def multi[K: ByteCodec, V: ByteCodec](
+      config: NodeConfig,
+      target: InterpreterTarget,
+  ): Resource[IO, KeyValueStore[IO, K, V]] =
+    MultiInterpreter[K, V](config.redis, target)
 
-  def getBlockRepo: Resource[IO, BlockRepository[IO]] = for
-    bestBlockKVStore <- sway[UInt256Bytes, Block.Header](
-      Paths.get("sway", "block", "best"),
-    )
+  def getBlockRepo(config: NodeConfig): Resource[IO, BlockRepository[IO]] = for
+    bestBlockKVStore <- multi[UInt256Bytes, Block.Header](config, InterpreterTarget.BEST_NUM)
     given SingleValueStore[IO, Block.Header] = SingleValueStore
       .fromKeyValueStore[IO, Block.Header](using bestBlockKVStore)
-    given StoreIndex[IO, Block.BlockHash, Block] <- sway[Hash.Value[
+    given KeyValueStore[IO, Block.BlockHash, Block] <- multi[Hash.Value[
       Block,
-    ], Block](Paths.get("sway", "block"))
-    given StoreIndex[IO, BigNat, Block.BlockHash] <- sway[
+    ], Block](config, InterpreterTarget.BLOCK)
+    given KeyValueStore[IO, BigNat, Block.BlockHash] <- multi[
       BigNat,
       Block.BlockHash,
-    ](Paths.get("sway", "block", "number"))
-    given StoreIndex[IO, Signed.TxHash, Block.BlockHash] <- sway[
+    ](config, InterpreterTarget.BLOCK_NUM)
+    given KeyValueStore[IO, Signed.TxHash, Block.BlockHash] <- multi[
       Signed.TxHash,
       Block.BlockHash,
-    ](Paths.get("sway", "block", "tx"))
+    ](config, InterpreterTarget.TX_BLOCK)
   yield BlockRepository.fromStores[IO]
 
-  def getStateRepo: Resource[IO, StateRepository[IO]] = for given KeyValueStore[
+  def getStateRepo(config: NodeConfig): Resource[IO, StateRepository[IO]] = for given KeyValueStore[
       IO,
       MerkleHash,
       MerkleTrieNode,
-    ] <- sway[MerkleHash, MerkleTrieNode](Paths.get("sway", "state"))
+    ] <- multi[MerkleHash, MerkleTrieNode](config, InterpreterTarget.MERKLE_TRIE)
   yield StateRepository.fromStores[IO]
 
-  def getTransactionRepo: Resource[IO, TransactionRepository[IO]] =
-    for given StoreIndex[IO, Hash.Value[
+  def getTransactionRepo(config: NodeConfig): Resource[IO, TransactionRepository[IO]] =
+    for given KeyValueStore[IO, Hash.Value[
         TransactionWithResult,
       ], TransactionWithResult] <-
-        sway[Hash.Value[TransactionWithResult], TransactionWithResult](
-          Paths.get("sway", "transaction"),
-        )
+        multi[Hash.Value[TransactionWithResult], TransactionWithResult](config, InterpreterTarget.TX)
     yield TransactionRepository.fromStores[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
@@ -72,9 +71,9 @@ object NodeMain extends IOApp:
     NodeConfig.load[IO](getConfig).value.flatMap {
       case Right(config) =>
         val program = for
-          given BlockRepository[IO]       <- getBlockRepo
-          given TransactionRepository[IO] <- getTransactionRepo
-          given StateRepository[IO]       <- getStateRepo
+          given BlockRepository[IO]       <- getBlockRepo(config)
+          given TransactionRepository[IO] <- getTransactionRepo(config)
+          given StateRepository[IO]       <- getStateRepo(config)
           given PlayNommState[IO] = PlayNommState.build[IO]
           server <- NodeApp[IO](config).resource
         yield server

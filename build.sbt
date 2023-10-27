@@ -16,6 +16,7 @@ val V = new {
   val pureconfig     = "0.17.4"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
+  val lettuce        = "6.2.6.RELEASE"
   val jasync         = "2.1.24"
 
   val okhttp3LoggingInterceptor = "4.11.0"
@@ -51,6 +52,7 @@ val Dependencies = new {
       "com.outr"                    %% "scribe-slf4j"              % V.scribe,
       "com.typesafe" % "config" % V.typesafeConfig,
       ("io.swaydb"  %% "swaydb" % V.sway).cross(CrossVersion.for3Use2_13),
+      "io.lettuce" % "lettuce-core" % V.lettuce,
     ),
     excludeDependencies ++= Seq(
       "org.scala-lang.modules" % "scala-collection-compat_2.13",
