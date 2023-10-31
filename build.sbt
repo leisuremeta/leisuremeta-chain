@@ -258,6 +258,8 @@ lazy val node = (project in file("modules/node"))
   .settings(
     name := "leisuremeta-chain-node",
     assemblyMergeStrategy := {
+      case x if x `contains` "reactor/core" =>
+        MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
