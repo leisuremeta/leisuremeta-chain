@@ -47,9 +47,9 @@ object MultiInterpreter:
 
 case class InterpreterTarget(r: RedisPath, s: Path)
 object InterpreterTarget:
-  val BEST_NUM = InterpreterTarget(RedisPath("best", 0), Paths.get("sway", "block", "best"))
-  val BLOCK = InterpreterTarget(RedisPath("blc:", 0), Paths.get("sway", "block"))
-  val BLOCK_NUM = InterpreterTarget(RedisPath("blc_num:", 0), Paths.get("sway", "block", "number"))
-  val TX_BLOCK = InterpreterTarget(RedisPath("tx_blc:", 0), Paths.get("sway", "block", "tx"))
-  val MERKLE_TRIE = InterpreterTarget(RedisPath("trie:", 0), Paths.get("sway", "state"))
-  val TX = InterpreterTarget(RedisPath("tx:", 0), Paths.get("sway", "transaction"))
+  val BEST_NUM = InterpreterTarget(RedisPath("node:best", 0), Paths.get("sway", "block", "best"))
+  val BLOCK = InterpreterTarget(RedisPath("node:blc:", 0), Paths.get("sway", "block"))
+  val BLOCK_NUM = InterpreterTarget(RedisPath("node:blc_num:", 0), Paths.get("sway", "block", "number"))
+  val TX_BLOCK = InterpreterTarget(RedisPath("node:tx_blc:", 0), Paths.get("sway", "block", "tx"))
+  val MERKLE_TRIE = InterpreterTarget(RedisPath("node:trie:", 0), Paths.get("sway", "state"))
+  val TX = InterpreterTarget(RedisPath("node:tx:", 0), Paths.get("sway", "transaction"))
