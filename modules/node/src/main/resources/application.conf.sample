@@ -16,3 +16,7 @@ wire {
 genesis {
   timestamp: "2020-05-20T09:00:00.00Z",
 }
+redis {
+  host = "localhost"
+  port = 6379
+}

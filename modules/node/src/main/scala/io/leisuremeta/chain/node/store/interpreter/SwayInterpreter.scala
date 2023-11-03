@@ -10,7 +10,6 @@ import scala.concurrent.ExecutionContext
 import cats.Monad
 import cats.data.EitherT
 import cats.effect.{IO, Resource}
-import cats.effect.unsafe.IORuntime
 import cats.implicits._
 
 import scodec.bits.ByteVector
@@ -27,10 +26,10 @@ import lib.failure.DecodingFailure
 import Bag.given
 
 @SuppressWarnings(Array("org.wartremover.warts.ImplicitParameter"))
-class StoreIndexSwayInterpreter[K, V: ByteCodec](
+class SwayInterpreter[K, V: ByteCodec](
     map: Map[K, Array[Byte], Nothing, IO],
     dir: Path,
-) extends StoreIndex[IO, K, V] {
+) extends KeyValueStore[IO, K, V] {
 
   def get(key: K): EitherT[IO, DecodingFailure, Option[V]] = for {
     _ <- EitherT.pure[IO, DecodingFailure](
@@ -55,35 +54,11 @@ class StoreIndexSwayInterpreter[K, V: ByteCodec](
   } yield ()
 
   def remove(key: K): IO[Unit] = map.remove(key).map(_ => ())
-
-  def from(
-      key: K,
-      offset: Int,
-      limit: Int,
-  ): EitherT[IO, DecodingFailure, List[(K, V)]] = EitherT(
-    map
-      .fromOrAfter(key)
-      .stream
-      .drop(offset)
-      .take(limit)
-      .materialize
-      .map(
-        _.toList.traverse { case (key, valueArray) =>
-          for {
-            valueDecoded <- (ByteDecoder[V].decode(ByteVector view valueArray))
-            value <- StoreIndexSwayInterpreter.ensureNoRemainder(
-              valueDecoded,
-              s"Value bytes decoded with nonempty reminder: $valueDecoded",
-            )
-          } yield (key, value)
-        }
-      )
-  )
 }
 
-object StoreIndexSwayInterpreter {
+object SwayInterpreter {
 
-  def apply[K: ByteCodec, V: ByteCodec](dir: Path): Resource[IO, StoreIndexSwayInterpreter[K, V]] = {
+  def apply[K: ByteCodec, V: ByteCodec](dir: Path): Resource[IO, SwayInterpreter[K, V]] = {
 
     val map: IO[Map[K, Array[Byte], Nothing, IO]] =
       given KeyOrder[Slice[Byte]] = KeyOrder.default
@@ -93,7 +68,7 @@ object StoreIndexSwayInterpreter {
 
     Resource
       .make(map)(_.close())
-      .map(new StoreIndexSwayInterpreter[K, V](_, dir))
+      .map(new SwayInterpreter[K, V](_, dir))
   }
 
   def ensureNoRemainder[A](
@@ -107,10 +82,10 @@ object StoreIndexSwayInterpreter {
   given swaydb.core.build.BuildValidator = swaydb.core.build.BuildValidator.DisallowOlderVersions(swaydb.data.DataType.Map)
 
 
-  def reverseBignatStoreIndex[A: ByteCodec](dir: Path): IO[StoreIndexSwayInterpreter[BigNat, A]] = {
+  def reverseBignatStoreIndex[A: ByteCodec](dir: Path): IO[SwayInterpreter[BigNat, A]] = {
     given KeyOrder[Slice[Byte]] = KeyOrder.reverseLexicographic
     val map = swaydb.persistent.Map[BigNat, Array[Byte], Nothing, IO](dir)
-    map.map(new StoreIndexSwayInterpreter[BigNat, A](_, dir))
+    map.map(new SwayInterpreter[BigNat, A](_, dir))
   }
 
   

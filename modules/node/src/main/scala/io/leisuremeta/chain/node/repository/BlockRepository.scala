@@ -12,17 +12,12 @@ import lib.crypto.Hash
 import lib.crypto.Hash.ops._
 import lib.datatype.BigNat
 import lib.failure.DecodingFailure
-import store.{HashStore, KeyValueStore, SingleValueStore, StoreIndex}
+import store.{HashStore, KeyValueStore, SingleValueStore}
 
 trait BlockRepository[F[_]] {
   def bestHeader: EitherT[F, DecodingFailure, Option[Block.Header]]
   def get(hash: Hash.Value[Block]): EitherT[F, DecodingFailure, Option[Block]]
   def put(block: Block): EitherT[F, DecodingFailure, Unit]
-
-  def listFrom(
-      blockNumber: BigNat,
-      limit: Int,
-  ): EitherT[F, DecodingFailure, List[(BigNat, BlockHash)]]
   def findByTransaction(
       txHash: Signed.TxHash
   ): EitherT[F, DecodingFailure, Option[BlockHash]]
@@ -35,7 +30,7 @@ object BlockRepository {
   def fromStores[F[_]: Monad](using
       bestBlockHeaderStore: SingleValueStore[F, Block.Header],
       blockHashStore: HashStore[F, Block],
-      blockNumberIndex: StoreIndex[F, BigNat, BlockHash],
+      blockNumberIndex: KeyValueStore[F, BigNat, BlockHash],
       txBlockIndex: KeyValueStore[F, Signed.TxHash, BlockHash],
   ): BlockRepository[F] = new BlockRepository[F] {
 
@@ -76,12 +71,6 @@ object BlockRepository {
         scribe.debug(s"Putting completed: $block")
       )
     } yield ()
-
-    def listFrom(
-        blockNumber: BigNat,
-        limit: Int,
-    ): EitherT[F, DecodingFailure, List[(BigNat, BlockHash)]] =
-      blockNumberIndex.from(blockNumber, 0, limit)
 
     def findByTransaction(
         txHash: Signed.TxHash

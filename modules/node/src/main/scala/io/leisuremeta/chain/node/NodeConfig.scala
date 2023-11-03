@@ -20,6 +20,7 @@ final case class NodeConfig(
     local: LocalConfig,
     wire: WireConfig,
     genesis: GenesisConfig,
+    redis: RedisConfig,
 )
 
 object NodeConfig:
@@ -29,7 +30,8 @@ object NodeConfig:
       local   <- EitherT.fromEither[F](LocalConfig.load(config))
       wire    <- EitherT.fromEither[F](WireConfig.load(config))
       genesis <- EitherT.fromEither[F](GenesisConfig.load(config))
-    yield NodeConfig(local, wire, genesis)
+      redis <- EitherT.fromEither[F](RedisConfig.load(config))
+    yield NodeConfig(local, wire, genesis, redis)
 
   case class LocalConfig(
       networkId: NetworkId,
@@ -78,6 +80,13 @@ object NodeConfig:
       timestampString <- either(config.getString("genesis.timestamp"))
       timestamp       <- either(Instant.parse(timestampString))
     yield GenesisConfig(timestamp)
+  
+  case class RedisConfig(host: String, port: Int)
+  object RedisConfig:
+    def load(config: Config): Either[String, RedisConfig] = for
+      host <- either(config.getString("redis.host"))
+      port <- either(config.getInt("redis.port"))
+    yield RedisConfig(host, port)
 
   private def either[A](action: => A): Either[String, A] =
     Try(action).toEither.left.map {
