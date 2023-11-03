@@ -41,6 +41,8 @@ val V = new {
   val quill         = "4.6.0.1"
   val postgres      = "42.6.0"
   val flywayCore    = "9.19.1"
+
+  val jmhVersion = "1.37"
 }
 
 val Dependencies = new {
@@ -224,6 +226,15 @@ val Dependencies = new {
       // "org.scala-lang.modules" % "scala-compiler-2.13",
       // "org.scala-lang.modules" % "scala-asm",
     ),
+  )
+
+  lazy val bench = Seq(
+    libraryDependencies ++= Seq(
+      "org.openjdk.jmh" % "jmh-core" % V.jmhVersion,
+      "org.openjdk.jmh" % "jmh-generator-bytecode" % V.jmhVersion,
+      "org.openjdk.jmh" % "jmh-generator-reflection" % V.jmhVersion,
+      "org.openjdk.jmh" % "jmh-generator-asm" % V.jmhVersion,
+    )
   )
 }
 
@@ -516,3 +527,11 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
     },
   )
   .dependsOn(api.jvm)
+
+lazy val bench = (project in file("modules/bench"))
+  .settings(Dependencies.bench)
+  .settings(
+    name := "leisuremeta-chain-bench",
+  )
+  .enablePlugins(JmhPlugin)
+  .dependsOn(lib.jvm)

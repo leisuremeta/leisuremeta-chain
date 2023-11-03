@@ -15,3 +15,5 @@ addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta43")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
 
 addSbtPlugin("io.github.davidmweber" % "flyway-sbt" % "7.4.0")
+
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.6")
