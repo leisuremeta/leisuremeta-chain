@@ -540,6 +540,7 @@ lazy val nodeProxy = (project in file("modules/node-proxy"))
   .settings(
     name := "leisuremeta-chain-node-proxy",
     assemblyMergeStrategy := {
+      case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
