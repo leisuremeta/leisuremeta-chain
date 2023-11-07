@@ -225,6 +225,21 @@ val Dependencies = new {
       // "org.scala-lang.modules" % "scala-asm",
     ),
   )
+
+  lazy val nodeProxy = Seq(
+    libraryDependencies ++= Seq(
+      "com.outr"    %% "scribe-slf4j" % V.scribe,
+      "com.typesafe" % "config"       % V.typesafeConfig,
+      "com.softwaremill.sttp.tapir"   %% "tapir-armeria-server-cats" % V.tapir,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "io.circe"                      %% "circe-generic"        % V.circe,
+      "io.circe"                      %% "circe-parser"         % V.circe,
+      "io.circe"                      %% "circe-refined"        % V.circe,
+      "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
+      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
+      "co.fs2"                        %%% "fs2-core"            % V.fs2,
+    ),
+  )
 }
 
 ThisBuild / organization := "org.leisuremeta"
@@ -250,6 +265,7 @@ lazy val root = (project in file("."))
     lmscanFrontend,
     lmscanBackend,
 //    lmscanAgent,
+    nodeProxy,
   )
 
 lazy val node = (project in file("modules/node"))
@@ -508,6 +524,24 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
       case x if x `contains` "scala-asm.properties" =>
         MergeStrategy.first
       case x if x `contains` "compiler.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
+  )
+  .dependsOn(api.jvm)
+
+
+lazy val nodeProxy = (project in file("modules/node-proxy"))
+  .settings(Dependencies.nodeProxy)
+  .settings(Dependencies.tests)
+  .settings(
+    name := "leisuremeta-chain-node-proxy",
+    assemblyMergeStrategy := {
+      case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
+      case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>
