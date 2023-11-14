@@ -10,39 +10,45 @@ import scodec.bits.hex
 import cats.Id
 import cats.data.EitherT
 import cats.data.Kleisli
+import io.leisuremeta.chain.lib.datatype.Utf8.bytes
+import io.leisuremeta.chain.lib.datatype.Utf8
 
 @State(Scope.Benchmark)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
 class MerkleBench:
-  val initialState = MerkleTrieState.empty
-  val n = 100
+  var initialState = MerkleTrieState.empty
+  val n = 500
+  def keyMaker(i: Int) = Utf8.unsafeFrom(s"Bench-Test-$i").bytes.bits
 
   given emptyNodeStore: NodeStore[Id] =
     Kleisli { (_: MerkleHash) => EitherT.rightT[Id, String](None) }
 
+  def put(i: Int, s: MerkleTrieState, x: Int = 1, vf: Int => Int = n => n): MerkleTrieState =
+    if i < 1 then return s
+    val f = MerkleTrie.put[Id](keyMaker(i), ByteVector.fromInt(vf(i)))
+    put(i - 1, f.runS(s).getOrElse(s))
+
   @Setup(Level.Iteration)
   def setup() =
-    for
-      i <- 1.to(n / 2)
-      f = MerkleTrie.put[Id](ByteVector.fromInt(i).bits, ByteVector.fromInt(i))
-      _ = f.runS(initialState)
-    yield ()
+    initialState = put(n, MerkleTrieState.empty)
     ()
   
   @Benchmark
-  def runPutN() =
-    for 
-      i <- 1.to(n)
-      f = MerkleTrie.put[Id](ByteVector.fromInt(i).bits, ByteVector.fromInt(i))
-      _ = f.runS(initialState)
-    yield () 
+  def runputN() =
+    put(n * 2, initialState, n)
+    ()
+
+  @Benchmark
+  def runUpdateN() =
+    put(n, initialState, 1, i => -i)
+    ()
 
   @Benchmark
   def runGetN() =
     for 
       i <- 1.to(n)
-      f = MerkleTrie.get[Id](ByteVector.fromInt(i).bits)
+      f = MerkleTrie.get[Id](keyMaker(i))
       _ = f.runS(initialState)
     yield ()
 
@@ -50,7 +56,7 @@ class MerkleBench:
   def runFromN() =
     for 
       i <- 1.to(n)
-      f = MerkleTrie.from[Id](ByteVector.fromInt(i).bits)
+      f = MerkleTrie.from[Id](keyMaker(i))
       _ = f.runS(initialState)
     yield ()
 
@@ -58,6 +64,6 @@ class MerkleBench:
   def runRemoveN() =
     for 
       i <- 1.to(n)
-      f = MerkleTrie.remove[Id](ByteVector.fromInt(i).bits)
+      f = MerkleTrie.remove[Id](keyMaker(i))
       _ = f.runS(initialState)
     yield ()
