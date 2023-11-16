@@ -18,7 +18,8 @@ import io.leisuremeta.chain.lib.datatype.Utf8
 @Measurement(iterations = 5)
 class MerkleBench:
   var initialState = MerkleTrieState.empty
-  val n = 500
+  val n = 50
+  val m = 50 
   def keyMaker(i: Int) = Utf8.unsafeFrom(s"Bench-Test-$i").bytes.bits
 
   given emptyNodeStore: NodeStore[Id] =
@@ -31,12 +32,12 @@ class MerkleBench:
 
   @Setup(Level.Iteration)
   def setup() =
-    initialState = put(n, MerkleTrieState.empty)
+    initialState = put(m, MerkleTrieState.empty)
     ()
   
   @Benchmark
-  def runputN() =
-    put(n * 2, initialState, n)
+  def runPutN() =
+    put(n + m, initialState, m)
     ()
 
   @Benchmark
