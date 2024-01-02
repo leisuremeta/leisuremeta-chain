@@ -71,6 +71,8 @@ import api.model.token.*
 
 import common.*
 import common.client.*
+import org.web3j.abi.FunctionReturnDecoder
+import java.nio.charset.StandardCharsets
 
 object EthGatewayWithdrawMain extends IOApp:
 
@@ -580,6 +582,7 @@ object EthGatewayWithdrawMain extends IOApp:
                     val e = resp.getError()
                     scribe.info:
                       s"Error in sending tx: #(${e.getCode()}) ${e.getMessage()}"
+                    writeFailLog(txData)
                   else scribe.info(s"Sending Eth Tx: ${resp.getResult()}")
                   Option(resp.getResult)
             yield txResponseOption
@@ -644,6 +647,20 @@ object EthGatewayWithdrawMain extends IOApp:
             yield ()
 
           loop(None)
+
+  def writeFailLog[F[_]: Async](some: String): F[Unit] = Async[F].blocking:
+    val typeRefAddress: TypeReference[Type[?]] = (new TypeReference[Address]() {}).asInstanceOf[TypeReference[Type[?]]]
+    val typeRefUint256: TypeReference[Type[?]] = (new TypeReference[Uint256]() {}).asInstanceOf[TypeReference[Type[?]]]
+    val parseTx = FunctionReturnDecoder.decode(txData.drop(10), List(typeRefUint256, typeRefAddress, typeRefUint256).asJava).asScala
+    val path = Paths.get("failed_tx")
+    val res = parseTx.map(e => e.getValue).mkString("", " ", "\n")
+    Files.write(
+      path,
+      res.getBytes(StandardCharsets.UTF_8),
+      StandardOpenOption.CREATE,
+      StandardOpenOption.WRITE,
+      StandardOpenOption.APPEND,
+    )
 
   def run(args: List[String]): IO[ExitCode] =
     val conf = GatewaySimpleConf.loadOrThrow()
