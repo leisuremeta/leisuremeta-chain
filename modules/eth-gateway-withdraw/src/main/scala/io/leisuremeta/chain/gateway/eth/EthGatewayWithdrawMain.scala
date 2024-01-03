@@ -648,7 +648,7 @@ object EthGatewayWithdrawMain extends IOApp:
 
           loop(None)
 
-  def writeFailLog[F[_]: Async](some: String): F[Unit] = Async[F].blocking:
+  def writeFailLog[F[_]: Async](txData: String): F[Unit] = Async[F].blocking:
     val typeRefAddress: TypeReference[Type[?]] = (new TypeReference[Address]() {}).asInstanceOf[TypeReference[Type[?]]]
     val typeRefUint256: TypeReference[Type[?]] = (new TypeReference[Uint256]() {}).asInstanceOf[TypeReference[Type[?]]]
     val parseTx = FunctionReturnDecoder.decode(txData.drop(10), List(typeRefUint256, typeRefAddress, typeRefUint256).asJava).asScala
