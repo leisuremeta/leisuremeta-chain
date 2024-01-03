@@ -648,6 +648,7 @@ object EthGatewayWithdrawMain extends IOApp:
 
           loop(None)
 
+  @SuppressWarnings(Array("org.wartremover.warts.MutableDataStructures"))
   def writeFailLog[F[_]: Async](txData: String): F[Unit] = Async[F].blocking:
     val typeRefAddress: TypeReference[Type[?]] = (new TypeReference[Address]() {}).asInstanceOf[TypeReference[Type[?]]]
     val typeRefUint256: TypeReference[Type[?]] = (new TypeReference[Uint256]() {}).asInstanceOf[TypeReference[Type[?]]]
