@@ -72,8 +72,7 @@ def bulkInsert[F[_]
               .recoverWith: e =>
                 RecoverTx(e, ms, tx)
           .map: result =>
-            if index % 100 === 0 then
-              scribe.info(s"#$index: ${result._1.root}")
+            if index % 100 === 0 then scribe.info(s"#$index: ${result._1.root}")
             result
           .compile
           .toList
@@ -81,9 +80,9 @@ def bulkInsert[F[_]
             scribe.error(s"Error building txs #$index: $txs: $e")
             e
         (states, txWithResultOptions) = result.unzip
-        finalState = states.last
-        txWithResults = txWithResultOptions.flatten
-        txHashes                = txWithResults.map(_.toHash)
+        finalState                    = states.last
+        txWithResults                 = txWithResultOptions.flatten
+        txHashes                      = txWithResults.map(_.toHash)
         txState = txs
           .map(_.toHash)
           .sortBy(_.toUInt256Bytes.toBytes)
@@ -98,7 +97,7 @@ def bulkInsert[F[_]
               .value
               .getOrElse(state)
         stateRoot1 = StateRoot(finalState.root)
-        now = txs.map(_.value.createdAt).maxBy(_.getEpochSecond())
+        now        = txs.map(_.value.createdAt).maxBy(_.getEpochSecond())
         header = Block.Header(
           number = BigNat.add(previousBlock.header.number, BigNat.One),
           parentHash = previousBlock.toHash,
@@ -156,13 +155,13 @@ object BulkInsertMain extends IOApp:
 
           val program = for
             source                          <- fileResource[IO]("txs.archive")
-            given BlockRepository[IO]       <- NodeMain.getBlockRepo
-            given TransactionRepository[IO] <- NodeMain.getTransactionRepo
-            given StateRepository[IO]       <- NodeMain.getStateRepo
+            given BlockRepository[IO]       <- NodeMain.getBlockRepo(config)
+            given TransactionRepository[IO] <- NodeMain.getTransactionRepo(config)
+            given StateRepository[IO]       <- NodeMain.getStateRepo(config)
             given InvalidTxLogger[IO] <- InvalidTxLogger.file[IO]:
               "invalid-txs.csv"
-            given PlayNommState[IO] = PlayNommState.build[IO]
             result <- Resource.eval:
+              given PlayNommState[IO] = PlayNommState.build[IO]
               bulkInsert[IO](config, source, 0).value.map:
                 case Left(err) =>
                   scribe.error(s"Error: $err")
@@ -172,4 +171,4 @@ object BulkInsertMain extends IOApp:
                   ExitCode.Success
           yield result
 
-          program.use(IO.pure)
+          program.use(IO.pure).as(ExitCode.Success)

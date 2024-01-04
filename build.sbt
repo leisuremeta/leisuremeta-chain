@@ -28,7 +28,6 @@ val V = new {
   val scribe          = "3.11.5"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
-  val zerowaste       = "0.2.7"
   val munitCatsEffect = "2.0.0-M3"
 
   val tyrian = "0.7.0"
@@ -118,7 +117,6 @@ val Dependencies = new {
       "org.typelevel" %%% "shapeless3-deriving" % V.shapeless,
       "org.typelevel" %%% "shapeless3-typeable" % V.shapeless,
       "co.fs2"        %%% "fs2-core"            % V.fs2,
-      "com.github.ghik" %% "zerowaste" % V.zerowaste cross CrossVersion.full,
     ),
   )
 
@@ -167,7 +165,6 @@ val Dependencies = new {
       "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % V.tapir,
       "org.scodec"                  %%% "scodec-bits"      % V.scodecBits,
       "co.fs2"                      %%% "fs2-core"         % V.fs2,
-      "com.github.ghik" %% "zerowaste" % V.zerowaste cross CrossVersion.full,
       "io.getquill" %% "quill-jasync-postgres" % V.quill,
     ),
   )

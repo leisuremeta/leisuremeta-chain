@@ -20,7 +20,6 @@ import cats.syntax.flatMap.toFlatMapOps
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import model.NodeConfig
 import service.*
-import dotty.tools.dotc.util.SimpleIdentitySet.empty
 
 object NodeProxyMain extends IOApp:
   

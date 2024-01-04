@@ -185,7 +185,7 @@ object BackendMain extends IOApp:
   def getServerResource[F[_]: Async]: Resource[F, Server] =
     for
       dispatcher <- Dispatcher.parallel[F]
-      server <- Resource.make(Async[F].async_[Server] { cb =>
+      server <- Resource.fromAutoCloseable(Async[F].async_[Server] { cb =>
 
         val options = ArmeriaCatsServerOptions
           .customiseInterceptors(dispatcher)
@@ -208,11 +208,7 @@ object BackendMain extends IOApp:
           case (_, null)  => cb(Right(server))
           case (_, cause) => cb(Left(cause))
         }
-      }) { server =>
-        Async[F]
-          .fromCompletableFuture(Async[F].delay(server.closeAsync()))
-          .void
-      }
+      })
     yield server
 
   override def run(args: List[String]): IO[ExitCode] =

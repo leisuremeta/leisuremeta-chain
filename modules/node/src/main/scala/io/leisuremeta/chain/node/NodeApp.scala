@@ -407,9 +407,5 @@ final case class NodeApp[F[_]
   def resource: Resource[F, Server] =
     for
       dispatcher <- Dispatcher.parallel[F]
-      server <- Resource.make(getServer(dispatcher))(server =>
-        Async[F]
-          .fromCompletableFuture(Async[F].delay(server.closeAsync()))
-          .map(_ => ()),
-      )
+      server <- Resource.fromAutoCloseable(getServer(dispatcher))
     yield server
