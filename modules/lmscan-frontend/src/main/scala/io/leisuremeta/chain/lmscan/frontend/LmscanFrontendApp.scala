@@ -6,7 +6,7 @@ import tyrian.Html.*
 import scala.scalajs.js.annotation.*
 
 @JSExportTopLevel("TyrianApp")
-object LmscanFrontendApp extends TyrianApp[Msg, Model]:
+object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = (Model(), Cmd.None)
 
   def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = Update.update(model)
