@@ -38,7 +38,7 @@ nav .buttons button.false:hover{background-color: #51ff00;color:#000;}
 .type-3{color:#51ff00b8;}
 
 
-.selectedPage{border:none;background-color: rgb(81, 255, 0, 1);color:#000000;}
+.selected{border:none;background-color: rgb(81, 255, 0, 1);color:#000000;border-radius: 10px;}
 .search-container{height:42px; background:transparent;border:1px solid #ffffff; }
 .search-icon{color:#ffffff;}
 

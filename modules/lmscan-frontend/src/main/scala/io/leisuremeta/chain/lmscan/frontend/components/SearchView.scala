@@ -14,7 +14,7 @@ object SearchView:
               case _       => NoneMsg
           ),
           value   := s"${model.global.searchValue}",
-          `class` := "search-text xy-center DOM-search ",
+          `class` := "search-text xy-center",
           `placeholder` := (
             "block hash, tx hash, account ... "
           ),

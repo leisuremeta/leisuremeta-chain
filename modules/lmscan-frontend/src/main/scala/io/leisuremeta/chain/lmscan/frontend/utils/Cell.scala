@@ -3,12 +3,32 @@ import tyrian.Html.*
 import tyrian.*
 import V.*
 import scala.util.matching.Regex
-import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
-import java.time.Instant
 import java.time.format.DateTimeFormatter
-import java.time.ZoneId
+import java.time._
+
+def toDT(t: Int): String = LocalDateTime
+  .ofEpochSecond(t, 0, ZoneOffset.UTC)
+  .toString
+  .replace("T", " ")
+
+def timeAgo(t: Int): String =
+  val now = LocalDateTime.now(ZoneId.ofOffset("GMT", ZoneOffset.ofHours(9))).toEpochSecond(ZoneOffset.UTC)
+  val timeGap = now - t
+  List(
+      ((timeGap / 31536000).toInt, " year ago"),
+      ((timeGap / 2592000).toInt, " month ago"),
+      ((timeGap / 86400).toInt, " day ago"),
+      ((timeGap / 3600).toInt, " hour ago"),
+      ((timeGap / 60).toInt, " min ago"),
+      ((timeGap / 1).toInt, "s ago"),
+    )
+    .find((time, _) => time > 0)
+    .map:
+      case (time, msg) if time > 1 => time.toString + msg.replace(" a", "s a").replace("ss", "s")
+      case (time, msg) => time.toString + msg
+    .get
 
 enum Cell:
   case ImageS(data: Option[String])              extends Cell
@@ -155,11 +175,11 @@ object gen:
         div(`class` := "cell",
             dataAttr(
               "tooltip-text",
-              Dom.yyyy_mm_dd_time(plainLong(data).toInt),
+              toDT(plainLong(data).toInt),
             ),
           )(
             {
-              val age = Dom.timeAgo(
+              val age = timeAgo(
                 plainLong(data).toInt,
               )
               age match
@@ -186,7 +206,7 @@ object gen:
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
             {
-              val date = Dom.yyyy_mm_dd_time(
+              val date = toDT(
                 plainLong(data).toInt,
               ) + " +UTC"
               date match

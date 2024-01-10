@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import Dom._selectedPage
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
 
@@ -53,7 +52,7 @@ object Pagination:
             .range(btnFistPage, btnLastPage)
             .map(idx =>
               span(
-                `class` := _selectedPage(curPage, idx),
+                `class` := (if curPage == idx then "selected" else ""),
                 onClick(goTo(idx)),
               )(idx.toString()),
             ),
@@ -85,7 +84,7 @@ object Pagination:
                 case _       => NoneMsg,
             ),
             value := s"${curPage}",
-            `class` := "type-search xy-center DOM-page1 margin-right text-center",
+            `class` := "type-search xy-center margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
           div(`class` := "type-plain-text margin-right")(totalPage.toString),

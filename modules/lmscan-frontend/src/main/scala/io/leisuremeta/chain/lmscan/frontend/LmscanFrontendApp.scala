@@ -5,7 +5,7 @@ import tyrian.*
 import tyrian.Html.*
 import scala.scalajs.js.annotation.*
 
-@JSExportTopLevel("TyrianApp")
+@JSExportTopLevel("LmScan")
 object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
   def init(flags: Map[String, String]): (Model, Cmd[IO, Msg]) = (Model(), Cmd.None)
 
@@ -13,7 +13,7 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
 
   def view(model: Model): Html[Msg] = model.page.view(model)
 
-  def subscriptions(model: Model): Sub[IO, Msg] = Subscriptions.subscriptions(model)
+  def subscriptions(model: Model): Sub[IO, Msg] = Sub.None
 
   def router: Location => Msg =
     case loc: Location.Internal =>
@@ -30,7 +30,7 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
         case s"/tx/$hash" => RouterMsg.NavigateTo(TxDetailPage(hash))
         case s"/nft/$id/$page" => RouterMsg.NavigateTo(NftTokenPage(id, page.toInt))
         case s"/nft/$id" => RouterMsg.NavigateTo(NftDetailPage(id))
-        case s"/block/$hash" => RouterMsg.NavigateTo(BlockDetailPage(hash))
+        case s"/blc/$hash" => RouterMsg.NavigateTo(BlockDetailPage(hash))
         case s"/account/$hash" => RouterMsg.NavigateTo(AccountDetailPage(hash))
         case "/" => RouterMsg.NavigateTo(MainPage)
         case "" => RouterMsg.NavigateTo(MainPage)
