@@ -30,7 +30,7 @@ val V = new {
   val organiseImports = "0.6.0"
   val munitCatsEffect = "2.0.0-M3"
 
-  val tyrian = "0.7.0"
+  val tyrian = "0.9.0"
 
   val scalaJavaTime = "2.3.0"
   val jsSha3        = "0.8.0"
