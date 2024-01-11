@@ -6,15 +6,17 @@ import cats.effect.IO
 import io.leisuremeta.chain.lmscan.common.model._
 
 object Update:
-  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) =
+  def update(model: BaseModel): Msg => (Model, Cmd[IO, Msg]) =
     case routerMsg: RouterMsg   => routerMsg match
       case RouterMsg.NavigateTo(page) => page.update(model.copy(page = page))(routerMsg)
+      case RouterMsg.ToDetail(m) => m match 
+        case d: TxDetailModel => TxDetailPage.update(d)(Init)
+        case d: BlcDetailModel => BlockDetailPage.update(d)(Init)
+        case d: AccDetailModel => AccountDetailPage.update(d)(Init)
+        case d: NftDetailModel => NftDetailPage.update(d)(Init)
       case RouterMsg.NavigateToUrl(url) => (model, Nav.loadUrl(url))
       case _ => (model, Cmd.None)
     case PopupMsg(v)     => (model.copy(global = model.global.copy(popup = v)), Cmd.None)
-    case NotFoundMsg() => 
-      println("erorr ehre!") 
-      (model, Cmd.None)
     case ErrorMsg => (model.copy(page = ErrorPage), Cmd.None)
     case NoneMsg => (model, Cmd.None)
 
@@ -22,10 +24,6 @@ object Update:
     case GlobalSearch => 
       (model, DataProcess.globalSearch(model.global.searchValue))
 
-    case UpdateAccDetailPage(address) => (model, Cmd.Batch(DataProcess.getData(AccountDetail(address = Some(address)))))
-    case UpdateNftDetailPage(tokenId) => (model, Cmd.Batch(DataProcess.getData(NftFileModel(tokenId = Some(tokenId)))))
-    case UpdateTxDetailPage(hash) => (model, DataProcess.getData(TxDetail(hash = Some(hash))))
-    case UpdateBlcDetailPage(hash) => (model, DataProcess.getData(BlockDetail(hash = Some(hash))))
     case UpdateBlockPage(page: Int) =>
       (
         model.copy(blcPage = BlockModel(page = page)),
@@ -86,7 +84,10 @@ object Update:
       case v: NftTokenList => (model.copy(nftTokenPage = model.nftTokenPage.copy(list = Some(v))), Cmd.None)
       case v: SummaryBoard => (model.copy(summary = v), Cmd.None)
       case v: SummaryChart => (model.copy(chartData = v), Cmd.None)
-      case v: TxDetail => (model.copy(txDetail = v), Nav.pushUrl(model.page.url))
-      case v: BlockDetail => (model.copy(blcDetail = v), Nav.pushUrl(model.page.url))
-      case v: AccountDetail => (model.copy(accDetail = v), Nav.pushUrl(model.page.url))
-      case v: NftDetail => (model.copy(nftDetail = v), Nav.pushUrl(model.page.url))
+      case v: TxDetail => (TxDetailModel(txDetail = v), Nav.pushUrl(s"/tx/${v.hash}"))
+      case v: BlockDetail => (BlcDetailModel(blcDetail = v), Nav.pushUrl(s"/blc/${v.hash.get}"))
+      case v: AccountDetail => (AccDetailModel(accDetail = v), Nav.pushUrl(s"/acc/${v.address.get}"))
+      case v: NftDetail => (NftDetailModel(nftDetail = v), Nav.pushUrl(s"/nft/${v.nftFile.get.tokenId.get}"))
+      // case v: => (model.copy(nftDetail = v), Nav.pushUrl(model.page.url))
+    
+    case _ => (model, Cmd.None)

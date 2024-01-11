@@ -26,24 +26,28 @@ object NavBar:
           `class` := "buttons",
         )(
           button(
-            `class` := s"${name == pageMatch(model.page)}",
+            `class` := isActive(name, model),
             onClick(RouterMsg.NavigateTo(page)),
           )(span(name))
         )
       ),
     )
+
+  def isActive(name: String, model: Model) = model match
+    case m: BaseModel => if name == pageMatch(m.page) then "active" else ""
+    case _: BlcDetailModel if name == blc => "active"
+    case _: TxDetailModel if name == tx => "active"
+    case _: AccDetailModel if name == acc => "active"
+    case _: NftDetailModel if name == nft => "active"
+    case _ => ""
   
   def pageMatch(page: Page): String =
     page match
       case MainPage => main
       case _: BlockPage => blc
-      case _: BlockDetailPage => blc
       case _: TxPage => tx
       case _: NftPage => nft
-      case _: TxDetailPage => tx
-      case _: NftDetailPage => nft
       case _: AccountPage => acc
-      case _: AccountDetailPage => acc
       case _ => ""
 
     

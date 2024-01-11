@@ -6,7 +6,7 @@ import tyrian.*
 import common.model.*
 
 object Table:
-  def mainView(model: Model): Html[Msg] =
+  def mainView(model: BaseModel): Html[Msg] =
     div(`class` := "table-area main-table")(
       div(
         `class` := "app-table blc table-container position-relative y-center",

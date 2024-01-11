@@ -7,18 +7,12 @@ sealed trait Msg
 
 case object NoneMsg extends Msg
 case object ErrorMsg extends Msg
-case class NotFoundMsg() extends Msg
 
 case class GlobalInput(s: String) extends Msg
 case object GlobalSearch extends Msg
+case object Init extends Msg
 
-sealed trait DetailMsg extends Msg:
-  val param: String
-
-case class UpdateTxDetailPage(param: String) extends DetailMsg
-case class UpdateBlcDetailPage(param: String) extends  DetailMsg
-case class UpdateAccDetailPage(param: String) extends  DetailMsg
-case class UpdateNftDetailPage(param: String) extends  DetailMsg
+case class UpdateDetailPage(param: ApiModel) extends Msg
 
 sealed trait ListMsg extends Msg:
   val value: Int
@@ -40,4 +34,5 @@ case class PopupMsg(value: Boolean) extends Msg
 enum RouterMsg extends Msg:
   case NoOp
   case NavigateTo(page: Page)
+  case ToDetail(page: Model)
   case NavigateToUrl(url: String)

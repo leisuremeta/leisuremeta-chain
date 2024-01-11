@@ -8,7 +8,7 @@ import tyrian.*
 import common.model._
 
 object AcChart:
-  def view(model: Model): Html[Msg] =
+  def view(model: BaseModel): Html[Msg] =
     renderDataChart(model.chartData)
     div(id := "chart")("")
 

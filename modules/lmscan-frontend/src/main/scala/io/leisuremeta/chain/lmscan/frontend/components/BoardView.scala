@@ -88,7 +88,7 @@ object BoardView:
       ),
     )
 
-  def view(model: Model): Html[Msg] =
+  def view(model: BaseModel): Html[Msg] =
     val summary = model.summary
     div(`class` := "board-area")(
       List(

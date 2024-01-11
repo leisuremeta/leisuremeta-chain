@@ -11,7 +11,7 @@ import scala.scalajs.js.annotation.*
 import scala.scalajs.js.JSConverters.*
 
 object BalChart {
-  def view(model: Model): Html[Msg] =
+  def view(model: BaseModel): Html[Msg] =
     renderDataChart(model.chartData)
     div(
       id := "chart",

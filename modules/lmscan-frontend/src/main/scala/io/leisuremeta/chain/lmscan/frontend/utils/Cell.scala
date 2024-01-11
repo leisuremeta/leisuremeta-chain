@@ -146,7 +146,7 @@ object gen:
             plainStr(subType).contains("Nft") match
               case true =>
                 onClick(
-                  RouterMsg.NavigateTo(NftDetailPage(value.getOrElse(""))),
+                  RouterMsg.ToDetail(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = value)))))
                 )
               case _ => EmptyAttribute,
           )(
@@ -165,7 +165,7 @@ object gen:
         div(`class` := s"cell type-3 $css")(
           span(
             onClick(
-              RouterMsg.NavigateTo(AccountDetailPage(hash.getOrElse(""))),
+              RouterMsg.ToDetail(AccDetailModel(accDetail = AccountDetail(address = hash))),
             ),
           )(
             accountHash(hash),
@@ -219,7 +219,7 @@ object gen:
       case Cell.BLOCK_NUMBER((hash, number)) =>
         div(`class` := "cell type-3",
             onClick(
-              RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
+              RouterMsg.ToDetail(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
             ),
           )(plainLong(number))
 
@@ -237,21 +237,21 @@ object gen:
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.NavigateTo(NftDetailPage(nftInfo.tokenId.getOrElse(""))),
+            RouterMsg.ToDetail(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = nftInfo.tokenId)))))
           ),
         )(plainStr(s))
       case Cell.BLOCK_HASH(hash) =>
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
+            RouterMsg.ToDetail(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
           ),
         )(plainStr(hash))
       case Cell.TX_HASH(hash) =>
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse(""))),
+            RouterMsg.ToDetail(TxDetailModel(txDetail = TxDetail(hash = hash)))
           ),
         )(
           plainStr(hash),

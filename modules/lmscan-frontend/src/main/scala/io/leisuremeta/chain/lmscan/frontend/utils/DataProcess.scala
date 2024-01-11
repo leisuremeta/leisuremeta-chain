@@ -71,27 +71,27 @@ object DataProcess:
       case m: NftTokenModel => s"${base}nft/${m.id}?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
       case _: AccModel => s"${base}account/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
     Http.send(
-      Request.get(url).withTimeout(5.seconds),
+      Request.get(url).withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(detail: TxDetail): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(5.seconds),
+      Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
   def getData(detail: BlockDetail): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(5.seconds),
+      Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
   def getData(model: AccountDetail): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}account/${model.address.getOrElse("")}/detail").withTimeout(5.seconds),
+      Request.get(s"${base}account/${model.address.getOrElse("")}/detail?p=1").withTimeout(10.seconds),
       Decoder[Msg](Parse.responseHandler(model), onError)
     )
   def getData(model: NftFileModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(5.seconds),
+      Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(NftDetail()), onError)
     )
   def getData(model: SummaryBoard): Cmd[IO, Msg] =
@@ -111,9 +111,7 @@ object DataProcess:
     )
   def globalSearch(v: String) = 
     val msg = v.length match
-      case 40 => AccountDetailPage(v)
-      case 42 => AccountDetailPage(v)
-      case 25 => NftDetailPage(v)
-      case 64 => TxDetailPage(v)
-      case _ => AccountDetailPage(v)
-    Cmd.Emit(RouterMsg.NavigateTo(msg))
+      case 25 => NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(v)))))
+      case 64 => TxDetailModel(txDetail = TxDetail(hash = Some(v)))
+      case _ => AccDetailModel(accDetail = AccountDetail(address = Some(v)))
+    Cmd.Emit(RouterMsg.ToDetail(msg))

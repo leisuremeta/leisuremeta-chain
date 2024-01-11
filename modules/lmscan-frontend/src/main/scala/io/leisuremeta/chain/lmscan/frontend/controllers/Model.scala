@@ -2,13 +2,19 @@ package io.leisuremeta.chain.lmscan
 package frontend
 
 import common.model._
+import tyrian.Html
 
 final case class GlobalModel(
   popup: Boolean = false,
   searchValue: String = "",
-)
+):
+    def updateSearchValue(s: String) = GlobalModel(popup, s)
 
-final case class Model(
+trait Model:
+    val global: GlobalModel
+    def view: Html[Msg]
+
+final case class BaseModel(
     global: GlobalModel = GlobalModel(),
     page: Page = MainPage,
     summary: SummaryBoard = SummaryBoard(),
@@ -17,12 +23,9 @@ final case class Model(
     nftPage: NftModel = NftModel(),
     nftTokenPage: NftTokenModel = NftTokenModel(),
     accPage: AccModel = AccModel(),
-    txDetail: TxDetail = TxDetail(),
-    blcDetail: BlockDetail = BlockDetail(),
-    accDetail: AccountDetail = AccountDetail(),
-    nftDetail: NftDetail = NftDetail(),
     chartData: SummaryChart = SummaryChart(),
-)
+) extends Model:
+    def view: Html[Msg] = page.view(this)
 
 trait ListPage[T] extends ApiModel:
     val page: Int

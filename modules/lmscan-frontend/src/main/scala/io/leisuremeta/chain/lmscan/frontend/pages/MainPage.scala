@@ -14,13 +14,15 @@ case object MainPage extends Page:
       )
     )
 
-  def view(model: Model): Html[Msg] =
-    DefaultLayout.view(
-      model,
-      div(`class` := "color-white")(
-        BoardView.view(model),
-        Table.mainView(model),
-      )
-    )
+  def view(m: Model): Html[Msg] =
+    m match
+      case model: BaseModel =>
+        DefaultLayout.view(
+          model,
+          div(`class` := "color-white")(
+            BoardView.view(model),
+            Table.mainView(model),
+          )
+        )
 
   def url = "/"
