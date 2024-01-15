@@ -7,8 +7,7 @@ import V.*
 import io.leisuremeta.chain.lmscan.common.model.*
 
 object AccountDetailTable:
-  def view(model: Model) =
-    val data = model.accDetail
+  def view(data: AccountDetail) =
     div(
       `class` := "type-TableDetail table-container position-relative",
     )(

@@ -1,29 +1,51 @@
 package io.leisuremeta.chain.lmscan
 package frontend
 
-import chart._
 import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
+import common.model._
+import chart.AcChart
+import typings.toastUiChart.mod.ColumnLineChart
 
-case object TotalAcChart extends Page:
-  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ => (
-      model,
-      Cmd.Batch(
-        Cmd.Emit(UpdateChart),
-        Nav.pushUrl("/chart/account")
-      )
-    )
+object TotalAccChart:
+  def update(model: AccChartModel): Msg => (Model, Cmd[IO, Msg]) =
+    case Init =>
+      (model, Cmd.Batch(
+        DataProcess.getData(SummaryChart()),
+        Nav.pushUrl(model.url),
+      ))
+    case UpdateModel(v: SummaryChart) => (model.copy(chartData = Some(v)), Cmd.Emit(DrawChart))
+    case DrawChart => 
+      val chart = model.chartData match
+        case Some(data) => AcChart.draw(data)
+        case _ => None
+      (model.copy(chart = chart), Cmd.None)
+    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg => 
+      model.chart match 
+        case Some(c) => 
+          c.destroy()
+          (model.copy(chart = None), Cmd.emit(msg))
+        case _ =>
+          (model.toEmptyModel, Cmd.emit(msg))
 
-  def view(model: Model): Html[Msg] =
+  def view(model: AccChartModel): Html[Msg] =
     DefaultLayout.view(
       model,
       div(`class` := "chart-wrap color-white")(
         div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Daily Accounts Increase",
+          "Daily Transactions",
         ),
-        AcChart.view(model)
+        div(id := "chart")(""),
       )
     )
 
-  def url = "/chart/account"
+final case class AccChartModel(
+    global: GlobalModel = GlobalModel(),
+    chartData: Option[SummaryChart] = None,
+    chart: Option[ColumnLineChart] = None,
+) extends Model:
+    def view: Html[Msg] = TotalAccChart.view(this)
+    def url = "/chart/acc"
+    def update: Msg => (Model, Cmd[IO, Msg]) = TotalAccChart.update(this)

@@ -1,16 +1,20 @@
-package io.leisuremeta.chain.lmscan.frontend
+package io.leisuremeta.chain.lmscan
+package frontend
+
 import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
+import common.model._
 
-case class BlockDetailPage(hash: String) extends Page:
-  def update(model: Model): Msg => (Model, Cmd[IO, Msg]) = _ =>
-    (
-      model,
-      Cmd.Emit(UpdateBlcDetailPage(hash)),
-    )
+object BlockDetailPage:
+  def update(model: BlcDetailModel): Msg => (Model, Cmd[IO, Msg]) =
+    case Init => (model, DataProcess.getData(model.blcDetail))
+    case UpdateDetailPage(d: BlockDetail) => (model, DataProcess.getData(d))
+    case UpdateModel(v: BlockDetail) => (BlcDetailModel(blcDetail = v), Nav.pushUrl(model.url))
+    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg => (model.toEmptyModel, Cmd.emit(msg))
 
-  def view(model: Model): Html[Msg] =
+  def view(model: BlcDetailModel): Html[Msg] =
     DefaultLayout.view(
       model,
       div(`class` := "pb-32px")(
@@ -24,4 +28,10 @@ case class BlockDetailPage(hash: String) extends Page:
       ),
     )
 
-  def url = s"/blc/$hash"
+final case class BlcDetailModel(
+    global: GlobalModel = GlobalModel(),
+    blcDetail: BlockDetail = BlockDetail(),
+) extends Model:
+    def view: Html[Msg] = BlockDetailPage.view(this)
+    def url = s"/blc/${blcDetail.hash.get}"
+    def update: Msg => (Model, Cmd[IO, Msg]) = BlockDetailPage.update(this)

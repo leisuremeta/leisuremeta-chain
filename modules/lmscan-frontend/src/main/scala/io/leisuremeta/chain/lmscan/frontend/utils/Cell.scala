@@ -3,12 +3,32 @@ import tyrian.Html.*
 import tyrian.*
 import V.*
 import scala.util.matching.Regex
-import Dom.{yyyy_mm_dd_time, timeAgo}
 import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
-import java.time.Instant
 import java.time.format.DateTimeFormatter
-import java.time.ZoneId
+import java.time._
+
+def toDT(t: Int): String = LocalDateTime
+  .ofEpochSecond(t, 0, ZoneOffset.UTC)
+  .toString
+  .replace("T", " ")
+
+def timeAgo(t: Int): String =
+  val now = LocalDateTime.now(ZoneId.ofOffset("GMT", ZoneOffset.ofHours(0))).toEpochSecond(ZoneOffset.UTC)
+  val timeGap = now - t
+  List(
+      ((timeGap / 31536000).toInt, " year ago"),
+      ((timeGap / 2592000).toInt, " month ago"),
+      ((timeGap / 86400).toInt, " day ago"),
+      ((timeGap / 3600).toInt, " hour ago"),
+      ((timeGap / 60).toInt, " min ago"),
+      ((timeGap / 1).toInt, "s ago"),
+    )
+    .find((time, _) => time > 0)
+    .map:
+      case (time, msg) if time > 1 => time.toString + msg.replace(" a", "s a").replace("ss", "s")
+      case (time, msg) => time.toString + msg
+    .get
 
 enum Cell:
   case ImageS(data: Option[String])              extends Cell
@@ -126,7 +146,7 @@ object gen:
             plainStr(subType).contains("Nft") match
               case true =>
                 onClick(
-                  RouterMsg.NavigateTo(NftDetailPage(value.getOrElse(""))),
+                  ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = value)))))
                 )
               case _ => EmptyAttribute,
           )(
@@ -145,7 +165,7 @@ object gen:
         div(`class` := s"cell type-3 $css")(
           span(
             onClick(
-              RouterMsg.NavigateTo(AccountDetailPage(hash.getOrElse(""))),
+              ToPage(AccDetailModel(accDetail = AccountDetail(address = hash))),
             ),
           )(
             accountHash(hash),
@@ -155,11 +175,11 @@ object gen:
         div(`class` := "cell",
             dataAttr(
               "tooltip-text",
-              Dom.yyyy_mm_dd_time(plainLong(data).toInt),
+              toDT(plainLong(data).toInt),
             ),
           )(
             {
-              val age = Dom.timeAgo(
+              val age = timeAgo(
                 plainLong(data).toInt,
               )
               age match
@@ -186,7 +206,7 @@ object gen:
       case Cell.DATE(data, css) =>
         div(`class` := s"$css")(
             {
-              val date = Dom.yyyy_mm_dd_time(
+              val date = toDT(
                 plainLong(data).toInt,
               ) + " +UTC"
               date match
@@ -199,7 +219,7 @@ object gen:
       case Cell.BLOCK_NUMBER((hash, number)) =>
         div(`class` := "cell type-3",
             onClick(
-              RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
+              ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
             ),
           )(plainLong(number))
 
@@ -207,7 +227,7 @@ object gen:
         div(
           `class` := "cell",
           onClick(
-            RouterMsg.NavigateTo(NftTokenPage(nftInfo.season.getOrElse(""))),
+            ToPage(NftTokenModel(id = nftInfo.season.get)),
           ),
         )(
           span(`class` := "season-nm")(plainSeason(nftInfo.season)),
@@ -217,21 +237,21 @@ object gen:
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.NavigateTo(NftDetailPage(nftInfo.tokenId.getOrElse(""))),
+            ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = nftInfo.tokenId)))))
           ),
         )(plainStr(s))
       case Cell.BLOCK_HASH(hash) =>
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.NavigateTo(BlockDetailPage(hash.getOrElse(""))),
+            ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
           ),
         )(plainStr(hash))
       case Cell.TX_HASH(hash) =>
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.NavigateTo(TxDetailPage(hash.getOrElse(""))),
+            ToPage(TxDetailModel(txDetail = TxDetail(hash = hash)))
           ),
         )(
           plainStr(hash),

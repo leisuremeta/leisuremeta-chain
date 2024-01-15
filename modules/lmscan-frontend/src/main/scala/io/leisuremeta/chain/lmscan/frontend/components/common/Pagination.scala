@@ -2,23 +2,26 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import Dom._selectedPage
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.frontend.V.plainStr
+import org.scalajs.dom._
+import cats.effect.IO
 
 object Pagination:
   def toInt(s: String) =
     try Some(Integer.parseInt(s))
     catch case _ => None
-  def checkAndMake(v: Int, last: Int) =
+  def checkAndMake(s: String, last: Int, cur: Int) =
+    val v = s.toIntOption.getOrElse(cur)
     if v < 1 then 1
     else if v > last then last
     else v
-  def view[T](model: ListPage[T]) =
+  def view[T](model: PageModel) =
     val curPage = model.page
-    val totalPage = model.list match
+    val totalPage = model.data match
       case None    => 0
-      case Some(v) => v.totalPages.toInt
+      case Some(v) => v match
+        case PageResponse(totalCount, totalPages, payload) => totalPages.toInt
 
     val btnFistPage = curPage match
       case x if (x <= 2)               => 1
@@ -26,11 +29,11 @@ object Pagination:
       case x                           => (curPage - 2)
     val btnLastPage = Math.min(totalPage + 1, btnFistPage + 5)
     def goTo(v: Int) = model match
-      case _: BlockModel => UpdateBlockPage(v)
-      case _: TxModel => UpdateTxPage(v)
-      case _: AccModel => UpdateAccPage(v)
-      case _: NftModel => UpdateNftPage(v)
-      case n: NftTokenModel => UpdateNftTokenPage(n.id, v)
+      case _: BlcModel => ToPage(BlcModel(page = v))
+      case _: TxModel => ToPage(TxModel(page = v))
+      case _: AccModel => ToPage(AccModel(page = v))
+      case _: NftModel => ToPage(NftModel(page = v))
+      case n: NftTokenModel => ToPage(n.copy(page = v))
 
     div(
       `class` := s"_search table-search xy-center",
@@ -53,7 +56,7 @@ object Pagination:
             .range(btnFistPage, btnLastPage)
             .map(idx =>
               span(
-                `class` := _selectedPage(curPage, idx),
+                `class` := (if curPage == idx then "selected" else ""),
                 onClick(goTo(idx)),
               )(idx.toString()),
             ),
@@ -74,21 +77,25 @@ object Pagination:
           style(Style("margin-left" -> "10px")),
         )(
           input(
-            onInput(s =>
-              toInt(s) match
-                case Some(v) => UpdateSearch(checkAndMake(v, totalPage))
-                case None    => NoneMsg,
-            ),
-            onKeyUp(e =>
-              e.key match
-                case "Enter" => goTo(model.searchPage)
-                case _       => NoneMsg,
-            ),
+            id := "list-search",
+            onInput(s => UpdateSearch(checkAndMake(s, totalPage, curPage))),
             value := s"${curPage}",
-            `class` := "type-search xy-center DOM-page1 margin-right text-center",
+            `class` := "type-search xy-center margin-right text-center",
           ),
           div(`class` := "type-plain-text margin-right")("of"),
           div(`class` := "type-plain-text margin-right")(totalPage.toString),
         ),
       ),
+    )
+  
+  def detectSearch = 
+    Sub.Batch(
+      Option(document.getElementById("list-search")) match
+        case None => Sub.None
+        case Some(el) =>
+          Sub.fromEvent[IO, KeyboardEvent, Msg]("keyup", el): e =>
+            e.key match
+              case "Enter" => Some(ListSearch)
+              case _ => None
+      ,
     )

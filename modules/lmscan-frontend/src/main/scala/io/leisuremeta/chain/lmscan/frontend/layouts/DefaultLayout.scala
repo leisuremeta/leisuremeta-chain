@@ -16,5 +16,4 @@ object DefaultLayout:
         ),
         Footer.view(),
       ),
-      PopupView.view(model),
     )

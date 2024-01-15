@@ -3,22 +3,15 @@ package frontend
 package chart
 
 import scala.scalajs.js.Date
-import tyrian.Html.*
-import tyrian.*
 import common.model._
+import typings.toastUiChart.mod.ColumnLineChart
 
 object AcChart:
-  def view(model: Model): Html[Msg] =
-    renderDataChart(model.chartData)
-    div(id := "chart")("")
-
-  def renderDataChart(data: SummaryChart): Unit = 
-    data.list match
-      case List() => ()
-      case list =>
-        val arr = list.sliding(2).map(x => calData(x.head, x.last)).toList.reverse
-        val label = calLabel(arr.length)
-        ChartHandler.drawChart(label, arr, "Account")
+  def draw(data: SummaryChart): Option[ColumnLineChart] =
+    val list = data.list
+    val arr = list.sliding(2).map(x => calData(x.head, x.last)).toList.reverse
+    val label = calLabel(arr.length)
+    ChartHandler.drawChart(label, arr, "Account")
 
   def calData(s: SummaryModel, e: SummaryModel): Double =
     (s.totalAccounts, e.totalAccounts) match

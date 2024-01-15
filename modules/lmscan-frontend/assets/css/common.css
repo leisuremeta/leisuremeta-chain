@@ -416,11 +416,6 @@
     display: none !important;
 }
 
-.selectedPage {
-    background-color: rgba(201, 239, 205, 0.6);
-    border: 1px solid white;
-    border-radius: 10px;
-}
 .type-1 {
     /* background-color: aliceblue; */
     /* height: 60px; */
@@ -700,25 +695,6 @@
 .font-bold{
     font-weight: 700;
 }
-
-.color-grey{
-    color: grey;
-}
-.color-grey{
-    color: grey;
-}
-
-
-.hidden{
-    display: none !important;
-}
-
-.selectedPage {
-    background-color: rgba(201, 239, 205, 0.6);
-    border: 1px solid white;
-    border-radius: 10px;
-}
-
 
 .main-table {
     display: grid;

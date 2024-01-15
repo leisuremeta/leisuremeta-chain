@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 import scala.util.chaining.*
 import tyrian.Html.*
 import tyrian.*
-import Dom.*
 import V.*
 import java.math.RoundingMode
 import io.leisuremeta.chain.lmscan.common.model.TxDetail

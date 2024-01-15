@@ -11,39 +11,38 @@ object NavBar:
   val nft = "NFTs"
   def view(model: Model): Html[Msg] =
     nav()(
-      div(id := "title", onClick(RouterMsg.NavigateTo(MainPage)))(
+      div(id := "title", onClick(ToPage(BaseModel())))(
         span(id := "head")(img(id := "head-logo")),
       )
       ::
       List(
-        (main, MainPage),
-        (blc, BlockPage(1)),
-        (tx, TxPage(1)),
-        (acc, AccountPage(1)),
-        (nft, NftPage(1)),
-      ).map((name, page) =>
+        (main, ToPage(BaseModel())),
+        (blc, ToPage(BlcModel(page = 1))),
+        (tx, ToPage(TxModel(page = 1))),
+        (acc, ToPage(AccModel(page = 1))),
+        (nft, ToPage(NftModel(page = 1))),
+      ).map((name, msg) =>
         div(
           `class` := "buttons",
         )(
           button(
-            `class` := s"${name == pageMatch(model.page)}",
-            onClick(RouterMsg.NavigateTo(page)),
+            `class` := isActive(name, model),
+            onClick(msg),
           )(span(name))
         )
       ),
     )
-  
-  def pageMatch(page: Page): String =
-    page match
-      case MainPage => main
-      case _: BlockPage => blc
-      case _: BlockDetailPage => blc
-      case _: TxPage => tx
-      case _: NftPage => nft
-      case _: TxDetailPage => tx
-      case _: NftDetailPage => nft
-      case _: AccountPage => acc
-      case _: AccountDetailPage => acc
-      case _ => ""
 
+  def isActive(name: String, model: Model) = model match
+    case m: BaseModel => if name == main then "active" else ""
+    case _: BlcModel if name == blc => "active"
+    case _: BlcDetailModel if name == blc => "active"
+    case _: TxModel if name == tx => "active"
+    case _: TxDetailModel if name == tx => "active"
+    case _: AccModel if name == acc => "active"
+    case _: AccDetailModel if name == acc => "active"
+    case _: NftModel if name == nft => "active"
+    case _: NftTokenModel if name == nft => "active"
+    case _: NftDetailModel if name == nft => "active"
+    case _ => ""
     
