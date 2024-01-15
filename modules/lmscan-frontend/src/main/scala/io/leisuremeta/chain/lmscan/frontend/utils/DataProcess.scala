@@ -17,39 +17,34 @@ object Parse:
   given Decoder[SummaryChart] = deriveDecoder[SummaryChart]
   given Decoder[NftInfoModel] = deriveDecoder[NftInfoModel]
   given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
+  given Decoder[TxInfo] = deriveDecoder[TxInfo]
   given Decoder[TxDetail] = deriveDecoder[TxDetail]
   given Decoder[TransferHist] = deriveDecoder[TransferHist]
   given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
   given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
   given Decoder[AccountInfo] = deriveDecoder[AccountInfo]
-  given Decoder[TxInfo] = deriveDecoder[TxInfo]
   given Decoder[NftDetail] = deriveDecoder[NftDetail]
   given Decoder[NftFileModel] = deriveDecoder[NftFileModel]
   given Decoder[NftActivity] = deriveDecoder[NftActivity]
   given Decoder[NftSeasonModel] = deriveDecoder[NftSeasonModel]
-  given Decoder[BlockModel] = deriveDecoder[BlockModel]
-  given Decoder[TxModel] = deriveDecoder[TxModel]
-  given Decoder[BlcList] = deriveDecoder[BlcList]
-  given Decoder[AccList] = deriveDecoder[AccList]
-  given Decoder[TxList] = deriveDecoder[TxList]
-  given Decoder[NftList] = deriveDecoder[NftList]
-  given Decoder[NftTokenList] = deriveDecoder[NftTokenList]
-  
-
-  def responseHandler(model: ApiModel): Response => Msg = res=>
-    res.status match
-      case Status(400, _) => ErrorMsg
-      case Status(500, _) => ErrorMsg
-      case _ => onResponse(model)(res)
+  given a: Decoder[PageResponse[AccountInfo]] = deriveDecoder[PageResponse[AccountInfo]]
+  given b: Decoder[PageResponse[BlockInfo]] = deriveDecoder[PageResponse[BlockInfo]]
+  given c: Decoder[PageResponse[TxInfo]] = deriveDecoder[PageResponse[TxInfo]]
+  given d: Decoder[PageResponse[NftInfoModel]] = deriveDecoder[PageResponse[NftInfoModel]]
+  given e: Decoder[PageResponse[NftSeasonModel]] = deriveDecoder[PageResponse[NftSeasonModel]]
     
   def onResponse(model: ApiModel): Response => Msg = response =>
-    (model, parse(response.body)) match
-      case (_, Left(e)) => ErrorMsg
-      case (_: TxModel, Right(json)) => UpdateModel(decode[TxList](response.body).getOrElse(TxList()))
-      case (_: BlockModel, Right(json)) => UpdateModel(decode[BlcList](response.body).getOrElse(BlcList()))
-      case (_: AccModel, Right(json)) => UpdateModel(decode[AccList](response.body).getOrElse(AccList()))
-      case (_: NftModel, Right(json)) => UpdateModel(decode[NftList](response.body).getOrElse(NftList()))
-      case (_: NftTokenModel, Right(json)) => UpdateModel(decode[NftTokenList](response.body).getOrElse(NftTokenList()))
+    response.status match
+      case Status(400, _) => ErrorMsg
+      case Status(500, _) => ErrorMsg
+      case _ => result(model, response)
+
+  def result(model: ApiModel, response: Response): Msg = (model, parse(response.body)) match
+      case (_: BlcModel, Right(json)) => UpdateBlcs(decode[PageResponse[BlockInfo]](response.body).getOrElse(PageResponse()))
+      case (_: TxModel, Right(json)) => UpdateTxs(decode[PageResponse[TxInfo]](response.body).getOrElse(PageResponse()))
+      case (_: AccModel, Right(json)) => UpdateListModel[AccountInfo](decode[PageResponse[AccountInfo]](response.body).getOrElse(PageResponse()))
+      case (_: NftModel, Right(json)) => UpdateListModel(decode[PageResponse[NftInfoModel]](response.body).getOrElse(PageResponse()))
+      case (_: NftTokenModel, Right(json)) => UpdateListModel(decode[PageResponse[NftSeasonModel]](response.body).getOrElse(PageResponse()))
       case (_: TxDetail, Right(json)) => UpdateModel(decode[TxDetail](response.body).getOrElse(TxDetail()))
       case (_: BlockDetail, Right(json)) => UpdateModel(decode[BlockDetail](response.body).getOrElse(BlockDetail()))
       case (_: AccountDetail, Right(json)) => UpdateModel(decode[AccountDetail](response.body).getOrElse(AccountDetail()))
@@ -57,15 +52,14 @@ object Parse:
       case (_: SummaryBoard, Right(json)) => UpdateModel(decode[SummaryBoard](response.body).getOrElse(SummaryBoard()))
       case (_: SummaryChart, Right(json)) => UpdateModel(decode[SummaryChart](response.body).getOrElse(SummaryChart()))
       case (_, Right(json)) => ErrorMsg
+      case (_, Left(json)) => ErrorMsg
 
 object DataProcess:
   val base = js.Dynamic.global.process.env.BASE_API_URL
   def onError(e: HttpError): Msg = ErrorMsg
-
-  def getList(api: (Int, Int) => String, page: Int = 0, size: Int = 10) = api(page, size)
-  def getData[T](model: ListPage[T]): Cmd[IO, Msg] =
+  def getData(model: PageModel): Cmd[IO, Msg] =
     val url = model match
-      case _: BlockModel => s"${base}block/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
+      case _: BlcModel => s"${base}block/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
       case _: TxModel => s"${base}tx/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
       case _: NftModel => s"${base}nft/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
       case m: NftTokenModel => s"${base}nft/${m.id}?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
@@ -87,7 +81,7 @@ object DataProcess:
   def getData(model: AccountDetail): Cmd[IO, Msg] =
     Http.send(
       Request.get(s"${base}account/${model.address.getOrElse("")}/detail?p=1").withTimeout(10.seconds),
-      Decoder[Msg](Parse.responseHandler(model), onError)
+      Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(model: NftFileModel): Cmd[IO, Msg] =
     Http.send(
@@ -104,9 +98,9 @@ object DataProcess:
       Request.get(s"${base}summary/chart/balance"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
-  def getData(model: SummaryChart): Cmd[IO, Msg] =
+  def getData(model: SummaryChart, size: Int = 5): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}summary/chart/tx"),
+      Request.get(s"${base}summary/chart/tx?d=${size}"),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def globalSearch(v: String) = 
@@ -114,4 +108,4 @@ object DataProcess:
       case 25 => NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(v)))))
       case 64 => TxDetailModel(txDetail = TxDetail(hash = Some(v)))
       case _ => AccDetailModel(accDetail = AccountDetail(address = Some(v)))
-    Cmd.Emit(RouterMsg.ToDetail(msg))
+    ToPage(msg)

@@ -9,12 +9,10 @@ import common.model._
 object TxDetailPage:
   def update(model: TxDetailModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model.txDetail))
-    case UpdateDetailPage(detail) => detail match
-      case d: TxDetail => (model, DataProcess.getData(d))
-    case UpdateModel(v: ApiModel) => v match
-      case v: TxDetail => (TxDetailModel(txDetail = v), Nav.pushUrl(model.url))
+    case UpdateDetailPage(d: TxDetail) => (model, DataProcess.getData(d))
+    case UpdateModel(v: TxDetail) => (TxDetailModel(txDetail = v), Nav.pushUrl(model.url))
     case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
-    case msg => (BaseModel(global = model.global), Cmd.emit(msg))
+    case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: TxDetailModel): Html[Msg] =
     DefaultLayout.view(
@@ -36,3 +34,4 @@ final case class TxDetailModel(
 ) extends Model:
     def view: Html[Msg] = TxDetailPage.view(this)
     def url = s"/tx/${txDetail.hash.get}"
+    def update: Msg => (Model, Cmd[IO, Msg]) = TxDetailPage.update(this)

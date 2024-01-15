@@ -9,12 +9,10 @@ import common.model._
 object BlockDetailPage:
   def update(model: BlcDetailModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model.blcDetail))
-    case UpdateDetailPage(detail) => detail match
-      case d: BlockDetail => (model, DataProcess.getData(d))
-    case UpdateModel(v: ApiModel) => v match
-      case v: BlockDetail => (BlcDetailModel(blcDetail = v), Nav.pushUrl(model.url))
+    case UpdateDetailPage(d: BlockDetail) => (model, DataProcess.getData(d))
+    case UpdateModel(v: BlockDetail) => (BlcDetailModel(blcDetail = v), Nav.pushUrl(model.url))
     case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
-    case msg => (BaseModel(global = model.global), Cmd.emit(msg))
+    case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: BlcDetailModel): Html[Msg] =
     DefaultLayout.view(
@@ -36,3 +34,4 @@ final case class BlcDetailModel(
 ) extends Model:
     def view: Html[Msg] = BlockDetailPage.view(this)
     def url = s"/blc/${blcDetail.hash.get}"
+    def update: Msg => (Model, Cmd[IO, Msg]) = BlockDetailPage.update(this)

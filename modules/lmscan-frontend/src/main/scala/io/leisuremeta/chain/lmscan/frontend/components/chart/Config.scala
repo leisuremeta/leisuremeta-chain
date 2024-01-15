@@ -3,7 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend.chart
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import scala.scalajs.js.JSConverters.*
-import typings.toastUiChart.mod
+import typings.toastUiChart.mod.{ ColumnLineChart, LineChart }
 import typings.toastUiChart.typesChartsMod._
 import typings.toastUiChart.typesOptionsMod._
 import typings.toastUiChart.anon._
@@ -16,7 +16,7 @@ object ChartCss extends js.Object
 object ChartHandler:
   private val css = ChartCss
 
-  def drawBal(label: Seq[String], arr: Seq[Double]) = 
+  def drawBal(label: Seq[String], arr: Seq[Double]): Option[LineChart] = 
     document.getElementById("chart") match
       case x: HTMLDivElement =>
         val opt = LineChartOptions()
@@ -28,15 +28,15 @@ object ChartHandler:
             (s, _) => String.format("%,d", s.toInt)
           )))
           .setExportMenu(ExportMenuOptions().setVisible(false))
-        mod.LineChart(
+        Some(LineChart(
           LineChartProps(
             LineSeriesData(
               js.Array(LineSeriesInput(arr.toJSArray, "Balance"))
             ).setCategories(label.toJSArray), x, opt)
-        )
+        ))
       case _ => None
 
-  def drawChart(label: Seq[String], arr: Seq[Double], name: String) = 
+  def drawChart(label: Seq[String], arr: Seq[Double], name: String): Option[ColumnLineChart] = 
     document.getElementById("chart") match
       case x: HTMLDivElement =>
         val opt = ColumnLineChartOptions()
@@ -45,7 +45,7 @@ object ChartHandler:
             (s, _) => String.format("%,d", s.toInt)
           )))
           .setExportMenu(ExportMenuOptions().setVisible(false))
-        mod.ColumnLineChart(
+        Some(ColumnLineChart(
           ColumnLineChartProps(
             ColumnLineData(
               label.toJSArray,
@@ -55,5 +55,5 @@ object ChartHandler:
                 // js.Array(PickLineSeriesTypenamedat(arr.toJSArray, "Account"))
               )
             ).setCategories(label.toJSArray), x, opt)
-        )
+        ))
       case _ => None

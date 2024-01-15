@@ -21,13 +21,11 @@ object Table:
             `class` := s"type-2",
           )(
             span(
-              onClick(
-                RouterMsg.NavigateTo(BlockPage(1)),
-              ),
+              onClick(ToPage(BlcModel(page = 1))),
             )("More"),
           ),
         ),
-        model.blcPage.list match
+        model.blcs match
           case None => LoaderView.view
           case Some(v) => div(`class` := "w-[100%]")(Head.block :: Body.blocks(v.payload.toList)),
       ),
@@ -44,60 +42,55 @@ object Table:
             `class` := s"type-2",
           )(
             span(
-              onClick(
-                RouterMsg.NavigateTo(TxPage(1)),
-              ),
+              onClick(ToPage(TxModel(page = 1))),
             )("More"),
           ),
         ),
-        model.txPage.list match
+        model.txs match
           case None => LoaderView.view
-          case Some(v) =>
-            div(
-              Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList),
-            ),
+          case Some(v) => div(Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList)),
       ),
     )
 
-  def view(model: BlockModel) =
+  def view(model: BlcModel) =
     div(`class` := "table-container app-table blc")(
-      block(model.list),
+      block(model.data),
       Pagination.view(model),
-      model.list match
+      model.data match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
   def view(model: AccModel) =
     div(`class` := "table-container app-table accs")(
-      acc(model.list),
+      acc(model.data),
       Pagination.view(model),
-      model.list match
+      model.data match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
   def view(model: NftModel) =
     div(`class` := "table-container app-table nfts")(
-      nft(model.list),
+      nft(model.data),
       Pagination.view(model),
-      model.list match
+      model.data match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
   def view(model: NftTokenModel) =
     div(`class` := "table-container app-table nft-token")(
-      nftToken(model.list),
+      nftToken(model.data),
       Pagination.view(model),
-      model.list match
+      model.data match
         case None    => LoaderView.view
         case Some(_) => div(),
     )
 
   def view(model: TxModel): Html[Msg] =
     div(`class` := "table-container app-table tx")(
-      model.list match
+      model.data match
         case None => LoaderView.view
         case Some(v) =>
-          div(`class` := "")(
+          div()(
             Head.tx :: Body.txRow(v.payload.toList),
           )
       ,
@@ -122,25 +115,25 @@ object Table:
         case Some(v) => Head.nft :: Body.nft(v.toList),
     )
 
-  def block(list: Option[BlcList]) =
+  def block(data: Option[PageResponse[BlockInfo]]) =
     div(
-      list match
+      data match
         case Some(v) => Head.block :: Body.blocks(v.payload.toList)
         case None    => List(Head.block),
     )
-  def acc(list: Option[AccList]) =
+  def acc(data: Option[PageResponse[AccountInfo]]) =
     div(
-      list match
+      data match
         case Some(v) => Head.accs :: Body.accs(v.payload.toList)
         case None    => List(Head.accs),
     )
-  def nft(list: Option[NftList]) =
+  def nft(list: Option[PageResponse[NftInfoModel]]) =
     div(
       list match
         case Some(v) => Head.nfts :: Body.nfts(v.payload.toList)
         case None    => List(Head.nfts),
     )
-  def nftToken(list: Option[NftTokenList]) =
+  def nftToken(list: Option[PageResponse[NftSeasonModel]]) =
     div(
       list match
         case Some(v) => Head.nftToken :: Body.nftToken(v.payload.toList)

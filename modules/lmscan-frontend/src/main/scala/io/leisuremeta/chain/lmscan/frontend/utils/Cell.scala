@@ -14,7 +14,7 @@ def toDT(t: Int): String = LocalDateTime
   .replace("T", " ")
 
 def timeAgo(t: Int): String =
-  val now = LocalDateTime.now(ZoneId.ofOffset("GMT", ZoneOffset.ofHours(9))).toEpochSecond(ZoneOffset.UTC)
+  val now = LocalDateTime.now(ZoneId.ofOffset("GMT", ZoneOffset.ofHours(0))).toEpochSecond(ZoneOffset.UTC)
   val timeGap = now - t
   List(
       ((timeGap / 31536000).toInt, " year ago"),
@@ -146,7 +146,7 @@ object gen:
             plainStr(subType).contains("Nft") match
               case true =>
                 onClick(
-                  RouterMsg.ToDetail(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = value)))))
+                  ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = value)))))
                 )
               case _ => EmptyAttribute,
           )(
@@ -165,7 +165,7 @@ object gen:
         div(`class` := s"cell type-3 $css")(
           span(
             onClick(
-              RouterMsg.ToDetail(AccDetailModel(accDetail = AccountDetail(address = hash))),
+              ToPage(AccDetailModel(accDetail = AccountDetail(address = hash))),
             ),
           )(
             accountHash(hash),
@@ -219,7 +219,7 @@ object gen:
       case Cell.BLOCK_NUMBER((hash, number)) =>
         div(`class` := "cell type-3",
             onClick(
-              RouterMsg.ToDetail(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
+              ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
             ),
           )(plainLong(number))
 
@@ -227,7 +227,7 @@ object gen:
         div(
           `class` := "cell",
           onClick(
-            RouterMsg.NavigateTo(NftTokenPage(nftInfo.season.getOrElse(""))),
+            ToPage(NftTokenModel(id = nftInfo.season.get)),
           ),
         )(
           span(`class` := "season-nm")(plainSeason(nftInfo.season)),
@@ -237,21 +237,21 @@ object gen:
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.ToDetail(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = nftInfo.tokenId)))))
+            ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = nftInfo.tokenId)))))
           ),
         )(plainStr(s))
       case Cell.BLOCK_HASH(hash) =>
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.ToDetail(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
+            ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
           ),
         )(plainStr(hash))
       case Cell.TX_HASH(hash) =>
         div(
           `class` := "cell type-3",
           onClick(
-            RouterMsg.ToDetail(TxDetailModel(txDetail = TxDetail(hash = hash)))
+            ToPage(TxDetailModel(txDetail = TxDetail(hash = hash)))
           ),
         )(
           plainStr(hash),

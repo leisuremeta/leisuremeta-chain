@@ -89,12 +89,22 @@ object BoardView:
     )
 
   def view(model: BaseModel): Html[Msg] =
-    val summary = model.summary
-    div(`class` := "board-area")(
-      List(
-        (LM_Price, pricePan(summary), RouterMsg.NavigateToUrl("https://coinmarketcap.com/currencies/leisuremeta/")),
-        (Total_TxCount, txPan(summary), RouterMsg.NavigateTo(TotalTxChart)),
-        (Transactions, balPan(summary), RouterMsg.NavigateTo(TotalBalChart)),
-        (Accounts, accPan(summary), RouterMsg.NavigateTo(TotalAcChart)),
-      ).map(drawBox)
-    )
+    model.summary match
+      case None => 
+        div(`class` := "board-area")(
+          List(
+            LoaderView.view,
+            LoaderView.view,
+            LoaderView.view,
+            LoaderView.view,
+          )
+        )
+      case Some(summary) =>
+        div(`class` := "board-area")(
+          List(
+            (LM_Price, pricePan(summary), NavigateToUrl("https://coinmarketcap.com/currencies/leisuremeta/")),
+            (Total_TxCount, txPan(summary), ToPage(TxChartModel())),
+            (Transactions, balPan(summary), ToPage(BalChartModel())),
+            (Accounts, accPan(summary), ToPage(AccChartModel())),
+          ).map(drawBox)
+        )

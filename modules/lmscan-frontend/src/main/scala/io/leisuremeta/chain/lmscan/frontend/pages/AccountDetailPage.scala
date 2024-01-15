@@ -9,12 +9,10 @@ import common.model._
 object AccountDetailPage:
   def update(model: AccDetailModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model.accDetail))
-    case UpdateDetailPage(detail) => detail match
-      case d: AccountDetail => (model, DataProcess.getData(d))
-    case UpdateModel(v: ApiModel) => v match
-      case v: AccountDetail => (AccDetailModel(accDetail = v), Nav.pushUrl(model.url))
+    case UpdateDetailPage(d: AccountDetail) => (model, DataProcess.getData(d))
+    case UpdateModel(v: AccountDetail) => (AccDetailModel(accDetail = v), Nav.pushUrl(model.url))
     case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
-    case msg => (BaseModel(global = model.global), Cmd.emit(msg))
+    case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: AccDetailModel): Html[Msg] =
     DefaultLayout.view(
@@ -37,3 +35,4 @@ final case class AccDetailModel(
 ) extends Model:
     def view: Html[Msg] = AccountDetailPage.view(this)
     def url = s"/acc/${accDetail.address.get}"
+    def update: Msg => (Model, Cmd[IO, Msg]) = AccountDetailPage.update(this)

@@ -1,103 +1,39 @@
 package io.leisuremeta.chain.lmscan
 package frontend
 
-import common.model._
-import tyrian.Html
+import common.model.*
+import tyrian._
+import tyrian.Html.div
+import cats.effect.IO
+import org.jline.console.CmdLine
 
 final case class GlobalModel(
-  popup: Boolean = false,
-  searchValue: String = "",
+    popup: Boolean = false,
+    searchValue: String = "",
 ):
-    def updateSearchValue(s: String) = GlobalModel(popup, s)
+  def updateSearchValue(s: String) = GlobalModel(popup, s)
 
 trait Model:
-    val global: GlobalModel
-    def view: Html[Msg]
+  val global: GlobalModel
+  def view: Html[Msg]
+  def url: String
+  def update: Msg => (Model, Cmd[IO, Msg])
+  def toEmptyModel: EmptyModel = EmptyModel(global)
 
-final case class BaseModel(
-    global: GlobalModel = GlobalModel(),
-    page: Page = MainPage,
-    summary: SummaryBoard = SummaryBoard(),
-    blcPage: BlockModel = BlockModel(),
-    txPage: TxModel = TxModel(),
-    nftPage: NftModel = NftModel(),
-    nftTokenPage: NftTokenModel = NftTokenModel(),
-    accPage: AccModel = AccModel(),
-    chartData: SummaryChart = SummaryChart(),
+trait PageModel extends Model with ApiModel:
+  val page: Int
+  val size: Int = 20
+  val searchPage: Int
+  val data: Option[ApiModel]
+
+case class EmptyModel(
+  global: GlobalModel = GlobalModel(),
 ) extends Model:
-    def view: Html[Msg] = page.view(this)
-
-trait ListPage[T] extends ApiModel:
-    val page: Int
-    val size: Int
-    val searchPage: Int
-    val list: Option[ListType[T]]
-
-trait ListType[T] extends ApiModel:
-    val totalCount: Long
-    val totalPages: Int
-    val payload: Seq[T]
-
-final case class TxModel(
-    page: Int = 1,
-    size: Int = 20,
-    searchPage: Int = 1,
-    list: Option[TxList] = None,
-) extends ListPage[TxInfo]
-
-final case class BlockModel(
-    page: Int = 1,
-    size: Int = 20,
-    searchPage: Int = 1,
-    list: Option[BlcList] = None,
-) extends ListPage[BlockInfo]
-
-final case class NftModel(
-    page: Int = 1,
-    size: Int = 20,
-    searchPage: Int = 1,
-    list: Option[NftList] = None,
-) extends ListPage[NftInfoModel]
-final case class NftTokenModel(
-    id: String = "",
-    page: Int = 1,
-    size: Int = 20,
-    searchPage: Int = 1,
-    list: Option[NftTokenList] = None,
-) extends ListPage[NftSeasonModel]
-final case class AccModel(
-    page: Int = 1,
-    size: Int = 20,
-    searchPage: Int = 1,
-    list: Option[AccList] = None,
-) extends ListPage[AccountInfo]
-
-final case class BlcList(
-    totalCount: Long = 0,
-    totalPages: Int = 0,
-    payload: Seq[BlockInfo] = Seq(),
-) extends ListType[BlockInfo]
-
-final case class TxList(
-    totalCount: Long = 0,
-    totalPages: Int = 0,
-    payload: Seq[TxInfo] = Seq(),
-) extends ListType[TxInfo]
-
-final case class NftList(
-    totalCount: Long = 0,
-    totalPages: Int = 0,
-    payload: Seq[NftInfoModel] = Seq(),
-) extends ListType[NftInfoModel]
-
-final case class NftTokenList(
-    totalCount: Long = 0,
-    totalPages: Int = 0,
-    payload: Seq[NftSeasonModel] = Seq(),
-) extends ListType[NftSeasonModel]
-
-final case class AccList(
-    totalCount: Long = 0,
-    totalPages: Int = 0,
-    payload: Seq[AccountInfo] = Seq(),
-) extends ListType[AccountInfo]
+  def view = div("")
+  def url = ""
+  def update: Msg => (Model, Cmd[IO, Msg]) =
+    case ToPage(model) => model.update(Init)
+    case NavigateToUrl(url) => (this, Nav.loadUrl(url))
+    case ErrorMsg => (ErrorModel(error = ""), Cmd.None)
+    case GlobalSearch => (this, Cmd.Emit(DataProcess.globalSearch(global.searchValue)))
+    case _ => (this, Cmd.None)

@@ -2,22 +2,15 @@ package io.leisuremeta.chain.lmscan
 package frontend
 package chart
 
-import tyrian.Html.*
-import tyrian.*
 import common.model._
+import typings.toastUiChart.mod.ColumnLineChart
 
 object TxChart:
-  def view(model: BaseModel): Html[Msg] =
-    renderDataChart(model.chartData)
-    div(id := "chart")("")
-
-  def renderDataChart(data: SummaryChart): Unit =
-    data.list match
-      case List() => ()
-      case list =>
-        val arr = list.sliding(2).map(x => calData(x.head, x.last)).toList.reverse
-        val label = calLabel(arr.length)
-        ChartHandler.drawChart(label, arr, "Transaction")
+  def draw(data: SummaryChart): Option[ColumnLineChart] = 
+    val list = data.list 
+    val arr = list.sliding(2).map(x => calData(x.head, x.last)).toList.reverse
+    val label = calLabel(arr.length)
+    ChartHandler.drawChart(label, arr, "Transaction")
 
   def calData(s: SummaryModel, e: SummaryModel): Double =
     (s.totalTxSize, e.totalTxSize) match
