@@ -17,7 +17,7 @@ import api.model.{
 }
 import api.model.TransactionWithResult.ops.*
 import api.model.account.{ExternalChain, ExternalChainAddress}
-import api.model.token.TokenId
+import api.model.token.{NftState, Rarity, TokenId}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
@@ -27,7 +27,6 @@ import node.dapp.submodule.*
 import node.repository.TransactionRepository
 
 object RecoverTx:
-
   def apply[F[_]: Async: TransactionRepository: PlayNommState: InvalidTxLogger](
       e: PlayNommDAppFailure,
       ms: MerkleTrieState,
@@ -230,6 +229,72 @@ object RecoverTx:
                 tf.tokenDefinitionId,
                 tokenDef.copy(totalAmount = totalAmount),
               )
+            yield txWithResult
+
+            program
+              .run(ms)
+              .map: (ms, txWithResult) =>
+                (ms, Option(txWithResult))
+              .leftMap: msg =>
+                PlayNommDAppFailure.internal(s"Fail to recover error: $msg")
+
+          case mn: Transaction.TokenTx.MintNFT =>
+            val program = for
+              tokenDefOption <- PlayNommState[F].token.definition
+                .get(mn.tokenDefinitionId)
+                .mapK:
+                  PlayNommDAppFailure.mapExternal:
+                    s"No token definition of ${mn.tokenDefinitionId}"
+              nftStateOption <- PlayNommState[F].token.nftState
+                .get(mn.tokenId)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to get nft state of ${mn.tokenId}"
+              _ <- checkExternal(
+                nftStateOption.isEmpty,
+                s"NFT ${mn.tokenId} is already minted",
+              )
+              txWithResult = TransactionWithResult(Signed(sig, mn))(None)
+              txHash       = txWithResult.toHash
+              _ <- PlayNommState[F].token.nftBalance
+                .put((mn.output, mn.tokenId, txHash), ())
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put token balance (${mn.output}, ${mn.tokenId}, $txHash)"
+              rarity: Map[Rarity, BigNat] =
+                val rarityMapOption: Option[Map[Rarity, BigNat]] = for
+                  tokenDef <- tokenDefOption
+                  nftInfo <- tokenDef.nftInfo
+                yield nftInfo.rarity
+
+                rarityMapOption.getOrElse:
+                  Map(
+                    Rarity(Utf8.unsafeFrom("LGDY")) -> BigNat.unsafeFromLong(16),
+                    Rarity(Utf8.unsafeFrom("UNIQ")) -> BigNat.unsafeFromLong(12),
+                    Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(8),
+                    Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(4),
+                  )
+              weight = rarity.getOrElse(mn.rarity, BigNat.unsafeFromLong(2L))
+              nftState = NftState(
+                tokenId = mn.tokenId,
+                tokenDefinitionId = mn.tokenDefinitionId,
+                rarity = mn.rarity,
+                weight = weight,
+                currentOwner = mn.output,
+                memo = None,
+                lastUpdateTx = txHash,
+                previousState = None,
+              )
+              _ <- PlayNommState[F].token.nftState
+                .put(mn.tokenId, nftState)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put nft state of ${mn.tokenId}"
+              _ <- PlayNommState[F].token.rarityState
+                .put((mn.tokenDefinitionId, mn.rarity, mn.tokenId), ())
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put rarity state of ${mn.tokenDefinitionId}, ${mn.rarity}, ${mn.tokenId}"
             yield txWithResult
 
             program

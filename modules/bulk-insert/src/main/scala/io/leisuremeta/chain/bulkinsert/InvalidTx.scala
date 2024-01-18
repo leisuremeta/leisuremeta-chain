@@ -10,17 +10,18 @@ import lib.datatype.BigNat
 import lib.crypto.Hash.ops.*
 
 final case class InvalidTx(
-  signer: Account,
-  reason: InvalidReason,
-  amountToBurn: BigNat,
-  tx: Transaction,
-  wrongNftInput: Option[TokenId] = None,
-  memo: String = "",
+    signer: Account,
+    reason: InvalidReason,
+    amountToBurn: BigNat,
+    tx: Transaction,
+    wrongNftInput: Option[TokenId] = None,
+    memo: String = "",
 ):
   def txType: String = tx.getClass.getSimpleName
 
 enum InvalidReason:
-  case OutputMoreThanInput, InputAlreadyUsed, BalanceNotExist, CanceledBalance
+  case OutputMoreThanInput, InputAlreadyUsed, BalanceNotExist, CanceledBalance,
+    NoNftInfo
 
 trait InvalidTxLogger[F[_]]:
   def log(invalidTx: InvalidTx): F[Unit]
@@ -29,14 +30,15 @@ object InvalidTxLogger:
   def apply[F[_]: InvalidTxLogger]: InvalidTxLogger[F] = summon
 
   def console[F[_]: Async: Console]: InvalidTxLogger[F] =
-    invalidTx =>
-      Console[F].println(invalidTx)
+    invalidTx => Console[F].println(invalidTx)
 
   def file[F[_]: Async](filename: String): Resource[F, InvalidTxLogger[F]] =
     Resource
       .make:
         import java.io.{File, FileOutputStream, PrintWriter}
-        Async[F].delay(new PrintWriter(new FileOutputStream(new File(filename), true)))
+        Async[F].delay(
+          new PrintWriter(new FileOutputStream(new File(filename), true)),
+        )
       .apply: out =>
         Async[F].delay:
           out.flush()
@@ -44,5 +46,7 @@ object InvalidTxLogger:
       .map: out =>
         case InvalidTx(signer, reason, amountToBurn, tx, wrongNftInput, memo) =>
           Async[F].delay:
-            out.println(s"$signer,$reason,$amountToBurn,${tx.getClass.getSimpleName},${tx.toHash}, ${wrongNftInput}, $memo")
+            out.println(
+              s"$signer,$reason,$amountToBurn,${tx.getClass.getSimpleName},${tx.toHash}, ${wrongNftInput}, $memo",
+            )
             out.flush()

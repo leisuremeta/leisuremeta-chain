@@ -153,10 +153,12 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
 
 object BulkInsertMain extends IOApp:
 
-  val offset: Long = 533358L
+//  val offset: Long = 0L
+//  val offset: Long = 533358L
 //  val offset: Long = 527856L
 //  val offset: Long = 533359L
 //  val offset: Long = 534366L
+  val offset: Long = 551700L
   
   override def run(args: List[String]): IO[ExitCode] =
     NodeConfig
