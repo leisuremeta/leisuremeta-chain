@@ -254,6 +254,7 @@ object EthGatewayDepositMain extends IOApp:
         createdAt = now,
         definitionId = lmDef,
         outputs = Map(toAccount -> BigNat.unsafeFromBigInt(amount)),
+        memo = None,
       )
 
       submitTx[F](sttp, lmEndpoint, encryptedLmPrivate, account, mintFungibleToken)

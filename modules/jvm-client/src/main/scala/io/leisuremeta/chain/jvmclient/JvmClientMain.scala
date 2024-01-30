@@ -140,6 +140,7 @@ object JvmClientMain extends IOApp:
       dataUrl = Utf8.unsafeFrom("https://www.playnomm.com/data/nft-with-precision.json"),
       contentHash = UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get,
     )),
+    memo = None,
   )
 
   val signedTx = signAlice(tx)

@@ -194,6 +194,13 @@ object TxDetailTableCommon:
                   genTxDetail_output_body(nft.output, nft.tokenId),
                 ),
               )
+            case nft: UpdateNFT =>
+              List(
+                List(
+                  genTxDetail_output_head(nft.tokenId),
+                  genTxDetail_output_body(nft.output, nft.tokenId),
+                )
+              )
             case nft: TransferNFT =>
               List(
                 List(

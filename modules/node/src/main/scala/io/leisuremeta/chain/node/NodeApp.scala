@@ -338,6 +338,7 @@ final case class NodeApp[F[_]
     getBalanceServerEndpoint,
     getNftBalanceServerEndpoint,
     getTokenServerEndpoint,
+    getTokenHistoryServerEndpoint,
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,
