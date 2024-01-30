@@ -190,6 +190,12 @@ object LeisureMetaChainApi:
       .out(jsonBody[NftState])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenHistoryEndpoint =
+    baseEndpoint.get
+      .in("token-hist" / path[Hash.Value[TransactionWithResult]])
+      .out(jsonBody[NftState])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getOwnersEndpoint =
     baseEndpoint.get
       .in("owners" / path[TokenDefinitionId])

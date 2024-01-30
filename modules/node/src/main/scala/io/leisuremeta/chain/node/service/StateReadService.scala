@@ -492,6 +492,17 @@ object StateReadService:
       .runA(merkleState)
   yield nftStateOption
 
+  def getTokenHistory[F[_]: Concurrent: BlockRepository: PlayNommState](
+      txHash: Hash.Value[TransactionWithResult],
+  ): EitherT[F, String, Option[NftState]] = for
+    bestHeaderOption <- BlockRepository[F].bestHeader.leftMap(_.msg)
+    bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
+    merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+    nftStateOption <- PlayNommState[F].token.nftHistory
+      .get(txHash)
+      .runA(merkleState)
+  yield nftStateOption
+
   def getOwners[F[_]: Concurrent: BlockRepository: PlayNommState](
       tokenDefinitionId: TokenDefinitionId,
   ): EitherT[F, String, Map[TokenId, Account]] = for

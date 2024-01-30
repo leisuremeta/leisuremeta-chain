@@ -224,13 +224,21 @@ class InternalApiService[F[_]: Async](
       }
     }.map(_.head)
 
-
   def getToken(
     tokenId: TokenId
   ): F[(StatusCode, String)] =
     baseUrlsLock.get.flatMap { urls =>
       urls.traverse { baseUrl =>
         getAsString(uri"$baseUrl/token/$tokenId")
+      }
+    }.map(_.head)
+
+  def getTokenHistory(
+    txHash: String
+  ): F[(StatusCode, String)] =
+    baseUrlsLock.get.flatMap { urls =>
+      urls.traverse { baseUrl =>
+        getAsString(uri"$baseUrl/token-hist/$txHash")
       }
     }.map(_.head)
 
