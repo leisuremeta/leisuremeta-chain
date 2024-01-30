@@ -128,12 +128,20 @@ object PlayNommDAppToken:
           rarity = mn.rarity,
           weight = weight,
           currentOwner = mn.output,
+          memo = mn.memo,
+          lastUpdateTx = txHash,
+          previousState = None,
         )
         _ <- PlayNommState[F].token.nftState
           .put(mn.tokenId, nftState)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put nft state of ${mn.tokenId}"
+        _ <- PlayNommState[F].token.nftHistory
+          .put(txHash, nftState)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft history of ${mn.tokenId} of $txHash"
         _ <- PlayNommState[F].token.rarityState
           .put((mn.tokenDefinitionId, mn.rarity, mn.tokenId), ())
           .mapK:
