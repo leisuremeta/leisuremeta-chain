@@ -641,6 +641,48 @@
     * TokenDefinitionID(string)
     * Input: SignedTxHash
 
+* UpdateNFT
+
+
+  * > MinterGroup 에 속한 account 서명
+
+  * Fields
+    * TokenDefinitionID(string)
+
+  * Example
+	```json
+	[
+	  {
+	    "sig": {
+	      "sig": {
+	        "v": 28,
+	        "r": "1ec82ef3e977dd8e6857e6d77b7955e57bc8d7081730198372f4740c588f0c80",
+	        "s": "65031c7011d8aceae4bfbd90049b2bb4c458050988368b3ea3017fb7402c0c03"
+	      },
+	      "account": "alice"
+	    },
+	    "value": {
+	      "TokenTx": {
+	        "UpdateNFT": {
+	          "networkId": 2021,
+	          "createdAt": "2023-01-11T19:06:00Z",
+	          "tokenDefinitionId": "nft-with-precision",
+	          "tokenId": "2022061710000513118",
+	          "rarity": "EPIC",
+	          "dataUrl": "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+	          "contentHash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+	          "output": "alice",
+	          "memo": "Test Updating NFT #2022061710000513118"
+	        }
+	      }
+	    }
+	]
+	```
+
+  ```json
+  ["e4d85bd90857a9be1e363a10c6543de0a7826966378e2bdb0195572a87e7c1be"]
+  ```
+
 * TransferFungibleToken
   * > 토큰 보유자 서명
   * Fields
@@ -747,7 +789,7 @@
     * remainder: Amount 자신에게 돌아오는 수량
 
   * Example
-  
+
     ```json
     [
       {
@@ -776,13 +818,13 @@
       }
     ]
     ```
-  
+
     ```json
     ["45df6a88e74ea44f2d759251fed5a3c319e7cf9c37fafa7471418fec7b26acce"]
     ```
-  
+
     
-  
+
 * EntrustNFT NFT 위임
 
   * > NFT 보유자 서명
@@ -880,16 +922,16 @@
 * DisposeEntrustedNFT 위임된 NFT 처분
 
   * 위임받은 계정(일반적으로 playnomm) 서명
-  
+
   * Fields
     * definitionID(string)
     * tokenID(string)
     * input: SignedTxHash
     * output: Option[AccountName]
       * NFT를 받아갈 계정. 없으면 원주인에게로 반환한다.
-  
+
   * Example
-  
+
     ```json
     [
       {
@@ -916,11 +958,11 @@
       }
     ]
     ```
-  
+
     ```json
     ["83c783f31b95cc4a713a921ec1df0725c6675b999ba6285a70c1f777615e4281"]
     ```
-  
+
     
 
 
@@ -1284,7 +1326,8 @@
 | `GET`  | **/offering/{offeringID}**        | Offering 정보 조회               |
 | `GET`  | **/status**                       | 블록체인 상태 조회               |
 | `GET`  | **/token-def/{definitionID}**     | 토큰 정의 정보 조회              |
-| `GET`  | **/token/{tokenID}**              | 토큰 정보 조회                   |
+| `GET`  | **/token/{tokenID}**              | 토큰 정보 조회                  |
+| `GET`  | **/token-hist/{txHash}**          | 토큰 과거 정보 조회                  |
 | `GET`  | **/snapshot/account/{account}**   | 보상받을 활동 조회               |
 | `GET`  | **/snapshot/token/{tokenID}**     | 보상받을 토큰 점수 조회          |
 | `GET`  | **/snapshot/ownership/{tokenID}** | 받을 토큰 소유보상 점수 조회     |
