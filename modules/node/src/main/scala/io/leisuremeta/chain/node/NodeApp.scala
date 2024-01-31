@@ -18,17 +18,20 @@ import sttp.tapir.server.armeria.cats.{
 import sttp.tapir.server.interceptor.log.DefaultServerLog
 
 import api.{LeisureMetaChainApi as Api}
-import api.model.{Account, Block, GroupId, PublicKeySummary, Transaction}
+import api.model.{
+  Account,
+  Block,
+  GroupId,
+  PublicKeySummary,
+  Transaction,
+  TransactionWithResult,
+}
 import api.model.account.EthAddress
 import api.model.token.{TokenDefinitionId, TokenId}
 import dapp.{PlayNommDAppFailure, PlayNommState}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
-import repository.{
-  BlockRepository,
-  StateRepository,
-  TransactionRepository,
-}
+import repository.{BlockRepository, StateRepository, TransactionRepository}
 import repository.StateRepository.given
 import service.{
   BlockService,
@@ -172,6 +175,16 @@ final case class NodeApp[F[_]
       }
   }
 
+  def getTokenHistoryEndpoint = Api.getTokenHistoryEndpoint.serverLogic {
+    (txHash: Hash.Value[TransactionWithResult]) =>
+      StateReadService.getTokenHistory(txHash).value.map {
+        case Right(Some(nftState)) => Right(nftState)
+        case Right(None) =>
+          Left(Right(Api.NotFound(s"token history not found: $txHash")))
+        case Left(err) => Left(Left(Api.ServerError(err)))
+      }
+  }
+
   def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
     (tokenDefinitionId: TokenDefinitionId) =>
       StateReadService
@@ -253,7 +266,7 @@ final case class NodeApp[F[_]
     }
 
   def getOwnershipSnapshotMapServerEndpoint =
-    Api.getOwnershipSnapshotMapEndpoint.serverLogic{
+    Api.getOwnershipSnapshotMapEndpoint.serverLogic {
       (from: Option[TokenId], limit: Option[Int]) =>
         StateReadService
           .getOwnershipSnapshotMap(from, limit.getOrElse(100))
@@ -338,6 +351,7 @@ final case class NodeApp[F[_]
     getBalanceServerEndpoint,
     getNftBalanceServerEndpoint,
     getTokenServerEndpoint,
+    getTokenHistoryServerEndpoint,
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,
@@ -407,5 +421,5 @@ final case class NodeApp[F[_]
   def resource: Resource[F, Server] =
     for
       dispatcher <- Dispatcher.parallel[F]
-      server <- Resource.fromAutoCloseable(getServer(dispatcher))
+      server     <- Resource.fromAutoCloseable(getServer(dispatcher))
     yield server

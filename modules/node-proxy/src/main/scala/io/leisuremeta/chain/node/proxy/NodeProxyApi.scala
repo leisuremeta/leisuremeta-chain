@@ -1,4 +1,5 @@
-package io.leisuremeta.chain.node
+package io.leisuremeta.chain
+package node
 package proxy
 
 import java.time.Instant
@@ -24,7 +25,7 @@ import sttp.model.MediaType
 import sttp.tapir.Codec.JsonCodec
 import io.circe.Json
 import sttp.tapir.EndpointIO.annotations.jsonbody
-
+import lib.crypto.Hash
 
 // import lib.crypto.{Hash, Signature}
 // import lib.datatype.{BigNat, UInt256, UInt256BigInt, UInt256Bytes, Utf8}
@@ -153,6 +154,13 @@ object NodeProxyApi:
   val getTokenEndpoint =
     endpoint.get
       .in("token" / path[TokenId])
+      .out(statusCode.and(stringJsonBody))
+      .out(header("Content-Type", jsonType))
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getTokenHistoryEndpoint =
+    endpoint.get
+      .in("token-hist" / path[String])
       .out(statusCode.and(stringJsonBody))
       .out(header("Content-Type", jsonType))
 

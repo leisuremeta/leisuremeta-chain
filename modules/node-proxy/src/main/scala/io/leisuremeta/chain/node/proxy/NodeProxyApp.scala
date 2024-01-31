@@ -79,6 +79,10 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.getToken(tokenId).map(Right(_))
   }
 
+  def getTokenHistoryServerEndpoint = Api.getTokenHistoryEndpoint.serverLogic {
+    (txHash: String) =>
+      apiService.getTokenHistory(txHash).map(Right(_))
+  }
 
   def getOwnersServerEndpoint = Api.getOwnersEndpoint.serverLogic {
     (tokenDefinitionId: TokenDefinitionId) =>
@@ -157,6 +161,7 @@ final case class NodeProxyApp[F[_]: Async](
     getBalanceServerEndpoint,
     getNftBalanceServerEndpoint,
     getTokenServerEndpoint,
+    getTokenHistoryServerEndpoint,
     getOwnersServerEndpoint,
     getTxSetServerEndpoint,
     getAccountActivityServerEndpoint,

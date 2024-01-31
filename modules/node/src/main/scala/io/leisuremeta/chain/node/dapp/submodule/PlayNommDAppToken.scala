@@ -128,17 +128,67 @@ object PlayNommDAppToken:
           rarity = mn.rarity,
           weight = weight,
           currentOwner = mn.output,
+          memo = mn.memo,
+          lastUpdateTx = txHash,
+          previousState = None,
         )
         _ <- PlayNommState[F].token.nftState
           .put(mn.tokenId, nftState)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put nft state of ${mn.tokenId}"
+        _ <- PlayNommState[F].token.nftHistory
+          .put(txHash, nftState)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft history of ${mn.tokenId} of $txHash"
         _ <- PlayNommState[F].token.rarityState
           .put((mn.tokenDefinitionId, mn.rarity, mn.tokenId), ())
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put rarity state of ${mn.tokenDefinitionId}, ${mn.rarity}, ${mn.tokenId}"
+      yield txWithResult
+
+    case un: Transaction.TokenTx.UpdateNFT =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- checkMinterAndGetTokenDefinition(
+          sig.account,
+          un.tokenDefinitionId,
+        )
+        nftStateOption <- PlayNommState[F].token.nftState
+          .get(un.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get nft state of ${un.tokenId}"
+        nftState <- fromOption(
+          nftStateOption,
+          s"Empty NFT State: ${un.tokenId}",
+        )
+        txWithResult = TransactionWithResult(Signed(sig, un))(None)
+        txHash       = txWithResult.toHash
+        weight = tokenDef.nftInfo.get.rarity
+          .getOrElse(un.rarity, BigNat.unsafeFromLong(2L))
+        nftState1 = NftState(
+          tokenId = un.tokenId,
+          tokenDefinitionId = un.tokenDefinitionId,
+          rarity = un.rarity,
+          weight = weight,
+          currentOwner = un.output,
+          memo = un.memo,
+          lastUpdateTx = txHash,
+          previousState = Some(nftState.lastUpdateTx),
+        )
+        _ <- PlayNommState[F].token.nftState
+          .put(un.tokenId, nftState1)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft state of ${un.tokenId}"
+        _ <- PlayNommState[F].token.nftHistory
+          .put(txHash, nftState1)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft history of ${un.tokenId} of $txHash"
       yield txWithResult
 
     case tf: Transaction.TokenTx.TransferFungibleToken =>

@@ -60,6 +60,7 @@ object PlayNommState:
       ],
       nftBalance: DAppState[F, (AccountM, TokenId, TxHash), Unit],
       nftState: DAppState[F, TokenId, NftState],
+      nftHistory: DAppState[F, TxHash, NftState],
       rarityState: DAppState[F, (TokenDefinitionId, Rarity, TokenId), Unit],
       entrustFungibleBalance: DAppState[
         F,
@@ -95,6 +96,7 @@ object PlayNommState:
         fungibleBalance = playNommState.ofName("fungible-balance"),
         nftBalance = playNommState.ofName("nft-balance"),
         nftState = playNommState.ofName("nft-state"),
+        nftHistory = playNommState.ofName("nft-history"),
         rarityState = playNommState.ofName("rarity-state"),
         entrustFungibleBalance =
           playNommState.ofName("entrust-fungible-balance"),

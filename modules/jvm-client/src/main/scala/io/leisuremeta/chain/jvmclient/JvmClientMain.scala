@@ -2,6 +2,7 @@ package io.leisuremeta.chain
 package jvmclient
 
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.syntax.traverse.*
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto.*
 import io.circe.syntax.*
@@ -22,9 +23,7 @@ import lib.crypto.Sign.ops.*
 import node.NodeConfig
 import scodec.bits.ByteVector
 
-
 object JvmClientMain extends IOApp:
-
 
   java.security.Security.addProvider(
     new org.bouncycastle.jce.provider.BouncyCastleProvider(),
@@ -38,8 +37,8 @@ object JvmClientMain extends IOApp:
   )
   val alicePKS = PublicKeySummary.fromPublicKeyHash(aliceKey.publicKey.toHash)
   val alice    = Account(Utf8.unsafeFrom("alice"))
-  val bob    = Account(Utf8.unsafeFrom("bob"))
-  val carol  = Account(Utf8.unsafeFrom("carol"))
+  val bob      = Account(Utf8.unsafeFrom("bob"))
+  val carol    = Account(Utf8.unsafeFrom("carol"))
 
   def sign(account: Account, key: KeyPair)(tx: Transaction): Signed.Tx =
     key.sign(tx).map { sig =>
@@ -50,101 +49,99 @@ object JvmClientMain extends IOApp:
 
   def signAlice = sign(alice, aliceKey)
 
-  val like = Utf8.unsafeFrom("like")
-
-//  val tx: Transaction = Transaction.RewardTx.RecordActivity(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-10T18:01:00.00Z"),
-//    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
-//    userActivity = Map(
-//      bob -> Seq(
-//        DaoActivity(BigInt(3), like),
-//      ),
-//      carol -> Seq(
-//        DaoActivity(BigInt(3), like),
-//      ),
-//    ),
-//    tokenReceived = Map(
-//      TokenId(Utf8.unsafeFrom("text-20230109-0000")) -> Seq(
-//        DaoActivity(BigInt(2), like),
-//      ),
-//      TokenId(Utf8.unsafeFrom("text-20230109-0001")) -> Seq(
-//        DaoActivity(BigInt(2), like),
-//      ),
-//      TokenId(Utf8.unsafeFrom("text-20230109-0002")) -> Seq(
-//        DaoActivity(BigInt(2), like),
-//      ),
-//    ),
-//  )
-//
-//  val tx: Transaction = Transaction.RewardTx.BuildSnapshot(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-//    timestamp = java.time.Instant.parse("2023-01-09T09:00:00.00Z"),
-//  )
-
-//  val lm = TokenDefinitionId(Utf8.unsafeFrom("LM"))
-//
-//  def txHash(bytes: ByteVector): Signed.TxHash =
-//    Hash.Value[Signed.Tx](UInt256.from(bytes).toOption.get)
-//
-//  val tx: Transaction = Transaction.RewardTx.ExecuteAccountReward(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-//    inputDefinitionId = lm,
-//    inputs = Set(
-//      txHash(hex"270650f92f584d9dbbffb99f3a915dc908fbea28bc3dbf34b8cdbe49c4070611"),
-//    ),
-//    targets = Set(alice, bob, carol),
-//    amountPerPoint = BigNat.unsafeFromLong(10),
-//  )
-  
-//  val tx: Transaction = Transaction.AgendaTx.SuggestSimpleAgenda(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-//    title = Utf8.unsafeFrom("Let the world know about LeisureMeta!"),
-//    votingToken = TokenDefinitionId(Utf8.unsafeFrom("LM")),
-//    voteStart = java.time.Instant.parse("2023-01-11T18:01:00.00Z"),
-//    voteEnd = java.time.Instant.parse("2023-01-12T18:01:00.00Z"),
-//    voteOptions = Map(
-//      Utf8.unsafeFrom("1") -> Utf8.unsafeFrom("Yes"),
-//      Utf8.unsafeFrom("2") -> Utf8.unsafeFrom("No"),
-//    ),
-//  )
-
-//  val tx: Transaction = Transaction.AgendaTx.VoteSimpleAgenda(
-//    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-//    createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
-//    agendaTxHash = Hash.Value[TransactionWithResult]{
-//      UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get
-//    },
-//    selectedOption = Utf8.unsafeFrom(s"1"),
-//  )
-
-  val tx: Transaction = Transaction.TokenTx.DefineTokenWithPrecision(
-    networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-    createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
-    definitionId = TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
-    name = Utf8.unsafeFrom("NFT with precision"),
-    symbol = Some(Utf8.unsafeFrom("NFTWP")),
-    minterGroup = Some(GroupId(Utf8.unsafeFrom("mint-group"))),
-    nftInfo = Some(NftInfoWithPrecision(
-      minter = alice,
-      rarity = Map(
-        Rarity(Utf8.unsafeFrom("LGDY")) -> BigNat.unsafeFromLong(100),
-        Rarity(Utf8.unsafeFrom("UNIQ")) -> BigNat.unsafeFromLong(66),
-        Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(33),
-        Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(10),
+  val txs: IndexedSeq[Transaction] = IndexedSeq(
+    Transaction.AccountTx.CreateAccount(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
+      account = alice,
+      ethAddress = None,
+      guardian = None,
+      memo = None,
+    ),
+    Transaction.GroupTx.CreateGroup(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:02:00.00Z"),
+      groupId = GroupId(Utf8.unsafeFrom("mint-group")),
+      name = Utf8.unsafeFrom("Mint Group"),
+      coordinator = alice,
+      memo = None,
+    ),
+    Transaction.GroupTx.AddAccounts(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:03:00.00Z"),
+      groupId = GroupId(Utf8.unsafeFrom("mint-group")),
+      accounts = Set(alice),
+      memo = None,
+    ),
+    Transaction.TokenTx.DefineTokenWithPrecision(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:04:00.00Z"),
+      definitionId = TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+      name = Utf8.unsafeFrom("NFT with precision"),
+      symbol = Some(Utf8.unsafeFrom("NFTWP")),
+      minterGroup = Some(GroupId(Utf8.unsafeFrom("mint-group"))),
+      nftInfo = Some(
+        NftInfoWithPrecision(
+          minter = alice,
+          rarity = Map(
+            Rarity(Utf8.unsafeFrom("LGDY")) -> BigNat.unsafeFromLong(100),
+            Rarity(Utf8.unsafeFrom("UNIQ")) -> BigNat.unsafeFromLong(66),
+            Rarity(Utf8.unsafeFrom("EPIC")) -> BigNat.unsafeFromLong(33),
+            Rarity(Utf8.unsafeFrom("RARE")) -> BigNat.unsafeFromLong(10),
+          ),
+          precision = BigNat.unsafeFromLong(2),
+          dataUrl = Utf8.unsafeFrom(
+            "https://www.playnomm.com/data/nft-with-precision.json",
+          ),
+          contentHash = UInt256
+            .from(
+              hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84",
+            )
+            .toOption
+            .get,
+        ),
       ),
-      precision = BigNat.unsafeFromLong(2),
-      dataUrl = Utf8.unsafeFrom("https://www.playnomm.com/data/nft-with-precision.json"),
-      contentHash = UInt256.from(hex"2475a387f22c248c5a3f09cea0ef624484431c1eaf8ffbbf98a4a27f43fabc84").toOption.get,
-    )),
+      memo = None,
+    ),
+    Transaction.TokenTx.MintNFT(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+      tokenDefinitionId =
+        TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+      tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
+      rarity = Rarity(Utf8.unsafeFrom("EPIC")),
+      dataUrl = Utf8.unsafeFrom(
+        "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+      ),
+      contentHash = UInt256
+        .from(
+          hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        )
+        .toOption
+        .get,
+      output = alice,
+      memo = None,
+    ),
+    Transaction.TokenTx.UpdateNFT(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
+      tokenDefinitionId =
+        TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+      tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
+      rarity = Rarity(Utf8.unsafeFrom("EPIC")),
+      dataUrl = Utf8.unsafeFrom(
+        "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+      ),
+      contentHash = UInt256
+        .from(
+          hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        )
+        .toOption
+        .get,
+      output = alice,
+      memo = Some(Utf8.unsafeFrom("Test Updating NFT #2022061710000513118")),
+    ),
   )
-
-  val signedTx = signAlice(tx)
-
-  val json = Seq(signedTx).asJson.spaces2
 
   override def run(args: List[String]): IO[ExitCode] =
     ArmeriaCatsBackend.resource[IO]().use { backend =>
@@ -160,15 +157,19 @@ object JvmClientMain extends IOApp:
             backend,
           )
 
-          println(json)
-          println(Seq(tx.toHash).asJson.noSpaces)
+          txs.toList
+            .traverse: tx =>
+              val signedTx = signAlice(tx)
+              val json     = signedTx.asJson.noSpaces
+              println(json)
+              println(Seq(tx.toHash).asJson.noSpaces)
 
-          IO.unit.as(ExitCode.Success)
-
-//          for response <- postTxClient(Seq(signedTx))
-//          yield
-//            println(response)
-//            ExitCode.Success
+              for response <-
+                postTxClient(Seq(signedTx))
+              yield
+                println(response)
+                ExitCode.Success
+            .as(ExitCode.Success)
 
         case Left(err) =>
           IO.println(err).as(ExitCode.Error)

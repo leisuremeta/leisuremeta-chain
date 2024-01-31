@@ -26,7 +26,8 @@ object NodeMain extends IOApp:
       config: NodeConfig,
       target: InterpreterTarget,
   ): Resource[IO, KeyValueStore[IO, K, V]] =
-    MultiInterpreter[K, V](config.redis, target)
+    SwayInterpreter[K, V](target.s)
+//    MultiInterpreter[K, V](config.redis, target)
 
   def getBlockRepo(config: NodeConfig): Resource[IO, BlockRepository[IO]] = for
     bestBlockKVStore <- multi[UInt256Bytes, Block.Header](config, InterpreterTarget.BEST_NUM)
