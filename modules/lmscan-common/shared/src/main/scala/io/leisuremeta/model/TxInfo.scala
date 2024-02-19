@@ -1,7 +1,5 @@
 package io.leisuremeta.chain.lmscan.common.model
 
-// import io.leisuremeta.chain.lmscan.common.model.TxDetail.subType
-
 final case class TxInfo(
     hash: Option[String] = None,
     blockNumber: Option[Long] = None,

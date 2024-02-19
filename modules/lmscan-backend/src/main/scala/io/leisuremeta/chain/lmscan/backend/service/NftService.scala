@@ -71,3 +71,15 @@ object NftService:
       page <- NftInfoRepository.getSeasonPage(pageNavInfo, season).leftMap(Left(_))
       seasons = page.payload.map(_.toModel)
     yield PageResponse(page.totalCount, page.totalPages, seasons)
+
+  def getNftOwnerInfo[F[_]: Async](
+      tokenId: String, // tokenId
+  ): EitherT[F, Either[String, String], Option[NftOwnerInfo]] =
+    for
+      nftOwner <- NftOwnerRepository.get(tokenId).leftMap(Left(_))
+      nft <- NftFileRepository.get(tokenId).leftMap(Left(_))
+      ownerInfo = NftOwnerInfo(
+          nftOwner.map(_.owner),
+          nft.map(_.dataUrl),
+        )
+    yield Some(ownerInfo)

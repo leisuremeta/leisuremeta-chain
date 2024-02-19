@@ -1,17 +1,13 @@
 package io.leisuremeta.chain.lmscan.backend.service
 
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
-import io.leisuremeta.chain.lmscan.common.model.TxInfo
-import io.leisuremeta.chain.lmscan.common.model.PageNavigation
-import io.leisuremeta.chain.lmscan.common.model.PageResponse
-import io.leisuremeta.chain.lmscan.common.model.{TxDetail, TransferHist, TxInfo}
-import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
+import io.leisuremeta.chain.lmscan.common.model._
+import io.leisuremeta.chain.lmscan.backend.repository._
 import cats.Functor
 import cats.data.EitherT
 import cats.Monad
 import eu.timepit.refined.boolean.False
 import cats.effect.Async
-// import io.leisuremeta.ExploreApi
 import io.leisuremeta.chain.lmscan.common.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
@@ -64,9 +60,12 @@ object TransactionService:
       pageNavInfo: PageNavigation,
   ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
+      summaryOpt <- SummaryService.get(0)
       page <- TransactionRepository.getPage(pageNavInfo).leftMap(Left(_))
-      txInfo = convertToInfo(page.payload)
-    yield PageResponse(page.totalCount, page.totalPages, txInfo)
+      summary = summaryOpt.getOrElse(SummaryModel())
+      cnt = summary.totalTxSize.getOrElse(0L)
+      txInfo = convertToInfo(page)
+    yield PageResponse.from(cnt, pageNavInfo.sizePerRequest, txInfo)
 
   def getPageBySubtype[F[_]: Async](
       subType: String,
@@ -83,17 +82,18 @@ object TransactionService:
   ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
       page <- TransactionRepository.getPageByAccount(address, pageNavInfo).leftMap(Left(_))
-      txInfo = convertToInfoForAccount(page.payload, address)
-    yield PageResponse(page.totalCount, page.totalPages, txInfo)
+      // page <- TransactionRepository.getPageByAccount(address).leftMap(Left(_))
+    // yield txInfo
+    yield page.copy(payload = convertToInfoForAccount(page.payload, address))
 
   def getPageByBlock[F[_]: Async](
       blockHash: String,
-      pageNavInfo: PageNavigation,
-  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
+      // pageNavInfo: PageNavigation,
+  ): EitherT[F, Either[String, String], Seq[TxInfo]] =
     for
-      page <- TransactionRepository.getTxPageByBlock(blockHash, pageNavInfo).leftMap(Left(_))
-      txInfo = convertToInfo(page.payload)
-    yield PageResponse(page.totalCount, page.totalPages, txInfo)
+      // page <- TransactionRepository.getTxPageByBlock(blockHash, pageNavInfo).leftMap(Left(_))
+      page <- TransactionRepository.getTxPageByBlock(blockHash).leftMap(Left(_))
+    yield convertToInfo(page)
 
   def getPageByFilter[F[_]: Async](
       pageInfo: PageNavigation,
@@ -106,10 +106,10 @@ object TransactionService:
         (accountAddr, blockHash) match
           case (None, None) =>
             getPage[F](pageInfo)
-          case (None, Some(blockHash)) =>
-            getPageByBlock[F](blockHash, pageInfo)
-          case (Some(accountAddr), None) =>
-            getPageByAccount[F](accountAddr, pageInfo)
+          // case (None, Some(blockHash)) =>
+          //   getPageByBlock[F](blockHash, pageInfo)
+          // case (Some(accountAddr), None) =>
+          //   getPageByAccount[F](accountAddr, pageInfo)
           case (_, _) =>
             EitherT.left(Async[F].delay(Left("검색 파라미터를 하나만 입력해주세요.")))
       case Some(subtype) =>
@@ -162,6 +162,7 @@ object TransactionService:
         Some(tx.txType),
         Some(tx.tokenType),
         Some(tx.fromAddr),
+        Some(tx.subType),
         Some(if tx.fromAddr == address then "Out" else "In"),
         latestOutValOpt,
       )
