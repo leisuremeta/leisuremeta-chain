@@ -2,12 +2,15 @@ package io.leisuremeta.chain.lmscan
 package frontend
 
 import common.model._
+import scalajs.js
 
 sealed trait Msg
+sealed trait GlobalMsg extends Msg
 
 case object ErrorMsg extends Msg
 
-case class GlobalInput(s: String) extends Msg
+case class GlobalInput(s: String) extends GlobalMsg
+case class UpdateTime(t: js.Date) extends GlobalMsg
 case object GlobalSearch extends Msg
 case object ListSearch extends Msg
 case object Init extends Msg

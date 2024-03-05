@@ -18,7 +18,7 @@ object MainPage:
     case UpdateModel(v: SummaryBoard) => (model.copy(summary = Some(v)), Cmd.None)
     case UpdateBlcs(v) => (model.copy(blcs = Some(v)), Cmd.None)
     case UpdateTxs(v) => (model.copy(txs = Some(v)), Cmd.None)
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: BaseModel): Html[Msg] =

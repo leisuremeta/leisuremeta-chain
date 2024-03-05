@@ -5,6 +5,7 @@ import tyrian.*
 import tyrian.Html.*
 import scala.scalajs.js.annotation.*
 import io.leisuremeta.chain.lmscan.common.model._
+import concurrent.duration.DurationInt
 
 @JSExportTopLevel("LmScan")
 object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
@@ -15,6 +16,10 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
 
   def subscriptions(model: Model): Sub[IO, Msg] =
     SearchView.detectSearch ++ Pagination.detectSearch
+    ++ Sub.Batch(
+      Sub.every[IO](1.second, "clock-ticks").map(UpdateTime.apply)
+      ,
+    )
 
   def router: Location => Msg =
     case loc: Location.Internal =>

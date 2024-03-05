@@ -6,7 +6,7 @@ import tyrian.Html.*
 object ErrorPage:
   def update(model: ErrorModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, Cmd.None)
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: ErrorModel): Html[Msg] =

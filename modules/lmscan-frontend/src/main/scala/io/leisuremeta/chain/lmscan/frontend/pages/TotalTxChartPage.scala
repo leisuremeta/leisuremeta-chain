@@ -21,7 +21,7 @@ object TotalTxChart:
         case Some(data) => TxChart.draw(data)
         case _ => None
       (model.copy(chart = chart), Cmd.None)
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => 
       model.chart match 
         case Some(c) => 

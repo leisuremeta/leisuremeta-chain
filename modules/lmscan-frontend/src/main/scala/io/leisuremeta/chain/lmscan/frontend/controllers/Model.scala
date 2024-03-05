@@ -5,13 +5,16 @@ import common.model.*
 import tyrian._
 import tyrian.Html.div
 import cats.effect.IO
-import org.jline.console.CmdLine
+import scalajs.js
 
 final case class GlobalModel(
     popup: Boolean = false,
     searchValue: String = "",
+    current: js.Date = new js.Date(),
 ):
-  def updateSearchValue(s: String) = GlobalModel(popup, s)
+  def update(msg: GlobalMsg): GlobalModel = msg match 
+    case GlobalInput(s) => this.copy(searchValue = s)
+    case UpdateTime(t) => this.copy(current = t)
 
 trait Model:
   val global: GlobalModel

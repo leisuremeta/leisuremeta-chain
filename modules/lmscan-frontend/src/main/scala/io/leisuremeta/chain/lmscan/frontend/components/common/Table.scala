@@ -27,7 +27,7 @@ object Table:
         ),
         model.blcs match
           case None => LoaderView.view
-          case Some(v) => div(`class` := "w-[100%]")(Head.block :: Body.blocks(v.payload.toList)),
+          case Some(v) => div(`class` := "w-[100%]")(Head.block :: Body.blocks(v.payload.toList, model.global)),
       ),
       div(
         `class` := "app-table tx-m table-container position-relative y-center",
@@ -48,13 +48,17 @@ object Table:
         ),
         model.txs match
           case None => LoaderView.view
-          case Some(v) => div(Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList)),
+          case Some(v) => div(Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList, model.global)),
       ),
     )
 
   def view(model: BlcModel) =
     div(`class` := "table-container app-table blc")(
-      block(model.data),
+      div(
+        model.data match
+          case Some(v) => Head.block :: Body.blocks(v.payload.toList, model.global)
+          case None    => List(Head.block),
+      ),
       Pagination.view(model),
       model.data match
         case None    => LoaderView.view
@@ -91,36 +95,30 @@ object Table:
         case None => LoaderView.view
         case Some(v) =>
           div()(
-            Head.tx :: Body.txRow(v.payload.toList),
+            Head.tx :: Body.txRow(v.payload.toList, model.global),
           )
       ,
       Pagination.view(model),
     )
-  def view(model: BlockDetail): Html[Msg] =
+  def view(model: BlcDetailModel): Html[Msg] =
     div(`class` := "table-container app-table mt-15 tx")(
-      model.txs match
+      model.blcDetail.txs match
         case None    => List(LoaderView.view)
-        case Some(v) => Table.view(v),
+        case Some(v) => Head.tx :: Body.txRow(v.toList, model.global)
     )
-  def view(model: AccountDetail): Html[Msg] =
+  def view(model: AccDetailModel): Html[Msg] =
     div(`class` := "table-container app-table tx")(
-      model.txHistory match
+      model.accDetail.txHistory match
         case None    => List(LoaderView.view)
-        case Some(v) => Table.view(v),
+        case Some(v) => Head.tx :: Body.txRow(v.toList, model.global)
     )
-  def view(model: NftDetail): Html[Msg] =
+  def view(model: NftDetailModel): Html[Msg] =
     div(`class` := "table-container app-table nft")(
-      model.activities match
+      model.nftDetail.activities match
         case None    => List(Head.nft, LoaderView.view)
-        case Some(v) => Head.nft :: Body.nft(v.toList),
+        case Some(v) => Head.nft :: Body.nft(v.toList, model.global),
     )
 
-  def block(data: Option[PageResponse[BlockInfo]]) =
-    div(
-      data match
-        case Some(v) => Head.block :: Body.blocks(v.payload.toList)
-        case None    => List(Head.block),
-    )
   def acc(data: Option[PageResponse[AccountInfo]]) =
     div(
       data match
@@ -139,5 +137,3 @@ object Table:
         case Some(v) => Head.nftToken :: Body.nftToken(v.payload.toList)
         case None    => List(Head.nftToken),
     )
-  def view(list: Seq[TxInfo]) =
-    Head.tx :: Body.txRow(list.toList)

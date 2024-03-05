@@ -11,7 +11,7 @@ object TxDetailPage:
     case Init => (model, DataProcess.getData(model.txDetail))
     case UpdateDetailPage(d: TxDetail) => (model, DataProcess.getData(d))
     case UpdateModel(v: TxDetail) => (TxDetailModel(txDetail = v), Nav.pushUrl(model.url))
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: TxDetailModel): Html[Msg] =

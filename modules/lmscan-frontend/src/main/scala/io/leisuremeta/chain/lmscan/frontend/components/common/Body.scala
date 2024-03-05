@@ -6,12 +6,12 @@ import V.*
 import io.leisuremeta.chain.lmscan.common.model._
 
 object Body:
-  def blocks(payload: List[BlockInfo]) =
+  def blocks(payload: List[BlockInfo], g: GlobalModel) =
     payload.map(v =>
       div(`class` := "row table-body")(
         gen.cell(
           Cell.BLOCK_NUMBER(v.hash, v.number),
-          Cell.AGE(v.createdAt),
+          Cell.AGE(v.createdAt, g.current),
           Cell.BLOCK_HASH(v.hash),
           Cell.PlainLong(v.txCount),
         ),
@@ -28,25 +28,25 @@ object Body:
         ),
       ),
     )
-  def txRow = (payload: List[TxInfo]) =>
+  def txRow = (payload: List[TxInfo], g: GlobalModel) =>
     payload.map(v =>
       div(`class` := "row table-body")(
         gen.cell(
           Cell.TX_HASH(v.hash),
           Cell.PlainLong(v.blockNumber),
-          Cell.AGE(v.createdAt),
+          Cell.AGE(v.createdAt, g.current),
           Cell.ACCOUNT_HASH(v.signer),
           Cell.PlainStr(v.subType),
         ),
       ),
     )
-  def boardTxRow = (payload: List[TxInfo]) =>
+  def boardTxRow = (payload: List[TxInfo], g: GlobalModel) =>
     payload
       .map(v =>
         div(`class` := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
-            Cell.AGE(v.createdAt),
+            Cell.AGE(v.createdAt, g.current),
             Cell.ACCOUNT_HASH(v.signer),
           ),
         ),
@@ -85,7 +85,7 @@ object Body:
         ),
       )
 
-  def nft = (payload: List[NftActivity]) =>
+  def nft = (payload: List[NftActivity], g: GlobalModel) =>
     payload
       .map(v =>
         div(
@@ -93,7 +93,7 @@ object Body:
         )(
           gen.cell(
             Cell.TX_HASH(v.txHash),
-            Cell.AGE(v.createdAt),
+            Cell.AGE(v.createdAt, g.current),
             Cell.PlainStr(v.action),
             Cell.ACCOUNT_HASH(v.fromAddr),
             Cell.ACCOUNT_HASH(v.toAddr),

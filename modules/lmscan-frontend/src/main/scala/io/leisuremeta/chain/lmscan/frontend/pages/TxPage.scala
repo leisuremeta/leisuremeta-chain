@@ -12,7 +12,7 @@ object TxPage:
     case UpdateTxs(v) => (model.copy(data = Some(v)), Nav.pushUrl(model.url))
     case UpdateSearch(v) => (model.copy(searchPage = v), Cmd.None)
     case ListSearch => (TxModel(page = model.searchPage), Cmd.emit(Init))
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: TxModel): Html[Msg] =

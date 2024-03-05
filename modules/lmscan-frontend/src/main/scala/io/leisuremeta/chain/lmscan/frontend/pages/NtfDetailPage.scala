@@ -11,7 +11,7 @@ object NftDetailPage:
     case Init => (model, DataProcess.getData(model.nftDetail.nftFile.get))
     case UpdateDetailPage(d: NftDetail) => (model, DataProcess.getData(d.nftFile.get))
     case UpdateModel(v: NftDetail) => (NftDetailModel(nftDetail = v), Nav.pushUrl(model.url))
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: NftDetailModel): Html[Msg] =
@@ -19,7 +19,7 @@ object NftDetailPage:
       model,
       div(`class` := "pb-32px pt-16px color-white")(
         NftDetailTable.view(model.nftDetail),
-        Table.view(model.nftDetail)
+        Table.view(model)
       ),
     )
 

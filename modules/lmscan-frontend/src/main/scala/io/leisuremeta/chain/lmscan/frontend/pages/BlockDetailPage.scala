@@ -11,7 +11,7 @@ object BlockDetailPage:
     case Init => (model, DataProcess.getData(model.blcDetail))
     case UpdateDetailPage(d: BlockDetail) => (model, DataProcess.getData(d))
     case UpdateModel(v: BlockDetail) => (BlcDetailModel(blcDetail = v), Nav.pushUrl(model.url))
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: BlcDetailModel): Html[Msg] =
@@ -24,7 +24,7 @@ object BlockDetailPage:
           "Block Details",
         ),
         BlockDetailTable.view(model.blcDetail),
-        Table.view(model.blcDetail)
+        Table.view(model)
       ),
     )
 

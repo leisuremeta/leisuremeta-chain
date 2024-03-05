@@ -7,13 +7,14 @@ import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 import java.time._
+import scalajs.js
 
-def toDT(t: Int): String = LocalDateTime
-  .ofEpochSecond(t, 0, ZoneOffset.UTC)
+def toDT(t: Int, cur: js.Date): String = LocalDateTime
+  .ofEpochSecond(t, 0, ZoneOffset.ofTotalSeconds(-cur.getTimezoneOffset().toInt * 60))
   .toString
   .replace("T", " ")
 
-def timeAgo(t: Int): String =
+def timeAgo(t: Int, cur: js.Date): String =
   val now = LocalDateTime.now(ZoneId.ofOffset("GMT", ZoneOffset.ofHours(0))).toEpochSecond(ZoneOffset.UTC)
   val timeGap = now - t
   List(
@@ -45,7 +46,7 @@ enum Cell:
       css: String = "cell",
   )                                                             extends Cell
   case Balance(data: Option[BigDecimal], css: String = "cell")  extends Cell
-  case AGE(data: Option[Long])                                  extends Cell
+  case AGE(data: Option[Long], cur: js.Date)                                  extends Cell
   case DateS(data: Option[Instant], css: String = "cell")           extends Cell
   case DATE(data: Option[Long], css: String = "cell")           extends Cell
   case BLOCK_NUMBER(data: (Option[String], Option[Long]))       extends Cell
@@ -171,17 +172,15 @@ object gen:
             accountHash(hash),
           ),
         )
-      case Cell.AGE(data) =>
+      case Cell.AGE(data, cur) =>
         div(`class` := "cell",
             dataAttr(
               "tooltip-text",
-              toDT(plainLong(data).toInt),
+              toDT(plainLong(data).toInt, cur),
             ),
           )(
             {
-              val age = timeAgo(
-                plainLong(data).toInt,
-              )
+              val age = timeAgo(plainLong(data).toInt, cur)
               age match
                 case x if x.contains("53 years") => "-"
                 case _                           => age
@@ -207,7 +206,7 @@ object gen:
         div(`class` := s"$css")(
             {
               val date = toDT(
-                plainLong(data).toInt,
+                plainLong(data).toInt, new js.Date
               ) + " +UTC"
               date match
                 case x if x.contains("1970") => "-"
