@@ -1,110 +1,132 @@
 package io.leisuremeta.chain.lmscan.frontend
-import tyrian.Html.*
+
+import tyrian.Html._
+import tyrian.SVG._
 import tyrian.*
 import io.leisuremeta.chain.lmscan.common.model._
 
 object BoardView:
-  val LM_Price = "LM PRICE"
-  val Total_TxCount = "TOTAL TRANSACTIONS"
-  val Transactions  = "TOTAL BALANCE"
-  val Accounts = "TOTAL ACCOUNTS"
-  def toggleClass(x: Boolean) = if(x) "pos" else "neg"
+  def f(v: Long) = f"$v%,d" 
+  def f(v: BigDecimal) = f"$v%,.4f" 
 
-  def parseToNumber(strNum: BigDecimal) = f"${strNum / Math.pow(10, 18)}%,.3f"
+  def pricePan(summary: SummaryBoard, v: SummaryChart) = 
+    div(cls := "board-comp chart")(
+      span("Price"),
+      summary.today.lmPrice match
+        case None => LoaderView.view
+        case Some(v) => span("$" + v.toString.take(6))
+      , 
+      (summary.today.lmPrice, summary.yesterday.lmPrice) match
+        case (Some(v), Some(w)) => 
+          val diff = (v - w) / w * 100
+          div(
+            span("24H"),
+            span(cls := s"${if diff >= 0 then "pos" else "neg"}")(f"$diff%3.2f %%")
+          )
+        case (_, _) => div()
+      ,
+      makeChart(v.list.map(vv => vv.lmPrice.getOrElse(0.0)).reverse.take(144).toList, 100, 200),
+    )
 
-  def addComma(numberString: Long) = f"${BigInt(numberString)}%,d"
-
-  def drawDiff(diff: String, swt: Boolean) =
-      div(
-        `class` := "diff",
-      )(
-        span("24H"),
-        span(`class` := s"${toggleClass(swt)}")(diff)
-      )
-
-  def pricePan(summary: SummaryBoard) = 
-    List(drawPrice(summary.today.lmPrice), drawPriceDiff(summary.today.lmPrice, summary.yesterday.lmPrice))
-    
-  def drawPrice(opt: Option[Double]): Html[Msg] = opt match
-    case None => LoaderView.view
-    case Some(v) => drawContent(v.toString.take(6) + " USDT")
-
-  def drawPriceDiff(optT: Option[Double], optY: Option[Double]): Html[Msg] = (optT, optY) match
-    case (Some(v), Some(w)) => 
-      val diff = (v - w) / w * 100
-      drawDiff(f"$diff%+3.2f %%", diff >= 0)
-    case (_, _) => div()
-
-  def txPan(summary: SummaryBoard) =
-    List(drawTx(summary.today.totalTxSize), drawTxDiff(summary.today.totalTxSize, summary.yesterday.totalTxSize))
-
-  def drawTx(opt: Option[Long]): Html[Msg] = opt match
-    case None => LoaderView.view
-    case Some(v) => drawContent(addComma(v))
-
-  def drawTxDiff(optT: Option[Long], optY: Option[Long]): Html[Msg] = (optT, optY) match
-    case (Some(v), Some(w)) => 
-      val diff = v - w 
-      drawDiff(f"$diff%+d", diff >= 0)
-    case (_, _) => div()
+  def txPan(summary: SummaryBoard, v: SummaryChart) =
+    div(cls := "board-comp chart")(
+      span("Total Transaction"),
+      span(f(summary.today.totalTxSize.getOrElse(0L))),
+      drawDiff(summary.today.totalTxSize, summary.yesterday.totalTxSize, v => v.toString),
+      makeChart(v.list.map(vv => vv.totalTxSize.map(_.toDouble).getOrElse(0.0)).reverse.toList, 100, 200),
+    )
 
   def balPan(summary: SummaryBoard) =
-    List(drawBal(summary.today.totalBalance), drawBalDiff(summary.today.totalBalance, summary.yesterday.totalBalance))
-
-  def drawBal(opt: Option[BigDecimal]): Html[Msg] = opt match
-    case None => LoaderView.view
-    case Some(v) => drawContent(f"${v / Math.pow(10, 18)}%,.3f")
-
-  def drawBalDiff(optT: Option[BigDecimal], optY: Option[BigDecimal]): Html[Msg] = (optT, optY) match
-    case (Some(v), Some(w)) => 
-      val diff = v - w 
-      drawDiff(f"${diff / Math.pow(10, 18)}%+,.3f", diff >= 0)
-    case (_, _) => div()
+    def f(v: BigDecimal) = f"${v / Math.pow(10, 18)}%,.3f"
+    div(cls := "board-comp")(
+      span("Total Balance in LMC"),
+      span(f(summary.today.totalBalance.getOrElse(BigDecimal(0)))) ,
+      drawDiff(summary.today.totalBalance, summary.yesterday.totalBalance, f)
+    )
+  
+  def drawDiff[T](oT: Option[T], oY: Option[T], f: T => String = (v: T) => v.toString)(using nu: Numeric[T]) = (oT, oY) match 
+    case (Some(t), Some(y)) => 
+      val diff = nu.minus(t, y)
+      div(
+        span("24H"),
+        span(cls := s"${if nu.gteq(t, y) then "pos" else "neg"}")(f(diff))
+      )
+    case (Some(v), _) => div(span("24H"), span(v.toString))
+    case (_, Some(v)) => div(span("24H"), span(v.toString))
+    case _ => div(span("24H"))
 
   def accPan(summary: SummaryBoard) =
-    List(drawAcc(summary.today.totalAccounts), drawAccDiff(summary.today.totalAccounts, summary.yesterday.totalAccounts))
+    div(cls := "board-comp")(
+      span("Total Accounts"),
+      span(f(summary.today.totalAccounts.getOrElse(0L))),
+      drawDiff(summary.today.totalAccounts, summary.yesterday.totalAccounts)
+    )
 
-  def drawAcc(opt: Option[Long]): Html[Msg] = opt match
-    case None => LoaderView.view
-    case Some(v) => drawContent(addComma(v))
+  def normalize(xs: List[Double]): List[Double] =
+    val max = xs.max
+    val min = xs.min
+    val d = max - min
+    xs.map(x => (x - min) / d)
 
-  def drawAccDiff(optT: Option[Long], optY: Option[Long]): Html[Msg] = (optT, optY) match
-    case (Some(v), Some(w)) => 
-      val diff = v - w 
-      drawDiff(f"$diff%+d", diff >= 0)
-    case (_, _) => div()
+  def makeLine(ys: List[Double], h: Long, x: Long): String =
+    val dx = x / (ys.size - 1).toDouble
+    normalize(ys).zipWithIndex
+    .map:
+      case (y, i) if i == 0 => s"M0,${h - y * h} L${i * dx},${h - y * h}"
+      case (y, i) => s"L${i * dx},${h - y * h}"
+    .mkString("")
 
-  def drawContent(s: String) = div(`class` := "color-white font-bold")(s)
+  def makeArea(ys: List[Double], h: Long, x: Long): String =
+    val dx = x / (ys.size - 1).toDouble
+    normalize(ys).zipWithIndex
+    .map:
+      case (y, i) if i == 0 => s"0,${h} 0,${h - y * h} ${i * dx},${h - y * h}"
+      case (y, i) => s" ${i * dx},${h - y * h}"
+    .mkString("", "", s" ${x},${h}")
 
-  def drawBox(title: String, content: List[Html[Msg]], to: RouterMsg): Html[Msg] =
-    div(
-      `class` := "board-container xy-center position-relative",
-      // onClick(to),
-    )(
-      div(
-        `class` := "board-text y-center gap-10px",
-      )(
-        div(`class` := "font-16px color-white font-bold")(title) :: content,
-      ),
+  def makeChart(ys: List[Double], h: Long, x: Long): Html[Msg] =
+    svg(viewBox := s"0, 0, ${x}, ${h}")(
+      path(d := makeLine(ys, h, x)),
+      polyline(points := makeArea(ys, h, x))
+    )
+
+  def marketCap(summary: SummaryBoard) =
+    div(cls := "board-comp")(
+      span("Market cap"),
+      span("$" + f(summary.today.marketCap.getOrElse(BigDecimal(0)))),
+      drawDiff(summary.today.marketCap, summary.yesterday.marketCap, f),
+    )
+  def cirSupply(summary: SummaryBoard) =
+    def f(v: BigDecimal) = f"$v%,.2f"
+    div(cls := "board-comp")(
+      span("Circulation Supply"),
+      span(f(summary.today.cirSupply.getOrElse(BigDecimal(0))) + " LM"), 
+      drawDiff(summary.today.cirSupply, summary.yesterday.cirSupply, f),
+    )
+  def totalBlock(summary: SummaryBoard) =
+    div(cls := "board-comp")(
+      span("Total Blocks"),
+      span(f(summary.today.blockNumber.get)),
+      drawDiff(summary.today.blockNumber, summary.yesterday.blockNumber, f),
+    )
+  def totalNft(summary: SummaryBoard) =
+    div(cls := "board-comp")(
+      span("Total NFTs"),
+      span(f(summary.today.totalNft.getOrElse(0L))), 
+      drawDiff(summary.today.totalNft, summary.yesterday.totalNft, f),
     )
 
   def view(model: BaseModel): Html[Msg] =
-    model.summary match
-      case None => 
-        div(`class` := "board-area")(
-          List(
-            LoaderView.view,
-            LoaderView.view,
-            LoaderView.view,
-            LoaderView.view,
-          )
+    (model.summary, model.chartData) match
+      case (Some(summary), Some(v)) =>
+        div(cls := "board-area")(
+          pricePan(summary, v),
+          marketCap(summary),
+          cirSupply(summary),
+          balPan(summary), 
+          txPan(summary, v),
+          accPan(summary), 
+          totalBlock(summary),
+          totalNft(summary),
         )
-      case Some(summary) =>
-        div(`class` := "board-area")(
-          List(
-            (LM_Price, pricePan(summary), NavigateToUrl("https://coinmarketcap.com/currencies/leisuremeta/")),
-            (Total_TxCount, txPan(summary), ToPage(TxChartModel())),
-            (Transactions, balPan(summary), ToPage(BalChartModel())),
-            (Accounts, accPan(summary), ToPage(AccChartModel())),
-          ).map(drawBox)
-        )
+      case _ => div(cls := "board-area")(LoaderView.view)

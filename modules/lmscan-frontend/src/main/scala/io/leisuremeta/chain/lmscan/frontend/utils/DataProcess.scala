@@ -9,6 +9,9 @@ import scala.scalajs.js
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
 import common.model._
+import tyrian.cmds.LocalStorage
+import io.circe.Encoder
+import typings.node.nodeStrings.response
 
 object Parse:
   import io.circe.*, io.circe.generic.semiauto.*
@@ -39,20 +42,24 @@ object Parse:
       case Status(500, _) => ErrorMsg
       case _ => result(model, response)
 
-  def result(model: ApiModel, response: Response): Msg = (model, parse(response.body)) match
-      case (_: BlcModel, Right(json)) => UpdateBlcs(decode[PageResponse[BlockInfo]](response.body).getOrElse(PageResponse()))
-      case (_: TxModel, Right(json)) => UpdateTxs(decode[PageResponse[TxInfo]](response.body).getOrElse(PageResponse()))
-      case (_: AccModel, Right(json)) => UpdateListModel[AccountInfo](decode[PageResponse[AccountInfo]](response.body).getOrElse(PageResponse()))
-      case (_: NftModel, Right(json)) => UpdateListModel(decode[PageResponse[NftInfoModel]](response.body).getOrElse(PageResponse()))
-      case (_: NftTokenModel, Right(json)) => UpdateListModel(decode[PageResponse[NftSeasonModel]](response.body).getOrElse(PageResponse()))
-      case (_: TxDetail, Right(json)) => UpdateModel(decode[TxDetail](response.body).getOrElse(TxDetail()))
-      case (_: BlockDetail, Right(json)) => UpdateModel(decode[BlockDetail](response.body).getOrElse(BlockDetail()))
-      case (_: AccountDetail, Right(json)) => UpdateModel(decode[AccountDetail](response.body).getOrElse(AccountDetail()))
-      case (_: NftDetail, Right(json)) => UpdateModel(decode[NftDetail](response.body).getOrElse(NftDetail()))
-      case (_: SummaryBoard, Right(json)) => UpdateModel(decode[SummaryBoard](response.body).getOrElse(SummaryBoard()))
-      case (_: SummaryChart, Right(json)) => UpdateModel(decode[SummaryChart](response.body).getOrElse(SummaryChart()))
-      case (_, Right(json)) => ErrorMsg
+  def result(model: ApiModel, response: Response): Msg = (model, response.body) match
+      case (_: BlcModel, str) => UpdateBlcs(decode[PageResponse[BlockInfo]](str).getOrElse(PageResponse()))
+      case (_: TxModel, str) => UpdateTxs(decode[PageResponse[TxInfo]](str).getOrElse(PageResponse()))
+      case (_: AccModel, str) => UpdateListModel[AccountInfo](decode[PageResponse[AccountInfo]](str).getOrElse(PageResponse()))
+      case (_: NftModel, str) => UpdateListModel(decode[PageResponse[NftInfoModel]](str).getOrElse(PageResponse()))
+      case (_: NftTokenModel, str) => UpdateListModel(decode[PageResponse[NftSeasonModel]](str).getOrElse(PageResponse()))
+      case (_: TxDetail, str) => UpdateModel(decode[TxDetail](str).getOrElse(TxDetail()))
+      case (_: BlockDetail, str) => UpdateModel(decode[BlockDetail](str).getOrElse(BlockDetail()))
+      case (_: AccountDetail, str) => UpdateModel(decode[AccountDetail](str).getOrElse(AccountDetail()))
+      case (_: NftDetail, str) => UpdateModel(decode[NftDetail](str).getOrElse(NftDetail()))
+      case (_: SummaryBoard, str) => SetLocal("board", str)
+      case (_: SummaryChart, str) => SetLocal("chart", str)
+      case (_, str) => ErrorMsg
       case (_, Left(json)) => ErrorMsg
+
+  def parseFromString(k: String, s: String): Msg = k match
+    case "board" => UpdateModel(decode[SummaryBoard](s).getOrElse(SummaryBoard()))
+    case "chart" => UpdateChart(decode[SummaryChart](s).getOrElse(SummaryChart()))
 
 object DataProcess:
   val base = js.Dynamic.global.process.env.BASE_API_URL
@@ -88,24 +95,34 @@ object DataProcess:
       Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(NftDetail()), onError)
     )
-  def getData(model: SummaryBoard): Cmd[IO, Msg] =
-    Http.send(
-      Request.get(s"${base}summary/main"),
-      Decoder[Msg](Parse.onResponse(model), onError)
-    )
-  def getDataAll(model: SummaryChart): Cmd[IO, Msg] =
-    Http.send(
-      Request.get(s"${base}summary/chart/balance"),
-      Decoder[Msg](Parse.onResponse(model), onError)
-    )
-  def getData(model: SummaryChart, size: Int = 5): Cmd[IO, Msg] =
-    Http.send(
-      Request.get(s"${base}summary/chart/tx?d=${size}"),
-      Decoder[Msg](Parse.onResponse(model), onError)
-    )
+  def getDataAll(key: String): Cmd[IO, Msg] = key match
+    case "chart" =>
+      Http.send(
+        Request.get(s"${base}summary/chart/balance"),
+        Decoder[Msg](Parse.onResponse(SummaryChart()), onError)
+      )
+    case "board" =>
+      Http.send(
+        Request.get(s"${base}summary/main"),
+        Decoder[Msg](Parse.onResponse(SummaryBoard()), onError)
+      )
   def globalSearch(v: String) = 
     val msg = v.length match
       case 25 => NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(v)))))
       case 64 => TxDetailModel(txDetail = TxDetail(hash = Some(v)))
       case _ => AccDetailModel(accDetail = AccountDetail(address = Some(v)))
     ToPage(msg)
+
+  def getLocal(key: String): Cmd[IO, Msg] =
+    LocalStorage.getItem(key):
+      case Right(LocalStorage.Result.Found(s)) => 
+        val (t, d) = s.splitAt(13)
+        if  js.Date.now() - t.toDouble < 60 * 10 * 1000 then Parse.parseFromString(key, d) 
+        else GetDataFromApi(key)
+      case Left(LocalStorage.Result.NotFound(_)) => GetDataFromApi(key)
+
+  def setLocal(k: String, d: String): Cmd[IO, Msg] =
+    val now = js.Date.now().toString
+    LocalStorage.setItem(k, now + d):
+      case LocalStorage.Result.Success => Parse.parseFromString(k, d)
+      case _ => Parse.parseFromString(k, d) 

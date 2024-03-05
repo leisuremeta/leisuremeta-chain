@@ -17,17 +17,13 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
   def subscriptions(model: Model): Sub[IO, Msg] =
     SearchView.detectSearch ++ Pagination.detectSearch
     ++ Sub.Batch(
-      Sub.every[IO](1.second, "clock-ticks").map(UpdateTime.apply)
-      ,
+      Sub.every[IO](1.second, "clock-ticks").map(UpdateTime.apply),
+      Sub.every[IO](60.second, "refresh-ticks").map(_ => RefreshData),
     )
 
   def router: Location => Msg =
     case loc: Location.Internal =>
       loc.pathName match
-        case s"/chart/$t" => t match
-          case "acc" => ToPage(AccChartModel())
-          case "bal" => ToPage(BalChartModel())
-          case "tx" => ToPage(TxChartModel())
         case s"/blcs/$page" => ToPage(BlcModel(page = page.toInt))
         case s"/txs/$page" => ToPage(TxModel(page = page.toInt))
         case s"/nfts/$page" => ToPage(NftModel(page = page.toInt))

@@ -8,7 +8,7 @@ import io.leisuremeta.chain.lmscan.common.model._
 object Body:
   def blocks(payload: List[BlockInfo], g: GlobalModel) =
     payload.map(v =>
-      div(`class` := "row table-body")(
+      div(cls := "row table-body")(
         gen.cell(
           Cell.BLOCK_NUMBER(v.hash, v.number),
           Cell.AGE(v.createdAt, g.current),
@@ -19,7 +19,7 @@ object Body:
     )
   def accs(payload: List[AccountInfo]) =
     payload.map(v =>
-      div(`class` := "row table-body")(
+      div(cls := "row table-body")(
         gen.cell(
           Cell.ACCOUNT_HASH(v.address),
           Cell.Balance(v.balance),
@@ -30,7 +30,7 @@ object Body:
     )
   def txRow = (payload: List[TxInfo], g: GlobalModel) =>
     payload.map(v =>
-      div(`class` := "row table-body")(
+      div(cls := "row table-body")(
         gen.cell(
           Cell.TX_HASH(v.hash),
           Cell.PlainLong(v.blockNumber),
@@ -43,7 +43,7 @@ object Body:
   def boardTxRow = (payload: List[TxInfo], g: GlobalModel) =>
     payload
       .map(v =>
-        div(`class` := "row table-body")(
+        div(cls := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.hash),
             Cell.AGE(v.createdAt, g.current),
@@ -56,7 +56,7 @@ object Body:
     payload
       .map(v =>
         div(
-          `class` := "row table-body",
+          cls := "row table-body",
         )(
           gen.cell(
             Cell.ImageS(v.thumbUrl),
@@ -73,7 +73,7 @@ object Body:
     payload
       .map(v =>
         div(
-          `class` := "row table-body",
+          cls := "row table-body",
         )(
           gen.cell(
             Cell.NftDetail(v, v.nftName),
@@ -89,7 +89,7 @@ object Body:
     payload
       .map(v =>
         div(
-          `class` := "row table-body",
+          cls := "row table-body",
         )(
           gen.cell(
             Cell.TX_HASH(v.txHash),

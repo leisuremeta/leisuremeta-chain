@@ -7,73 +7,47 @@ import common.model.*
 
 object Table:
   def mainView(model: BaseModel): Html[Msg] =
-    div(`class` := "table-area main-table")(
+    div(cls := "table-area main-table")(
       div(
-        `class` := "app-table blc table-container position-relative y-center",
+        cls := "blc table-container",
       )(
-        div(
-          `class` := s"table-title",
-        )(
-          div(
-            `class` := s"type-1",
-          )(span("Latest Blocks")),
-          div(
-            `class` := s"type-2",
-          )(
-            span(
-              onClick(ToPage(BlcModel(page = 1))),
-            )("More"),
-          ),
-        ),
-        model.blcs match
-          case None => LoaderView.view
-          case Some(v) => div(`class` := "w-[100%]")(Head.block :: Body.blocks(v.payload.toList, model.global)),
+        div(cls := "table-title")(
+          span("Latest Blocks"),
+          a(onClick(ToPage(BlcModel(page = 1))))("More"),
+        ) ::
+        (model.blcs match
+          case None => List(LoaderView.view)
+          case Some(v) => Head.block :: Body.blocks(v.payload.toList, model.global))
       ),
       div(
-        `class` := "app-table tx-m table-container position-relative y-center",
+        cls := "tx-m table-container",
       )(
-        div(
-          `class` := s"table-title",
-        )(
-          div(
-            `class` := s"type-1",
-          )(span("Latest transactions")),
-          div(
-            `class` := s"type-2",
-          )(
-            span(
-              onClick(ToPage(TxModel(page = 1))),
-            )("More"),
-          ),
-        ),
-        model.txs match
-          case None => LoaderView.view
-          case Some(v) => div(Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList, model.global)),
+        div(cls := "table-title")(
+          span("Latest transactions"),
+          a(onClick(ToPage(TxModel(page = 1))))("More"),
+        ) ::
+        (model.txs match
+          case None => List(LoaderView.view)
+          case Some(v) => Head.tx_dashBoard :: Body.boardTxRow(v.payload.toList, model.global))
       ),
     )
 
   def view(model: BlcModel) =
-    div(`class` := "table-container app-table blc")(
-      div(
-        model.data match
-          case Some(v) => Head.block :: Body.blocks(v.payload.toList, model.global)
-          case None    => List(Head.block),
-      ),
-      Pagination.view(model),
-      model.data match
-        case None    => LoaderView.view
-        case Some(_) => div(),
+    div(cls := "table-container blc")(
+      Head.block ::
+      (model.data match
+        case Some(v) =>  Body.blocks(v.payload.toList, model.global).appended(Pagination.view(model))
+        case None    => List(LoaderView.view)),
     )
   def view(model: AccModel) =
-    div(`class` := "table-container app-table accs")(
-      acc(model.data),
-      Pagination.view(model),
+    div(cls := "table-container accs")(
       model.data match
-        case None    => LoaderView.view
-        case Some(_) => div(),
+        case None    => List(LoaderView.view)
+        case Some(data) => 
+          Head.accs :: Body.accs(data.payload.toList).appended(Pagination.view(model))
     )
   def view(model: NftModel) =
-    div(`class` := "table-container app-table nfts")(
+    div(cls := "table-container nfts")(
       nft(model.data),
       Pagination.view(model),
       model.data match
@@ -81,7 +55,7 @@ object Table:
         case Some(_) => div(),
     )
   def view(model: NftTokenModel) =
-    div(`class` := "table-container app-table nft-token")(
+    div(cls := "table-container nft-token")(
       nftToken(model.data),
       Pagination.view(model),
       model.data match
@@ -90,41 +64,33 @@ object Table:
     )
 
   def view(model: TxModel): Html[Msg] =
-    div(`class` := "table-container app-table tx")(
-      model.data match
-        case None => LoaderView.view
+    div(cls := "table-container tx")(
+      Head.tx :: 
+      (model.data match
+        case None => List(LoaderView.view)
         case Some(v) =>
-          div()(
-            Head.tx :: Body.txRow(v.payload.toList, model.global),
-          )
-      ,
-      Pagination.view(model),
+          Body.txRow(v.payload.toList, model.global).appended(Pagination.view(model))
+      ),
     )
   def view(model: BlcDetailModel): Html[Msg] =
-    div(`class` := "table-container app-table mt-15 tx")(
+    div(cls := "table-container tx")(
       model.blcDetail.txs match
         case None    => List(LoaderView.view)
         case Some(v) => Head.tx :: Body.txRow(v.toList, model.global)
     )
   def view(model: AccDetailModel): Html[Msg] =
-    div(`class` := "table-container app-table tx")(
+    div(cls := "table-container tx")(
       model.accDetail.txHistory match
         case None    => List(LoaderView.view)
         case Some(v) => Head.tx :: Body.txRow(v.toList, model.global)
     )
   def view(model: NftDetailModel): Html[Msg] =
-    div(`class` := "table-container app-table nft")(
+    div(cls := "table-container nft")(
       model.nftDetail.activities match
         case None    => List(Head.nft, LoaderView.view)
         case Some(v) => Head.nft :: Body.nft(v.toList, model.global),
     )
 
-  def acc(data: Option[PageResponse[AccountInfo]]) =
-    div(
-      data match
-        case Some(v) => Head.accs :: Body.accs(v.payload.toList)
-        case None    => List(Head.accs),
-    )
   def nft(list: Option[PageResponse[NftInfoModel]]) =
     div(
       list match

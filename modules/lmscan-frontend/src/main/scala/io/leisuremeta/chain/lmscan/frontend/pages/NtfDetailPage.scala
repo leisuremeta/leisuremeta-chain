@@ -9,6 +9,7 @@ import common.model._
 object NftDetailPage:
   def update(model: NftDetailModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model.nftDetail.nftFile.get))
+    case RefreshData => (model, Cmd.None)
     case UpdateDetailPage(d: NftDetail) => (model, DataProcess.getData(d.nftFile.get))
     case UpdateModel(v: NftDetail) => (NftDetailModel(nftDetail = v), Nav.pushUrl(model.url))
     case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
@@ -17,7 +18,7 @@ object NftDetailPage:
   def view(model: NftDetailModel): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "pb-32px pt-16px color-white")(
+      List(
         NftDetailTable.view(model.nftDetail),
         Table.view(model)
       ),

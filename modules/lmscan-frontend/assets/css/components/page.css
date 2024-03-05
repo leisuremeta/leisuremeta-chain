@@ -1,8 +1,0 @@
-#page {
-    width: calc(100% - 230px);
-    height: 100vh;
-    margin-left: 230px;
-    padding: 0px 20px 0px 20px;
-    background-image: linear-gradient(141deg,#e9edf3,#c4dced);
-    overflow: auto;
-}

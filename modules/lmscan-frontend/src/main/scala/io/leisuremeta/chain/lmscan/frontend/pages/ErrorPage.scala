@@ -6,27 +6,35 @@ import tyrian.Html.*
 object ErrorPage:
   def update(model: ErrorModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, Cmd.None)
+    case RefreshData => (model, Cmd.None)
     case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: ErrorModel): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "x-center", style := "flex-flow:column;align-items:center;")(
-        span(`class` := "xy-center font-20px h-64px color-white")(
-          "No results Found.",
-        ),
-        div(`class` := "cell type-button")(
-          span(
-            `class` := "font-20px",
-            onClick(
-              ToPage(BaseModel()),
+      model.error match
+        case "timeout" => timeout
+        case _ => 
+          div(cls := "err-wrap")(
+            p("THE PAGE YOU WERE LOOKING FOR DOESN’T EXIST."),
+            p("You may have mistyped the information. Please check before searching."),
+            div(cls := "cell type-button")(
+              span(
+                cls := "font-20px",
+                onClick(
+                  ToPage(BaseModel()),
+                ),
+              )(
+                "Back to Previous Page",
+              ),
             ),
-          )(
-            "Back to Previous Page",
           ),
-        ),
-      ),
+    )
+
+  val timeout = 
+    div(cls := "err-wrap")(
+      p("TIME OUT! TRY AGAIN LATER.")
     )
 
 final case class ErrorModel(

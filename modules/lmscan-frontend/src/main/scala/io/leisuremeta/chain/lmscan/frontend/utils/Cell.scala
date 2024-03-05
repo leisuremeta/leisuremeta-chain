@@ -9,13 +9,15 @@ import java.time.format.DateTimeFormatter
 import java.time._
 import scalajs.js
 
-def toDT(t: Int, cur: js.Date): String = LocalDateTime
-  .ofEpochSecond(t, 0, ZoneOffset.ofTotalSeconds(-cur.getTimezoneOffset().toInt * 60))
+def toDT(t: Long, cur: js.Date): String = 
+  val offset = -cur.getTimezoneOffset().toInt / 60
+  LocalDateTime
+  .ofEpochSecond(t, 0, ZoneOffset.ofHours(offset))
   .toString
-  .replace("T", " ")
+  .replace("T", " ") + s" (UTC${if offset < 0 then "-" else "+"}${offset.toString})"
 
-def timeAgo(t: Int, cur: js.Date): String =
-  val now = LocalDateTime.now(ZoneId.ofOffset("GMT", ZoneOffset.ofHours(0))).toEpochSecond(ZoneOffset.UTC)
+def timeAgo(t: Long, cur: js.Date): String =
+  val now = LocalDateTime.now(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(0))).toEpochSecond(ZoneOffset.UTC)
   val timeGap = now - t
   List(
       ((timeGap / 31536000).toInt, " year ago"),
@@ -29,7 +31,47 @@ def timeAgo(t: Int, cur: js.Date): String =
     .map:
       case (time, msg) if time > 1 => time.toString + msg.replace(" a", "s a").replace("ss", "s")
       case (time, msg) => time.toString + msg
-    .get
+    .getOrElse("-")
+
+object ParseHtml:
+  def fromDate(data: Option[Long]) =
+    div(
+        data match
+          case Some(v) => toDT(v, new js.Date)
+          case _ => "-"
+    )
+  def fromAccHash(data: Option[String], filter: Boolean = true) =
+    div(
+      cls := s"acc-hash",
+      onClick(ToPage(AccDetailModel(accDetail = AccountDetail(address = data)))),
+    )(if filter then accountHash(data) else data.getOrElse(""))
+  
+  def fromTxHash(data: String) =
+    span(
+      cls := "tx-hash",
+      onClick(
+        ToPage(TxDetailModel(txDetail = TxDetail(hash = Some(data))))
+      ),
+    )(data)
+
+  def fromTokenId(value: String) = 
+    span(
+      cls := "token-id",
+      onClick(
+        ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(value))))))
+      )
+    )(value)
+
+  def fromBal(data: Option[BigDecimal]) = 
+    div(
+      span(
+        data match
+          case None => "- LM"
+          case Some(v) =>
+            val a = v / BigDecimal("1E+18")
+            DecimalFormat("#,###.####").format(a) + " LM",
+      ),
+    )
 
 enum Cell:
   case ImageS(data: Option[String])              extends Cell
@@ -69,7 +111,7 @@ object gen:
     .map(_ match
       case Cell.ImageS(nftUri) =>
         img(
-          `class` := "thumb-img",
+          cls := "thumb-img",
           src     := s"${getOptionValue(nftUri, "-").toString}",
         )
       case Cell.Image(nftUri) =>
@@ -77,7 +119,7 @@ object gen:
           .find(data => plainStr(nftUri).contains(data)) match
           case Some(_) => // 비디오 포맷
             video(
-              `class` := "nft-image p-10px",
+              cls := "nft-image p-10px",
               autoPlay,
               loop,
               name := "media",
@@ -89,14 +131,14 @@ object gen:
             )
           case None => // 이미지 포맷
             img(
-              `class` := "nft-image p-10px",
+              cls := "nft-image p-10px",
               src     := s"${getOptionValue(nftUri, "-").toString}",
             )
 
-      case Cell.Head(data, css) => div(`class` := s"$css")(span()(data))
-      case Cell.Any(data, css)  => div(`class` := s"$css")(span()(data))
+      case Cell.Head(data, css) => div(cls := s"$css")(span()(data))
+      case Cell.Any(data, css)  => div(cls := s"$css")(span()(data))
       case Cell.PriceS(price, css) =>
-        div(`class` := s"$css")(
+        div(cls := s"$css")(
           span(
             price match
               case Some(p) =>
@@ -105,7 +147,7 @@ object gen:
           ),
         )
       case Cell.Price(price, data, css) =>
-        div(`class` := s"$css")(
+        div(cls := s"$css")(
           span(
             (price, data) match
               case (Some(p), Some(v)) =>
@@ -115,7 +157,7 @@ object gen:
           ),
         )
       case Cell.Balance(data, css) =>
-        div(`class` := s"$css")(
+        div(cls := s"$css")(
           span(
             data match
               case None => "- LM"
@@ -125,20 +167,20 @@ object gen:
           ),
         )
       case Cell.PlainStr(data, css) =>
-        div(`class` := s"$css")(span()(plainStr(data)))
+        div(cls := s"$css")(span()(plainStr(data)))
       case Cell.PlainInt(data) =>
-        div(`class` := "cell")(
+        div(cls := "cell")(
           span(
           )(plainInt(data)),
         )
       case Cell.PlainLong(data) =>
-        div(`class` := "cell")(
+        div(cls := "cell")(
           span(
           )(plainLong(data)),
         )
       case Cell.Tx_VALUE(subType, value) =>
         div(
-          `class` := s"cell ${plainStr(subType).contains("Nft") match
+          cls := s"cell ${plainStr(subType).contains("Nft") match
               case true => "type-3"
               case _    => ""
             }",
@@ -163,28 +205,22 @@ object gen:
           ),
         )
       case Cell.ACCOUNT_HASH(hash, css) =>
-        div(`class` := s"cell type-3 $css")(
-          span(
-            onClick(
-              ToPage(AccDetailModel(accDetail = AccountDetail(address = hash))),
-            ),
-          )(
-            accountHash(hash),
-          ),
+        div(
+          cls := s"cell acc-hash $css",
+          onClick(ToPage(AccDetailModel(accDetail = AccountDetail(address = hash)))),
+        )(
+          accountHash(hash),
         )
       case Cell.AGE(data, cur) =>
-        div(`class` := "cell",
+        div(cls := "cell",
             dataAttr(
               "tooltip-text",
-              toDT(plainLong(data).toInt, cur),
+              toDT(data.getOrElse(0L), cur),
             ),
           )(
-            {
-              val age = timeAgo(plainLong(data).toInt, cur)
-              age match
-                case x if x.contains("53 years") => "-"
-                case _                           => age
-            },
+            data match
+              case Some(v) => timeAgo(v, cur)
+              case _ => "-"
           )
 
       case Cell.DateS(data, css) =>
@@ -192,7 +228,7 @@ object gen:
           case None => div()
           case Some(v) => 
             div(
-              `class` := s"$css",
+              cls := s"$css",
               dataAttr(
                 "tooltip-text",
                 v.toString
@@ -203,7 +239,7 @@ object gen:
                 .format(v)
             )
       case Cell.DATE(data, css) =>
-        div(`class` := s"$css")(
+        div(cls := s"$css")(
             {
               val date = toDT(
                 plainLong(data).toInt, new js.Date
@@ -216,7 +252,7 @@ object gen:
         )
 
       case Cell.BLOCK_NUMBER((hash, number)) =>
-        div(`class` := "cell type-3",
+        div(cls := "cell blc-num",
             onClick(
               ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
             ),
@@ -224,31 +260,31 @@ object gen:
 
       case Cell.NftToken(nftInfo) =>
         div(
-          `class` := "cell",
+          cls := "cell",
           onClick(
             ToPage(NftTokenModel(id = nftInfo.season.get)),
           ),
         )(
-          span(`class` := "season-nm")(plainSeason(nftInfo.season)),
-          span(`class` := "type-3")(plainStr(nftInfo.seasonName)),
+          span(cls := "season-nm")(plainSeason(nftInfo.season)),
+          span(cls := "type-3")(plainStr(nftInfo.seasonName)),
         )
       case Cell.NftDetail(nftInfo, s) =>
         div(
-          `class` := "cell type-3",
+          cls := "cell type-3",
           onClick(
             ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = nftInfo.tokenId)))))
           ),
         )(plainStr(s))
       case Cell.BLOCK_HASH(hash) =>
         div(
-          `class` := "cell type-3",
+          cls := "cell blc-hash",
           onClick(
             ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
           ),
         )(plainStr(hash))
       case Cell.TX_HASH(hash) =>
         div(
-          `class` := "cell type-3",
+          cls := "cell tx-hash",
           onClick(
             ToPage(TxDetailModel(txDetail = TxDetail(hash = hash)))
           ),
@@ -256,6 +292,6 @@ object gen:
           plainStr(hash),
         )
 
-      case _ => div(`class` := "cell")(span()),
+      case _ => div(cls := "cell")(span()),
     )
     .toList

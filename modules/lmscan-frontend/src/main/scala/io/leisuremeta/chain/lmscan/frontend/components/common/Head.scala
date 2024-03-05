@@ -3,7 +3,7 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 
 object Head:
-  val block = div(`class` := "row table-head")(
+  val block = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("Block"),
       Cell.Head("Age"),
@@ -12,7 +12,7 @@ object Head:
     ),
   )
 
-  val accs = div(`class` := "row table-head")(
+  val accs = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("Address"),
       Cell.Head("Balance"),
@@ -21,7 +21,7 @@ object Head:
     ),
   )
 
-  val nfts = div(`class` := "row table-head")(
+  val nfts = div(cls := "row table-head")(
     gen.cell(
       Cell.Head(""),
       Cell.Head("Season"),
@@ -31,7 +31,7 @@ object Head:
     ),
   )
 
-  val nftToken = div(`class` := "row table-head")(
+  val nftToken = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("NFT"),
       Cell.Head("Collection"),
@@ -41,7 +41,7 @@ object Head:
     ),
   )
 
-  val nft = div(`class` := "row table-head")(
+  val nft = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),
       Cell.Head("Timestamp"),
@@ -51,7 +51,7 @@ object Head:
     ),
   )
 
-  val tx = div(`class` := "row table-head")(
+  val tx = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),
       Cell.Head("Block"),
@@ -61,7 +61,7 @@ object Head:
     ),
   )
 
-  val tx2 = div(`class` := "row table-head")(
+  val tx2 = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),
       Cell.Head("Block"),
@@ -72,7 +72,7 @@ object Head:
     ),
   )
 
-  val tx_dashBoard = div(`class` := "row table-head")(
+  val tx_dashBoard = div(cls := "row table-head")(
     gen.cell(
       Cell.Head("Tx Hash"),
       Cell.Head("Age"),

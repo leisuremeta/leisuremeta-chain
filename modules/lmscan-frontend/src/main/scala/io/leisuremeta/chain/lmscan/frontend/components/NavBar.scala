@@ -11,9 +11,7 @@ object NavBar:
   val nft = "NFTs"
   def view(model: Model): Html[Msg] =
     nav()(
-      div(id := "title", onClick(ToPage(BaseModel())))(
-        span(id := "head")(img(id := "head-logo")),
-      )
+      p(onClick(ToPage(BaseModel())))("LM SCAN")
       ::
       List(
         (main, ToPage(BaseModel())),
@@ -22,14 +20,10 @@ object NavBar:
         (acc, ToPage(AccModel(page = 1))),
         (nft, ToPage(NftModel(page = 1))),
       ).map((name, msg) =>
-        div(
-          `class` := "buttons",
-        )(
-          button(
-            `class` := isActive(name, model),
-            onClick(msg),
-          )(span(name))
-        )
+        a(
+          cls := isActive(name, model),
+          onClick(msg),
+        )(span(name))
       ),
     )
 

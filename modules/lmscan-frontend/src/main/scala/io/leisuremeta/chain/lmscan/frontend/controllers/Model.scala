@@ -6,6 +6,7 @@ import tyrian._
 import tyrian.Html.div
 import cats.effect.IO
 import scalajs.js
+import io.circe.Decoder
 
 final case class GlobalModel(
     popup: Boolean = false,
@@ -28,6 +29,7 @@ trait PageModel extends Model with ApiModel:
   val size: Int = 20
   val searchPage: Int
   val data: Option[ApiModel]
+  val pageToggle: Boolean
 
 case class EmptyModel(
   global: GlobalModel = GlobalModel(),
@@ -40,3 +42,34 @@ case class EmptyModel(
     case ErrorMsg => (ErrorModel(error = ""), Cmd.None)
     case GlobalSearch => (this, Cmd.Emit(DataProcess.globalSearch(global.searchValue)))
     case _ => (this, Cmd.None)
+
+case class NftJson(
+  creatorDesc: String,
+  collectionDesc: String,
+  rarity: String,
+  checksum: String,
+  issue: IssueInfo,
+  collection: String,
+  creator: String,
+  name: String,
+  uri: String,
+)
+given Decoder[NftJson] =
+  Decoder.forProduct9(
+    "Creator_description",
+    "Collection_description",
+    "Rarity",
+    "NFT_checksum",
+    "Issuance_info",
+    "Collection_name",
+    "Creator",
+    "NFT_name",
+    "NFT_URI"
+  )(NftJson.apply)
+
+case class IssueInfo(date: String, n: Int)
+given Decoder[IssueInfo] =
+  Decoder.forProduct2(
+    "Issue_date",
+    "Issuance"
+  )(IssueInfo.apply)

@@ -7,22 +7,22 @@ import cats.effect.IO
 
 object SearchView:
   def view(model: Model): Html[Msg] =
-    div(`class` := "search-area")(
-      div(`class` := "search-container xy-center")(
+    div(cls := "search-area")(
+      div(cls := "search-container")(
         input(
           id := "global-search",
           onInput(s => GlobalInput(s)),
           value   := s"${model.global.searchValue}",
-          `class` := "search-text xy-center",
+          cls := "search-text",
           `placeholder` := (
-            "block hash, tx hash, account ... "
+            "Search by address / transaction / block / NFT…Search by address / transaction / block / NFT…",
           ),
         ),
         div(
           onClick(GlobalSearch),
-          `class` := "search-icon xy-center material-symbols-outlined",
+          cls := "search-icon",
         )(
-          "search",
+          "Search >>"
         ),
       ),
     )

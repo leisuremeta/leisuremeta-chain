@@ -9,6 +9,7 @@ import common.model._
 object AccountDetailPage:
   def update(model: AccDetailModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model.accDetail))
+    case RefreshData => (model, Cmd.None)
     case UpdateDetailPage(d: AccountDetail) => (model, DataProcess.getData(d))
     case UpdateModel(v: AccountDetail) => (AccDetailModel(accDetail = v), Nav.pushUrl(model.url))
     case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
@@ -17,14 +18,10 @@ object AccountDetailPage:
   def view(model: AccDetailModel): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "pb-32px")(
-        div(
-          `class` := "font-40px pt-16px font-block-detail pb-16px color-white",
-        )("Account"),
+      List(
+        div(cls := "page-title")("Account"),
         AccountDetailTable.view(model.accDetail),
-        div(
-          `class` := "font-40px pt-16px font-block-detail pb-16px color-white",
-        )("Transaction History"),
+        div(cls := "page-title")("Transaction History"),
         Table.view(model)
       ),
     )
