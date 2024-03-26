@@ -1,12 +1,15 @@
 {
   "name": "lmscan",
   "source": "assets/index.html",
+  "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "start": "parcel",
     "build": "parcel build"
   },
   "devDependencies": {
-    "parcel": "^2.8.2",
+    "@parcel/compressor-gzip": "^2.12.0",
+    "@parcel/reporter-bundle-analyzer": "^2.12.0",
+    "parcel": "^2.12.0",
     "process": "^0.11.10",
     "typescript": "^4.9.5"
   }

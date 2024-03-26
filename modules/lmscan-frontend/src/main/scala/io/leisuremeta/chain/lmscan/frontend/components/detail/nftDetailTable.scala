@@ -11,35 +11,38 @@ object NftDetailTable:
 
     div(cls := "nft-detail")(
       gen.cell(Cell.Image(nftFile.nftUri))(0),
-      div(cls := "nft-title")(
-        plainStr(nftFile.collectionName) + plainStr(nftFile.nftName),
-      ),
-      div(
-        cls := "detail table-container",
-      )(
+      div(cls := "detail table-container")(
         div(cls := "row")(
-          gen.cell(
-            Cell.Head("Token ID", "cell type-detail-head"),
-            Cell
-              .Any(plainStr(nftFile.tokenId), "cell type-detail-body"),
-          ),
+          span("NFT Name"),
+          span(nftFile.nftName.getOrElse("-")),
         ),
         div(cls := "row")(
-          gen.cell(
-            Cell.Head("Rarity", "cell type-detail-head"),
-            Cell
-              .Any(rarity(nftFile.rarity), "cell type-detail-body"),
-          ),
+          span("Collection Name"),
+          span(nftFile.collectionName.getOrElse("-")),
         ),
         div(cls := "row")(
-          gen.cell(
-            Cell.Head("Owner", "cell type-detail-head"),
-            Cell
-              .ACCOUNT_HASH(
-                nftFile.owner,
-                "type-detail-body",
-              ),
-          ),
+          span("Token ID"),
+          span(nftFile.tokenId.getOrElse("-")),
+        ),
+        div(cls := "row")(
+          span("Definition ID"),
+          span(nftFile.tokenDefId.getOrElse("-")),
+        ),
+        div(cls := "row")(
+          span("Rarity"),
+          span(nftFile.rarity.getOrElse("-")),
+        ),
+        div(cls := "row")(
+          span("Creator"),
+          span(nftFile.creator.getOrElse("-")),
+        ),
+        div(cls := "row")(
+          span("Owner"),
+          ParseHtml.fromAccHash(nftFile.owner),
+        ),
+        div(cls := "row")(
+          span("Issue Date"),
+          ParseHtml.fromDate(nftFile.createdAt),
         ),
       ),
     )

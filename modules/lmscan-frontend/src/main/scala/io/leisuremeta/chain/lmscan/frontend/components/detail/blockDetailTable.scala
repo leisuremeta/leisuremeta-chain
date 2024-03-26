@@ -32,12 +32,12 @@ object BlockDetailTable:
           div(cls := "row")(
             gen.cell(
               Cell.Head("Parent hash", "cell type-detail-head"),
-              Cell.PlainStr(data.parentHash, "cell type-detail-body"),
+              Cell.BLOCK_HASH(data.parentHash),
             ),
           ),
           div(cls := "row")(
             gen.cell(
-              Cell.Head("Transcation count", "cell type-detail-head"),
+              Cell.Head("Transaction count", "cell type-detail-head"),
               Cell.PlainStr(data.txCount, "cell type-detail-body"),
             ),
           ),

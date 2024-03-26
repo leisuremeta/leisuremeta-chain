@@ -33,6 +33,8 @@ object Pagination:
       case _: TxModel => ToPage(TxModel(page = v))
       case _: AccModel => ToPage(AccModel(page = v))
       case _: NftModel => ToPage(NftModel(page = v))
+      case n: BlcDetailModel=> ToPage(n.copy(page = v))
+      case n: AccDetailModel=> ToPage(n.copy(page = v))
       case n: NftTokenModel => ToPage(n.copy(page = v))
     def isDis(condition: Boolean) = if condition then "dis" else ""
     def toggleInput = TogglePageInput(!model.pageToggle)

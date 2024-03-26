@@ -80,15 +80,15 @@ object DataProcess:
       Request.get(s"${base}tx/${detail.hash.getOrElse("")}/detail").withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(detail), onError)
     )
-  def getData(detail: BlockDetail): Cmd[IO, Msg] =
+  def getData(model: BlcDetailModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}block/${detail.hash.getOrElse("")}/detail").withTimeout(10.seconds),
-      Decoder[Msg](Parse.onResponse(detail), onError)
+      Request.get(s"${base}block/${model.blcDetail.hash.getOrElse("")}/detail?p=${model.page}").withTimeout(10.seconds),
+      Decoder[Msg](Parse.onResponse(model.blcDetail), onError)
     )
-  def getData(model: AccountDetail): Cmd[IO, Msg] =
+  def getData(model: AccDetailModel): Cmd[IO, Msg] =
     Http.send(
-      Request.get(s"${base}account/${model.address.getOrElse("")}/detail?p=1").withTimeout(10.seconds),
-      Decoder[Msg](Parse.onResponse(model), onError)
+      Request.get(s"${base}account/${model.accDetail.address.getOrElse("")}/detail?p=${model.page}").withTimeout(10.seconds),
+      Decoder[Msg](Parse.onResponse(model.accDetail), onError)
     )
   def getData(model: NftFileModel): Cmd[IO, Msg] =
     Http.send(

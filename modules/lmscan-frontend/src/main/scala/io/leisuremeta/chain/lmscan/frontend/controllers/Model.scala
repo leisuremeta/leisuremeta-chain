@@ -40,7 +40,7 @@ case class EmptyModel(
     case ToPage(model) => model.update(Init)
     case NavigateToUrl(url) => (this, Nav.loadUrl(url))
     case ErrorMsg => (ErrorModel(error = ""), Cmd.None)
-    case GlobalSearch => (this, Cmd.Emit(DataProcess.globalSearch(global.searchValue)))
+    case GlobalSearch => (this, Cmd.Emit(DataProcess.globalSearch(global.searchValue.toLowerCase)))
     case _ => (this, Cmd.None)
 
 case class NftJson(

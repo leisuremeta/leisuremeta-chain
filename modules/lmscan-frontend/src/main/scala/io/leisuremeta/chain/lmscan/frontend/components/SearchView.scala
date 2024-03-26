@@ -15,7 +15,7 @@ object SearchView:
           value   := s"${model.global.searchValue}",
           cls := "search-text",
           `placeholder` := (
-            "Search by address / transaction / block / NFT…Search by address / transaction / block / NFT…",
+            "Search by address, transaction, NFT",
           ),
         ),
         div(

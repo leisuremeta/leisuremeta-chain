@@ -1,3 +1,6 @@
+footer {
+  background-color: var(--w0);
+}
 footer * {
   color: #303972;
   font-size: 16px;
@@ -6,8 +9,10 @@ footer > div {
   display: flex;
   flex-direction: row; 
   justify-content: space-between;
+  gap: var(--pad);
 }
 footer .footer-left {
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
@@ -16,36 +21,43 @@ footer .footer-left {
     display: flex;
     align-items: end;
     gap: .5em;
+    strong {
+      font-size: var(--t-text);
+    }
   }
   strong {
-    font-size: var(--t-text);
+    font-size: 16px;
     font-weight: var(--bold);
   }
 }
 
 footer .footer-right{
+  flex-basis: 100%;
   display: flex;
-  min-width: 500px;
+  justify-content: center;
   dl {
-    width:50%;
+    flex: 0 0 40%;
   }
   dt {
-    font-size: var(--t-text);
+    font-size: 14px;
     font-weight: var(--bold);
   }
   dd{
-    padding-top:15px;
+    padding-top: var(--br);
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
     gap: 12px;
   }
   a{
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
     text-decoration: none;
-    line-height: 1.5em; 
+    height: 20px;
     padding-left:35px;
-    background-position: left center;
-    background-size: 23px auto;
+    background-position: left top;
+    background-size: auto 20px;
     background-repeat: no-repeat;
     &:hover{opacity: 0.8;}
   }
@@ -58,3 +70,9 @@ footer .footer-right{
 .icon-telegram{background-image: url(../img/footer/icon_telegram.svg);}
 .icon-twitter{background-image: url(../img/footer/Tweeter.png);}
 .icon-discord{background-image: url(../img/footer/Discord.png);}
+
+@media screen and (max-width: 800px) {
+  footer  > div {
+    flex-wrap: wrap;
+  }
+}

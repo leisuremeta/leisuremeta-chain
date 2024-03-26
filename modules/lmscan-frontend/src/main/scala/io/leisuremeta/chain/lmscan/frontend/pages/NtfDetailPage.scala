@@ -19,7 +19,9 @@ object NftDetailPage:
     DefaultLayout.view(
       model,
       List(
+        div(cls := "page-title")("NFT Details"),
         NftDetailTable.view(model.nftDetail),
+        div(cls := "page-title")("History"),
         Table.view(model)
       ),
     )

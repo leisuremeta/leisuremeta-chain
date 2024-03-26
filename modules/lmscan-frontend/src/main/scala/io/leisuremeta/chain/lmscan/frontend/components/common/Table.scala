@@ -12,7 +12,7 @@ object Table:
         cls := "blc table-container",
       )(
         div(cls := "table-title")(
-          span("Latest Blocks"),
+          label(text("Latest Blocks"), input(name := "toggle-main", typ := "radio", checked)),
           a(onClick(ToPage(BlcModel(page = 1))))("More"),
         ) ::
         (model.blcs match
@@ -23,7 +23,7 @@ object Table:
         cls := "tx-m table-container",
       )(
         div(cls := "table-title")(
-          span("Latest transactions"),
+          label(text("Latest transactions"), input(name := "toggle-main", typ := "radio")),
           a(onClick(ToPage(TxModel(page = 1))))("More"),
         ) ::
         (model.txs match
@@ -74,15 +74,21 @@ object Table:
     )
   def view(model: BlcDetailModel): Html[Msg] =
     div(cls := "table-container tx")(
-      model.blcDetail.txs match
-        case None    => List(LoaderView.view)
-        case Some(v) => Head.tx :: Body.txRow(v.toList, model.global)
+      Head.tx :: 
+      (model.data match
+        case None => List(LoaderView.view)
+        case Some(_) =>
+          Body.txRow(model.blcDetail.payload.toList, model.global).appended(Pagination.view(model))
+      ),
     )
   def view(model: AccDetailModel): Html[Msg] =
     div(cls := "table-container tx")(
-      model.accDetail.txHistory match
-        case None    => List(LoaderView.view)
-        case Some(v) => Head.tx :: Body.txRow(v.toList, model.global)
+      Head.tx :: 
+      (model.data match
+        case None => List(LoaderView.view)
+        case Some(_) =>
+          Body.txRow(model.accDetail.payload.toList, model.global).appended(Pagination.view(model))
+      ),
     )
   def view(model: NftDetailModel): Html[Msg] =
     div(cls := "table-container nft")(

@@ -31,8 +31,12 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
         case s"/tx/$hash" => ToPage(TxDetailModel(txDetail = TxDetail(hash = Some(hash))))
         case s"/nft/$id/$page" => ToPage(NftTokenModel(page = page.toInt, id = id))
         case s"/nft/$id" => ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(id))))))
-        case s"/blc/$hash" => ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = Some(hash))))
-        case s"/acc/$address" => ToPage(AccDetailModel(accDetail = AccountDetail(address = Some(address))))
+        case s"/blc/$hash" => 
+          val p = loc.search.getOrElse("").split("=").last
+          ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = Some(hash)), page = p.toInt))
+        case s"/acc/$address" => 
+          val p = loc.search.getOrElse("").split("=").last
+          ToPage(AccDetailModel(accDetail = AccountDetail(address = Some(address)), page = p.toInt))
         case "/" => ToPage(BaseModel())
         case "" => ToPage(BaseModel())
         case _   => ToPage(ErrorModel(error = ""))

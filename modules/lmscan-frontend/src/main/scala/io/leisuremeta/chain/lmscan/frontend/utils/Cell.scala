@@ -259,18 +259,17 @@ object gen:
           )(plainLong(number))
 
       case Cell.NftToken(nftInfo) =>
-        div(
-          cls := "cell",
+        a(
+          cls := "token-id",
           onClick(
             ToPage(NftTokenModel(id = nftInfo.season.get)),
           ),
         )(
-          span(cls := "season-nm")(plainSeason(nftInfo.season)),
-          span(cls := "type-3")(plainStr(nftInfo.seasonName)),
+          s"${plainSeason(nftInfo.season)}${plainStr(nftInfo.seasonName)}",
         )
       case Cell.NftDetail(nftInfo, s) =>
         div(
-          cls := "cell type-3",
+          cls := "token-id",
           onClick(
             ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = nftInfo.tokenId)))))
           ),

@@ -8,7 +8,7 @@ object Head:
       Cell.Head("Block"),
       Cell.Head("Age"),
       Cell.Head("Block hash"),
-      Cell.Head("Tx count"),
+      Cell.Head("TxN"),
     ),
   )
 
