@@ -74,21 +74,11 @@ object Table:
     )
   def view(model: BlcDetailModel): Html[Msg] =
     div(cls := "table-container tx")(
-      Head.tx :: 
-      (model.data match
-        case None => List(LoaderView.view)
-        case Some(_) =>
-          Body.txRow(model.blcDetail.payload.toList, model.global).appended(Pagination.view(model))
-      ),
+      Head.tx :: Body.txRow(model.blcDetail.payload.toList, model.global).appended(Pagination.view(model))
     )
   def view(model: AccDetailModel): Html[Msg] =
     div(cls := "table-container tx")(
-      Head.tx :: 
-      (model.data match
-        case None => List(LoaderView.view)
-        case Some(_) =>
-          Body.txRow(model.accDetail.payload.toList, model.global).appended(Pagination.view(model))
-      ),
+      Head.tx :: Body.txRow(model.accDetail.payload.toList, model.global).appended(Pagination.view(model))
     )
   def view(model: NftDetailModel): Html[Msg] =
     div(cls := "table-container nft")(
