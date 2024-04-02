@@ -97,6 +97,7 @@ object ExploreApi:
     .in("account")
     .in(path[String]("accountAddr")) // account_address
     .in("detail")
+    .in(query[Option[Int]]("p"))
     .out(jsonBody[Option[AccountDetail]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
@@ -122,6 +123,13 @@ object ExploreApi:
     .in(path[String]("tokenId")) // token_id
     .in("detail")
     .out(jsonBody[Option[NftDetail]])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftOwnerInfoEndPoint = baseEndpoint.get
+    .in("nft")
+    .in(path[String]("tokenId")) // token_id
+    .in("info")
+    .out(jsonBody[Option[NftOwnerInfo]])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getSummaryMainEndPoint = baseEndpoint.get

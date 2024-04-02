@@ -7,3 +7,8 @@ final case class PageResponse[T](
     totalPages: Int = 0,
     payload: Seq[T] = Seq(),
 ) extends ApiModel
+
+object PageResponse:
+    def from[T](total: Long, cnt: Int, seq: Seq[T]) =
+        val totalPage = Math.ceil(total.toDouble / cnt).toInt;
+        PageResponse(total, totalPage, seq)

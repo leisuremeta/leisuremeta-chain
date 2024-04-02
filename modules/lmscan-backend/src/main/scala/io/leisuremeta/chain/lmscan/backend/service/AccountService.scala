@@ -18,13 +18,14 @@ import io.leisuremeta.chain.lmscan.backend.repository.SummaryRepository
 object AccountService:
   def get[F[_]: Async](
       address: String,
+      p: Int,
   ): EitherT[F, Either[String, String], Option[AccountDetail]] =
     for
       account <- AccountRepository.get(address).leftMap:
         e => Left(e)
       txPage <- TransactionService.getPageByAccount(
         address,
-        new PageNavigation(0, 20),
+        PageNavigation(p - 1, 20),
       )
       summary <- SummaryRepository.get().leftMap(Left(_))
       price = summary match
@@ -37,6 +38,7 @@ object AccountService:
               Some(x.address),
               Some(x.balance),
               Some(x.balance / BigDecimal("1E+18") * BigDecimal(price)),
+              // Some(txPage.drop((detail - 1) * 20).take(20)),
               Some(txPage.payload),
             ))
           )

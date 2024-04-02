@@ -6,35 +6,37 @@ import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.leisuremeta.chain.lmscan.common.model.SummaryChart
 import io.leisuremeta.chain.lmscan.common.model.SummaryBoard
+import io.leisuremeta.chain.lmscan.backend.entity.Summary
 
 object SummaryService:
+  extension (s: Summary)
+    def toM: SummaryModel = 
+      SummaryModel(
+          Some(s.id),
+          Some(s.lmPrice),
+          Some(s.blockNumber),
+          Some(s.totalAccounts),
+          Some(s.createdAt),
+          Some(s.totalTxSize.toLong),
+          Some(s.totalBalance),
+        )
+  extension (opt: Option[Summary])
+    def toM: SummaryModel = opt match
+      case Some(s) => SummaryModel(
+          Some(s.id),
+          Some(s.lmPrice),
+          Some(s.blockNumber),
+          Some(s.totalAccounts),
+          Some(s.createdAt),
+          Some(s.totalTxSize.toLong),
+          Some(s.totalBalance),
+        )
+      case None => SummaryModel()
+    
   def get[F[_]: Async](n: Int): EitherT[F, Either[String, String], Option[SummaryModel]] =
     for
       summary <- SummaryRepository.get(n, 1).leftMap(Left(_))
-      model = summary.map(a =>
-        val h = a.headOption
-        h match
-          case Some(s) =>
-            SummaryModel(
-              Some(s.id),
-              Some(s.lmPrice),
-              Some(s.blockNumber),
-              Some(s.totalAccounts),
-              Some(s.createdAt),
-              Some(s.totalTxSize.toLong),
-              Some(s.totalBalance),
-            )
-          case None =>
-            SummaryModel(
-              None,
-              None,
-              None,
-              None,
-              None,
-              None,
-              None,
-            )
-      )
+      model = summary.map(_.headOption.toM)
     yield model
 
   def getBoard[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryBoard]] =
@@ -48,17 +50,7 @@ object SummaryService:
     for
       summary <- SummaryRepository.get(0, 144 * 5 + 1).leftMap(Left(_))
       model = summary.map(
-          _.grouped(144).map(_.head).map(s => 
-            SummaryModel(
-              Some(s.id),
-              Some(s.lmPrice),
-              Some(s.blockNumber),
-              Some(s.totalAccounts),
-              Some(s.createdAt),
-              Some(s.totalTxSize.toLong),
-              Some(s.totalBalance),
-            )
-          ).toSeq
+          _.grouped(144).map(_.head.toM).toSeq
         )
       chart = SummaryChart(model.get)
     yield chart
@@ -66,16 +58,7 @@ object SummaryService:
   def getList[F[_]: Async]: EitherT[F, Either[String, String], SummaryChart] =
     for
       summary <- SummaryRepository.get(0, 144 * 5).leftMap(Left(_))
-      model = summary.map(_.map(s =>
-        SummaryModel(
-          None,
-          Some(s.lmPrice),
-          None,
-          None,
-          Some(s.createdAt),
-          None,
-          Some(s.totalBalance),
-        ),
+      model = summary.map(_.map(_.toM
       ))
       chart = SummaryChart(model.get)
     yield chart

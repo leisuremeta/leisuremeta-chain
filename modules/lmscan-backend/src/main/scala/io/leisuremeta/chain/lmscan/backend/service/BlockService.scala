@@ -8,15 +8,19 @@ import io.leisuremeta.chain.lmscan.common.model.PageResponse
 import io.leisuremeta.chain.lmscan.common.model.{BlockDetail, BlockInfo}
 import io.leisuremeta.chain.lmscan.backend.entity.Block
 import io.leisuremeta.chain.lmscan.backend.repository.BlockRepository
+import io.leisuremeta.chain.lmscan.common.model.SummaryModel
 
 object BlockService:
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
   ): EitherT[F, Either[String, String], PageResponse[BlockInfo]] =
     for 
+      summaryOpt <- SummaryService.get(0)
       page <- BlockRepository.getPage(pageNavInfo).leftMap:
         e => Left(e)
-      blockInfos = page.payload.map { block =>
+      summary = summaryOpt.getOrElse(SummaryModel())
+      cnt = summary.blockNumber.getOrElse(0L)
+      blockInfos = page.map { block =>
         BlockInfo(
           Some(block.number),
           Some(block.hash),
@@ -24,7 +28,7 @@ object BlockService:
           Some(block.eventTime),
         )
       }
-    yield PageResponse(page.totalCount, page.totalPages, blockInfos)
+    yield PageResponse.from(cnt, pageNavInfo.sizePerRequest, blockInfos)
 
   def get[F[_]: Async](
       hash: String,
@@ -39,21 +43,20 @@ object BlockService:
   def getDetail[F[_]: Async](
       hash: String,
   ): EitherT[F, Either[String, String], Option[BlockDetail]] =
+    
     for
       block <- get(hash)
-      txPage <- TransactionService.getPageByBlock(
+      txs <- TransactionService.getPageByBlock(
         hash,
-        new PageNavigation(0, 10),
       )
 
-      blockInfo = block.map { bl =>
+      blockInfo = block.map: bl =>
         BlockDetail(
           Some(bl.hash),
           Some(bl.parentHash),
           Some(bl.number),
           Some(bl.eventTime),
           Some(bl.txCount),
-          Some(txPage.payload),
+          Some(txs),
         )
-      }
     yield blockInfo

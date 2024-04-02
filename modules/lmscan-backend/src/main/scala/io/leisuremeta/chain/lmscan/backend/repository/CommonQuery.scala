@@ -25,36 +25,6 @@ trait CommonQuery:
           given ExecutionContext <- Async[F].executionContext
           result <- Async[F]
             .fromFuture(Async[F].delay {
-              // scribe.info(s"Running page query...")
-              // type T = Seq[Transaction]
-              // inline val wrap = OuterSelectWrap.Default
-              // inline val q    = pagedQuery(lift(offset), lift(sizePerRequest))
-              // inline val quoted = q
-              // val ca =
-              //   io.getquill.context.ContextOperation
-              //     .Factory[
-              //       PostgresDialect,
-              //       LowerCase,
-              //       PrepareRow,
-              //       ResultRow,
-              //       Session,
-              //       ctx.type,
-              //     ](ctx.idiom, ctx.naming)
-              //     .op[Nothing, T, Result[RunQueryResult[T]]] { arg =>
-              //       val simpleExt = arg.extractor.requireSimple()
-              //       ctx.executeQuery(arg.sql, arg.prepare, simpleExt.extract)(
-              //         arg.executionInfo,
-              //         io.getquill.context
-              //           .DatasourceContextInjectionMacro[
-              //             RunnerBehavior,
-              //             Runner,
-              //             ctx.type,
-              //           ](context),
-              //       )
-              //     }
-              // QueryExecution.apply(ca)(quoted, None, wrap)
-              // InternalApi.runQuery(q, OuterSelectWrap.Default)
-              // InternalApi.runQueryDefault(q)
               ctx.run(query)
             })
             .map(Either.right(_))
@@ -81,7 +51,6 @@ trait CommonQuery:
             })
             .map(Either.right(_))
         yield
-          scribe.info(s"countQuery Result: $result")
           result
       } {
         case e: SQLException =>
