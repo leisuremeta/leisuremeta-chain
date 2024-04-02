@@ -175,7 +175,7 @@ final case class NodeApp[F[_]
       }
   }
 
-  def getTokenHistoryEndpoint = Api.getTokenHistoryEndpoint.serverLogic {
+  def getTokenHistoryServerEndpoint = Api.getTokenHistoryEndpoint.serverLogic {
     (txHash: Hash.Value[TransactionWithResult]) =>
       StateReadService.getTokenHistory(txHash).value.map {
         case Right(Some(nftState)) => Right(nftState)
