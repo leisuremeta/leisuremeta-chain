@@ -18,7 +18,6 @@ import sttp.tapir.EndpointIO
 import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.{*, given}
 
-import common.LmscanApi
 import common.ExploreApi
 import common.model.{PageNavigation, SummaryModel}
 
@@ -69,7 +68,7 @@ object BackendMain extends IOApp:
           case Right(msg) => Right(ExploreApi.BadRequest(msg))
           case Left(msg) => Left(ExploreApi.ServerError(msg))
         .value
-}
+    }
   def blockPaging[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
     ExploreApi.getBlockPageEndPoint.serverLogic { (pageInfo: PageNavigation) =>
       BlockService
@@ -81,9 +80,9 @@ object BackendMain extends IOApp:
     }
 
   def blockDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
-    ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String) =>
+    ExploreApi.getBlockDetailEndPoint.serverLogic { (hash: String, p: Option[Int]) =>
       BlockService
-        .getDetail(hash)
+        .getDetail(hash, p.getOrElse(1))
         .leftMap:
           case Right(msg) => Right(ExploreApi.BadRequest(msg))
           case Left(msg) => Left(ExploreApi.ServerError(msg))

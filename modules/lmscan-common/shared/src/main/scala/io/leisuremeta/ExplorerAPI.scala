@@ -49,7 +49,6 @@ object ExploreApi:
     ),
   )
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxPageEndPoint = baseEndpoint.get
     .in("tx" / "list")
     .in(
@@ -62,14 +61,12 @@ object ExploreApi:
     )
     .out(jsonBody[PageResponse[TxInfo]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTxDetailEndPoint = baseEndpoint.get
     .in("tx")
     .in(path[String]) // tx_hash
     .in("detail")
     .out(jsonBody[Option[TxDetail]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockPageEndPoint = baseEndpoint.get
     .in("block" / "list")
     .in(
@@ -77,14 +74,13 @@ object ExploreApi:
     )
     .out(jsonBody[PageResponse[BlockInfo]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getBlockDetailEndPoint = baseEndpoint.get
     .in("block")
     .in(path[String]) // block_hash
     .in("detail")
+    .in(query[Option[Int]]("p"))
     .out(jsonBody[Option[BlockDetail]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountPageEndPoint = baseEndpoint.get
     .in("account" / "list")
     .in(
@@ -92,15 +88,13 @@ object ExploreApi:
     )
     .out(jsonBody[PageResponse[AccountInfo]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getAccountDetailEndPoint = baseEndpoint.get
     .in("account")
-    .in(path[String]("accountAddr")) // account_address
+    .in(path[String]("accountAddr"))
     .in("detail")
     .in(query[Option[Int]]("p"))
     .out(jsonBody[Option[AccountDetail]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftPageEndPoint = baseEndpoint.get
     .in("nft" / "list")
     .in(
@@ -108,56 +102,43 @@ object ExploreApi:
     )
     .out(jsonBody[PageResponse[NftInfoModel]])
   
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftSeasonEndPoint = baseEndpoint.get
     .in("nft")
-    .in(path[String]("season")) // token_id
+    .in(path[String]("season"))
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
     .out(jsonBody[PageResponse[NftSeasonModel]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftDetailEndPoint = baseEndpoint.get
     .in("nft")
-    .in(path[String]("tokenId")) // token_id
+    .in(path[String]("tokenId"))
     .in("detail")
     .out(jsonBody[Option[NftDetail]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getNftOwnerInfoEndPoint = baseEndpoint.get
     .in("nft")
-    .in(path[String]("tokenId")) // token_id
+    .in(path[String]("tokenId"))
     .in("info")
     .out(jsonBody[Option[NftOwnerInfo]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getSummaryMainEndPoint = baseEndpoint.get
     .in("summary")
     .in("main")
     .out(jsonBody[Option[SummaryBoard]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getSummaryChartEndPoint = baseEndpoint.get
     .in("summary")
     .in("chart")
     .in(path[String]("chartType"))
     .out(jsonBody[SummaryChart])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getTotalBalance = baseEndpoint.get
     .in("total")
     .in("balance")
     .out(jsonBody[Option[String]])
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val getValanceFromChainProd = baseEndpoint.get
     .in("prod")
     .in("chain")
     .out(jsonBody[Option[String]])
-
-  // @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  // val getSearchTargetType = baseEndpoint.get
-  //   .in("search")
-  //   .in(query[String]("target")) // targetValue
-  //   .out(jsonBody[Option[String]])

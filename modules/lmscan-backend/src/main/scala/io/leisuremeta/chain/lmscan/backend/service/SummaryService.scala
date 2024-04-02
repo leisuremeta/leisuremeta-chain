@@ -19,18 +19,13 @@ object SummaryService:
           Some(s.createdAt),
           Some(s.totalTxSize.toLong),
           Some(s.totalBalance),
+          s.marketCap,
+          s.cirSupply,
+          s.totalNft,
         )
   extension (opt: Option[Summary])
     def toM: SummaryModel = opt match
-      case Some(s) => SummaryModel(
-          Some(s.id),
-          Some(s.lmPrice),
-          Some(s.blockNumber),
-          Some(s.totalAccounts),
-          Some(s.createdAt),
-          Some(s.totalTxSize.toLong),
-          Some(s.totalBalance),
-        )
+      case Some(s) => s.toM
       case None => SummaryModel()
     
   def get[F[_]: Async](n: Int): EitherT[F, Either[String, String], Option[SummaryModel]] =

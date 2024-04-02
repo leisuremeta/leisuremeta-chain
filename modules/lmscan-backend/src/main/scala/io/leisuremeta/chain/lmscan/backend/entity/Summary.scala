@@ -8,4 +8,7 @@ final case class Summary(
     createdAt: Long,
     totalTxSize: BigDecimal,
     totalBalance: BigDecimal,
+    marketCap: Option[BigDecimal],
+    cirSupply: Option[BigDecimal],
+    totalNft: Option[Long],
 )
