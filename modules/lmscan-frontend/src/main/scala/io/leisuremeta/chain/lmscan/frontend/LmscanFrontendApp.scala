@@ -5,6 +5,7 @@ import tyrian.*
 import tyrian.Html.*
 import scala.scalajs.js.annotation.*
 import io.leisuremeta.chain.lmscan.common.model._
+import concurrent.duration.DurationInt
 
 @JSExportTopLevel("LmScan")
 object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
@@ -15,14 +16,14 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
 
   def subscriptions(model: Model): Sub[IO, Msg] =
     SearchView.detectSearch ++ Pagination.detectSearch
+    ++ Sub.Batch(
+      Sub.every[IO](1.second, "clock-ticks").map(UpdateTime.apply),
+      Sub.every[IO](60.second, "refresh-ticks").map(_ => RefreshData),
+    )
 
   def router: Location => Msg =
     case loc: Location.Internal =>
       loc.pathName match
-        case s"/chart/$t" => t match
-          case "acc" => ToPage(AccChartModel())
-          case "bal" => ToPage(BalChartModel())
-          case "tx" => ToPage(TxChartModel())
         case s"/blcs/$page" => ToPage(BlcModel(page = page.toInt))
         case s"/txs/$page" => ToPage(TxModel(page = page.toInt))
         case s"/nfts/$page" => ToPage(NftModel(page = page.toInt))
@@ -30,8 +31,12 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
         case s"/tx/$hash" => ToPage(TxDetailModel(txDetail = TxDetail(hash = Some(hash))))
         case s"/nft/$id/$page" => ToPage(NftTokenModel(page = page.toInt, id = id))
         case s"/nft/$id" => ToPage(NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(id))))))
-        case s"/blc/$hash" => ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = Some(hash))))
-        case s"/acc/$address" => ToPage(AccDetailModel(accDetail = AccountDetail(address = Some(address))))
+        case s"/blc/$hash" => 
+          val p = loc.search.getOrElse("").split("=").last
+          ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = Some(hash)), page = p.toInt))
+        case s"/acc/$address" => 
+          val p = loc.search.getOrElse("").split("=").last
+          ToPage(AccDetailModel(accDetail = AccountDetail(address = Some(address)), page = p.toInt))
         case "/" => ToPage(BaseModel())
         case "" => ToPage(BaseModel())
         case _   => ToPage(ErrorModel(error = ""))

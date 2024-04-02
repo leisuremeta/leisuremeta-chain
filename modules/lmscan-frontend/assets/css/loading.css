@@ -1,0 +1,35 @@
+div.loader-case {
+  display: flex;
+  padding: 24px 0;
+  background: rgba(15, 14, 14, 0.4);
+  grid-column: span 12;
+  border-radius: var(--br);
+}
+
+.loader {
+  position: relative;
+  left: calc(50% - 24px);
+  top: calc(50% - 24px);
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 10px solid;
+  border-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.45) rgba(255, 255, 255, 0.55) rgba(255, 255, 255, 0.95);
+  animation: rotation 1s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+} 

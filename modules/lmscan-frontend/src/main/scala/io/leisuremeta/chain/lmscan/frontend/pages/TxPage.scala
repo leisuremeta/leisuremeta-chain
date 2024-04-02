@@ -5,23 +5,24 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 import common.model._
+import concurrent.duration.DurationInt
 
 object TxPage:
   def update(model: TxModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model))
+    case RefreshData => (model, DataProcess.getData(model))
     case UpdateTxs(v) => (model.copy(data = Some(v)), Nav.pushUrl(model.url))
     case UpdateSearch(v) => (model.copy(searchPage = v), Cmd.None)
     case ListSearch => (TxModel(page = model.searchPage), Cmd.emit(Init))
-    case GlobalInput(s) => (model.copy(global = model.global.updateSearchValue(s)), Cmd.None)
+    case TogglePageInput(t) => (model.copy(pageToggle = t), Cmd.None)
+    case msg: GlobalMsg => (model.copy(global = model.global.update(msg)), Cmd.None)
     case msg => (model.toEmptyModel, Cmd.emit(msg))
 
   def view(model: TxModel): Html[Msg] =
     DefaultLayout.view(
       model,
-      div(`class` := "table-area")(
-        div(`class` := "font-40px pt-16px font-block-detail color-white")(
-          "Transactions",
-        ),
+      List(
+        div(cls := "page-title")("Transactions"),
         Table.view(model),
       ),
     )
@@ -31,6 +32,7 @@ final case class TxModel(
     page: Int = 1,
     searchPage: Int = 1,
     data: Option[PageResponse[TxInfo]] = None,
+    pageToggle: Boolean = false,
 ) extends PageModel:
     def view: Html[Msg] = TxPage.view(this)
     def url = s"/txs/$page"

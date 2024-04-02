@@ -1,22 +1,78 @@
-.footer ul, .footer ol, .footer li {list-style: none;margin:0;padding:0;}
-.footer a{color:#fff;text-decoration:none}
-.footer a:hover{opacity: 0.8;}
+footer {
+  background-color: var(--w0);
+}
+footer * {
+  color: #303972;
+  font-size: 16px;
+}
+footer > div { 
+  display: flex;
+  flex-direction: row; 
+  justify-content: space-between;
+  gap: var(--pad);
+}
+footer .footer-left {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--pad);
+  > :first-child {
+    display: flex;
+    align-items: end;
+    gap: .5em;
+    strong {
+      font-size: var(--t-text);
+    }
+  }
+  strong {
+    font-size: 16px;
+    font-weight: var(--bold);
+  }
+}
 
-.footer{display: flex;justify-content: space-between;padding:30px 0;color:#fff;align-self: end;}
-.footer .footer-left{display: flex;flex-wrap: wrap;flex-direction: column;justify-content: space-between;}
-.footer .footer-left .top-box{display: flex;flex-wrap: wrap;gap: 10px;flex-direction: column;}
+footer .footer-right{
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+  dl {
+    flex: 0 0 40%;
+  }
+  dt {
+    font-size: 14px;
+    font-weight: var(--bold);
+  }
+  dd{
+    padding-top: var(--br);
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 12px;
+  }
+  a{
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    text-decoration: none;
+    height: 20px;
+    padding-left:35px;
+    background-position: left top;
+    background-size: auto 20px;
+    background-repeat: no-repeat;
+    &:hover{opacity: 0.8;}
+  }
+}
+.icon-The-Moon-Labs{background-image: url(../img/footer/TMLS_303972.png);}
+.icon-leisuremetaverse{background-image: url(../img/footer/LM.png);}
+.icon-playnomm{background-image: url(../img/footer/playnomm.png);}
+.icon-lm-nova{background-image: url(../img/footer/NOVA2_dark2.png);}
+.icon-github{background-image: url(../img/footer/Github.png);}
+.icon-telegram{background-image: url(../img/footer/icon_telegram.svg);}
+.icon-twitter{background-image: url(../img/footer/Tweeter.png);}
+.icon-discord{background-image: url(../img/footer/Discord.png);}
 
-.footer .footer-right{display: flex;min-width: 500px;}
-.footer .footer-right dl{width:50%;}
-.footer .footer-right dl dt{font-weight: 700;font-size: 17px;}
-.footer .footer-right dl dd{padding-top:15px;}
-.footer .footer-right dl dd ul{display: flex;flex-wrap: wrap;flex-direction: column;gap: 12px;}
-.footer .footer-right dl dd ul li a{display: inline-block;line-height: 1.5em; padding-left:35px;font-size: 15px; background-position: left center;background-size: 23px auto;background-repeat: no-repeat;}
-.footer .footer-right dl dd ul li .icon-The-Moon-Labs{background-image: url(../img/footer/icon_The_Moon_Labs.png);}
-.footer .footer-right dl dd ul li .icon-leisuremetaverse{background-image: url(../img/footer/icon_leisuremetaverse.png);}
-.footer .footer-right dl dd ul li .icon-playnomm{background-image: url(../img/footer/icon_playnomm.png);}
-.footer .footer-right dl dd ul li .icon-lm-nova{background-image: url(../img/footer/icon_lm_nova.png);}
-.footer .footer-right dl dd ul li .icon-github{background-image: url(../img/footer/icon_github.svg);}
-.footer .footer-right dl dd ul li .icon-telegram{background-image: url(../img/footer/icon_telegram.svg);}
-.footer .footer-right dl dd ul li .icon-twitter{background-image: url(../img/footer/icon_twitter.svg);}
-.footer .footer-right dl dd ul li .icon-discord{background-image: url(../img/footer/icon_discord.svg);}
+@media screen and (max-width: 800px) {
+  footer  > div {
+    flex-wrap: wrap;
+  }
+}

@@ -33,59 +33,39 @@ object Pagination:
       case _: TxModel => ToPage(TxModel(page = v))
       case _: AccModel => ToPage(AccModel(page = v))
       case _: NftModel => ToPage(NftModel(page = v))
+      case n: BlcDetailModel=> ToPage(n.copy(page = v))
+      case n: AccDetailModel=> ToPage(n.copy(page = v))
       case n: NftTokenModel => ToPage(n.copy(page = v))
+    def isDis(condition: Boolean) = if condition then "dis" else ""
+    def toggleInput = TogglePageInput(!model.pageToggle)
 
-    div(
-      `class` := s"_search table-search xy-center",
-    )(
-      div(`class` := "xy-center")(
-        div(
-          `class` := s"type-arrow",
-          curPage match
-            case 1 => style(Style("color" -> "gray"))
-            case _ => onClick(goTo(1)),
-        )("<<"),
-        div(
-          `class` := s"type-arrow",
-          curPage <= 10 match
-            case true  => style(Style("color" -> "gray"))
-            case false => onClick(goTo(curPage - 10)),
-        )("<"),
-        div(`class` := s"type-text-btn")(
-          List
-            .range(btnFistPage, btnLastPage)
-            .map(idx =>
-              span(
-                `class` := (if curPage == idx then "selected" else ""),
-                onClick(goTo(idx)),
-              )(idx.toString()),
-            ),
-        ),
-        div(
-          `class` := s"type-arrow",
-          curPage >= totalPage - 10 match
-            case true  => style(Style("color" -> "gray"))
-            case false => onClick(goTo(curPage + 10)),
-        )(">"),
-        div(
-          `class` := s"type-arrow",
-          curPage == totalPage match
-            case true => style(Style("color" -> "gray"))
-            case _    => onClick(goTo(totalPage)),
-        )(">>"),
-        div(
-          style(Style("margin-left" -> "10px")),
-        )(
+    div(cls := s"table-search")(
+      a(
+        cls := s"${isDis(1 == curPage)}",
+        onClick(goTo(1)),
+      )("First"),
+      a(
+        cls := s"${isDis(curPage <= 10)}",
+        onClick(goTo(curPage - 10)),
+      )("<"),
+      model.pageToggle match
+        case true => 
           input(
             id := "list-search",
             onInput(s => UpdateSearch(checkAndMake(s, totalPage, curPage))),
             value := s"${curPage}",
-            `class` := "type-search xy-center margin-right text-center",
-          ),
-          div(`class` := "type-plain-text margin-right")("of"),
-          div(`class` := "type-plain-text margin-right")(totalPage.toString),
-        ),
-      ),
+            cls := "type-search",
+          )
+        case false => p(onClick(toggleInput))(s"${curPage} of ${totalPage}")
+      ,
+      a(
+        cls := s"${isDis(curPage >= totalPage - 10)}",
+        onClick(goTo(curPage + 10)),
+      )(">"),
+      a(
+        cls := s"${isDis(curPage == totalPage)}",
+        onClick(goTo(totalPage)),
+      )("Last"),
     )
   
   def detectSearch = 
