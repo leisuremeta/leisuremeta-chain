@@ -42,12 +42,14 @@ object BlockService:
 
   def getDetail[F[_]: Async](
       hash: String,
+      p: Int,
   ): EitherT[F, Either[String, String], Option[BlockDetail]] =
     
     for
       block <- get(hash)
-      txs <- TransactionService.getPageByBlock(
+      txPage <- TransactionService.getPageByBlock(
         hash,
+        PageNavigation(p - 1, 20),
       )
 
       blockInfo = block.map: bl =>
@@ -57,6 +59,8 @@ object BlockService:
           Some(bl.number),
           Some(bl.eventTime),
           Some(bl.txCount),
-          Some(txs),
+          txPage.totalCount,
+          txPage.totalPages,
+          txPage.payload,
         )
     yield blockInfo

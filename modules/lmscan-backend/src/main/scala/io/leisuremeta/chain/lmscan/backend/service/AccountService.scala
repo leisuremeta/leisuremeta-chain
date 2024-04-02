@@ -37,11 +37,12 @@ object AccountService:
             Some(AccountDetail(
               Some(x.address),
               Some(x.balance),
-              Some(x.balance / BigDecimal("1E+18") * BigDecimal(price)),
-              // Some(txPage.drop((detail - 1) * 20).take(20)),
-              Some(txPage.payload),
-            ))
-          )
+              Some(x.balance / (BigDecimal("1E+18") * BigDecimal(price))),
+              txPage.totalCount,
+              txPage.totalPages,
+              txPage.payload,
+            )
+          ))
         case None =>
           EitherT.leftT[F, Option[AccountDetail]](Right(s"$address is not exist"))
     yield res

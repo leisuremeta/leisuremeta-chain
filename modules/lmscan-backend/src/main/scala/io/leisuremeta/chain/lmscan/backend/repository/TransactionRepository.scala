@@ -87,32 +87,65 @@ object TransactionRepository extends CommonQuery:
       addr: String,
       pageNavInfo: PageNavigation,
   ): EitherT[F, String, PageResponse[Tx]] =
+    val cntQuery = quote {
+      query[Tx].filter(t =>
+        t.fromAddr == lift(addr) || t.toAddr.contains(lift(addr)),
+      )
+    }
+
     inline def pagedQuery =
-      quote { (address: String) =>
+      quote { (pageNavInfo: PageNavigation) =>
+        val sizePerRequest = pageNavInfo.sizePerRequest
+        val offset         = sizePerRequest * pageNavInfo.pageNo
+
         query[Tx]
           .filter(t =>
             t.fromAddr == lift(addr) || t.toAddr.contains(lift(addr)),
           )
-          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
-          .take(20)
+          .sortBy(t => t.eventTime)(Ord.desc)
+          .drop(offset)
+          .take(sizePerRequest)
       }
-    for
-      seq <- seqQuery(pagedQuery(lift(addr)))
-      size = seq.size
-    yield PageResponse(size, 1, seq)
+
+    val res = for
+      totalCnt <- countQuery(cntQuery)
+      payload  <- seqQuery(pagedQuery(lift(pageNavInfo)))
+    yield (totalCnt, payload)
+
+    res.map { (totalCnt, payload) =>
+      val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
+      new PageResponse(totalCnt, totalPages, payload)
+    }
 
   def getTxPageByBlock[F[_]: Async](
-      blockHash: String,
-  ): EitherT[F, String, Seq[Tx]] =
-    def pagedQuery =
-      quote { (hash: String) =>
+      hash: String,
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, String, PageResponse[Tx]] =
+    val cntQuery = quote {
+      query[Tx].filter(t => t.blockHash == lift(hash))
+    }
+
+    inline def pagedQuery =
+      quote { (pageNavInfo: PageNavigation) =>
+        val sizePerRequest = pageNavInfo.sizePerRequest
+        val offset         = sizePerRequest * pageNavInfo.pageNo
 
         query[Tx]
-          .filter(t => t.blockHash == hash)
-          .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
+          .filter(t => t.blockHash == lift(hash))
+          .sortBy(t => t.eventTime)(Ord.desc)
+          .drop(offset)
+          .take(sizePerRequest)
       }
 
-    seqQuery(pagedQuery(lift(blockHash)))
+    val res = for
+      totalCnt <- countQuery(cntQuery)
+      payload  <- seqQuery(pagedQuery(lift(pageNavInfo)))
+    yield (totalCnt, payload)
+
+    res.map { (totalCnt, payload) =>
+      val totalPages = calTotalPage(totalCnt, pageNavInfo.sizePerRequest)
+      new PageResponse(totalCnt, totalPages, payload)
+    }
 
   def countTotalTx[F[_]: Async]: EitherT[F, String, Long] =
     val cntQuery = quote {

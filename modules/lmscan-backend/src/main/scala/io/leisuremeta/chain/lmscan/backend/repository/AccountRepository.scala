@@ -47,7 +47,7 @@ object AccountRepository extends CommonQuery:
 
         query[Balance]
           .filter(_.address != "eth-gateway")
-          .sortBy(a => a.updatedAt)(Ord.asc)
+          .sortBy(a => a.free)(Ord.desc)
           .drop(offset)
           .take(sizePerRequest)
       }

@@ -8,7 +8,6 @@ import cats.data.EitherT
 import cats.Monad
 import eu.timepit.refined.boolean.False
 import cats.effect.Async
-import io.leisuremeta.chain.lmscan.common.ExploreApi
 import cats.implicits.catsSyntaxEitherId
 import cats.effect.IO
 import cats.effect.kernel.Async
@@ -88,12 +87,11 @@ object TransactionService:
 
   def getPageByBlock[F[_]: Async](
       blockHash: String,
-      // pageNavInfo: PageNavigation,
-  ): EitherT[F, Either[String, String], Seq[TxInfo]] =
+      pageNavInfo: PageNavigation,
+  ): EitherT[F, Either[String, String], PageResponse[TxInfo]] =
     for
-      // page <- TransactionRepository.getTxPageByBlock(blockHash, pageNavInfo).leftMap(Left(_))
-      page <- TransactionRepository.getTxPageByBlock(blockHash).leftMap(Left(_))
-    yield convertToInfo(page)
+      page <- TransactionRepository.getTxPageByBlock(blockHash, pageNavInfo).leftMap(Left(_))
+    yield page.copy(payload = convertToInfo(page.payload))
 
   def getPageByFilter[F[_]: Async](
       pageInfo: PageNavigation,
@@ -106,10 +104,6 @@ object TransactionService:
         (accountAddr, blockHash) match
           case (None, None) =>
             getPage[F](pageInfo)
-          // case (None, Some(blockHash)) =>
-          //   getPageByBlock[F](blockHash, pageInfo)
-          // case (Some(accountAddr), None) =>
-          //   getPageByAccount[F](accountAddr, pageInfo)
           case (_, _) =>
             EitherT.left(Async[F].delay(Left("검색 파라미터를 하나만 입력해주세요.")))
       case Some(subtype) =>
