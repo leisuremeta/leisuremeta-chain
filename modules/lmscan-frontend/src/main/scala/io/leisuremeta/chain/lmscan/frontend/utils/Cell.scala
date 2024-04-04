@@ -141,7 +141,7 @@ object gen:
           span(
             price match
               case Some(p) =>
-                "$ " + DecimalFormat("#,###.####").format(p)
+                "$ " + DecimalFormat("#,###.0000").format(p)
               case _ => "$ 0",
           ),
         )
@@ -151,7 +151,7 @@ object gen:
             (price, data) match
               case (Some(p), Some(v)) =>
                 val a = v / BigDecimal("1E+18") * BigDecimal(p)
-                "$ " + DecimalFormat("#,###.####").format(a)
+                "$ " + DecimalFormat("#,###.0000").format(a)
               case _ => "$ 0",
           ),
         )
@@ -162,7 +162,7 @@ object gen:
               case None => "- LM"
               case Some(v) =>
                 val a = v / BigDecimal("1E+18")
-                DecimalFormat("#,###.####").format(a) + " LM",
+                DecimalFormat("#,###.00").format(a) + " LM",
           ),
         )
       case Cell.PlainStr(data, css) =>

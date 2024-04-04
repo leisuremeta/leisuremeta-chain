@@ -23,9 +23,14 @@ object BlockDetailPage:
       model,
       List(
         div(cls := "page-title")("Block Details"),
-        BlockDetailTable.view(model.blcDetail),
+        model.data match
+          case None => LoaderView.view
+          case Some(_) => BlockDetailTable.view(model.blcDetail)
+        ,
         div(cls := "page-title")("Transaction List"),
-        Table.view(model)
+        model.data match
+          case None => LoaderView.view
+          case Some(_) => Table.view(model)
       ),
     )
 

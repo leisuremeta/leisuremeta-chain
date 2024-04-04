@@ -23,9 +23,14 @@ object AccountDetailPage:
       model,
       List(
         div(cls := "page-title")("Account"),
-        AccountDetailTable.view(model.accDetail),
+        model.data match
+          case None => LoaderView.view
+          case Some(_) => AccountDetailTable.view(model.accDetail)
+        ,
         div(cls := "page-title")("Transaction History"),
-        Table.view(model)
+        model.data match
+          case None => LoaderView.view
+          case Some(_) => Table.view(model)
       ),
     )
 
