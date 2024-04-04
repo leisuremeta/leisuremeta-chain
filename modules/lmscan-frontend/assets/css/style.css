@@ -293,8 +293,14 @@ nav {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  flex-grow: 1;
   * {
+    color: var(--b1);
+  }
+  span {
     color: var(--darken-pri);
+    cursor: pointer;
   }
   > :first-child {
     font-size: 32px;

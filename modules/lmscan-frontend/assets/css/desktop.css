@@ -202,7 +202,7 @@ nav {
   gap: 24px;
 }
 
-.nft-detail > img {
+.nft-detail > img, .nft-detail > video {
   grid-column: span 4;
   width: 100%;
 }

@@ -5,6 +5,9 @@ footer * {
   color: #303972;
   font-size: 16px;
 }
+footer p > *, footer dt {
+  color: var(--b1);
+}
 footer > div { 
   display: flex;
   flex-direction: row; 
