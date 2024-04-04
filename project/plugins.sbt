@@ -1,6 +1,6 @@
 addDependencyTreePlugin
 
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.1.3")
+addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.1.6")
 
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 
