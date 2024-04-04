@@ -3,14 +3,8 @@ package node
 package dapp
 package submodule
 
-import cats.{~>, Monad}
-import cats.arrow.FunctionK
+import cats.Monad
 import cats.data.{EitherT, StateT}
-import cats.syntax.bifunctor.*
-
-import lib.crypto.Hash.ops.*
-import lib.crypto.Recover.ops.*
-import lib.datatype.Utf8
 import lib.merkle.MerkleTrieState
 
 def checkExternal[F[_]: Monad](

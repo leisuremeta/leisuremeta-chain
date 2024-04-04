@@ -12,7 +12,6 @@ import api.model.Block.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, UInt256}
-import lib.failure.DecodingFailure
 import repository.BlockRepository
 
 object NodeInitializationService:

@@ -8,7 +8,8 @@ class EmbeddedPostgreFlywayTest extends munit.FunSuite {
     def withRule[T <: TestRule](rule: T)(testCode: T => Any): Unit = {
         rule(
             new Statement() {
-                override def evaluate(): Unit = testCode(rule)
+                override def evaluate(): Unit =
+                    val _ = testCode(rule)
             },
             Description.createSuiteDescription("JUnit rule wrapper")
         ).evaluate()

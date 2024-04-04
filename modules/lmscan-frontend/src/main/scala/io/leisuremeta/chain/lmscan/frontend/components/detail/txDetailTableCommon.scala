@@ -4,9 +4,7 @@ package lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import lmscan.common.model.TxDetail
-import scala.util.chaining.*
 import io.circe.parser.decode
-import cats.data.EitherT
 import api.model._
 import api.model.Transaction.AccountTx.*
 import api.model.Transaction.TokenTx.*
@@ -14,11 +12,9 @@ import api.model.Transaction.GroupTx.*
 import api.model.Transaction.RewardTx.*
 import api.model.Transaction.AgendaTx.*
 import api.model.token.*
-import io.leisuremeta.chain.lib.datatype.Utf8
-import io.leisuremeta.chain.lib.crypto.Hash.Value
 import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.api.model.Signed.TxHash
-import io.circe.*, io.circe.generic.semiauto.*
+import io.circe.*
 import io.circe.parser.*
 import io.circe.generic.auto.*
 import io.leisuremeta.chain.api.model.Transaction._

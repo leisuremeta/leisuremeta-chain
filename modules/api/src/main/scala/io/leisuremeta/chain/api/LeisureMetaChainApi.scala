@@ -6,14 +6,12 @@ import java.util.Locale
 
 import io.circe.KeyEncoder
 import io.circe.generic.auto.*
-import io.circe.refined.*
 import scodec.bits.ByteVector
-import sttp.client3.*
 import sttp.model.StatusCode
 import sttp.tapir.*
-import sttp.tapir.CodecFormat.{Json, TextPlain}
+import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.json.circe.*
-import sttp.tapir.generic.auto.{*, given}
+import sttp.tapir.generic.auto.*
 
 import lib.crypto.{Hash, Signature}
 import lib.datatype.{BigNat, UInt256, UInt256BigInt, UInt256Bytes, Utf8}
@@ -40,7 +38,6 @@ import api.model.api_model.{
 }
 import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import api.model.reward.{ActivitySnapshot, OwnershipSnapshot, OwnershipRewardLog}
-import api.model.Signed.TxHash.given
 
 object LeisureMetaChainApi:
 

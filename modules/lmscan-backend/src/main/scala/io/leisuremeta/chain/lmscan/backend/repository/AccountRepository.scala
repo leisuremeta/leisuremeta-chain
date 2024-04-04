@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.backend.repository
 
-import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
 import cats.effect.kernel.Async
 import cats.data.EitherT
 import io.getquill.*
@@ -9,7 +8,7 @@ import io.getquill.autoQuote
 import io.leisuremeta.chain.lmscan.common.model._
 
 object AccountRepository extends CommonQuery:
-  import ctx.{*, given}
+  import ctx.*
 
   def get[F[_]: Async](
       addr: String,

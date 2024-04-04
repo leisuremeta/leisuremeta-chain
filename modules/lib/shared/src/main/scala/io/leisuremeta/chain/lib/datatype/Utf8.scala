@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lib
 package datatype
 
 import java.nio.charset.{CharacterCodingException, StandardCharsets}
-import scala.util.Try
 
 import cats.Eq
 

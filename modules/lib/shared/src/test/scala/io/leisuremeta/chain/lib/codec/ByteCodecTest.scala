@@ -1,13 +1,6 @@
 package io.leisuremeta.chain.lib
 package codec
 
-import eu.timepit.refined.auto.autoUnwrap
-import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
-import io.circe.generic.auto.given
-import io.circe.refined.given
-import io.circe.syntax.given
-import scodec.bits.ByteVector
-
 import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 

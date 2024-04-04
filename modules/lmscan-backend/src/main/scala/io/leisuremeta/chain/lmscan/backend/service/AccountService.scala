@@ -4,8 +4,7 @@ import cats.effect.kernel.Async
 import cats.data.EitherT
 
 import io.leisuremeta.chain.lmscan.backend.repository.AccountRepository
-import io.leisuremeta.chain.lmscan.backend.service.TransactionService
-import io.leisuremeta.chain.lmscan.backend.entity.{Tx, Account}
+import io.leisuremeta.chain.lmscan.backend.entity.Account
 import io.leisuremeta.chain.lmscan.common.model.{
   PageNavigation,
   PageResponse,

@@ -3,10 +3,6 @@ package node
 package store
 package interpreter
 
-import java.nio.file.Path
-
-import scala.concurrent.ExecutionContext
-
 import cats.Monad
 import cats.data.EitherT
 import cats.effect.{IO, Resource}
@@ -14,7 +10,7 @@ import cats.effect.{IO, Resource}
 import scodec.bits.ByteVector
 import io.lettuce.core._
 
-import lib.codec.byte.{ByteCodec, ByteDecoder, ByteEncoder, DecodeResult}
+import lib.codec.byte.{ByteCodec, DecodeResult}
 import lib.failure.DecodingFailure
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.RedisCodec

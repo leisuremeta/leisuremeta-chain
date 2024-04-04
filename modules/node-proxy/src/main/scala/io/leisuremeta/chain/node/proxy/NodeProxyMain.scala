@@ -1,23 +1,17 @@
 package io.leisuremeta.chain.node
 package proxy
 
-import io.circe.generic.auto.*
-import io.circe.parser.decode
-import scala.util.Try
-import scala.concurrent.duration.*
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.effect.Ref
 import sttp.client3.armeria.cats.ArmeriaCatsBackend
 import sttp.client3.*
 import cats.syntax.*
 import cats.syntax.all._
-import scala.jdk.CollectionConverters.*
 import com.linecorp.armeria.client.ClientFactory
 import com.linecorp.armeria.client.WebClient
 import com.linecorp.armeria.client.encoding.DecodingClient
 import cats.effect.kernel.Async
 import cats.syntax.flatMap.toFlatMapOps
-import java.nio.file.{Files, Paths, StandardOpenOption}
 import model.NodeConfig
 import service.*
 

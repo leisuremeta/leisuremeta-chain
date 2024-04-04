@@ -38,17 +38,9 @@ import failure.UInt256RefineFailure
 
 object CryptoOps:
 
-  locally {
-    @SuppressWarnings(
-      Array(
-        "org.wartremover.warts.Equals",
-        "org.wartremover.warts.NonUnitStatements",
-      ),
-    )
-    val _ =
-      if Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null then
-        Security.addProvider(new BouncyCastleProvider())
-  }
+  locally:
+    if Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null then
+      val _ = Security.addProvider(new BouncyCastleProvider())
 
   val secureRandom: SecureRandom = new SecureRandom()
 

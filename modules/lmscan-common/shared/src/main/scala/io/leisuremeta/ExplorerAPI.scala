@@ -2,9 +2,8 @@ package io.leisuremeta.chain.lmscan.common
 
 import sttp.model.StatusCode
 import sttp.tapir.*
-import sttp.tapir.EndpointIO
+import sttp.tapir.generic.auto.*
 import sttp.tapir.json.circe.*
-import sttp.tapir.generic.auto.{*, given}
 import io.circe.generic.auto.*
 import io.leisuremeta.chain.lmscan.common.model._
 import io.circe.*

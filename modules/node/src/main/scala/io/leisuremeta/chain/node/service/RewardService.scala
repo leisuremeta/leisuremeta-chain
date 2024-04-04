@@ -2,42 +2,42 @@ package io.leisuremeta.chain
 package node
 package service
 
-import java.time.{DayOfWeek, Instant, ZoneId, ZonedDateTime}
-import java.time.temporal.{ChronoUnit, TemporalAdjusters}
+//import java.time.{DayOfWeek, Instant, ZoneId}//, ZonedDateTime}
+//import java.time.temporal.{ChronoUnit, TemporalAdjusters}
 
-import cats.{Monad, Monoid}
-import cats.data.EitherT
-import cats.effect.Concurrent
-import cats.syntax.either.catsSyntaxEither
-import cats.syntax.eq.catsSyntaxEq
-import cats.syntax.foldable.toFoldableOps
-import cats.syntax.functor.toFunctorOps
-import cats.syntax.traverse.toTraverseOps
+//import cats.{Monad, Monoid}
+//import cats.data.EitherT
+//import cats.effect.Concurrent
+//import cats.syntax.either.catsSyntaxEither
+//import cats.syntax.eq.catsSyntaxEq
+//import cats.syntax.foldable.toFoldableOps
+//import cats.syntax.functor.toFunctorOps
+//import cats.syntax.traverse.toTraverseOps
 
-import fs2.Stream
-import scodec.bits.BitVector
+//import fs2.Stream
+//import scodec.bits.BitVector
 
-import api.model.{Account, Block, GroupId, StateRoot, TransactionWithResult}
-import api.model.Block.ops.*
-import api.model.TransactionWithResult.ops.*
-import api.model.api_model.RewardInfo
-import api.model.reward.{DaoActivity, DaoInfo}
-import api.model.token.{
-  NftState,
-  Rarity,
-  TokenDefinition,
-  TokenDefinitionId,
-  TokenId,
-}
-import dapp.PlayNommState
-import lib.codec.byte.{ByteDecoder, DecodeResult}
-import lib.codec.byte.ByteEncoder.ops.*
-import lib.crypto.Hash
-import lib.crypto.Hash.ops.*
-import lib.datatype.{BigNat, Utf8}
+//import api.model.{Block,TransactionWithResult}//{Account, Block, GroupId, StateRoot, TransactionWithResult}
+//import api.model.Block.ops.*
+//import api.model.TransactionWithResult.ops.*
+//import api.model.api_model.RewardInfo
+//import api.model.reward.{DaoActivity, DaoInfo}
+//import api.model.token.{
+//  NftState,
+//  Rarity,
+//  TokenDefinition,
+//  TokenDefinitionId,
+//  TokenId,
+//}
+//import dapp.PlayNommState
+//import lib.codec.byte.{ByteDecoder, DecodeResult}
+//import lib.codec.byte.ByteEncoder.ops.*
+//import lib.crypto.Hash
+//import lib.crypto.Hash.ops.*
+//import lib.datatype.{BigNat, Utf8}
 //import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
 //import lib.merkle.GenericMerkleTrie.NodeStore
-import repository.{BlockRepository, TransactionRepository}
+//import repository.{BlockRepository, TransactionRepository}
 //import repository.GenericStateRepository.given
 
 //import lib.merkle.{GenericMerkleTrie, GenericMerkleTrieState}
@@ -217,12 +217,12 @@ object RewardService:
 //      }
 //      .runA(root)
 //
-  def getLatestRewardInstantBefore(timestamp: Instant): Instant =
-    timestamp
-      .atZone(ZoneId.of("Asia/Seoul"))
-      .`with`(TemporalAdjusters.previous(DayOfWeek.MONDAY))
-      .truncatedTo(ChronoUnit.DAYS)
-      .toInstant()
+//  def getLatestRewardInstantBefore(timestamp: Instant): Instant =
+//    timestamp
+//      .atZone(ZoneId.of("Asia/Seoul"))
+//      .`with`(TemporalAdjusters.previous(DayOfWeek.MONDAY))
+//      .truncatedTo(ChronoUnit.DAYS)
+//      .toInstant()
 
 //  def getWeeklyRefTime(last: Instant): Seq[Instant] =
 //    Seq.tabulate(7)(i => last.minus(7 - i, ChronoUnit.DAYS))

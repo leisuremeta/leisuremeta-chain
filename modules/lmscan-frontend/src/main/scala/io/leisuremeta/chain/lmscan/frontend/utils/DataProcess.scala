@@ -6,12 +6,9 @@ import io.circe.parser.*
 import tyrian.*
 import tyrian.http.*
 import scala.scalajs.js
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
 import common.model._
 import tyrian.cmds.LocalStorage
-import io.circe.Encoder
-import typings.node.nodeStrings.response
 
 object Parse:
   import io.circe.*, io.circe.generic.semiauto.*

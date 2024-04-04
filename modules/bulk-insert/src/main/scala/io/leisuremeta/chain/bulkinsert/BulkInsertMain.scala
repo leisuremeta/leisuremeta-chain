@@ -3,13 +3,12 @@ package bulkinsert
 
 import scala.io.Source
 
-import cats.data.{EitherT, Kleisli, StateT}
+import cats.data.{EitherT, Kleisli}
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 import fs2.Stream
-import io.circe.generic.auto.*
 import io.circe.parser.decode
 import scodec.bits.ByteVector
 

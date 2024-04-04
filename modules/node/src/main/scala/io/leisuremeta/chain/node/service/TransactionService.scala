@@ -3,11 +3,9 @@ package node
 package service
 
 import cats.{Functor, Monad}
-import cats.arrow.FunctionK
-import cats.data.{EitherT, Kleisli, StateT}
+import cats.data.{EitherT, Kleisli}
 import cats.effect.{Clock, Concurrent, Resource}
 import cats.effect.std.Semaphore
-import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
@@ -22,7 +20,7 @@ import lib.crypto.{Hash, KeyPair}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}
+import lib.merkle.{MerkleTrie, MerkleTrieState}
 import lib.merkle.MerkleTrie.NodeStore
 import repository.{
   BlockRepository,
@@ -40,14 +38,15 @@ object TransactionService:
     Resource
       .make:
         EitherT
-          .pure(semaphore.acquire)
+          .right[PlayNommDAppFailure](semaphore.acquire)
           .map: _ =>
             scribe.info(s"Lock Acquired: $txs")
             ()
       .apply: _ =>
-        EitherT.pure:
-          scribe.info(s"Lock Released: $txs")
-          semaphore.release
+        EitherT.right[PlayNommDAppFailure]:
+          semaphore.release.map: _ =>
+            scribe.info(s"Lock Released: $txs")
+            ()
       .use: _ =>
         submit0[F](txs, localKeyPair)
 

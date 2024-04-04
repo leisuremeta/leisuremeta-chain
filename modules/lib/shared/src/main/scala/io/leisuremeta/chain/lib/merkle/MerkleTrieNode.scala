@@ -4,11 +4,9 @@ package merkle
 import scala.compiletime.constValue
 
 import cats.Eq
-import cats.syntax.eq.*
 
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto.*
-import eu.timepit.refined.boolean.And
 import eu.timepit.refined.collection.Size
 import eu.timepit.refined.generic.Equal
 import eu.timepit.refined.numeric.Divisible

@@ -5,14 +5,9 @@ package submodule
 
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
-import cats.syntax.either.*
 import cats.syntax.traverse.*
 
-import fs2.Stream
-import scodec.bits.BitVector
-
 import api.model.{
-  Account,
   AccountSignature,
   Signed,
   Transaction,
@@ -21,13 +16,8 @@ import api.model.{
 import api.model.reward.{
   ActivityLog,
   DaoInfo,
-  OwnershipRewardLog,
-  OwnershipSnapshot,
 }
-import api.model.token.{NftState, TokenDefinitionId, TokenId}
 import api.model.TransactionWithResult.ops.*
-import lib.codec.byte.ByteDecoder.ops.*
-import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.BigNat

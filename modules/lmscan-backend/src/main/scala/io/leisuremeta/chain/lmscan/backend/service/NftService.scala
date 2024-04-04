@@ -2,11 +2,8 @@ package io.leisuremeta.chain.lmscan.backend.service
 
 import cats.effect.kernel.Async
 import cats.data.EitherT
-import io.leisuremeta.chain.lmscan.backend.entity.Nft
 import io.leisuremeta.chain.lmscan.backend.repository._
 import io.leisuremeta.chain.lmscan.common.model._
-import cats.implicits.*
-import cats.effect.IO
 import io.leisuremeta.chain.lmscan.backend.repository.NftOwnerRepository
 import io.leisuremeta.chain.lmscan.backend.entity._
 object NftService:

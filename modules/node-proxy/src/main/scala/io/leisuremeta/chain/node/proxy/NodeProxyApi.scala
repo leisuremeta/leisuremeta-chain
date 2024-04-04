@@ -3,29 +3,12 @@ package node
 package proxy
 
 import java.time.Instant
-import java.util.Locale
 
-import io.circe.KeyEncoder
-import io.circe.generic.auto.*
-import io.circe.refined.*
-import scodec.bits.ByteVector
-import sttp.client3.*
-import sttp.model.StatusCode
-import sttp.tapir.CodecFormat.{Json, TextPlain}
-import sttp.tapir.json.circe.*
-import sttp.tapir.generic.auto.{*, given}
-import sttp.tapir.EndpointIO.annotations.body
 import sttp.tapir.*
 import io.leisuremeta.chain.api.model.*
-import io.leisuremeta.chain.api.model.api_model.*
 import io.leisuremeta.chain.api.model.account.EthAddress
 import io.leisuremeta.chain.api.model.token.*
-import sttp.tapir.Codec.PlainCodec
 import sttp.model.MediaType
-import sttp.tapir.Codec.JsonCodec
-import io.circe.Json
-import sttp.tapir.EndpointIO.annotations.jsonbody
-import lib.crypto.Hash
 
 // import lib.crypto.{Hash, Signature}
 // import lib.datatype.{BigNat, UInt256, UInt256BigInt, UInt256Bytes, Utf8}

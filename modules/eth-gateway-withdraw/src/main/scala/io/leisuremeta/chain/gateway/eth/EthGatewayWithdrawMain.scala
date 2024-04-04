@@ -4,16 +4,16 @@ package gateway.eth
 import java.math.{BigInteger, MathContext}
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.Instant
-import java.util.{ArrayList, Arrays, Collections, Locale}
-import java.util.concurrent.CompletableFuture
+import java.util.{ArrayList, Collections, Locale}
+//import java.util.concurrent.CompletableFuture
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
-import scala.jdk.OptionConverters.*
+//import scala.jdk.OptionConverters.*
 import scala.util.Try
 
-import cats.data.{EitherT, OptionT}
+import cats.data.EitherT
 import cats.effect.{Async, Clock, ExitCode, IO, IOApp, Resource}
 import cats.syntax.apply.*
 import cats.syntax.applicativeError.*
@@ -23,18 +23,18 @@ import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
-import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
-import com.typesafe.config.{Config, ConfigFactory}
+//import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
+//import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.Encoder
 import io.circe.generic.auto.*
 import io.circe.parser.decode
 import io.circe.syntax.given
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
+//import okhttp3.OkHttpClient
+//import okhttp3.logging.HttpLoggingInterceptor
 import org.web3j.abi.{FunctionEncoder, TypeReference}
 import org.web3j.abi.datatypes.{Address, Function, Type}
 import org.web3j.abi.datatypes.generated.Uint256
-import org.web3j.crypto.{Credentials, RawTransaction, TransactionEncoder}
+import org.web3j.crypto.{Credentials, RawTransaction}
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.{
   DefaultBlockParameter,
@@ -42,25 +42,24 @@ import org.web3j.protocol.core.{
   Request as Web3jRequest,
   Response as Web3jResponse,
 }
-import org.web3j.protocol.core.methods.response.EthFeeHistory.FeeHistory
+//import org.web3j.protocol.core.methods.response.EthFeeHistory.FeeHistory
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.protocol.exceptions.TransactionException
-import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.response.PollingTransactionReceiptProcessor
-import scodec.bits.{ByteVector, hex}
-import software.amazon.awssdk.auth.credentials.{
-  AwsCredentials,
-  StaticCredentialsProvider,
-}
-import software.amazon.awssdk.core.SdkBytes
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.kms.KmsAsyncClient
-import software.amazon.awssdk.services.kms.model.DecryptRequest
+import scodec.bits.ByteVector
+//import software.amazon.awssdk.auth.credentials.{
+//  AwsCredentials,
+//  StaticCredentialsProvider,
+//}
+//import software.amazon.awssdk.core.SdkBytes
+//import software.amazon.awssdk.regions.Region
+//import software.amazon.awssdk.services.kms.KmsAsyncClient
+//import software.amazon.awssdk.services.kms.model.DecryptRequest
 import sttp.client3.*
 import sttp.model.{MediaType, StatusCode}
 
-import lib.crypto.{CryptoOps, Hash, KeyPair}
+import lib.crypto.{CryptoOps, Hash}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.*
@@ -655,7 +654,7 @@ object EthGatewayWithdrawMain extends IOApp:
     val parseTx = FunctionReturnDecoder.decode(txData.drop(10), List(typeRefUint256, typeRefAddress, typeRefUint256).asJava).asScala
     val path = Paths.get("failed_tx")
     val res = parseTx.map(e => e.getValue).mkString("", " ", "\n")
-    Files.write(
+    val _ = Files.write(
       path,
       res.getBytes(StandardCharsets.UTF_8),
       StandardOpenOption.CREATE,

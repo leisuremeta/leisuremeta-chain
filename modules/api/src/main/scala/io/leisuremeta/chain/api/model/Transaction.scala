@@ -8,13 +8,13 @@ import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
 import account.EthAddress
-import agenda.AgendaId
+//import agenda.AgendaId
 import reward.DaoActivity
-import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign}
+import lib.crypto.{Hash, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
-import token.{Rarity, NftInfo, NftInfoWithPrecision, TokenDefinitionId, TokenDetail, TokenId}
+import token.{Rarity, NftInfo, NftInfoWithPrecision, TokenDefinitionId, TokenId}
 
 sealed trait TransactionResult
 object TransactionResult:

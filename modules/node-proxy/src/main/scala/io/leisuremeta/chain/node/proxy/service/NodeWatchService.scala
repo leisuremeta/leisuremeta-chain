@@ -3,9 +3,8 @@ package service
 
 import cats.effect.Ref
 import cats.implicits.toFlatMapOps
-import cats.syntax.flatMap.toFlatMapOps
 import cats.effect.Async
-import java.nio.file.{Files, Paths, StandardOpenOption}
+import java.nio.file.{Files, Paths}
 import scala.util.Try
 import scala.jdk.CollectionConverters.*
 import model.NodeConfig
@@ -15,10 +14,6 @@ import scala.concurrent.duration.*
 import cats.implicits.catsSyntaxFlatMapOps
 import cats.syntax.all.toFunctorOps
 import cats.syntax.apply.catsSyntaxApply
-import cats.syntax.functor._
-import cats.implicits._
-import cats.instances.queue
-
 
 
 object NodeWatchService:

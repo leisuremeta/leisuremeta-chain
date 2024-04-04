@@ -2,8 +2,7 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import io.leisuremeta.chain.lmscan.common.model._
-import io.leisuremeta.chain.lmscan.frontend.V.plainStr
+import io.leisuremeta.chain.lmscan.common.model.*
 import org.scalajs.dom._
 import cats.effect.IO
 
@@ -23,11 +22,11 @@ object Pagination:
       case Some(v) => v match
         case PageResponse(totalCount, totalPages, payload) => totalPages.toInt
 
-    val btnFistPage = curPage match
-      case x if (x <= 2)               => 1
-      case x if (x >= (totalPage - 1)) => totalPage - 4
-      case x                           => (curPage - 2)
-    val btnLastPage = Math.min(totalPage + 1, btnFistPage + 5)
+//    val btnFistPage = curPage match
+//      case x if (x <= 2)               => 1
+//      case x if (x >= (totalPage - 1)) => totalPage - 4
+//      case x                           => (curPage - 2)
+//    val btnLastPage = Math.min(totalPage + 1, btnFistPage + 5)
     def goTo(v: Int) = model match
       case _: BlcModel => ToPage(BlcModel(page = v))
       case _: TxModel => ToPage(TxModel(page = v))

@@ -1,22 +1,17 @@
 package io.leisuremeta.chain.lib
 package merkle
 
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 import hedgehog.state.*
-import java.io.File
-import java.io.FileWriter
 
 import scala.collection.immutable.SortedMap
 
-import cats.{~>, Monad, Id}
+import cats.Id
 import cats.arrow.FunctionK
-import cats.catsInstancesForId
-import cats.data.{EitherT, Kleisli, StateT}
-import cats.implicits.{*, given}
-import cats.syntax.all.{*, given}
+import cats.data.{EitherT, Kleisli}
+import cats.syntax.all.*
 
 import fs2.Stream
 import scodec.bits.{BitVector, ByteVector}
@@ -157,7 +152,7 @@ class MerkleTrieTest extends HedgehogSuite:
       val current1  = s.current - i.key.bytes
       val stateRoot = merkleTrieState.root
       val hashLog1  = s.hashLog + ((current1 -> stateRoot))
-      State(current1, s.hashLog)
+      State(current1, hashLog1)
 
     override def ensure(
         env: Environment,
@@ -198,10 +193,6 @@ class MerkleTrieTest extends HedgehogSuite:
         i: From,
         o: S,
     ): Result =
-      import fs2.given
-      import cats.implicits.*
-      import cats.effect.unsafe.implicits.global
-
       val toId = new FunctionK[EitherT[Id, String, *], Id]:
         override def apply[A](fa: EitherT[Id, String, A]): Id[A] =
           fa.value.toOption.get

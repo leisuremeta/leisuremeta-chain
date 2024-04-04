@@ -1,63 +1,63 @@
 package io.leisuremeta.chain
 package gateway.eth
 
-import java.math.BigInteger
+//import java.math.BigInteger
 import java.nio.charset.StandardCharsets 
 import java.nio.file.{Files, Paths, StandardOpenOption}
-import java.util.{Arrays, ArrayList, Collections, Locale}
+import java.util.{Arrays, Locale}
 import java.time.Instant
-import java.time.temporal.ChronoUnit
+//import java.time.temporal.ChronoUnit
 import scala.jdk.CollectionConverters.*
-import scala.jdk.FutureConverters.*
+//import scala.jdk.FutureConverters.*
 import scala.concurrent.duration.*
 import scala.util.Try
 
 import cats.data.EitherT
-import cats.effect.{Async, Clock, ExitCode, IO, IOApp, OutcomeIO, Resource}
+import cats.effect.{Async, Clock, ExitCode, IO, IOApp, Resource}
 import cats.syntax.applicativeError.*
 import cats.syntax.apply.*
-import cats.syntax.bifunctor.*
+//import cats.syntax.bifunctor.*
 import cats.syntax.eq.*
 import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
-import com.github.jasync.sql.db.{Connection, QueryResult}
-import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
-import com.typesafe.config.{Config, ConfigFactory}
+//import com.github.jasync.sql.db.{Connection, QueryResult}
+//import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
+//import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.Encoder
 import io.circe.syntax.given
 import io.circe.generic.auto.*
 import io.circe.parser.decode
 import org.web3j.abi.{
   EventEncoder,
-  FunctionEncoder,
+//  FunctionEncoder,
   FunctionReturnDecoder,
   TypeReference,
 }
-import org.web3j.abi.datatypes.{Address, Event, Function, Type}
+import org.web3j.abi.datatypes.{Address, Event, Type}
 import org.web3j.abi.datatypes.generated.Uint256
-import org.web3j.crypto.{Credentials, MnemonicUtils}
+//import org.web3j.crypto.{Credentials, MnemonicUtils}
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.{
   DefaultBlockParameter,
-  DefaultBlockParameterName,
+//  DefaultBlockParameterName,
 }
 import org.web3j.protocol.core.methods.request.{EthFilter}
 import org.web3j.protocol.core.methods.response.EthLog.{LogResult, LogObject}
-import org.web3j.protocol.core.methods.response.TransactionReceipt
-import org.web3j.protocol.http.HttpService
-import org.web3j.tx.RawTransactionManager
-import org.web3j.tx.response.PollingTransactionReceiptProcessor
+//import org.web3j.protocol.core.methods.response.TransactionReceipt
+//import org.web3j.protocol.http.HttpService
+//import org.web3j.tx.RawTransactionManager
+//import org.web3j.tx.response.PollingTransactionReceiptProcessor
 import sttp.client3.*
 import sttp.model.{MediaType, StatusCode}
 
-import lib.crypto.{CryptoOps, KeyPair}
-import lib.crypto.Hash.ops.*
+import lib.crypto.CryptoOps//, KeyPair}
+//import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.*
 import api.model.*
-import api.model.TransactionWithResult.ops.*
+//import api.model.TransactionWithResult.ops.*
 import api.model.api_model.{AccountInfo, BalanceInfo}
 import api.model.token.*
 import common.*
@@ -112,7 +112,7 @@ object EthGatewayDepositMain extends IOApp:
   ): F[Unit] = Async[F].blocking:
     val path = Paths.get("unsent-deposits.json")
     val json = deposits.asJson.spaces2
-    Files.write(
+    val _ = Files.write(
       path,
       json.getBytes(StandardCharsets.UTF_8),
       StandardOpenOption.CREATE,
@@ -143,7 +143,7 @@ object EthGatewayDepositMain extends IOApp:
         val path = Paths.get("sent-deposits.logs")
         val jsons =
           deposits.map(_.asJson.noSpaces).mkString("", "\n", "\n")
-        Files.write(
+        val _ = Files.write(
           path,
           jsons.getBytes(StandardCharsets.UTF_8),
           StandardOpenOption.CREATE,
@@ -155,7 +155,7 @@ object EthGatewayDepositMain extends IOApp:
     Async[F].blocking:
       val path = Paths.get("last-block-read.json")
       val json = blockNumber.asJson.spaces2
-      Files.write(
+      val _ = Files.write(
         path,
         json.getBytes(StandardCharsets.UTF_8),
         StandardOpenOption.CREATE,
@@ -323,8 +323,8 @@ object EthGatewayDepositMain extends IOApp:
       _ <- Async[F].delay(scribe.info(s"all deposit events: $allEvents"))
       eventAndAccountOptions <- allEvents.toList.traverse: event =>
 //        scribe.info(s"current event: $event")
-        val amount    = event.value
-        val toAccount = Account(Utf8.unsafeFrom(event.to))
+//        val amount    = event.value
+//        val toAccount = Account(Utf8.unsafeFrom(event.to))
         findAccountByEthAddress(sttp, lmEndpoint, event.from).map:
           (accountOption: Option[Account]) =>
             scribe.info:

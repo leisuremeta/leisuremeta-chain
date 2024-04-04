@@ -2,7 +2,7 @@ package io.leisuremeta.chain
 package api.model
 package token
 
-import lib.datatype.{BigNat, UInt256Bytes, Utf8}
+import lib.datatype.{BigNat, Utf8}
 
 final case class TokenDefinition(
     id: TokenDefinitionId,

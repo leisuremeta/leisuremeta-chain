@@ -5,9 +5,6 @@ import java.time.Instant
 
 import cats.Eq
 import cats.syntax.eq.given
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.collection.Size
-import eu.timepit.refined.generic.Equal
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 import scodec.bits.ByteVector
 import sttp.tapir.Schema

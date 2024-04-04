@@ -5,20 +5,20 @@ import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.time.Instant
 
 import scala.concurrent.duration.*
-import scala.io.Source
+//import scala.io.Source
 
 import cats.Monad
 import cats.data.EitherT
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.bifunctor.*
-import cats.syntax.eq.*
-import cats.syntax.flatMap.toFlatMapOps
+//import cats.syntax.eq.*
+//import cats.syntax.flatMap.toFlatMapOps
 import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
 import io.circe.generic.auto.*
 import io.circe.parser.decode
-import io.circe.refined.*
+//import io.circe.refined.*
 import io.circe.syntax.*
 
 import sttp.client3.*
@@ -26,7 +26,7 @@ import sttp.client3.armeria.cats.ArmeriaCatsBackend
 import sttp.model.Uri
 
 import api.model.*
-import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign, Signature}
+import lib.crypto.{Hash, Signature}
 import lib.datatype.*
 
 
@@ -53,7 +53,7 @@ object ArchiveMain extends IOApp:
 
   def logTxs(txs: String): IO[Unit] = IO.blocking {
     val path = Paths.get(archiveFileName)
-    Files.write(path, txs.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
+    val _ = Files.write(path, txs.getBytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)
   }
 
   def get[F[_]: Monad, A: io.circe.Decoder](backend: SttpBackend[F, Any])(uri: Uri): EitherT[F, String, A] =

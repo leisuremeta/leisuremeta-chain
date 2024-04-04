@@ -3,14 +3,8 @@ package io.leisuremeta.chain.lmscan.backend.service
 import io.leisuremeta.chain.lmscan.backend.entity.Tx
 import io.leisuremeta.chain.lmscan.common.model._
 import io.leisuremeta.chain.lmscan.backend.repository._
-import cats.Functor
 import cats.data.EitherT
-import cats.Monad
-import eu.timepit.refined.boolean.False
 import cats.effect.Async
-import cats.implicits.catsSyntaxEitherId
-import cats.effect.IO
-import cats.effect.kernel.Async
 
 object TransactionService:
 

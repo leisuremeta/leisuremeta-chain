@@ -7,7 +7,6 @@ import cats.data.EitherT
 import cats.effect.Async
 import cats.syntax.traverse.given
 import com.typesafe.config.{Config, ConfigException}
-import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Interval
 import eu.timepit.refined.types.net.PortNumber
 import eu.timepit.refined.refineV

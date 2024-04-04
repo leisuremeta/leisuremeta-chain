@@ -1,12 +1,10 @@
 package io.leisuremeta.chain.node
 package proxy
 
-import cats.effect.std.{Dispatcher, Semaphore}
-import cats.effect.{Async, IO}
+import cats.effect.std.Dispatcher
+import cats.effect.Async
 import cats.effect.kernel.Resource
 import com.linecorp.armeria.server.Server
-import cats.syntax.apply.given
-import cats.syntax.flatMap.given
 import cats.syntax.functor.given
 
 import sttp.tapir.server.interceptor.log.DefaultServerLog
@@ -18,10 +16,8 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.capabilities.fs2.Fs2Streams
 
 import io.leisuremeta.chain.node.proxy.{NodeProxyApi as Api}
-import io.leisuremeta.chain.api.LeisureMetaChainApi.ServerError
 import io.leisuremeta.chain.api.model.account.EthAddress
 import io.leisuremeta.chain.api.model.*
-import io.leisuremeta.chain.api.model.api_model.{AccountInfo, BalanceInfo}
 import io.leisuremeta.chain.api.model.token.*
 import service.InternalApiService
 
@@ -179,7 +175,7 @@ final case class NodeProxyApp[F[_]: Async](
   def getServer[IO](
     dispatcher: Dispatcher[F],
   ): F[Server] = for 
-    server <- Async[F].async_[Server] { cb =>
+    server <- Async[F].fromCompletableFuture:
       def log[F[_]: Async](
           level: scribe.Level,
         )(msg: String, exOpt: Option[Throwable])(using
@@ -209,16 +205,12 @@ final case class NodeProxyApp[F[_]: Async](
         .http(8080)
         .service(tapirService)
         .build
-      server.start.handle[Unit] {
-        case (_, null)  => cb(Right(server))
-        case (_, cause) => cb(Left(cause))
-      }
-    }
+      Async[F].delay:
+        server.start().thenApply(_ => server)
   yield server
 
-  def resource: F[Resource[F, Server]] = Async[F].delay {
+  def resource: F[Resource[F, Server]] = Async[F].delay:
     for 
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.fromAutoCloseable(getServer(dispatcher))
     yield server
-  }

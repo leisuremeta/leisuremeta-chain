@@ -12,7 +12,6 @@ import api.model.reward.*
 import lib.crypto.Hash
 import lib.datatype.Utf8
 import lib.merkle.MerkleTrie.NodeStore
-import lib.merkle.MerkleTrieNode.MerkleRoot
 import lib.application.DAppState
 import java.time.Instant
 

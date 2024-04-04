@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.backend.entity
 
-import java.util.Date
 import io.leisuremeta.chain.lmscan.common.model.NftSeasonModel
 
 final case class NftSeason(

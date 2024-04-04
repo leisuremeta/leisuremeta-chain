@@ -5,11 +5,9 @@ package submodule
 
 import java.time.temporal.ChronoUnit
 
-import cats.{~>, Monad}
-import cats.arrow.FunctionK
+import cats.Monad
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
-import cats.syntax.bifunctor.*
 import cats.syntax.eq.*
 import cats.syntax.traverse.*
 

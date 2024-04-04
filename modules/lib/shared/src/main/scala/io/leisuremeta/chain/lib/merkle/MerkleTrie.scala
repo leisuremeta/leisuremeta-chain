@@ -4,8 +4,6 @@ package merkle
 import cats.Monad
 import cats.data.{EitherT, Kleisli, StateT}
 import cats.syntax.eq.given
-import cats.syntax.flatMap.given
-import cats.syntax.functor.given
 import cats.syntax.traverse.given
 
 import eu.timepit.refined.api.Refined
@@ -13,8 +11,6 @@ import eu.timepit.refined.refineV
 import fs2.Stream
 import scodec.bits.{BitVector, ByteVector}
 
-import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
-import codec.byte.ByteEncoder.ops.*
 import crypto.Hash.ops.*
 import MerkleTrieNode.{Children, ChildrenCondition, MerkleHash}
 

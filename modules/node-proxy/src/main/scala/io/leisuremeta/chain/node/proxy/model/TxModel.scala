@@ -1,8 +1,6 @@
 package io.leisuremeta.chain.node.proxy.model
 
 import io.circe._
-import io.circe.generic.semiauto
-import io.circe.generic.auto
 
 case class TxModel (
   signedTx: String,

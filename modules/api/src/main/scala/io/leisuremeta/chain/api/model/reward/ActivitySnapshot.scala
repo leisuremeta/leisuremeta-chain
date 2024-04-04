@@ -4,7 +4,7 @@ package reward
 
 import java.time.Instant
 
-import lib.datatype.{BigNat, Utf8}
+import lib.datatype.BigNat
 import token.TokenDefinitionId
 
 final case class ActivitySnapshot(

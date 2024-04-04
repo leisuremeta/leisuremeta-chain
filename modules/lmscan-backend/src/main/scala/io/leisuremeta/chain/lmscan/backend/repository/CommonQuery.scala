@@ -5,13 +5,10 @@ import cats.effect.kernel.Async
 import io.getquill.Query
 import java.sql.SQLException
 import cats.implicits.*
-import cats.effect.{Async, IO}
 import io.getquill.PostgresJAsyncContext
 import io.getquill.SnakeCase
 import io.getquill.*
-import io.getquill.Literal
 
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.ExecutionContext
 
 trait CommonQuery:

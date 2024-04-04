@@ -4,16 +4,11 @@ package service
 
 import cats.{Functor, Monad}
 import cats.data.EitherT
-import cats.effect.Concurrent
-import cats.syntax.eq.*
-import cats.syntax.foldable.*
-import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
 import api.model.{Block, Signed, TransactionWithResult}
 import api.model.Block.ops.toBlockHash
 import api.model.api_model.BlockInfo
-import dapp.PlayNommState
 import repository.{BlockRepository, TransactionRepository}
 import lib.crypto.Hash.ops.*
 

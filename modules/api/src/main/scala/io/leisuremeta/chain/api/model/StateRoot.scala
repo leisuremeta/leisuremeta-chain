@@ -1,21 +1,14 @@
 package io.leisuremeta.chain
 package api.model
 
-import java.time.Instant
-
 import cats.Eq
 
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.*
 import sttp.tapir.*
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.crypto.Hash
-import lib.datatype.UInt256
 import lib.merkle.MerkleTrieNode.MerkleRoot
-import account.EthAddress
-import reward.*
-import token.*
 
 opaque type StateRoot = Option[MerkleRoot]
 

@@ -2,7 +2,7 @@ package io.leisuremeta.chain.gateway.eth.common
 package client
 
 import cats.data.EitherT
-import cats.effect.{Async, Resource}
+import cats.effect.Async
 import cats.syntax.bifunctor.*
 import cats.syntax.functor.*
 

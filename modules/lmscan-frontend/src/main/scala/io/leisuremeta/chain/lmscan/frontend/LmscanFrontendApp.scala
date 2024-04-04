@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 
 import cats.effect.IO
 import tyrian.*
-import tyrian.Html.*
 import scala.scalajs.js.annotation.*
 import io.leisuremeta.chain.lmscan.common.model._
 import concurrent.duration.DurationInt

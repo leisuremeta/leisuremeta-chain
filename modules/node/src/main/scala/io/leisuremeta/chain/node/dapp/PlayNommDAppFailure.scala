@@ -1,8 +1,8 @@
 package io.leisuremeta.chain.node.dapp
 
-import cats.{~>, Functor, Monad}
+import cats.{~>, Functor}
 import cats.arrow.FunctionK
-import cats.data.{EitherT, StateT}
+import cats.data.EitherT
 import cats.syntax.bifunctor.*
 
 sealed trait PlayNommDAppFailure:

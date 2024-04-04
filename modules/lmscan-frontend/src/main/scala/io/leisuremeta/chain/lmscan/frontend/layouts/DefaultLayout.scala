@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.frontend
 import tyrian.*
-import cats.effect.IO
 import tyrian.Html.*
 
 object DefaultLayout:

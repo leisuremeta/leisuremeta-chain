@@ -1,15 +1,8 @@
 package io.leisuremeta.chain.node.proxy.service
 
-import cats.instances.queue
 import cats.effect.kernel.Async
+import cats.syntax.all.*
 import cats.effect.std.Queue
-import cats.effect.kernel.Ref
-import java.time.Instant
-import cats.implicits.*
-import cats.syntax.*
-import cats.syntax.functor._
-import cats.effect.std.Queue
-import cats.Monad
 
 object PostTxQueue:
   def apply[F[_]: Async]: F[PostTxQueue[F]] =

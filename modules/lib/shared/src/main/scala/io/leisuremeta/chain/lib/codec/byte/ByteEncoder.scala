@@ -5,7 +5,7 @@ import java.time.Instant
 
 import scala.compiletime.{erasedValue, summonInline}
 import scala.deriving.Mirror
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
 
 import cats.syntax.eq.catsSyntaxEq
 import eu.timepit.refined.api.Refined
@@ -13,8 +13,6 @@ import eu.timepit.refined.auto.autoUnwrap
 import eu.timepit.refined.numeric.NonNegative
 import eu.timepit.refined.refineV
 import scodec.bits.ByteVector
-import shapeless3.deriving.*
-
 import datatype.UInt256
 
 trait ByteEncoder[A]:
@@ -38,7 +36,7 @@ object ByteEncoder:
 
   @SuppressWarnings(Array("org.wartremover.warts.AsInstanceOf", "org.wartremover.warts.Any"))
   private def encoderProduct[A](
-      p: Mirror.ProductOf[A],
+//      p: Mirror.ProductOf[A],
       elems: => List[ByteEncoder[?]],
   ): ByteEncoder[A] = (a: A) =>
     a.asInstanceOf[Product].productIterator.zip(elems).map{
@@ -53,7 +51,7 @@ object ByteEncoder:
   inline given derived[T](using p: Mirror.ProductOf[T]): ByteEncoder[T] =
     lazy val elemInstances: List[ByteEncoder[?]] =
       summonAll[p.MirroredElemTypes]
-    encoderProduct(p, elemInstances)
+    encoderProduct(elemInstances)
 
   given unitByteEncoder: ByteEncoder[Unit] = _ => ByteVector.empty
 

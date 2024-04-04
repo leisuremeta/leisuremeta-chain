@@ -7,7 +7,7 @@ import cats.kernel.Eq
 import scodec.bits.ByteVector
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
-import lib.crypto.{CryptoOps, Hash, KeyPair, Recover, Sign, Signature}
+import lib.crypto.{Hash, Recover, Sign, Signature}
 import lib.datatype.BigNat
 import lib.merkle.MerkleTrieNode
 

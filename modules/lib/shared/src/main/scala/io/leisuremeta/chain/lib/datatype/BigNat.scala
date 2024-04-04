@@ -7,21 +7,15 @@ import cats.Eq
 import cats.implicits.given
 
 import eu.timepit.refined.api.Refined
-import eu.timepit.refined.auto.autoUnwrap
 import eu.timepit.refined.numeric.NonNegative
 import eu.timepit.refined.refineV
 import io.circe.{
   Decoder as CirceDecoder,
   Encoder as CirceEncoder,
-  KeyDecoder,
-  KeyEncoder,
 }
-import io.circe.generic.auto.given
 import io.circe.refined.*
-import scodec.bits.ByteVector
 
-import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
-import failure.DecodingFailure
+import codec.byte.{ByteDecoder, ByteEncoder}
 
 opaque type BigNat = BigInt Refined NonNegative
 

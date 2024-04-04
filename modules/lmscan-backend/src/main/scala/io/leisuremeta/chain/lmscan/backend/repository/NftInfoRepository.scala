@@ -12,7 +12,7 @@ import entity.NftInfo
 import java.net.URLDecoder
 
 object NftInfoRepository extends CommonQuery:
-  import ctx.{*, given}
+  import ctx.*
 
   def getSeasonPage[F[_]: Async](
       pageNavInfo: PageNavigation,

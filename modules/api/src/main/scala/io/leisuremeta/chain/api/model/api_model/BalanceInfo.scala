@@ -2,7 +2,6 @@ package io.leisuremeta.chain
 package api.model
 package api_model
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 
 import lib.crypto.Hash

@@ -5,7 +5,6 @@ import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 import common.model._
-import concurrent.duration.DurationInt
 
 object BlockPage:
   def update(model: BlcModel): Msg => (Model, Cmd[IO, Msg]) =

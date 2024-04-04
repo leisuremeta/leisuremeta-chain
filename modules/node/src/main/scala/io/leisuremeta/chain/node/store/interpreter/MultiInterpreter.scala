@@ -8,7 +8,7 @@ import java.nio.file.Path
 import cats.data.EitherT
 import cats.effect.{IO, Resource}
 
-import lib.codec.byte.{ByteCodec, DecodeResult}
+import lib.codec.byte.ByteCodec
 import lib.failure.DecodingFailure
 import io.leisuremeta.chain.node.NodeConfig.RedisConfig
 import java.nio.file.Paths

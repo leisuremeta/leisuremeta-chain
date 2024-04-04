@@ -4,7 +4,6 @@ package service
 
 import cats.data.EitherT
 import cats.effect.Concurrent
-import cats.syntax.bifunctor.*
 import cats.syntax.eq.given
 import cats.syntax.either.*
 import cats.syntax.functor.*
@@ -24,7 +23,6 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.TransactionWithResult.ops.*
 import api.model.account.EthAddress
 import api.model.api_model.{
   AccountInfo,
@@ -39,15 +37,12 @@ import api.model.reward.{
   OwnershipRewardLog,
 }
 import api.model.token.{
-  Rarity,
   NftState,
   TokenDefinition,
   TokenDefinitionId,
-  TokenDetail,
   TokenId,
 }
 import dapp.PlayNommState
-import lib.codec.byte.{ByteDecoder, DecodeResult}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
 import lib.datatype.BigNat
@@ -202,7 +197,7 @@ object StateReadService:
         case Left(err) => Concurrent[F].raiseError(new Exception(err.msg))
         case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
     yield balanceTxList
-      .groupMapReduce(_._1): (defId, txHash, txWithResult) =>
+      .groupMapReduce(_._1): (_, txHash, txWithResult) =>
         txWithResult.signedTx.value match
           case fb: Transaction.FungibleBalance =>
             fb match
@@ -320,7 +315,7 @@ object StateReadService:
         case Left(err) => Concurrent[F].raiseError(new Exception(err.msg))
         case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
     yield balanceTxList
-      .groupMapReduce(_._1): (defId, txHash, txWithResult) =>
+      .groupMapReduce(_._1): (_, txHash, txWithResult) =>
         txWithResult.signedTx.value match
           case ef: Transaction.TokenTx.EntrustFungibleToken =>
             BalanceInfo(

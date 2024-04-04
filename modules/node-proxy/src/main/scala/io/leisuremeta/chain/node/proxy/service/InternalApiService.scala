@@ -1,43 +1,20 @@
 package io.leisuremeta.chain.node.proxy
 package service
 
-import io.leisuremeta.chain.api.model.api_model.*
 import io.leisuremeta.chain.api.model.*
 import io.circe.parser.decode
-import io.circe.generic.auto.*
-import sttp.client3.armeria.cats.ArmeriaCatsBackend
 import sttp.client3.*
 import sttp.model.{Uri, StatusCode}
-import sttp.tapir.EndpointIO.annotations.body
-import com.linecorp.armeria.client.WebClient
-import com.linecorp.armeria.client.encoding.DecodingClient
-import com.linecorp.armeria.client.ClientFactory
-import cats.effect.IO
 import cats.implicits.*
-import cats.syntax.*
-import cats.{~>, Monad}
-import cats.data.EitherT
-import cats.effect.unsafe.IORuntime
 import io.leisuremeta.chain.api.model.account.EthAddress
-import io.leisuremeta.chain.api.model.api_model.BlockInfo
-import io.leisuremeta.chain.node.proxy.{NodeProxyApi as Api}
-import cats.data.Op
-import io.leisuremeta.chain.api.model.reward.*
 import io.leisuremeta.chain.api.model.token.*
 import io.leisuremeta.chain.api.model.Block.*
-// import io.leisuremeta.chain.api.model.Transaction.RewardTx.OfferReward
 import cats.effect.*
 import cats.effect.Async
-import cats.effect.std.Semaphore
-import cats.effect.std.AtomicCell
 import cats.effect.Ref
 import cats.effect.kernel.Async
-import cats.syntax.all._
-import cats.syntax.functor._
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.*
 import sttp.model.MediaType
-import sttp.tapir.stringBody
 import io.leisuremeta.chain.node.proxy.model.TxModel
 import io.circe.generic.auto._
 

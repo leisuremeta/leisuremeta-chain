@@ -1,6 +1,5 @@
 package io.leisuremeta.chain.lmscan.common.model
 
-import java.util.Date
 import java.time.Instant
 
 final case class NftInfoModel(

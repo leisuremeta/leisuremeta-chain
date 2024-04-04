@@ -1,7 +1,5 @@
 package io.leisuremeta.chain.lmscan.backend.entity
 
-import io.getquill.Quoted
-
 final case class Tx(
     hash: String,
     txType: String, // col_name : type

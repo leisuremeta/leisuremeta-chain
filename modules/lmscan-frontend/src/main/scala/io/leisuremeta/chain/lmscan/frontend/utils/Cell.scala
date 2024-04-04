@@ -2,7 +2,6 @@ package io.leisuremeta.chain.lmscan.frontend
 import tyrian.Html.*
 import tyrian.*
 import V.*
-import scala.util.matching.Regex
 import io.leisuremeta.chain.lmscan.common.model.*
 import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter

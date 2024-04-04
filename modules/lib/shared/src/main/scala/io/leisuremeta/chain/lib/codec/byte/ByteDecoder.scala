@@ -16,7 +16,6 @@ import eu.timepit.refined.numeric.NonNegative
 import eu.timepit.refined.refineV
 import scodec.bits.ByteVector
 
-import datatype.{UInt256, UInt256BigInt, UInt256Bytes}
 import failure.DecodingFailure
 
 trait ByteDecoder[A]:

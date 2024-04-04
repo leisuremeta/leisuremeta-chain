@@ -1,7 +1,5 @@
 package io.leisuremeta.chain.lmscan.backend.repository
 
-import io.leisuremeta.chain.lmscan.backend.repository.CommonQuery
-import io.leisuremeta.chain.lmscan.backend.entity.NftFile
 import io.leisuremeta.chain.lmscan.backend.entity.Nft
 import io.leisuremeta.chain.lmscan.common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.common.model.PageResponse
@@ -11,7 +9,7 @@ import io.getquill.*
 
 object NftRepository extends CommonQuery:
 
-  import ctx.{*, given}
+  import ctx.*
 
   def getPageByTokenId[F[_]: Async](
       tokenId: String,

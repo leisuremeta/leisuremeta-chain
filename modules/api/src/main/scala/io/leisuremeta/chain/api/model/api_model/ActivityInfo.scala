@@ -5,7 +5,7 @@ package api_model
 import java.time.Instant
 
 import lib.crypto.Hash
-import lib.datatype.{BigNat, Utf8}
+import lib.datatype.Utf8
 
 final case class ActivityInfo(
     timestamp: Instant,

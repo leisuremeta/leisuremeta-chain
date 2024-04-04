@@ -9,10 +9,7 @@ import cats.syntax.all.*
 
 import api.model.{
   Account,
-  AccountData,
   AccountSignature,
-  GroupData,
-  PublicKeySummary,
   Signed,
   Transaction,
   TransactionWithResult,

@@ -1,10 +1,9 @@
 package io.leisuremeta.chain
 package node
 
-import cats.effect.{Async, IO}
+import cats.effect.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.{Dispatcher, Semaphore}
-import cats.syntax.apply.given
 import cats.syntax.flatMap.given
 import cats.syntax.functor.given
 
@@ -20,7 +19,6 @@ import sttp.tapir.server.interceptor.log.DefaultServerLog
 import api.{LeisureMetaChainApi as Api}
 import api.model.{
   Account,
-  Block,
   GroupId,
   PublicKeySummary,
   Transaction,
@@ -32,12 +30,10 @@ import dapp.{PlayNommDAppFailure, PlayNommState}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import repository.{BlockRepository, StateRepository, TransactionRepository}
-import repository.StateRepository.given
 import service.{
   BlockService,
   LocalStatusService,
   NodeInitializationService,
-  RewardService,
   StateReadService,
   TransactionService,
 }
@@ -52,10 +48,10 @@ final case class NodeApp[F[_]
     * ****************************************************************************
     */
 
-  import java.time.Instant
-  import api.model.{Block, Signed, StateRoot}
+//  import java.time.Instant
+  import api.model.{Block, Signed}//, StateRoot}
   import lib.crypto.Hash
-  import lib.datatype.{BigNat, UInt256}
+//  import lib.datatype.{BigNat, UInt256}
 
   val nodeAddresses: IndexedSeq[PublicKeySummary] = config.wire.peers.map {
     peer =>
@@ -381,7 +377,7 @@ final case class NodeApp[F[_]
       case Left(err)    => Async[F].raiseError(Exception(err))
       case Right(block) => Async[F].pure(block)
     semaphore <- Semaphore[F](1)
-    server <- Async[F].async_[Server] { cb =>
+    server <- Async[F].fromCompletableFuture:
       def log[F[_]: Async](
           level: scribe.Level,
       )(msg: String, exOpt: Option[Throwable])(using
@@ -411,11 +407,8 @@ final case class NodeApp[F[_]
         .http(config.local.port.value)
         .service(tapirService)
         .build
-      server.start.handle[Unit] {
-        case (_, null)  => cb(Right(server))
-        case (_, cause) => cb(Left(cause))
-      }
-    }
+      Async[F].delay:
+        server.start().thenApply(_ => server)
   yield server
 
   def resource: Resource[F, Server] =

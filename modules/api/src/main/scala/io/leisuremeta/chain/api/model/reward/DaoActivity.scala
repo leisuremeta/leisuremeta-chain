@@ -1,8 +1,6 @@
 package io.leisuremeta.chain
 package api.model.reward
 
-import cats.Monoid
-
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 

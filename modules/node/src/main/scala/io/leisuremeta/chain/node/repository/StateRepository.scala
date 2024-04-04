@@ -4,8 +4,6 @@ package repository
 
 import cats.{Functor, Monad}
 import cats.data.{EitherT, Kleisli}
-import cats.syntax.flatMap.*
-import cats.syntax.functor.*
 import cats.syntax.traverse.*
 
 import lib.merkle.{MerkleTrie, MerkleTrieNode, MerkleTrieState}

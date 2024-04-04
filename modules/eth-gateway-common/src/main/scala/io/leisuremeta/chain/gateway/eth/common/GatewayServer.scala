@@ -4,7 +4,6 @@ import cats.data.EitherT
 import cats.effect.{Async, Resource}
 import cats.effect.std.Dispatcher
 import cats.syntax.flatMap.*
-import cats.syntax.functor.*
 
 import com.linecorp.armeria.server.Server
 import scodec.bits.ByteVector
@@ -81,7 +80,7 @@ object GatewayServer:
       dispatcher: Dispatcher[F],
       port: Int,
       serverEndpoint: ServerEndpoint[Fs2Streams[F], F],
-  ): F[Server] = Async[F].async_[Server]: cb =>
+  ): F[Server] = Async[F].fromCompletableFuture:
 
     def log[F[_]: Async](
         level: scribe.Level,
@@ -115,7 +114,5 @@ object GatewayServer:
       .http(port)
       .service(tapirService)
       .build
-
-    server.start.handle[Unit]:
-      case (_, null)  => cb(Right(server))
-      case (_, cause) => cb(Left(cause))
+    Async[F].delay:
+      server.start().thenApply(_ => server)

@@ -1,9 +1,7 @@
 package io.leisuremeta.chain.lmscan.common.model
 
-import sttp.tapir.EndpointIO.annotations.endpointInput
 import sttp.tapir.EndpointIO.annotations.query
 import io.getquill.Ord
-import io.getquill.ast.PropertyOrdering
 import io.getquill.ast.Asc
 import io.getquill.ast.Desc
 

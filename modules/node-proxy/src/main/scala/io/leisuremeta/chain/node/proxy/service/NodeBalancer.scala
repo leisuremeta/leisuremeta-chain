@@ -2,50 +2,21 @@ package io.leisuremeta.chain.node.proxy
 package service
 
 import java.nio.file.{Files, Paths, StandardOpenOption}
-import io.leisuremeta.chain.api.model.NodeStatus
-import io.leisuremeta.chain.api.model.Block.ops.*
-import io.leisuremeta.chain.api.model.Block.*
-import io.circe.parser.decode
-import io.circe.generic.auto.*
-import io.circe.syntax.given
-import cats.syntax.*
-import cats.syntax.functor._
 import cats.implicits.*
 import io.leisuremeta.chain.api.model.Block
-import sttp.client3.*
 import cats.effect.Ref
-import cats.data.OptionT
 import cats.effect.kernel.Async
-import sttp.model.{Uri, StatusCode}
+import sttp.model.StatusCode
 import model.NodeConfig
-import io.leisuremeta.chain.lib.crypto.Hash.ops.*
-import io.leisuremeta.chain.api.model.Block.blockHash
-import fs2.{Stream, text}
 import fs2.io.file.Path
 import fs2.text.utf8
-import scala.util.Try
 import scala.concurrent.duration._
-import service.NodeWatchService
-import cats.syntax.flatMap._
 import io.leisuremeta.chain.lib.datatype.BigNat
-import io.leisuremeta.chain.lib.crypto.Hash.Value
-import io.leisuremeta.chain.api.model.Signed.Tx
 import io.leisuremeta.chain.node.proxy.model.TxModel
-import fs2.Pull
 import fs2.Chunk
-import java.nio.charset.StandardCharsets
-import java.io.RandomAccessFile
-import java.io.InputStreamReader
-import java.nio.charset.Charset
-import java.nio.channels.Channels
-import java.io.{RandomAccessFile, InputStreamReader}
-import cats.effect.Concurrent
 
 import fs2.{Stream, text}
-import fs2.{Chunk, Pipe, Stream}
-import java.time.Instant
-import cats.effect.kernel.MonadCancel
-import cats.effect.std.Console
+import fs2.Pipe
 
 case class NodeBalancer[F[_]: Async] (
   apiService:   InternalApiService[F],
@@ -87,19 +58,18 @@ case class NodeBalancer[F[_]: Async] (
 
     loop(startBlock)
 
-  def appendLog(path: String, json: String): F[Unit] = Async[F].blocking {
-    java.nio.file.Files.write(
+  def appendLog(path: String, json: String): F[Unit] = Async[F].blocking:
+    val _ = java.nio.file.Files.write(
       Paths.get(path),
       (json + "\n").getBytes,
       StandardOpenOption.CREATE,
       StandardOpenOption.WRITE,
       StandardOpenOption.APPEND,
     )
-  }
   
   def postTxWithExponentialRetry(line: String, retries: Int, delay: FiniteDuration): F[String] =
     println(s"request txs: $line")
-    apiService.postTx(nodeConfig.newNodeAddress.get, line).flatMap { (statusCode, res) =>
+    apiService.postTx(nodeConfig.newNodeAddress.get, line).flatMap { (_, res) => //(statusCode, res) =>
       println(s"generated hash: $res")
       val code = res.code
       if code.isSuccess 
@@ -176,10 +146,9 @@ case class NodeBalancer[F[_]: Async] (
   //   reverseFile()
       
 
-  def deleteAllFiles: F[Unit] = Async[F].blocking {
+  def deleteAllFiles: F[Unit] = Async[F].blocking:
     val diffTxs = Paths.get("diff-txs.json")
-    Files.deleteIfExists(diffTxs)
-  }
+    val _ = Files.deleteIfExists(diffTxs)
 
   def run(): F[Unit] =
     def loop(endBlockNumber: BigNat, lastTxsOpt: Option[String]): F[Unit] = 

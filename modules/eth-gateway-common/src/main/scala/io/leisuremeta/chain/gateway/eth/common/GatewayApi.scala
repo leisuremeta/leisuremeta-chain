@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.gateway.eth.common
 
 import io.circe.generic.auto.*
-import sttp.client3.*
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.json.circe.*

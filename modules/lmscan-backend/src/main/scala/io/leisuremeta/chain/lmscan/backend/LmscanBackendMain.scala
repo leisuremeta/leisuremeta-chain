@@ -1,43 +1,28 @@
 package io.leisuremeta.chain.lmscan
 package backend
 
-import cats.Monad
-import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
+//import cats.Monad
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.effect.std.Dispatcher
-import cats.syntax.either.*
-import cats.syntax.functor.toFunctorOps
+//import cats.syntax.either.*
+//import cats.syntax.functor.toFunctorOps
 
 import com.linecorp.armeria.server.Server
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
 
-import sttp.model.StatusCode
+//import sttp.model.StatusCode
 import sttp.tapir.*
-import sttp.tapir.EndpointIO
-import sttp.tapir.json.circe.*
-import sttp.tapir.generic.auto.{*, given}
+//import sttp.tapir.EndpointIO
+//import sttp.tapir.json.circe.*
+//import sttp.tapir.generic.auto.{*, given}
 
 import common.ExploreApi
-import common.model.{PageNavigation, SummaryModel}
-
-import scala.collection.StringOps
+import common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.service.*
-import cats.data.EitherT
-import io.leisuremeta.chain.lmscan.backend.repository.TransactionRepository
 import cats.effect.Async
-import com.linecorp.armeria.server.cors.CorsService
-
-import com.linecorp.armeria.common.HttpMethod;
 import com.linecorp.armeria.server.HttpService;
-import com.linecorp.armeria.server.ServerBuilder;
-import com.linecorp.armeria.server.cors.CorsService;
-import com.linecorp.armeria.server.annotation.Get
-import com.linecorp.armeria.common.HttpResponse
-import com.linecorp.armeria.common.HttpStatus
-import com.linecorp.armeria.server.annotation.decorator.CorsDecorator;
-import com.linecorp.armeria.server.DecoratingHttpServiceFunction
-import sttp.tapir.server.armeria.TapirService
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
@@ -189,30 +174,27 @@ object BackendMain extends IOApp:
   def getServerResource[F[_]: Async]: Resource[F, Server] =
     for
       dispatcher <- Dispatcher.parallel[F]
-      server <- Resource.fromAutoCloseable(Async[F].async_[Server] { cb =>
-
-        val options = ArmeriaCatsServerOptions
-          .customiseInterceptors(dispatcher)
-          .corsInterceptor(Some {
-            CORSInterceptor
-              .customOrThrow[F](CORSConfig.default)
-          })
-          .options
-
-        val tapirService = ArmeriaCatsServerInterpreter[F](options)
-          .toService(explorerEndpoints[F])
-        val server = Server.builder
-          .annotatedService(tapirService)
-          .http(8081)
-          .maxRequestLength(128 * 1024 * 1024)
-          .requestTimeout(java.time.Duration.ofMinutes(6))
-          .service(tapirService)
-          .build
-        server.start.handle[Unit] {
-          case (_, null)  => cb(Right(server))
-          case (_, cause) => cb(Left(cause))
-        }
-      })
+      server <- Resource.fromAutoCloseable:
+        Async[F].fromCompletableFuture:
+          Async[F].delay:
+            val options = ArmeriaCatsServerOptions
+              .customiseInterceptors(dispatcher)
+              .corsInterceptor(Some {
+                CORSInterceptor
+                  .customOrThrow[F](CORSConfig.default)
+              })
+              .options
+            
+            val tapirService = ArmeriaCatsServerInterpreter[F](options)
+              .toService(explorerEndpoints[F])
+            val server = Server.builder
+              .annotatedService(tapirService)
+              .http(8081)
+              .maxRequestLength(128 * 1024 * 1024)
+              .requestTimeout(java.time.Duration.ofMinutes(6))
+              .service(tapirService)
+              .build
+            server.start().thenApply(_ => server)
     yield server
 
   override def run(args: List[String]): IO[ExitCode] =

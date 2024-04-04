@@ -6,7 +6,7 @@ import cats.data.EitherT
 import io.getquill.*
 
 object SummaryRepository extends CommonQuery:
-  import ctx.{*, given}
+  import ctx.*
 
   def get[F[_]: Async](n: Int = 0, l: Int = 1): EitherT[F, String, Option[Seq[Summary]]] =
     inline def detailQuery =

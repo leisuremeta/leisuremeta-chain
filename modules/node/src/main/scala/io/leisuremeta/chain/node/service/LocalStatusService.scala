@@ -3,7 +3,6 @@ package node
 package service
 
 import cats.MonadError
-import cats.data.EitherT
 import cats.syntax.flatMap.*
 
 import api.model.{Block, NetworkId, NodeStatus}

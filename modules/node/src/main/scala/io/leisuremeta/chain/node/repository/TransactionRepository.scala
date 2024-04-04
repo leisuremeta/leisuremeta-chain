@@ -4,7 +4,7 @@ package repository
 
 import cats.data.EitherT
 
-import api.model.{Signed, Transaction, TransactionWithResult}
+import api.model.TransactionWithResult
 import lib.crypto.Hash
 import lib.failure.DecodingFailure
 import store.HashStore

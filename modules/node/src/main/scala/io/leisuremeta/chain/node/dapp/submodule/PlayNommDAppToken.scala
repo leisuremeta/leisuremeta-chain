@@ -10,10 +10,7 @@ import cats.syntax.all.*
 
 import api.model.{
   Account,
-  AccountData,
   AccountSignature,
-  GroupData,
-  PublicKeySummary,
   Signed,
   Transaction,
   TransactionWithResult,
@@ -373,7 +370,7 @@ object PlayNommDAppToken:
               .mapK:
                 PlayNommDAppFailure.mapInternal:
                   s"Fail to remove entrust fungible balance of (${account}, ${sig.account}, ${de.definitionId}, ${txHash})"
-        _ <- de.outputs.toList.traverse: (account, amount) =>
+        _ <- de.outputs.toList.traverse: (account, _) =>
           PlayNommState[F].token.fungibleBalance
             .put((account, de.definitionId, txHash), ())
             .mapK:
