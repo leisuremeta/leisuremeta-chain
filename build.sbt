@@ -1,6 +1,6 @@
 import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
-  val Scala      = "3.3.1"
+  val Scala      = "3.3.3"
   val ScalaGroup = "3.3"
 
   val catsEffect = "3.5.0"
