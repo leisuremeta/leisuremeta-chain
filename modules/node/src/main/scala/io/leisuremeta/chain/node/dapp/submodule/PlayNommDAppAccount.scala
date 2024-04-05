@@ -126,37 +126,37 @@ object PlayNommDAppAccount:
           timeToCheck = accountData.lastChecked
             .plus(10, ChronoUnit.DAYS)
             .compareTo(ap.createdAt) < 0
-          toRemove <-
-            if !timeToCheck then pure(Vector.empty)
-            else
-              PlayNommState[F].account.key
-                .from(ap.account.toBytes)
-                .flatMapF { stream =>
-                  stream
-                    .filter { case (_, info) =>
-                      info.expiresAt match
-                        case None => false
-                        case Some(time) =>
-                          time
-                            .plus(40, ChronoUnit.DAYS)
-                            .compareTo(ap.createdAt) < 0
-                    }
-                    .map { case ((account, pks), info) =>
-                      pks -> info.description
-                    }
-                    .compile
-                    .toVector
-                }
-                .mapK(PlayNommDAppFailure.mapInternal {
-                  s"Fail to get PKSes of account ${ap.account}"
-                })
-          _ <- toRemove.traverse { case (pks, _) =>
-            PlayNommState[F].account.key
-              .remove((ap.account, pks))
-              .mapK(PlayNommDAppFailure.mapInternal {
-                s"Fail to remove old PKS $pks from account ${ap.account}"
-              })
-          }
+//          toRemove <-
+//            if !timeToCheck then pure(Vector.empty)
+//            else
+//              PlayNommState[F].account.key
+//                .from(ap.account.toBytes)
+//                .flatMapF { stream =>
+//                  stream
+//                    .filter { case (_, info) =>
+//                      info.expiresAt match
+//                        case None => false
+//                        case Some(time) =>
+//                          time
+//                            .plus(40, ChronoUnit.DAYS)
+//                            .compareTo(ap.createdAt) < 0
+//                    }
+//                    .map { case ((account, pks), info) =>
+//                      pks -> info.description
+//                    }
+//                    .compile
+//                    .toVector
+//                }
+//                .mapK(PlayNommDAppFailure.mapInternal {
+//                  s"Fail to get PKSes of account ${ap.account}"
+//                })
+//          _ <- toRemove.traverse { case (pks, _) =>
+//            PlayNommState[F].account.key
+//              .remove((ap.account, pks))
+//              .mapK(PlayNommDAppFailure.mapInternal {
+//                s"Fail to remove old PKS $pks from account ${ap.account}"
+//              })
+//          }
           _ <- ap.summaries.toSeq.traverse { case (pks, description) =>
             val expiresAt =
               if description === Utf8.unsafeFrom("permanent") then None
