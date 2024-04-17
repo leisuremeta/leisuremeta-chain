@@ -20,7 +20,6 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash.ops.*
 import lib.crypto.Recover.ops.*
 import lib.datatype.Utf8
@@ -173,7 +172,7 @@ object PlayNommDAppAccount:
               })
           }
           txResult = Some(
-            Transaction.AccountTx.AddPublicKeySummariesResult(toRemove.toMap),
+            Transaction.AccountTx.AddPublicKeySummariesResult(Map.empty),
           )
         yield TransactionWithResult(Signed(sig, ap))(txResult)
 

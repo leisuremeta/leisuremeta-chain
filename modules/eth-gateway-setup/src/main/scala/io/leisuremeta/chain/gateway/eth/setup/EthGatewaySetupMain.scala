@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.gateway.eth.setup
 
 import scala.jdk.CollectionConverters.*
-import scala.jdk.FutureConverters.*
+//import scala.jdk.FutureConverters.*
 
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import cats.syntax.flatMap.*
@@ -12,20 +12,20 @@ import com.github.jasync.sql.db.mysql.MySQLConnectionBuilder
 
 import scodec.bits.ByteVector
 
-import software.amazon.awssdk.auth.credentials.{
-  AwsCredentials,
-  StaticCredentialsProvider,
-}
+//import software.amazon.awssdk.auth.credentials.{
+//  AwsCredentials,
+//  StaticCredentialsProvider,
+//}
 import software.amazon.awssdk.core.SdkBytes
-import software.amazon.awssdk.regions.Region
+//import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.kms.KmsAsyncClient
 import software.amazon.awssdk.services.kms.model.{
   DecryptRequest,
-  GenerateDataKeyRequest,
+//  GenerateDataKeyRequest,
 }
-import software.amazon.awssdk.services.kms.model.DataKeySpec
+//import software.amazon.awssdk.services.kms.model.DataKeySpec
 import software.amazon.awssdk.services.kms.model.EncryptRequest
-import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec
+//import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec
 
 object EthGatewaySetupMain extends IOApp:
 

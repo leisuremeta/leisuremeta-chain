@@ -59,7 +59,7 @@ object TransactionResult:
 sealed trait Transaction:
   def networkId: NetworkId
   def createdAt: Instant
-  def memo: Option[Utf8]
+//  def memo: Option[Utf8]
 
 object Transaction:
   sealed trait AccountTx extends Transaction:
@@ -71,7 +71,7 @@ object Transaction:
         account: Account,
         ethAddress: Option[EthAddress],
         guardian: Option[Account],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends AccountTx
 
     final case class UpdateAccount(
@@ -80,7 +80,7 @@ object Transaction:
         account: Account,
         ethAddress: Option[EthAddress],
         guardian: Option[Account],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends AccountTx
 
     final case class AddPublicKeySummaries(
@@ -88,7 +88,7 @@ object Transaction:
         createdAt: Instant,
         account: Account,
         summaries: Map[PublicKeySummary, Utf8],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends AccountTx
 
     final case class AddPublicKeySummariesResult(
@@ -134,7 +134,7 @@ object Transaction:
         groupId: GroupId,
         name: Utf8,
         coordinator: Account,
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends GroupTx
 
 //    final case class DisbandGroup(
@@ -148,7 +148,7 @@ object Transaction:
         createdAt: Instant,
         groupId: GroupId,
         accounts: Set[Account],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends GroupTx
 
 //    final case class RemoveAccounts(
@@ -187,7 +187,7 @@ object Transaction:
         symbol: Option[Utf8],
         minterGroup: Option[GroupId],
         nftInfo: Option[NftInfo],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
 
     final case class DefineTokenWithPrecision(
@@ -198,7 +198,7 @@ object Transaction:
         symbol: Option[Utf8],
         minterGroup: Option[GroupId],
         nftInfo: Option[NftInfoWithPrecision],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
 
     final case class MintFungibleToken(
@@ -206,7 +206,7 @@ object Transaction:
         createdAt: Instant,
         definitionId: TokenDefinitionId,
         outputs: Map[Account, BigNat],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
         with FungibleBalance
 
@@ -219,7 +219,7 @@ object Transaction:
         dataUrl: Utf8,
         contentHash: UInt256Bytes,
         output: Account,
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
         with NftBalance
 
@@ -229,7 +229,7 @@ object Transaction:
         definitionId: TokenDefinitionId,
         amount: BigNat,
         inputs: Set[Signed.TxHash],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
         with FungibleBalance
 
@@ -242,7 +242,7 @@ object Transaction:
         createdAt: Instant,
         definitionId: TokenDefinitionId,
         input: Signed.TxHash,
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
 
     final case class UpdateNFT(
@@ -285,7 +285,7 @@ object Transaction:
         amount: BigNat,
         inputs: Set[Signed.TxHash],
         to: Account,
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
         with FungibleBalance
 
@@ -300,7 +300,7 @@ object Transaction:
         tokenId: TokenId,
         input: Signed.TxHash,
         to: Account,
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
 
     final case class DisposeEntrustedFungibleToken(
@@ -309,7 +309,7 @@ object Transaction:
         definitionId: TokenDefinitionId,
         inputs: Set[Signed.TxHash],
         outputs: Map[Account, BigNat],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
         with FungibleBalance
 
@@ -320,7 +320,7 @@ object Transaction:
         tokenId: TokenId,
         input: Signed.TxHash,
         output: Option[Account],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends TokenTx
         with NftBalance
 
@@ -371,7 +371,7 @@ object Transaction:
         groupId: GroupId,
         daoAccountName: Account,
         moderators: Set[Account],
-        memo: Option[Utf8],
+//        memo: Option[Utf8],
     ) extends RewardTx
 
     final case class UpdateDao(

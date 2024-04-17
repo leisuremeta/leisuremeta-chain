@@ -254,6 +254,7 @@ lazy val root = (project in file("."))
     lib.js,
     archive,
     bulkInsert,
+    ethGatewaySetup,
     ethGatewayCommon,
     ethGatewayDeposit,
     ethGatewayWithdraw,

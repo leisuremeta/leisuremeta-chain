@@ -125,7 +125,7 @@ object PlayNommDAppToken:
           rarity = mn.rarity,
           weight = weight,
           currentOwner = mn.output,
-          memo = mn.memo,
+          memo = None,
           lastUpdateTx = txHash,
           previousState = None,
         )

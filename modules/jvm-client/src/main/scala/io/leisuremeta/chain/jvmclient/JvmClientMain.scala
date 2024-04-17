@@ -3,8 +3,7 @@ package jvmclient
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.traverse.*
-import com.typesafe.config.{Config, ConfigFactory}
-import io.circe.generic.auto.*
+import com.typesafe.config.ConfigFactory
 import io.circe.syntax.*
 import scodec.bits.hex
 import sttp.client3.*
@@ -13,9 +12,9 @@ import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import api.LeisureMetaChainApi
 import api.model.*
-import api.model.reward.*
+//import api.model.reward.*
 import api.model.token.*
-import api.model.TransactionWithResult.ops.*
+//import api.model.TransactionWithResult.ops.*
 import lib.datatype.*
 import lib.crypto.*
 import lib.crypto.Hash.ops.*
@@ -56,7 +55,7 @@ object JvmClientMain extends IOApp:
       account = alice,
       ethAddress = None,
       guardian = None,
-      memo = None,
+//      memo = None,
     ),
     Transaction.GroupTx.CreateGroup(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
@@ -64,14 +63,14 @@ object JvmClientMain extends IOApp:
       groupId = GroupId(Utf8.unsafeFrom("mint-group")),
       name = Utf8.unsafeFrom("Mint Group"),
       coordinator = alice,
-      memo = None,
+//      memo = None,
     ),
     Transaction.GroupTx.AddAccounts(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
       createdAt = java.time.Instant.parse("2023-01-11T19:03:00.00Z"),
       groupId = GroupId(Utf8.unsafeFrom("mint-group")),
       accounts = Set(alice),
-      memo = None,
+//      memo = None,
     ),
     Transaction.TokenTx.DefineTokenWithPrecision(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
@@ -101,7 +100,7 @@ object JvmClientMain extends IOApp:
             .get,
         ),
       ),
-      memo = None,
+//      memo = None,
     ),
     Transaction.TokenTx.MintNFT(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
@@ -120,7 +119,7 @@ object JvmClientMain extends IOApp:
         .toOption
         .get,
       output = alice,
-      memo = None,
+//      memo = None,
     ),
     Transaction.TokenTx.UpdateNFT(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
