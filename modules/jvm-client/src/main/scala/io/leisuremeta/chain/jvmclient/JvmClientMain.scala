@@ -8,9 +8,9 @@ import io.circe.syntax.*
 import scodec.bits.hex
 import sttp.client3.*
 import sttp.client3.armeria.cats.ArmeriaCatsBackend
-import sttp.tapir.client.sttp.SttpClientInterpreter
+//import sttp.tapir.client.sttp.SttpClientInterpreter
 
-import api.LeisureMetaChainApi
+//import api.LeisureMetaChainApi
 import api.model.*
 //import api.model.reward.*
 import api.model.token.*
@@ -121,6 +121,25 @@ object JvmClientMain extends IOApp:
       output = alice,
 //      memo = None,
     ),
+    Transaction.TokenTx.MintNFTWithMemo(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+      tokenDefinitionId =
+        TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+      tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
+      rarity = Rarity(Utf8.unsafeFrom("EPIC")),
+      dataUrl = Utf8.unsafeFrom(
+        "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+      ),
+      contentHash = UInt256
+        .from(
+          hex"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        )
+        .toOption
+        .get,
+      output = alice,
+      memo = Some(Utf8.unsafeFrom("Test Minting NFT #2022061710000513118")),
+    ),
     Transaction.TokenTx.UpdateNFT(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
       createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
@@ -149,25 +168,26 @@ object JvmClientMain extends IOApp:
 
       NodeConfig.load[IO](loadConfig).value.flatMap {
         case Right(config) =>
-          val baseUri = uri"http://localhost:${config.local.port}"
-          val postTxClient = SttpClientInterpreter().toClient(
-            LeisureMetaChainApi.postTxEndpoint,
-            Some(baseUri),
-            backend,
-          )
+//          val baseUri = uri"http://localhost:${config.local.port}"
+//          val postTxClient = SttpClientInterpreter().toClient(
+//            LeisureMetaChainApi.postTxEndpoint,
+//            Some(baseUri),
+//            backend,
+//          )
 
           txs.toList
             .traverse: tx =>
               val signedTx = signAlice(tx)
-              val json     = signedTx.asJson.noSpaces
+              val json     = Seq(signedTx).asJson.spaces2
               println(json)
               println(Seq(tx.toHash).asJson.noSpaces)
+              IO.unit
 
-              for response <-
-                postTxClient(Seq(signedTx))
-              yield
-                println(response)
-                ExitCode.Success
+//              for response <-
+//                postTxClient(Seq(signedTx))
+//              yield
+//                println(response)
+//                ExitCode.Success
             .as(ExitCode.Success)
 
         case Left(err) =>

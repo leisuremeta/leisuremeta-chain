@@ -146,6 +146,58 @@ object PlayNommDAppToken:
               s"Fail to put rarity state of ${mn.tokenDefinitionId}, ${mn.rarity}, ${mn.tokenId}"
       yield txWithResult
 
+    case mn: Transaction.TokenTx.MintNFTWithMemo =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDef <- checkMinterAndGetTokenDefinition(
+          sig.account,
+          mn.tokenDefinitionId,
+        )
+        nftStateOption <- PlayNommState[F].token.nftState
+          .get(mn.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get nft state of ${mn.tokenId}"
+        _ <- checkExternal(
+          nftStateOption.isEmpty,
+          s"NFT ${mn.tokenId} is already minted",
+        )
+        txWithResult = TransactionWithResult(Signed(sig, mn))(None)
+        txHash       = txWithResult.toHash
+        _ <- PlayNommState[F].token.nftBalance
+          .put((mn.output, mn.tokenId, txHash), ())
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put token balance (${mn.output}, ${mn.tokenId}, $txHash)"
+        weight = tokenDef.nftInfo.get.rarity
+          .getOrElse(mn.rarity, BigNat.unsafeFromLong(2L))
+        nftState = NftState(
+          tokenId = mn.tokenId,
+          tokenDefinitionId = mn.tokenDefinitionId,
+          rarity = mn.rarity,
+          weight = weight,
+          currentOwner = mn.output,
+          memo = mn.memo,
+          lastUpdateTx = txHash,
+          previousState = None,
+        )
+        _ <- PlayNommState[F].token.nftState
+          .put(mn.tokenId, nftState)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft state of ${mn.tokenId}"
+        _ <- PlayNommState[F].token.nftHistory
+          .put(txHash, nftState)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put nft history of ${mn.tokenId} of $txHash"
+        _ <- PlayNommState[F].token.rarityState
+          .put((mn.tokenDefinitionId, mn.rarity, mn.tokenId), ())
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put rarity state of ${mn.tokenDefinitionId}, ${mn.rarity}, ${mn.tokenId}"
+      yield txWithResult
+
     case un: Transaction.TokenTx.UpdateNFT =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
@@ -631,6 +683,7 @@ object PlayNommDAppToken:
               EitherT.pure:
                 nb match
                   case mn: Transaction.TokenTx.MintNFT     => mn.tokenId
+                  case mnm: Transaction.TokenTx.MintNFTWithMemo => mnm.tokenId
                   case tn: Transaction.TokenTx.TransferNFT => tn.tokenId
                   case den: Transaction.TokenTx.DisposeEntrustedNFT =>
                     den.tokenId

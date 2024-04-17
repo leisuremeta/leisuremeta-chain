@@ -413,6 +413,15 @@ object StateReadService:
                           mf.tokenDefinitionId,
                           txHash,
                           txWithResult,
+                          None,
+                        )
+                    case mfm: Transaction.TokenTx.MintNFTWithMemo =>
+                      Map:
+                        tokenId -> NftBalanceInfo(
+                          mfm.tokenDefinitionId,
+                          txHash,
+                          txWithResult,
+                          mfm.memo,
                         )
                     case tn: Transaction.TokenTx.TransferNFT =>
                       Map:
@@ -420,6 +429,7 @@ object StateReadService:
                           tn.definitionId,
                           txHash,
                           txWithResult,
+                          tn.memo,
                         )
                     case de: Transaction.TokenTx.DisposeEntrustedNFT =>
                       Map:
@@ -427,6 +437,7 @@ object StateReadService:
                           de.definitionId,
                           txHash,
                           txWithResult,
+                          None,
                         )
                 case _ =>
                   Map.empty
@@ -467,6 +478,7 @@ object StateReadService:
                       en.definitionId,
                       txHash,
                       txWithResult,
+                      None,
                     )
                 case _ =>
                   Map.empty

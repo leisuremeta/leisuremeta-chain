@@ -223,6 +223,19 @@ object Transaction:
     ) extends TokenTx
         with NftBalance
 
+    final case class MintNFTWithMemo(
+        networkId: NetworkId,
+        createdAt: Instant,
+        tokenDefinitionId: TokenDefinitionId,
+        tokenId: TokenId,
+        rarity: Rarity,
+        dataUrl: Utf8,
+        contentHash: UInt256Bytes,
+        output: Account,
+        memo: Option[Utf8],
+    ) extends TokenTx
+        with NftBalance
+
     final case class BurnFungibleToken(
         networkId: NetworkId,
         createdAt: Instant,
@@ -340,6 +353,7 @@ object Transaction:
           case 11 => ByteDecoder[DisposeEntrustedNFT].widen
           case 12 => ByteDecoder[DefineTokenWithPrecision].widen
           case 13 => ByteDecoder[UpdateNFT].widen
+          case 14 => ByteDecoder[MintNFTWithMemo].widen
     }
 
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
@@ -357,6 +371,7 @@ object Transaction:
         case tx: DisposeEntrustedNFT           => build(11)(tx)
         case tx: DefineTokenWithPrecision      => build(12)(tx)
         case tx: UpdateNFT                     => build(13)(tx)
+        case tx: MintNFTWithMemo               => build(14)(tx)
 
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder

@@ -84,6 +84,15 @@ object TxDetailTableCommon:
         row("Content Hash", nft.contentHash.toHex),
         row("Rarity", nft.rarity.toString),
       ) :: List()
+    case nft: MintNFTWithMemo => 
+      div(cls := "detail table-container")(
+        rowCustom("Token ID", ParseHtml.fromTokenId(nft.tokenId.toString)),
+        row("Collection Name", getCollectionNameFromUrl(nft.dataUrl.toString)),
+        row("No", getNFromId(nft.tokenId.toString)),
+        rowCustom("Data URI", a(href := nft.dataUrl.toString, target := "_blank")(nft.dataUrl.toString)),
+        row("Content Hash", nft.contentHash.toHex),
+        row("Rarity", nft.rarity.toString),
+      ) :: List()
     case nft: UpdateNFT => 
       div(cls := "detail table-container")(
         rowTriOutput("Token ID"),

@@ -633,8 +633,53 @@
   ["6040003b0020245ce82f352bed95dee2636442efee4e5a15ee3911c67910b657"]
   ```
 
-  
+* MintNFTWithMemo
 
+  * > MinterGroup에 속한 Account의 서명
+  * Fields
+    * TokenDefinitionID(string)
+    * TokenID(string)
+    * Rarity(string)
+    * DataUrl(string)
+    * ContentHash: uint256
+    * Output: AccountName
+
+  * Example
+
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "d1c7f699ff24b4767e3728f79b13d3d930fa1be02cb511481010fbbaecf538c0",
+          "s" : "298829e3f5b03d4b3f87766b655eb3632099f6ea737e5e0d02da6ba03fcd72dd"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "TokenTx" : {
+          "MintNFTWithMemo" : {
+            "networkId" : 2021,
+            "createdAt" : "2023-01-11T19:05:00Z",
+            "tokenDefinitionId" : "nft-with-precision",
+            "tokenId" : "2022061710000513118",
+            "rarity" : "EPIC",
+            "dataUrl" : "https://d3j8b1jkcxmuqq.cloudfront.net/temp/collections/TEST_NOMM4/NFT_ITEM/F7A92FB1-B29F-4E6F-BEF1-47C6A1376D68.jpg",
+            "contentHash" : "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "output" : "alice",
+            "memo" : "Test Minting NFT #2022061710000513118"
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["018edc66aa45e303a2621e5a981c2a2ed5f262802498888814a1844c04b12bd3"]
+  ```
+  
 * BurnNFT
   * > 토큰 소유자 서명
   * Fields
