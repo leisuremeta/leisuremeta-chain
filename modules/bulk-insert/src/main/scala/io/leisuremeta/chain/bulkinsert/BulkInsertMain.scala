@@ -37,19 +37,28 @@ def bulkInsert[F[_]
   merkleState = MerkleTrieState.fromRootOption(bestBlock.header.stateRoot.main)
   indexWithTxsStream = Stream
     .fromIterator[EitherT[F, String, *]](source.getLines(), 1)
-    .zipWithIndex
-    .filterNot(_._1 === "[]")
+    .filterNot(_ === "[]")
     .drop(offset)
-    .evalMap: (line, index) =>
-      EitherT
-        .fromEither[F]:
-          decode[Seq[Signed.Tx]](line)
-        .leftMap: e =>
-          scribe.error(s"Error decoding line #$index: $line: $e")
-          e.getMessage()
-        .map(txs => (index, txs))
+    .evalMap: line =>
+      line.split("\t").toList match
+        case blockNumber :: txHash :: jsonString :: Nil =>
+          EitherT
+            .fromEither[F]:
+              decode[Signed.Tx](jsonString)
+            .leftMap: e =>
+              scribe.error(s"Error decoding line #$blockNumber: $txHash: $jsonString: $e")
+              e.getMessage()
+            .map(tx => (blockNumber, tx))
+        case _ =>
+          scribe.error(s"Error parsing line: $line")
+          EitherT.leftT[F, (String, Signed.Tx)](s"Error parsing line: $line")
+    .groupAdjacentBy(_._1)
+    .map:
+      case (blockNumber, chunk) =>
+        (blockNumber, chunk.toList.map(_._2))
+    
   stateStream = indexWithTxsStream.evalMapAccumulate((bestBlock, merkleState)):
-    case ((previousBlock, ms), (index, txs)) =>
+    case ((previousBlock, ms), (blockNumber, txs)) =>
       val localKeyPair: KeyPair =
         val privateKey = scala.sys.env
           .get("LMNODE_PRIVATE_KEY")
@@ -71,12 +80,12 @@ def bulkInsert[F[_]
               .recoverWith: e =>
                 RecoverTx(e, ms, tx)
           .map: result =>
-            if index % 100 === 0 then scribe.info(s"#$index: ${result._1.root}")
+            if BigInt(blockNumber) % 100 === 0 then scribe.info(s"#$blockNumber: ${result._1.root}")
             result
           .compile
           .toList
           .leftMap: e =>
-            scribe.error(s"Error building txs #$index: $txs: $e")
+            scribe.error(s"Error building txs #$blockNumber: $txs: $e")
             e
         (states, txWithResultOptions) = result.unzip
         finalState                    = states.last
@@ -127,10 +136,10 @@ def bulkInsert[F[_]
         _ <- txWithResults.traverse: txWithResult =>
           EitherT.liftF:
             TransactionRepository[F].put(txWithResult)
-      yield ((block, finalState), (index, txWithResults))
+      yield ((block, finalState), (blockNumber, txWithResults))
 
       program.leftMap: e =>
-        scribe.error(s"Error applying txs #$index: $txs: $e")
+        scribe.error(s"Error applying txs #$blockNumber: $txs: $e")
         e.msg
   result <- stateStream.last.compile.toList
 yield

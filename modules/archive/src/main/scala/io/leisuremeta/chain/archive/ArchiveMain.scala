@@ -43,8 +43,8 @@ final case class PHeader(
 object ArchiveMain extends IOApp:
 
 //  val baseUri = "http://test.chain.leisuremeta.io:8080"
-//  val baseUri = "http://localhost:7080"
-  val baseUri = "http://localhost:8080"
+  val baseUri = "http://localhost:7080"
+//  val baseUri = "http://localhost:8080"
 
   val archiveFileName = "txs1.archive"
 

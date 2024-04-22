@@ -428,6 +428,82 @@ object RecoverTx:
               .leftMap: msg =>
                 PlayNommDAppFailure.internal(s"Fail to recover error: $msg")
 
+          case tf: Transaction.RewardTx.OfferReward =>
+            val sig = signedTx.sig
+            val tx  = signedTx.value
+            val program = for
+              _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+              tokenDef <- PlayNommDAppToken.getTokenDefinition(
+                tf.tokenDefinitionId,
+              )
+              inputAmount <- PlayNommDAppToken.getFungibleBalanceTotalAmounts(
+                tf.inputs.map(_.toResultHashValue),
+                sig.account,
+              )
+              outputAmount = tf.outputs.values.foldLeft(BigNat.Zero)(BigNat.add)
+              diffBigInt   = inputAmount.toBigInt - outputAmount.toBigInt
+              _ <- StateT.liftF:
+                if diffBigInt < 0 then
+                  EitherT.right:
+                    InvalidTxLogger[F].log:
+                      InvalidTx(
+                        signer = sig.account,
+                        reason = InvalidReason.OutputMoreThanInput,
+                        amountToBurn = BigNat.unsafeFromBigInt(diffBigInt.abs),
+                        tx = tf,
+                      )
+                else EitherT.pure(())
+              txWithResult = TransactionWithResult(Signed(sig, tf))(None)
+              txHash       = txWithResult.toHash
+              invalidInputs <- PlayNommDAppToken.removeInputUtxos(
+                sig.account,
+                tf.inputs.map(_.toResultHashValue),
+                tf.tokenDefinitionId,
+              )
+              _ <- StateT.liftF:
+                if invalidInputs.isEmpty then EitherT.pure(())
+                else
+                  invalidInputs
+                    .traverse(TransactionRepository[F].get)
+                    .leftMap(e =>
+                      PlayNommDAppFailure.internal(s"Fail to get tx: $e"),
+                    )
+                    .semiflatMap: txOptions =>
+                      val sum = txOptions
+                        .map: txOption =>
+                          txOption.fold(BigNat.Zero)(
+                            PlayNommDAppToken.tokenBalanceAmount(sig.account),
+                          )
+                        .foldLeft(BigNat.Zero)(BigNat.add)
+                      InvalidTxLogger[F].log:
+                        InvalidTx(
+                          signer = sig.account,
+                          reason = InvalidReason.InputAlreadyUsed,
+                          amountToBurn = sum,
+                          tx = tf,
+                        )
+              _ <- tf.outputs.toSeq.traverse:
+                case (account, _) =>
+                  PlayNommDAppToken.putBalance(
+                    account,
+                    tf.tokenDefinitionId,
+                    txHash,
+                  )
+              totalAmount <- fromEitherInternal:
+                BigNat.fromBigInt(tokenDef.totalAmount.toBigInt - diffBigInt)
+              _ <- PlayNommDAppToken.putTokenDefinition(
+                tf.tokenDefinitionId,
+                tokenDef.copy(totalAmount = totalAmount),
+              )
+            yield txWithResult
+
+            program
+              .run(ms)
+              .map: (ms, txWithResult) =>
+                (ms, Option(txWithResult))
+              .leftMap: msg =>
+                PlayNommDAppFailure.internal(s"Fail to recover error: $msg")
+
           case _ =>
             PlayNommDApp[F](signedTx)
               .run(ms)
