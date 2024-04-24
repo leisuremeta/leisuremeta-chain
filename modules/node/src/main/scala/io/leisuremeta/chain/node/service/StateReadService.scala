@@ -2,6 +2,7 @@ package io.leisuremeta.chain
 package node
 package service
 
+import cats.Monad
 import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.syntax.eq.given
@@ -33,15 +34,11 @@ import api.model.api_model.{
 }
 import api.model.reward.{
   ActivitySnapshot,
+  DaoInfo,
   OwnershipSnapshot,
   OwnershipRewardLog,
 }
-import api.model.token.{
-  NftState,
-  TokenDefinition,
-  TokenDefinitionId,
-  TokenId,
-}
+import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
 import dapp.PlayNommState
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -673,3 +670,17 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       logOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield logOption
+
+  def getDaoInfo[F[_]: Monad: BlockRepository: PlayNommState](
+      groupId: GroupId,
+  ): EitherT[F, Either[String, String], Option[DaoInfo]] =
+    val program = PlayNommState[F].reward.dao.get(groupId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      infoOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield infoOption

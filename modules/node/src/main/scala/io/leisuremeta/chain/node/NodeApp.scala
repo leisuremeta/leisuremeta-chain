@@ -289,6 +289,19 @@ final case class NodeApp[F[_]
         .value
     }
 
+  def getDaoServerEndpoint = 
+    Api.getDaoEndpoint.serverLogic: (groupId: GroupId) =>
+      StateReadService
+        .getDaoInfo(groupId)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg) => Left(Api.ServerError(msg))
+        .subflatMap:
+          case Some(daoInfo) => Right(daoInfo)
+          case None =>
+            Left(Right(Api.NotFound(s"No DAO information of group $groupId")))
+        .value
+
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -357,6 +370,7 @@ final case class NodeApp[F[_]
     getOwnershipSnapshotServerEndpoint,
     getOwnershipSnapshotMapServerEndpoint,
     getOwnershipRewardedServerEndpoint,
+    getDaoServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )

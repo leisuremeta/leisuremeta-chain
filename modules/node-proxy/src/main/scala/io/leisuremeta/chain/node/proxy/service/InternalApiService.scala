@@ -309,6 +309,13 @@ class InternalApiService[F[_]: Async](
       }
     }.map(_.head)
 
+  def getDaoInfo(groupId: GroupId): F[(StatusCode, String)] =
+    baseUrlsLock.get
+    .flatMap: urls =>
+      urls.traverse: baseUrl =>
+        getAsString(uri"$baseUrl/dao/$groupId")
+    .map(_.head)
+
   def getTx(
     txHash: String,
   ): F[(StatusCode, String)] =

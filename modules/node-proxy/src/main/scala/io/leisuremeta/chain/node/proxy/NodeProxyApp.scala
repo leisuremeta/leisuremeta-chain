@@ -123,6 +123,10 @@ final case class NodeProxyApp[F[_]: Async](
       apiService.getOwnershipRewarded(tokenId).map(Right(_))
     }
 
+  def getDaoInfoServerEndpoint =
+    Api.getDaoInfoEndpoint.serverLogic: (groupId: GroupId) =>
+      apiService.getDaoInfo(groupId).map(Right(_))
+
   def getTxServerEndpoint = Api.getTxEndpoint.serverLogic {
     (txHash: String) =>
       apiService.getTx(txHash).map(Right(_))
@@ -168,6 +172,7 @@ final case class NodeProxyApp[F[_]: Async](
     getOwnershipSnapshotMapServerEndpoint,
 //    getRewardServerEndpoint,
     getOwnershipRewardedServerEndpoint,
+    getDaoInfoServerEndpoint,
     postTxServerEndpoint,
     postTxHashServerEndpoint,
   )

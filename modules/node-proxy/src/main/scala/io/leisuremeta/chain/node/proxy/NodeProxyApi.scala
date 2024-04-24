@@ -218,6 +218,13 @@ object NodeProxyApi:
       .out(statusCode.and(stringJsonBody))
       .out(header("Content-Type", jsonType))
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getDaoInfoEndpoint =
+    endpoint.get
+      .in("dao" / path[GroupId])
+      .out(statusCode.and(stringJsonBody))
+      .out(header("Content-Type", jsonType))
+
   // enum Movable:
   //   case Free, Locked
   // object Movable:

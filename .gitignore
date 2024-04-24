@@ -37,3 +37,7 @@ Settings.scala
 
 # mac
 .DS_Store
+
+# archive
+txs.archive
+txs1.archive
