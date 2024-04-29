@@ -40,7 +40,7 @@ extension (nibbles: Nibbles)
       Some(nibbles.drop(prefix.size).assumeNibbles)
     else None
 
-  def <=(that: Nibbles): Boolean =
+  def compareTo(that: Nibbles): Int =
     val thisBytes = nibbles.bytes
     val thatBytes = that.bytes
     val minSize   = thisBytes.size min thatBytes.size
@@ -48,8 +48,13 @@ extension (nibbles: Nibbles)
     (0L `until` minSize)
       .find: i =>
         thisBytes.get(i) =!= thatBytes.get(i)
-      .fold(nibbles.value.size <= that.value.size): i =>
-        (thisBytes.get(i) & 0xff) <= (thatBytes.get(i) & 0xff)
+      .fold(thisBytes.size compareTo thatBytes.size): i =>
+        (thisBytes.get(i) & 0xff) compare (thatBytes.get(i) & 0xff)
+
+  def <=(that: Nibbles): Boolean = compareTo(that) <= 0
+  def <(that: Nibbles): Boolean  = compareTo(that) < 0
+  def >=(that: Nibbles): Boolean = compareTo(that) >= 0
+  def >(that: Nibbles): Boolean  = compareTo(that) > 0
 
 extension (bitVector: BitVector)
   def refineToNibble: Either[String, Nibbles] =
