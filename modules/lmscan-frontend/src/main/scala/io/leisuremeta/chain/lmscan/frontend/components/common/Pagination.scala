@@ -44,8 +44,8 @@ object Pagination:
         onClick(goTo(1)),
       )("First"),
       a(
-        cls := s"${isDis(curPage <= 10)}",
-        onClick(goTo(curPage - 10)),
+        cls := s"${isDis(curPage <= 1)}",
+        onClick(goTo(curPage - 1)),
       )("<"),
       model.pageToggle match
         case true => 
@@ -58,8 +58,8 @@ object Pagination:
         case false => p(onClick(toggleInput))(s"${curPage} of ${totalPage}")
       ,
       a(
-        cls := s"${isDis(curPage >= totalPage - 10)}",
-        onClick(goTo(curPage + 10)),
+        cls := s"${isDis(curPage >= totalPage)}",
+        onClick(goTo(curPage + 1)),
       )(">"),
       a(
         cls := s"${isDis(curPage == totalPage)}",

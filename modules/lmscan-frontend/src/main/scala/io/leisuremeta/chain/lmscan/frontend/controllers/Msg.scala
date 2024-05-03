@@ -25,10 +25,10 @@ case class UpdateChart(param: SummaryChart) extends Msg
 case class UpdateSearch(v: Int) extends Msg
 
 case class UpdateModel(model: ApiModel) extends Msg
-case class UpdateListModel[ApiModel](model: PageResponse[ApiModel]) extends Msg
+case class UpdateListModel[T](model: PageResponse[T]) extends Msg
 case class UpdateBlcs(model: PageResponse[BlockInfo]) extends Msg
 case class UpdateTxs(model: PageResponse[TxInfo]) extends Msg
-case class UpdateSample[ApiModel](model: PageResponse[ApiModel]) extends Msg
+case class UpdateSample[T](model: PageResponse[T]) extends Msg
 
 case class GetDataFromApi(key: String) extends Msg
 case class SetLocal(key: String, d: String) extends Msg

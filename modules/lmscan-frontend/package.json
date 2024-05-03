@@ -7,6 +7,7 @@
     "build": "parcel build"
   },
   "devDependencies": {
+    "@parcel/compressor-brotli": "^2.12.0",
     "@parcel/compressor-gzip": "^2.12.0",
     "@parcel/reporter-bundle-analyzer": "^2.12.0",
     "parcel": "^2.12.0",

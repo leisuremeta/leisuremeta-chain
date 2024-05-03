@@ -1,10 +1,20 @@
-package io.leisuremeta.chain.lmscan
+package io.leisuremeta.chain
+package lmscan
 package frontend
 
 import tyrian.*
 import cats.effect.IO
 import tyrian.Html.*
 import common.model._
+import io.circe.*
+import io.circe.parser.*
+import io.circe.generic.auto.*
+import api.model._
+import api.model.Transaction.AccountTx
+import api.model.Transaction.TokenTx
+import api.model.Transaction.GroupTx
+import api.model.Transaction.RewardTx
+import api.model.Transaction.AgendaTx
 
 object TxDetailPage:
   def update(model: TxDetailModel): Msg => (Model, Cmd[IO, Msg]) =
@@ -19,11 +29,11 @@ object TxDetailPage:
     DefaultLayout.view(
       model,
       div(cls := "page-title")("Transaction details") :: 
-      commonView(model.txDetail) ::
-      TxDetailTableCommon.view(model.txDetail),
+      commonView(model.txDetail, model.getInfo) ::
+      TxDetailTableCommon.view(model.getTxr),
     )
 
-  def commonView(data: TxDetail) =
+  def commonView(data: TxDetail, info: (String, String, String)) =
     div(cls := "detail table-container")(
       div(cls := "row")(
         span("Transaction Hash"),
@@ -35,15 +45,15 @@ object TxDetailPage:
       ),
       div(cls := "row")(
         span("Signer"),
-        ParseHtml.fromAccHash(data.signer),
+        ParseHtml.fromAccHash(Some(info._1)),
       ),
       div(cls := "row")(
         span("Type"),
-        span(data.txType.getOrElse("")),
+        span(info._2),
       ),
       div(cls := "row")(
         span("SubType"),
-        span(data.subType.getOrElse("")),
+        span(info._3),
       ),
     )
 
@@ -54,3 +64,23 @@ final case class TxDetailModel(
     def view: Html[Msg] = TxDetailPage.view(this)
     def url = s"/tx/${txDetail.hash.get}"
     def update: Msg => (Model, Cmd[IO, Msg]) = TxDetailPage.update(this)
+    def getTxr: Option[TransactionWithResult] =
+      val res = for
+        json <- txDetail.json
+        tx <- decode[TransactionWithResult](json).toOption
+      yield tx
+      res
+    def getInfo: (String, String, String) =
+      extension (a: Transaction)
+        def splitTx = a.toString.split("\\(").head
+      this.getTxr match
+        case Some(x) =>
+          val acc = x.signedTx.sig.account.toString
+          val (tt, st) = x.signedTx.value match
+            case tx: Transaction.TokenTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.AccountTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.GroupTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.RewardTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.AgendaTx => ("TokenTx", tx.splitTx)
+          (acc, tt, st)
+        case None => ("", "", "")

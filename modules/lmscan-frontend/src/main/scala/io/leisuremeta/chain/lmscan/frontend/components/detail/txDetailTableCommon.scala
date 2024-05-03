@@ -3,8 +3,6 @@ package lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
-import lmscan.common.model.TxDetail
-import io.circe.parser.decode
 import api.model._
 import api.model.Transaction.AccountTx.*
 import api.model.Transaction.TokenTx.*
@@ -14,9 +12,6 @@ import api.model.Transaction.AgendaTx.*
 import api.model.token.*
 import io.leisuremeta.chain.lib.datatype.BigNat
 import io.leisuremeta.chain.api.model.Signed.TxHash
-import io.circe.*
-import io.circe.parser.*
-import io.circe.generic.auto.*
 import io.leisuremeta.chain.api.model.Transaction._
 
 object TxDetailTableCommon:
@@ -51,10 +46,9 @@ object TxDetailTableCommon:
     id.drop(16).dropWhile(c => !c.isDigit || c == '0').prepended('#')
     
 
-  def view(data: TxDetail) =
+  def view(data: Option[TransactionWithResult]) =
     val result = for
-      json <- data.json
-      tx <- decode[TransactionWithResult](json).toOption
+      tx <- data
       res = tx.signedTx.value match
         case tx: Transaction.TokenTx => tokenView(tx)
         case tx: Transaction.AccountTx => accountView(tx)

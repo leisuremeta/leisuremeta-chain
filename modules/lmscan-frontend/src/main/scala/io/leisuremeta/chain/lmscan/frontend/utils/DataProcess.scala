@@ -19,7 +19,6 @@ object Parse:
   given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
   given Decoder[TxInfo] = deriveDecoder[TxInfo]
   given Decoder[TxDetail] = deriveDecoder[TxDetail]
-  given Decoder[TransferHist] = deriveDecoder[TransferHist]
   given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
   given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
   given Decoder[AccountInfo] = deriveDecoder[AccountInfo]
