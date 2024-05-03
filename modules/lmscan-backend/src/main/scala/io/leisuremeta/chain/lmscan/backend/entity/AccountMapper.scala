@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lmscan.backend.entity
 
-final case class Account(
+final case class AccountMapper(
     address: String,
-    createdAt: Long,
+    hash: String,
     eventTime: Long,
 )

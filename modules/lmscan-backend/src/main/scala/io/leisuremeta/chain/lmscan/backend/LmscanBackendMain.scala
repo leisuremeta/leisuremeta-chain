@@ -40,8 +40,8 @@ object BackendMain extends IOApp:
         TransactionService
           .getPageByFilter[F](pageInfo, accountAddr, blockHash, subType)
           .leftMap:
-          case Right(msg) => Right(ExploreApi.BadRequest(msg))
-          case Left(msg) => Left(ExploreApi.ServerError(msg))
+            case Right(msg) => Right(ExploreApi.BadRequest(msg))
+            case Left(msg) => Left(ExploreApi.ServerError(msg))
         .value
     }
 

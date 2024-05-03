@@ -12,22 +12,12 @@ object AccountRepository extends CommonQuery:
 
   def get[F[_]: Async](
       addr: String,
-  ): EitherT[F, String, Option[Account]] =
+  ): EitherT[F, String, Option[Balance]] =
     inline def detailQuery =
       quote { (addr: String) =>
-        query[Account]
-          .join(query[Balance])
-          .on((a, b) => a.address == b.address)
-          .filter(_._1.address == addr)
+        query[Balance]
+          .filter(_.address == addr)
           .take(1)
-          .map { case (a, b) =>
-            Account(
-              address = a.address,
-              balance = b.free,
-              amount = a.amount,
-              createdAt = a.createdAt,
-            )
-          }
       }
     optionQuery(detailQuery(lift(addr)))
 
