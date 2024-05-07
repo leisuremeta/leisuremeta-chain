@@ -1,23 +1,13 @@
 package io.leisuremeta.chain.lmscan
 package backend
 
-//import cats.Monad
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.effect.std.Dispatcher
-//import cats.syntax.either.*
-//import cats.syntax.functor.toFunctorOps
-
 import com.linecorp.armeria.server.Server
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
-
-//import sttp.model.StatusCode
 import sttp.tapir.*
-//import sttp.tapir.EndpointIO
-//import sttp.tapir.json.circe.*
-//import sttp.tapir.generic.auto.{*, given}
-
 import common.ExploreApi
 import common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.service.*
@@ -155,6 +145,16 @@ object BackendMain extends IOApp:
         .value
     }
 
+  def keywordSearch[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getKeywordSearchResult.serverLogic:
+      (keyword: String) =>
+        SearchService
+          .getKeywordSearch(keyword)
+          .leftMap:
+            case Right(msg) => Right(ExploreApi.BadRequest(msg))
+            case Left(msg) => Left(ExploreApi.ServerError(msg))
+          .value
+
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       txPaging[F],
@@ -169,6 +169,7 @@ object BackendMain extends IOApp:
       nftOwnerInfo[F],
       summaryMain[F],
       summaryChart[F],
+      keywordSearch[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =

@@ -25,9 +25,7 @@ trait CommonQuery:
               ctx.run(query)
             })
             .map(Either.right(_))
-        yield
-        // scribe.info(s"seqQuery Result: $result")
-        result
+        yield result
       } {
         case e: SQLException =>
           Left(s"sql exception occured: " + e.getMessage())
@@ -67,7 +65,8 @@ trait CommonQuery:
             .fromFuture(Async[F].delay {
               ctx.run(query)
             })
-        yield Right(Some(detail))
+          res = if detail.isEmpty then Right(None) else Right(Some(detail))
+        yield res
       } {
         case e: SQLException =>
           Left(s"sql exception occured: " + e.getMessage())
@@ -85,7 +84,8 @@ trait CommonQuery:
             .fromFuture(Async[F].delay {
               ctx.run(query)
             })
-        yield Right(detail.headOption)
+          res = if detail.isEmpty then Right(None) else Right(detail.headOption)
+        yield res
       } {
         case e: SQLException =>
           Left(s"sql exception occured: " + e.getMessage())

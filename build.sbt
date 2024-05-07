@@ -442,6 +442,11 @@ lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
   .settings(Dependencies.tests)
   .jvmSettings(Dependencies.lmscanCommonJVM)
   .jvmSettings(
+    scalacOptions ++= Seq(
+      "-Xmax-inlines:64",
+    ),
+  )
+  .jvmSettings(
     Test / fork := true,
   )
   .jsSettings(Dependencies.lmscanCommonJS)
@@ -452,6 +457,7 @@ lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
     },
     scalacOptions ++= Seq(
       "-scalajs",
+      "-Xmax-inlines:64",
     ),
     externalNpm := {
       scala.sys.process.Process("yarn", baseDirectory.value).!
@@ -479,8 +485,7 @@ lazy val lmscanFrontend = (project in file("modules/lmscan-frontend"))
     },
     scalacOptions ++= Seq(
       "-scalajs",
-    ), // sbt-tpolecat bug: https://github.com/typelevel/sbt-tpolecat/issues/102
-//    scalaJSUseMainModuleInitializer := true,
+    ),
   )
   .dependsOn(lmscanCommon.js, api.js)
 

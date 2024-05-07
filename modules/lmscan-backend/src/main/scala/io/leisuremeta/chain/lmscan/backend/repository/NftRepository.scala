@@ -8,7 +8,6 @@ import cats.data.EitherT
 import io.getquill.*
 
 object NftRepository extends CommonQuery:
-
   import ctx.*
 
   def getPageByTokenId[F[_]: Async](
@@ -23,7 +22,6 @@ object NftRepository extends CommonQuery:
       quote { (pageNavInfo: PageNavigation) =>
         val sizePerRequest = pageNavInfo.sizePerRequest
         val offset         = sizePerRequest * pageNavInfo.pageNo
-        // val orderBy        = pageNavInfo.orderBy()
 
         query[Nft]
           .filter(t => t.tokenId == lift(tokenId))

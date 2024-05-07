@@ -52,7 +52,6 @@ object AccountService:
               txPage.payload,
             )
           ))
-          // EitherT.leftT[F, Option[AccountDetail]](Right(s"$address is not exist"))
     yield res
 
   def getPage[F[_]: Async](
