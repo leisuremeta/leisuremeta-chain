@@ -25,7 +25,7 @@ val V = new {
 
   val awsSdk = "2.20.75"
 
-  val scribe          = "3.11.5"
+  val scribe          = "3.13.4"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
   val munitCatsEffect = "2.0.0-M3"

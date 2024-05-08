@@ -85,7 +85,7 @@ object GatewayServer:
     def log[F[_]: Async](
         level: scribe.Level,
     )(msg: String, exOpt: Option[Throwable])(using
-        mdc: scribe.data.MDC,
+        mdc: scribe.mdc.MDC,
     ): F[Unit] = Async[F].delay:
       exOpt match
         case None     => scribe.log(level, mdc, msg)
