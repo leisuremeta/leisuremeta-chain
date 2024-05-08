@@ -16,7 +16,7 @@ val V = new {
   val pureconfig     = "0.17.4"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
-  val lettuce        = "6.2.6.RELEASE"
+  val lettuce        = "6.3.2.RELEASE"
   val jasync         = "2.2.4"
 
   val okhttp3LoggingInterceptor = "4.11.0"
