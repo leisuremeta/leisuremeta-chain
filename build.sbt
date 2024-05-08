@@ -17,7 +17,7 @@ val V = new {
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
   val lettuce        = "6.2.6.RELEASE"
-  val jasync         = "2.1.24"
+  val jasync         = "2.2.4"
 
   val okhttp3LoggingInterceptor = "4.11.0"
 
@@ -37,7 +37,7 @@ val V = new {
   val elliptic      = "6.5.4"
   val typesElliptic = "6.4.12"
   val pgEmbedded    = "1.0.3"
-  val quill         = "4.6.0.1"
+  val quill         = "4.8.0"
   val postgres      = "42.6.0"
   val flywayCore    = "9.19.1"
 }
