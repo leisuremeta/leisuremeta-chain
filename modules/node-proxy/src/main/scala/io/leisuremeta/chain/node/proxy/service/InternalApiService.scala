@@ -329,7 +329,7 @@ class InternalApiService[F[_]: Async](
     txHash: String,
   ): F[(StatusCode, Either[String, TxModel])] =
     baseUrlsLock.get.map(_.head).flatMap { baseUrl =>
-      getTxAsResponse(uri"$baseUrl/tx/$txHash")(TxModel.txModelDecoder)
+      getTxAsResponse[TxModel](uri"$baseUrl/tx/$txHash")
     }
 
   def getTxSet(

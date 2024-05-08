@@ -17,7 +17,7 @@ type UInt256BigInt = UInt256.Refined[BigInt]
 object UInt256:
   trait Refine[A]
 
-  type Refined[A] = A with Refine[A]
+  type Refined[A] = A & Refine[A]
 
   def from[A: Ops](value: A): Either[UInt256RefineFailure, Refined[A]] =
     Ops[A].from(value)

@@ -43,6 +43,13 @@ case class EmptyModel(
     case GlobalSearch => (this, Cmd.Emit(DataProcess.globalSearch(global.searchValue.toLowerCase)))
     case _ => (this, Cmd.None)
 
+case class IssueInfo(date: String, n: Int)
+given Decoder[IssueInfo] =
+  Decoder.forProduct2(
+    "Issue_date",
+    "Issuance"
+  )(IssueInfo.apply)
+
 case class NftJson(
   creatorDesc: String,
   collectionDesc: String,
@@ -66,10 +73,3 @@ given Decoder[NftJson] =
     "NFT_name",
     "NFT_URI"
   )(NftJson.apply)
-
-case class IssueInfo(date: String, n: Int)
-given Decoder[IssueInfo] =
-  Decoder.forProduct2(
-    "Issue_date",
-    "Issuance"
-  )(IssueInfo.apply)

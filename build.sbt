@@ -1,7 +1,7 @@
 import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
-  val Scala      = "3.3.3"
-  val ScalaGroup = "3.3"
+  val Scala      = "3.4.1"
+  val ScalaGroup = "3.4"
 
   val catsEffect = "3.5.4"
   val tapir      = "1.10.6"
@@ -409,6 +409,11 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
   .in(file("modules/lib"))
   .settings(Dependencies.lib)
   .settings(Dependencies.tests)
+  .settings(
+    scalacOptions ++= Seq(
+      "-Wconf:msg=Alphanumeric method .* is not declared infix:s",
+    )
+  )
   .jvmSettings(Dependencies.libJVM)
   .jsSettings(Dependencies.libJS)
   .jsSettings(
