@@ -4,9 +4,9 @@ val V = new {
   val ScalaGroup = "3.3"
 
   val catsEffect = "3.5.4"
-  val tapir      = "1.5.0"
+  val tapir      = "1.10.6"
   val sttp       = "3.8.15"
-  val circe      = "0.15.0-M1"
+  val circe      = "0.14.7"
   val refined    = "0.10.3"
   val scodecBits = "1.1.37"
   val shapeless  = "3.3.0"

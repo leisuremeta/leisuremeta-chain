@@ -1,19 +1,19 @@
 package io.leisuremeta.chain.node.proxy
 package service
 
-import cats.effect.Ref
-import cats.implicits.toFlatMapOps
-import cats.effect.Async
 import java.nio.file.{Files, Paths}
+
+import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
-import scala.jdk.CollectionConverters.*
-import model.NodeConfig
-import io.circe.generic.auto.*
+
+import cats.effect.{Async, Ref}
+import cats.syntax.all._
+
+import io.circe.generic.auto._
 import io.circe.parser.decode
-import scala.concurrent.duration.*
-import cats.implicits.catsSyntaxFlatMapOps
-import cats.syntax.all.toFunctorOps
-import cats.syntax.apply.catsSyntaxApply
+
+import model.NodeConfig
 
 
 object NodeWatchService:

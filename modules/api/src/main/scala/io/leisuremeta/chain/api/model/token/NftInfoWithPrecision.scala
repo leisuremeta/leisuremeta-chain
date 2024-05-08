@@ -2,6 +2,9 @@ package io.leisuremeta.chain
 package api.model
 package token
 
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.*
+
 import lib.datatype.{BigNat, UInt256Bytes, Utf8}
 
 final case class NftInfoWithPrecision(
@@ -21,3 +24,6 @@ object NftInfoWithPrecision:
       nftInfo.dataUrl,
       nftInfo.contentHash,
     )
+
+  given Decoder[NftInfoWithPrecision] = deriveDecoder
+  given Encoder[NftInfoWithPrecision] = deriveEncoder

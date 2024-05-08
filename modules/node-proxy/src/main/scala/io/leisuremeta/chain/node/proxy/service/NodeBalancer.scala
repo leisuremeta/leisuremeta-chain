@@ -86,12 +86,12 @@ case class NodeBalancer[F[_]: Async] (
     def processLinesReversed(): F[Option[String]] = 
       def reverseLines(): F[Option[String]] = 
         def reversePipe: Pipe[F, String, String] = _.flatMap { s =>
-          Stream.chunk(Chunk.vector(s.split('\n').toVector.reverse))
+          Stream.chunk(Chunk.from(s.split('\n').toVector.reverse))
         }.fold(Vector.empty[String]) { (acc, line) =>
           line +: acc
         }.flatMap(Stream.emits)
 
-        fs2.io.file.Files[F]
+        fs2.io.file.Files.forAsync[F]
           .readAll(path)
           .through(fs2.text.utf8.decode)
           .through(text.lines)
