@@ -38,8 +38,8 @@ val V = new {
   val typesElliptic = "6.4.12"
   val pgEmbedded    = "1.0.3"
   val quill         = "4.8.0"
-  val postgres      = "42.6.0"
-  val flywayCore    = "9.19.1"
+  val postgres      = "42.7.3"
+  val flywayCore    = "9.22.3"
 }
 
 val Dependencies = new {
