@@ -10,7 +10,7 @@ val V = new {
   val refined    = "0.10.3"
   val scodecBits = "1.1.37"
   val shapeless  = "3.3.0"
-  val fs2        = "3.7.0"
+  val fs2        = "3.10.2"
 
   val typesafeConfig = "1.4.2"
   val pureconfig     = "0.17.4"
