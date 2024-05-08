@@ -50,16 +50,18 @@ object CryptoOps:
     val spec = new ECGenParameterSpec("secp256k1")
     gen.initialize(spec, secureRandom)
     val pair = gen.generateKeyPair
-    (for
+
+    val keyPairOption = for
       bcecPrivate <- pair.getPrivate.cast[BCECPrivateKey]
       bcecPublic  <- pair.getPublic.cast[BCECPublicKey]
       privateKey  <- UInt256.from(BigInt(bcecPrivate.getD)).toOption
       publicKey <- PublicKey
         .fromByteArray(bcecPublic.getQ.getEncoded(false).tail)
         .toOption
-    yield KeyPair(privateKey, publicKey)).getOrElse {
+    yield KeyPair(privateKey, publicKey)
+    
+    keyPairOption.getOrElse:
       throw new Exception(s"Wrong keypair result: $pair")
-    }
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def fromPrivate(privateKey: BigInt): KeyPair =
@@ -68,9 +70,8 @@ object CryptoOps:
     val encoded: Array[Byte] = point.getEncoded(false)
     val keypairEither: Either[UInt256RefineFailure, KeyPair] = for
       private256 <- UInt256.from(privateKey)
-      public <- PublicKey.fromByteArray(
-        Arrays.copyOfRange(encoded, 1, encoded.length),
-      )
+      public <- PublicKey.fromByteArray:
+        Arrays.copyOfRange(encoded, 1, encoded.length)
     yield KeyPair(private256, public)
 
     keypairEither match
@@ -102,14 +103,11 @@ object CryptoOps:
       r256 <- UInt256.from(BigInt(r)).leftMap(_.msg)
       s256 <- UInt256.from(BigInt(s)).leftMap(_.msg)
       recId <- (0 until 4)
-        .find { id =>
-          recoverFromSignature(id, r256, s256, transactionHash) === Some(
-            keyPair.publicKey,
-          )
-        }
-        .toRight {
+        .find: id =>
+          recoverFromSignature(id, r256, s256, transactionHash) ===
+            Some(keyPair.publicKey)
+        .toRight:
           "Could not construct a recoverable key. The credentials might not be valid."
-        }
       v <- refineV[Signature.HeaderRange](recId + 27)
     yield Signature(v, r256, s256)
 

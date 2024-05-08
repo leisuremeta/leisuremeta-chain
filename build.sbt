@@ -9,7 +9,7 @@ val V = new {
   val circe      = "0.14.7"
   val refined    = "0.10.3"
   val scodecBits = "1.1.37"
-  val shapeless  = "3.3.0"
+  val shapeless  = "3.4.1"
   val fs2        = "3.10.2"
 
   val typesafeConfig = "1.4.2"
@@ -114,7 +114,6 @@ val Dependencies = new {
       "io.circe"      %%% "circe-refined"       % V.circe,
       "eu.timepit"    %%% "refined"             % V.refined,
       "org.scodec"    %%% "scodec-bits"         % V.scodecBits,
-      "org.typelevel" %%% "shapeless3-deriving" % V.shapeless,
       "org.typelevel" %%% "shapeless3-typeable" % V.shapeless,
       "co.fs2"        %%% "fs2-core"            % V.fs2,
     ),
