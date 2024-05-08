@@ -19,7 +19,7 @@ val V = new {
   val lettuce        = "6.3.2.RELEASE"
   val jasync         = "2.2.4"
 
-  val okhttp3LoggingInterceptor = "4.11.0"
+  val okhttp3LoggingInterceptor = "4.12.0"
 
   val web3J = "4.9.6"
 
