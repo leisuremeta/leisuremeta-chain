@@ -12,7 +12,7 @@ val V = new {
   val shapeless  = "3.4.1"
   val fs2        = "3.10.2"
 
-  val typesafeConfig = "1.4.2"
+  val typesafeConfig = "1.4.3"
   val pureconfig     = "0.17.4"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
