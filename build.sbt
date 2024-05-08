@@ -8,6 +8,7 @@ val V = new {
   val sttp       = "3.9.6"
   val circe      = "0.14.7"
   val refined    = "0.11.1"
+  val iron       = "2.5.0"
   val scodecBits = "1.1.38"
   val shapeless  = "3.4.1"
   val fs2        = "3.10.2"
@@ -49,9 +50,9 @@ val Dependencies = new {
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe"          % V.tapir,
       "com.outr"                    %% "scribe-slf4j"              % V.scribe,
-      "com.typesafe" % "config" % V.typesafeConfig,
-      ("io.swaydb"  %% "swaydb" % V.sway).cross(CrossVersion.for3Use2_13),
-      "io.lettuce" % "lettuce-core" % V.lettuce,
+      "com.typesafe" % "config"       % V.typesafeConfig,
+      ("io.swaydb"  %% "swaydb"       % V.sway).cross(CrossVersion.for3Use2_13),
+      "io.lettuce"   % "lettuce-core" % V.lettuce,
     ),
     excludeDependencies ++= Seq(
       "org.scala-lang.modules" % "scala-collection-compat_2.13",
@@ -109,13 +110,14 @@ val Dependencies = new {
 
   lazy val lib = Seq(
     libraryDependencies ++= Seq(
-      "io.circe"      %%% "circe-generic"       % V.circe,
-      "io.circe"      %%% "circe-parser"        % V.circe,
-      "io.circe"      %%% "circe-refined"       % V.circe,
-      "eu.timepit"    %%% "refined"             % V.refined,
-      "org.scodec"    %%% "scodec-bits"         % V.scodecBits,
-      "org.typelevel" %%% "shapeless3-typeable" % V.shapeless,
-      "co.fs2"        %%% "fs2-core"            % V.fs2,
+      "io.circe"           %%% "circe-generic"       % V.circe,
+      "io.circe"           %%% "circe-parser"        % V.circe,
+      "io.circe"           %%% "circe-refined"       % V.circe,
+      "eu.timepit"         %%% "refined"             % V.refined,
+      "io.github.iltotore" %%% "iron"                % V.iron,
+      "org.scodec"         %%% "scodec-bits"         % V.scodecBits,
+      "org.typelevel"      %%% "shapeless3-typeable" % V.shapeless,
+      "co.fs2"             %%% "fs2-core"            % V.fs2,
     ),
   )
 
@@ -155,16 +157,16 @@ val Dependencies = new {
 
   lazy val lmscanCommon = Seq(
     libraryDependencies ++= Seq(
-      "org.typelevel"               %%% "cats-effect"      % V.catsEffect,
-      "io.circe"                    %%% "circe-generic"    % V.circe,
-      "io.circe"                    %%% "circe-parser"     % V.circe,
-      "io.circe"                    %%% "circe-refined"    % V.circe,
-      "eu.timepit"                  %%% "refined"          % V.refined,
-      "com.softwaremill.sttp.tapir" %%% "tapir-core"       % V.tapir,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % V.tapir,
-      "org.scodec"                  %%% "scodec-bits"      % V.scodecBits,
-      "co.fs2"                      %%% "fs2-core"         % V.fs2,
-      "io.getquill" %% "quill-jasync-postgres" % V.quill,
+      "org.typelevel"               %%% "cats-effect"           % V.catsEffect,
+      "io.circe"                    %%% "circe-generic"         % V.circe,
+      "io.circe"                    %%% "circe-parser"          % V.circe,
+      "io.circe"                    %%% "circe-refined"         % V.circe,
+      "eu.timepit"                  %%% "refined"               % V.refined,
+      "com.softwaremill.sttp.tapir" %%% "tapir-core"            % V.tapir,
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe"      % V.tapir,
+      "org.scodec"                  %%% "scodec-bits"           % V.scodecBits,
+      "co.fs2"                      %%% "fs2-core"              % V.fs2,
+      "io.getquill"                  %% "quill-jasync-postgres" % V.quill,
     ),
   )
 
@@ -227,13 +229,13 @@ val Dependencies = new {
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
       "com.softwaremill.sttp.tapir"   %% "tapir-armeria-server-cats" % V.tapir,
-      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
-      "io.circe"                      %% "circe-generic"        % V.circe,
-      "io.circe"                      %% "circe-parser"         % V.circe,
-      "io.circe"                      %% "circe-refined"        % V.circe,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats"      % V.sttp,
+      "io.circe"                      %% "circe-generic"             % V.circe,
+      "io.circe"                      %% "circe-parser"              % V.circe,
+      "io.circe"                      %% "circe-refined"             % V.circe,
       "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
-      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
-      "co.fs2"                        %%% "fs2-core"            % V.fs2,
+      "org.typelevel" %% "cats-effect" % V.catsEffect,
+      "co.fs2"       %%% "fs2-core"    % V.fs2,
     ),
   )
 }
@@ -412,7 +414,9 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
   .settings(
     scalacOptions ++= Seq(
       "-Wconf:msg=Alphanumeric method .* is not declared infix:s",
-    )
+    ),
+    Compile / compile / wartremoverErrors ++= Warts
+      .allBut(Wart.SeqApply, Wart.SeqUpdated),
   )
   .jvmSettings(Dependencies.libJVM)
   .jsSettings(Dependencies.libJS)
@@ -425,8 +429,6 @@ lazy val lib = crossProject(JSPlatform, JVMPlatform)
       "-scalajs",
     ),
     Test / fork := false,
-    Compile / compile / wartremoverErrors ++= Warts
-      .allBut(Wart.SeqApply, Wart.SeqUpdated),
   )
   .jsConfigure { project =>
     project
@@ -534,7 +536,6 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
     },
   )
   .dependsOn(api.jvm)
-
 
 lazy val nodeProxy = (project in file("modules/node-proxy"))
   .settings(Dependencies.nodeProxy)

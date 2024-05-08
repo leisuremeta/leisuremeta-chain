@@ -36,6 +36,7 @@ import shapeless3.typeable.syntax.typeable.cast
 import datatype.{UInt256, UInt256BigInt}
 import failure.UInt256RefineFailure
 
+@SuppressWarnings(Array("org.wartremover.warts.Equals"))
 object CryptoOps:
 
   locally:
