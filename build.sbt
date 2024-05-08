@@ -5,7 +5,7 @@ val V = new {
 
   val catsEffect = "3.5.4"
   val tapir      = "1.10.6"
-  val sttp       = "3.8.15"
+  val sttp       = "3.9.6"
   val circe      = "0.14.7"
   val refined    = "0.10.3"
   val scodecBits = "1.1.37"
