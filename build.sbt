@@ -13,7 +13,7 @@ val V = new {
   val fs2        = "3.10.2"
 
   val typesafeConfig = "1.4.3"
-  val pureconfig     = "0.17.4"
+  val pureconfig     = "0.17.6"
   val bouncycastle   = "1.70"
   val sway           = "0.16.2"
   val lettuce        = "6.3.2.RELEASE"
