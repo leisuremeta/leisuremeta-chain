@@ -98,13 +98,10 @@ val Dependencies = new {
 
   lazy val api = Seq(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "shapeless3-deriving" % V.shapeless,
-      "org.typelevel" %% "cats-effect"         % V.catsEffect,
-      "com.softwaremill.sttp.tapir"   %% "tapir-armeria-server-cats" % V.tapir,
-      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"          % V.tapir,
-      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle"   % V.tapir,
-      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui"          % V.tapir,
-      "com.softwaremill.sttp.client3" %% "core"                      % V.sttp,
+      "org.typelevel"                 %%% "shapeless3-deriving" % V.shapeless,
+      "org.typelevel"                 %%% "cats-effect"         % V.catsEffect,
+      "com.softwaremill.sttp.tapir"   %%% "tapir-json-circe"    % V.tapir,
+      "com.softwaremill.sttp.client3" %%% "core"                % V.sttp,
     ),
   )
 
