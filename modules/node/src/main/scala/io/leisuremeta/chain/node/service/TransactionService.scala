@@ -20,7 +20,7 @@ import lib.crypto.{Hash, KeyPair}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
-import lib.merkle.{MerkleTrie, MerkleTrieState}
+import lib.merkle.*
 import lib.merkle.MerkleTrie.NodeStore
 import repository.{
   BlockRepository,
@@ -77,7 +77,7 @@ object TransactionService:
           given idNodeStore: NodeStore[cats.Id] = Kleisli.pure(None)
           MerkleTrie
             .put[cats.Id](
-              txHash.toUInt256Bytes.toBytes.bits,
+              txHash.toUInt256Bytes.toBytes.toNibbles,
               ByteVector.empty,
             )
             .runS(state)
