@@ -12,8 +12,9 @@ import scodec.bits.ByteVector
 import codec.byte.ByteCodec
 import codec.byte.ByteDecoder.ops.*
 import codec.byte.ByteEncoder.ops.*
-import merkle.{MerkleTrie, MerkleTrieState}
+import merkle.*
 import merkle.MerkleTrie.NodeStore
+import io.leisuremeta.chain.lib.merkle.toNibbles
 
 trait DAppState[F[_], K, V]:
   def get(k: K): StateT[EitherT[F, String, *], MerkleTrieState, Option[V]]
@@ -38,9 +39,8 @@ object DAppState:
     def ofName[F[_]: Monad: NodeStore, K: ByteCodec, V: ByteCodec](
         name: String,
     ): DAppState[F, K, V] =
-      scribe.info(
-        s"Building DAppState from WithCommonPrefix $prefix of name $name",
-      )
+      scribe.info:
+        s"Building DAppState from WithCommonPrefix $prefix of name $name"
       DAppState.ofName[F, K, V](s"$prefix-$name")
 
   def ofName[F[_]: Monad: NodeStore, K: ByteCodec, V: ByteCodec](
@@ -59,37 +59,33 @@ object DAppState:
     new DAppState[F, K, V]:
       def get(k: K): StateT[ETFS, MerkleTrieState, Option[V]] =
         for
-          bytesOption <- MerkleTrie.get[F]((nameBytes ++ k.toBytes).bits)
-          vOption <- StateT.liftF(EitherT.fromEither {
-            bytesOption.traverse(_.to[V].leftMap(_.msg))
-          })
+          bytesOption <- MerkleTrie.get[F]((nameBytes ++ k.toBytes).toNibbles)
+          vOption <- StateT.liftF:
+            EitherT.fromEither:
+              bytesOption.traverse(_.to[V].leftMap(_.msg))
         yield
 //          scribe.info(s"state $name get($k) result: $vOption")
           vOption
       def put(k: K, v: V): StateT[ETFS, MerkleTrieState, Unit] =
         MerkleTrie
-          .put[F]((nameBytes ++ k.toBytes).bits, v.toBytes)
+          .put[F]((nameBytes ++ k.toBytes).toNibbles, v.toBytes)
 //          .map { _ => scribe.info(s"state $name put($k, $v)") }
       def remove(k: K): StateT[ETFS, MerkleTrieState, Boolean] =
-        MerkleTrie.remove[F]((nameBytes ++ k.toBytes).bits)
+        MerkleTrie.remove[F]((nameBytes ++ k.toBytes).toNibbles)
       def from(
           prefixBytes: ByteVector,
       ): StateT[ETFS, MerkleTrieState, Stream[ETFS, (K, V)]] =
-        val prefixBits = (nameBytes ++ prefixBytes).bits
+        val prefixNibbles = (nameBytes ++ prefixBytes).toNibbles
         MerkleTrie
-          .from(prefixBits)
-          .map { binaryStream =>
+          .from(prefixNibbles)
+          .map: binaryStream =>
             binaryStream
-              .takeWhile(_._1.startsWith(prefixBits))
-              .evalMap { case (kBits, vBytes) =>
+              .takeWhile(_._1.value.startsWith(prefixNibbles.value))
+              .evalMap: (kNibbles, vBytes) =>
                 EitherT
-                  .fromEither {
+                  .fromEither:
                     for
-                      k <- kBits.bytes.drop(nameBytes.size).to[K]
+                      k <- kNibbles.bytes.drop(nameBytes.size).to[K]
                       v <- vBytes.to[V]
                     yield (k, v)
-                  }
                   .leftMap(_.msg)
-              }
-          }
-

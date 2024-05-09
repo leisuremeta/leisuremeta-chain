@@ -1,12 +1,13 @@
 package io.leisuremeta.chain.lib
 package crypto
 
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.numeric.Interval
-import eu.timepit.refined.refineV
+import cats.syntax.either.*
+
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
-import io.circe.refined.*
+import io.github.iltotore.iron.*
+import io.github.iltotore.iron.constraint.numeric.*
+import io.github.iltotore.iron.circe.given
 import scodec.bits.ByteVector
 
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
@@ -25,17 +26,20 @@ object Signature:
 
   type HeaderRange = Interval.Closed[27, 34]
 
-  type Header = Int Refined HeaderRange
+  type Header = Int :| HeaderRange
 
   given headerEncoder: ByteEncoder[Header] =
-    ByteVector `fromByte` _.value.toByte
+    ByteVector `fromByte` _.toByte
 
   given headerDecoder: ByteDecoder[Header] =
-    ByteDecoder[Byte].decode(_).flatMap { case DecodeResult(b, remainder) =>
-      refineV[Signature.HeaderRange](b.toInt)
-        .map(DecodeResult(_, remainder))
-        .left.map(DecodingFailure(_))
-    }
+    ByteDecoder[Byte]
+      .decode(_)
+      .flatMap:
+        case DecodeResult(b, remainder) =>
+          b.toInt
+            .refineEither[HeaderRange]
+            .map(DecodeResult(_, remainder))
+            .leftMap(DecodingFailure(_))
 
   given sigEncoder: ByteEncoder[Signature] = ByteEncoder.derived
 
@@ -44,4 +48,3 @@ object Signature:
   given sigCirceEncoder: Encoder[Signature] = deriveEncoder[Signature]
 
   given sigCirceDecoder: Decoder[Signature] = deriveDecoder[Signature]
-

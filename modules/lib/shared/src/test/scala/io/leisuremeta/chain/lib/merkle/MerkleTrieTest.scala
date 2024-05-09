@@ -11,10 +11,12 @@ import scala.collection.immutable.SortedMap
 import cats.Id
 import cats.arrow.FunctionK
 import cats.data.{EitherT, Kleisli}
+//import cats.effect.IO
+//import cats.effect.unsafe.IORuntime
 import cats.syntax.all.*
 
 import fs2.Stream
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits.ByteVector
 import scodec.bits.hex
 
 import codec.byte.{ByteDecoder, ByteEncoder}
@@ -41,10 +43,10 @@ class MerkleTrieTest extends HedgehogSuite:
   object State:
     def empty: State = State(SortedMap.empty, Map.empty)
 
-  case class Get(key: BitVector)
-  case class Put(key: BitVector, value: ByteVector)
-  case class Remove(key: BitVector)
-  case class From(key: BitVector)
+  case class Get(key: Nibbles)
+  case class Put(key: Nibbles, value: ByteVector)
+  case class Remove(key: Nibbles)
+  case class From(key: Nibbles)
 
   given emptyNodeStore: NodeStore[Id] =
     Kleisli { (_: MerkleHash) => EitherT.rightT[Id, String](None) }
@@ -62,7 +64,7 @@ class MerkleTrieTest extends HedgehogSuite:
             80 -> Gen.element(h, t),
             20 -> genByteVector,
           )
-      ).map(bytes => Get(bytes.bits)),
+      ).map(bytes => Get(bytes.toNibbles)),
     )
     override def execute(
         env: Environment,
@@ -87,7 +89,7 @@ class MerkleTrieTest extends HedgehogSuite:
       Some(for
         key   <- genByteVector
         value <- genByteVector
-      yield Put(key.toBitVector, value))
+      yield Put(key.toNibbles, value))
 
     override def execute(env: Environment, i: Put): Either[String, Unit] =
   //    println(s"===> execute: $i")
@@ -139,7 +141,7 @@ class MerkleTrieTest extends HedgehogSuite:
             80 -> Gen.element(h, t),
             20 -> genByteVector,
           )
-      ).map(bytes => Remove(bytes.bits)),
+      ).map(bytes => Remove(bytes.toNibbles)),
     )
     override def execute(env: Environment, i: Remove): Either[String, Boolean] =
       val program = MerkleTrie.remove[Id](i.key)
@@ -167,7 +169,7 @@ class MerkleTrieTest extends HedgehogSuite:
       ),
     )
 
-  type S = Stream[EitherT[Id, String, *], (BitVector, ByteVector)]
+  type S = Stream[EitherT[Id, String, *], (Nibbles, ByteVector)]
   def commandFrom: CommandIO[State] = new Command[State, From, S]:
 
     override def gen(s: State): Option[Gen[From]] = Some(
@@ -178,7 +180,7 @@ class MerkleTrieTest extends HedgehogSuite:
             80 -> Gen.element(h, t),
             20 -> genByteVector,
           )
-      ).map(bytes => From(bytes.bits)),
+      ).map(bytes => From(bytes.toNibbles)),
     )
     override def execute(env: Environment, i: From): Either[String, S] =
       val program = MerkleTrie.from[Id](i.key)
@@ -212,7 +214,7 @@ class MerkleTrieTest extends HedgehogSuite:
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
       val program =
-        MerkleTrie.put[Id](ByteVector.empty.bits, ByteVector.empty)
+        MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
 
       val resultEitherT = for
         state1 <- program.runS(initialState)
@@ -227,9 +229,9 @@ class MerkleTrieTest extends HedgehogSuite:
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
       val put10 =
-        MerkleTrie.put[Id](hex"10".bits, ByteVector.empty)
+        MerkleTrie.put[Id](hex"10".toNibbles, ByteVector.empty)
       val putEmptyWithEmpty =
-        MerkleTrie.put[Id](ByteVector.empty.bits, ByteVector.empty)
+        MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
 
 //    val forPrint = for
 //      state1 <- put10.runS(initialState)
@@ -263,11 +265,11 @@ class MerkleTrieTest extends HedgehogSuite:
 
       val initialState = MerkleTrieState.empty
       val put10withEmpty =
-        MerkleTrie.put[Id](hex"10".bits, ByteVector.empty)
+        MerkleTrie.put[Id](hex"10".toNibbles, ByteVector.empty)
       val putEmptyWithEmpty =
-        MerkleTrie.put[Id](ByteVector.empty.bits, ByteVector.empty)
+        MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
       val put10with10 =
-        MerkleTrie.put[Id](hex"10".bits, hex"10")
+        MerkleTrie.put[Id](hex"10".toNibbles, hex"10")
 
 //    val forPrint = for
 //      state1 <- put10withEmpty.runS(initialState)
@@ -304,11 +306,11 @@ class MerkleTrieTest extends HedgehogSuite:
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
       val putEmptyWithEmpty =
-        MerkleTrie.put[Id](ByteVector.empty.bits, ByteVector.empty)
+        MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
       val put00_00 =
-        MerkleTrie.put[Id](hex"00".bits, hex"00")
+        MerkleTrie.put[Id](hex"00".toNibbles, hex"00")
       val getEmpty =
-        MerkleTrie.get[Id](ByteVector.empty.bits)
+        MerkleTrie.get[Id](ByteVector.empty.toNibbles)
 
       val program = for
         _     <- putEmptyWithEmpty
@@ -333,10 +335,10 @@ class MerkleTrieTest extends HedgehogSuite:
   test("put 00 -> put 0000 -> put empty -> get empty") {
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
-      val put00        = MerkleTrie.put[Id](hex"00".bits, ByteVector.empty)
-      val put0000      = MerkleTrie.put[Id](hex"0000".bits, ByteVector.empty)
-      val putEmpty = MerkleTrie.put[Id](ByteVector.empty.bits, ByteVector.empty)
-      val getEmpty = MerkleTrie.get[Id](ByteVector.empty.bits)
+      val put00        = MerkleTrie.put[Id](hex"00".toNibbles, ByteVector.empty)
+      val put0000      = MerkleTrie.put[Id](hex"0000".toNibbles, ByteVector.empty)
+      val putEmpty = MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
+      val getEmpty = MerkleTrie.get[Id](ByteVector.empty.toNibbles)
 
       val program = for
         _     <- put00
@@ -363,10 +365,10 @@ class MerkleTrieTest extends HedgehogSuite:
   test("put 0700 -> put 07 -> put 10 -> get empty") {
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
-      val put0700      = MerkleTrie.put[Id](hex"0700".bits, ByteVector.empty)
-      val put07        = MerkleTrie.put[Id](hex"07".bits, ByteVector.empty)
-      val put10        = MerkleTrie.put[Id](hex"10".bits, ByteVector.empty)
-      val getEmpty     = MerkleTrie.get[Id](ByteVector.empty.bits)
+      val put0700      = MerkleTrie.put[Id](hex"0700".toNibbles, ByteVector.empty)
+      val put07        = MerkleTrie.put[Id](hex"07".toNibbles, ByteVector.empty)
+      val put10        = MerkleTrie.put[Id](hex"10".toNibbles, ByteVector.empty)
+      val getEmpty     = MerkleTrie.get[Id](ByteVector.empty.toNibbles)
 
       val program = for
         _     <- put0700
@@ -393,9 +395,9 @@ class MerkleTrieTest extends HedgehogSuite:
   test("put 00 -> put 01 -> get 00") {
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
-      val put00        = MerkleTrie.put[Id](hex"00".bits, ByteVector.empty)
-      val put01        = MerkleTrie.put[Id](hex"01".bits, ByteVector.empty)
-      val get00        = MerkleTrie.get[Id](hex"00".bits)
+      val put00        = MerkleTrie.put[Id](hex"00".toNibbles, ByteVector.empty)
+      val put01        = MerkleTrie.put[Id](hex"01".toNibbles, ByteVector.empty)
+      val get00        = MerkleTrie.get[Id](hex"00".toNibbles)
 
       val program = for
         _     <- put00
@@ -420,10 +422,10 @@ class MerkleTrieTest extends HedgehogSuite:
   test("put(00, empty) -> put(01, empty) -> put(00, 00) -> get 01") {
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
-      val put00        = MerkleTrie.put[Id](hex"00".bits, ByteVector.empty)
-      val put01        = MerkleTrie.put[Id](hex"01".bits, ByteVector.empty)
-      val put00_00     = MerkleTrie.put[Id](hex"00".bits, hex"00")
-      val get01        = MerkleTrie.get[Id](hex"01".bits)
+      val put00        = MerkleTrie.put[Id](hex"00".toNibbles, ByteVector.empty)
+      val put01        = MerkleTrie.put[Id](hex"01".toNibbles, ByteVector.empty)
+      val put00_00     = MerkleTrie.put[Id](hex"00".toNibbles, hex"00")
+      val get01        = MerkleTrie.get[Id](hex"01".toNibbles)
 
       val program = for
         _     <- put00
@@ -453,8 +455,8 @@ class MerkleTrieTest extends HedgehogSuite:
       val initialState = MerkleTrieState.empty
 
       def put(key: ByteVector) =
-        MerkleTrie.put[Id](key.bits, ByteVector.empty)
-      def remove(key: ByteVector) = MerkleTrie.remove[Id](key.bits)
+        MerkleTrie.put[Id](key.toNibbles, ByteVector.empty)
+      def remove(key: ByteVector) = MerkleTrie.remove[Id](key.toNibbles)
 
       val program = for
         _      <- put(hex"50")
@@ -484,8 +486,8 @@ class MerkleTrieTest extends HedgehogSuite:
       val initialState = MerkleTrieState.empty
 
       def put(key: ByteVector) =
-        MerkleTrie.put[Id](key.bits, ByteVector.empty)
-      def remove(key: ByteVector) = MerkleTrie.remove[Id](key.bits)
+        MerkleTrie.put[Id](key.toNibbles, ByteVector.empty)
+      def remove(key: ByteVector) = MerkleTrie.remove[Id](key.toNibbles)
 
       val program = for
         _ <- put(hex"d0")
@@ -513,11 +515,39 @@ class MerkleTrieTest extends HedgehogSuite:
     }
   }
 
-  property("test merkle trie") {
+//  test("put 80 -> from 00"):
+//    withMunitAssertions: assertions =>
+//
+//      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
+//        EitherT.rightT[IO, String](None)
+//
+//      val initialState = MerkleTrieState.empty
+//
+//      def put(key: ByteVector) = MerkleTrie.put[IO](key.toNibbles, ByteVector.empty)
+//      def from(key: ByteVector) = MerkleTrie.from[IO](key.toNibbles)
+//
+//      val program = for
+//        _ <- put(hex"80")
+//        value <- from(hex"00")
+//      yield value
+//
+//      val resultIO = program
+//        .runA(initialState)
+//        .flatMap: stream =>
+//          stream.compile.toList
+//        .value
+//      
+//      resultIO.unsafeRunSync()(using IORuntime.global)
+//      val result = resultIO.unsafeRunSync()(using IORuntime.global)
+//
+//      val expected: List[(Nibbles, ByteVector)] = List((hex"80".toNibbles, ByteVector.empty))
+//
+//      assertions.assertEquals(result, expected.asRight[String])
+
+  property("test merkle trie"):
     sequential(
       range = Range.linear(1, 100),
       initial = State.empty,
       commands = List(commandGet, commandPut, commandRemove, commandFrom),
       cleanup = () => merkleTrieState = MerkleTrieState.empty,
     )
-  }

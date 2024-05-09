@@ -5,23 +5,18 @@ import scala.compiletime.constValue
 
 import cats.Eq
 
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.auto.*
-import eu.timepit.refined.collection.Size
-import eu.timepit.refined.generic.Equal
-import eu.timepit.refined.numeric.Divisible
-import eu.timepit.refined.refineV
+import io.github.iltotore.iron.*
+import io.github.iltotore.iron.constraint.collection.*
 import scodec.bits.{BitVector, ByteVector}
 
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
 import datatype.{BigNat, UInt256}
 import crypto.Hash
 import failure.DecodingFailure
-import util.refined.bitVector.given
 
 sealed trait MerkleTrieNode:
 
-  def prefix: MerkleTrieNode.Prefix
+  def prefix: Nibbles
 
   def getChildren: Option[MerkleTrieNode.Children] = this match
     case MerkleTrieNode.Leaf(_, _)                     => None
@@ -33,7 +28,7 @@ sealed trait MerkleTrieNode:
     case MerkleTrieNode.Branch(_, _)                => None
     case MerkleTrieNode.BranchWithData(_, _, value) => Some(value)
 
-  def setPrefix(prefix: MerkleTrieNode.Prefix): MerkleTrieNode =
+  def setPrefix(prefix: Nibbles): MerkleTrieNode =
     this match
       case MerkleTrieNode.Leaf(_, value) => MerkleTrieNode.Leaf(prefix, value)
       case MerkleTrieNode.Branch(_, children) =>
@@ -58,36 +53,37 @@ sealed trait MerkleTrieNode:
     case MerkleTrieNode.BranchWithData(prefix, children, _) =>
       MerkleTrieNode.BranchWithData(prefix, children, value)
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   override def toString: String =
-    val childrenString = getChildren.fold("[]") { (childrenRefined) =>
-      val ss = for i <- 0 until 16 yield f"${i}%x: ${childrenRefined.value(i)}"
-      ss.mkString("[", ",", "]")
-    }
+    @SuppressWarnings(Array("org.wartremover.warts.Any"))
+    val childrenString = getChildren.fold("[]"): (childrenRefined) =>
+      (0 until 16)
+        .map: i =>
+          f"${i}%x: ${childrenRefined(i)}"
+        .mkString("[", ",", "]")
     s"MerkleTrieNode(${prefix.value.toHex}, $childrenString, $getValue)"
 
 object MerkleTrieNode:
 
-  final case class Leaf(prefix: Prefix, value: ByteVector)
+  final case class Leaf(prefix: Nibbles, value: ByteVector)
       extends MerkleTrieNode
-  final case class Branch(prefix: Prefix, children: Children)
+  final case class Branch(prefix: Nibbles, children: Children)
       extends MerkleTrieNode
   final case class BranchWithData(
-      prefix: Prefix,
+      prefix: Nibbles,
       children: Children,
       value: ByteVector,
   ) extends MerkleTrieNode
 
-  def leaf(prefix: Prefix, value: ByteVector): MerkleTrieNode =
+  def leaf(prefix: Nibbles, value: ByteVector): MerkleTrieNode =
     Leaf(prefix, value)
 
   def branch(
-      prefix: Prefix,
+      prefix: Nibbles,
       children: Children,
   ): MerkleTrieNode = Branch(prefix, children)
 
   def branchWithData(
-      prefix: Prefix,
+      prefix: Nibbles,
       children: Children,
       value: ByteVector,
   ): MerkleTrieNode = BranchWithData(prefix, children, value)
@@ -95,24 +91,14 @@ object MerkleTrieNode:
   type MerkleHash = Hash.Value[MerkleTrieNode]
   type MerkleRoot = MerkleHash
 
-  type Prefix = BitVector Refined PrefixCondition
+  type Children = Vector[Option[MerkleHash]] :| ChildrenCondition
 
-  type PrefixCondition = Size[Divisible[4L]]
-
-  type Children = Vector[Option[MerkleHash]] Refined ChildrenCondition
-
-  type ChildrenCondition = Size[Equal[16]]
+  type ChildrenCondition = Length[StrictEqual[16]]
 
   extension (c: Children)
-    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-    def updated(i: Int, v: Option[MerkleHash]): Children =
-      refineV[ChildrenCondition](c.value.updated(i, v)).toOption.get
-
+    def updated(i: Int, v: Option[MerkleHash]): Children = c.updated(i, v).assume
   object Children:
-    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-    def empty: Children = refineV[ChildrenCondition](
-      Vector.fill(16)(Option.empty[MerkleHash]),
-    ).toOption.get
+    inline def empty: Children = Vector.fill(16)(Option.empty[MerkleHash]).assume
 
   given Eq[MerkleTrieNode] = Eq.fromUniversalEquals
 
@@ -124,8 +110,8 @@ object MerkleTrieNode:
       ) ++ node.prefix.bytes
 
     def encodeChildren(children: MerkleTrieNode.Children): ByteVector =
-      val existenceBytes = BitVector.bits(children.value.map(_.nonEmpty)).bytes
-      children.value
+      val existenceBytes = BitVector.bits(children.map(_.nonEmpty)).bytes
+      children
         .flatMap(_.toList)
         .foldLeft(existenceBytes)(_ ++ _.toUInt256Bytes)
 
@@ -145,25 +131,6 @@ object MerkleTrieNode:
     encoded
 
   given merkleTrieNodeDecoder: ByteDecoder[MerkleTrieNode] =
-    val prefixDecoder: ByteDecoder[MerkleTrieNode.Prefix] =
-      val unrefinedPrefixDecoder = for
-        prefixNibbleSize <- ByteDecoder[BigNat]
-        prefixNibbleSizeLong = prefixNibbleSize.toBigInt.toLong
-        prefix <- ByteDecoder.fromFixedSizeBytes(
-          (prefixNibbleSizeLong + 1) / 2,
-        ) { prefixBytes =>
-          val padSize = prefixNibbleSizeLong * 4 - prefixBytes.size * 8
-          val prefixBits =
-            if padSize > 0 then prefixBytes.bits.padLeft(padSize)
-            else prefixBytes.bits
-          prefixBits.take(prefixNibbleSizeLong * 4)
-        }
-      yield prefix
-
-      unrefinedPrefixDecoder.emap(prefix =>
-        refineV[PrefixCondition](prefix).left.map(DecodingFailure(_)),
-      )
-
     val childrenDecoder: ByteDecoder[MerkleTrieNode.Children] =
       ByteDecoder
         .fromFixedSizeBytes(2)(_.bits)
@@ -195,9 +162,7 @@ object MerkleTrieNode:
           end loop
           loop(existenceBits, bytes, Nil)
         }
-        .emap[Children] { vector =>
-          refineV[ChildrenCondition](vector).left.map(DecodingFailure(_))
-        }
+        .map(_.assume)
 
     val valueDecoder: ByteDecoder[ByteVector] = ByteDecoder[BigNat].flatMap {
       (size) =>
@@ -205,26 +170,24 @@ object MerkleTrieNode:
     }
 
     ByteDecoder.byteDecoder
-      .emap { b =>
+      .emap: b =>
         Either.cond(1 <= b && b <= 3, b, DecodingFailure(s"wrong range: $b"))
-      }
-      .flatMap {
+      .flatMap:
         case 1 =>
           for
-            prefix <- prefixDecoder
+            prefix <- nibblesByteDecoder
             value  <- valueDecoder
           yield Leaf(prefix, value)
         case 2 =>
           for
-            prefix   <- prefixDecoder
+            prefix   <- nibblesByteDecoder
             children <- childrenDecoder
           yield Branch(prefix, children)
         case 3 =>
           for
-            prefix   <- prefixDecoder
+            prefix   <- nibblesByteDecoder
             children <- childrenDecoder
             value    <- valueDecoder
           yield BranchWithData(prefix, children, value)
-      }
 
   given merkleTrieNodeHash: Hash[MerkleTrieNode] = Hash.build
