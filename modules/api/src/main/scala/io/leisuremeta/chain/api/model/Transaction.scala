@@ -124,6 +124,9 @@ object Transaction:
         case tx: AddPublicKeySummaries => build(2)(tx)
 //        case tx: RemovePublicKeySummaries => build(3)(tx)
 //        case tx: RemoveAccount            => build(4)(tx)
+
+    given txCirceDecoder: Decoder[AccountTx] = deriveDecoder
+    given txCirceEncoder: Encoder[AccountTx] = deriveEncoder
   end AccountTx
 
   sealed trait GroupTx extends Transaction
@@ -175,6 +178,9 @@ object Transaction:
       atx match
         case tx: CreateGroup => build(0)(tx)
         case tx: AddAccounts => build(2)(tx)
+
+    given txCirceDecoder: Decoder[GroupTx] = deriveDecoder
+    given txCirceEncoder: Encoder[GroupTx] = deriveEncoder
   end GroupTx
 
   sealed trait TokenTx extends Transaction
