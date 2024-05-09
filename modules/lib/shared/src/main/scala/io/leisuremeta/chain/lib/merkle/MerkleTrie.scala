@@ -340,7 +340,7 @@ object MerkleTrie:
   type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
-  def from[F[_]: Monad: NodeStore](
+  def streamFrom[F[_]: Monad: NodeStore](
       key: Nibbles,
   ): StateT[EitherT[F, String, *], MerkleTrieState, ByteStream[F]] =
     StateT.inspectF: (state: MerkleTrieState) =>
@@ -361,7 +361,7 @@ object MerkleTrie:
               def runFrom(key: Nibbles)(
                   hashWithIndex: (Option[MerkleHash], Int),
               ): EitherT[F, String, ByteStream[F]] =
-                from(key)
+                streamFrom(key)
                   .runA(state.copy(root = hashWithIndex._1))
                   .map:
                     _.map: (key, a) =>

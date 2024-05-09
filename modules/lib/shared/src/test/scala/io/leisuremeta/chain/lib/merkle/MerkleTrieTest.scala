@@ -1,7 +1,6 @@
 package io.leisuremeta.chain.lib
 package merkle
 
-
 import hedgehog.munit.HedgehogSuite
 import hedgehog.*
 import hedgehog.state.*
@@ -24,7 +23,6 @@ import datatype.BigNat
 import MerkleTrie.NodeStore
 import MerkleTrieNode.{MerkleHash, MerkleRoot}
 
-
 class MerkleTrieTest extends HedgehogSuite:
 
   given ByteEncoder[ByteVector] = (bytes: ByteVector) =>
@@ -35,7 +33,7 @@ class MerkleTrieTest extends HedgehogSuite:
     ByteDecoder[BigNat].flatMap { size =>
       ByteDecoder.fromFixedSizeBytes(size.toBigInt.toLong)(identity)
     }
-    
+
   case class State(
       current: SortedMap[ByteVector, ByteVector],
       hashLog: Map[SortedMap[ByteVector, ByteVector], Option[MerkleRoot]],
@@ -46,7 +44,7 @@ class MerkleTrieTest extends HedgehogSuite:
   case class Get(key: Nibbles)
   case class Put(key: Nibbles, value: ByteVector)
   case class Remove(key: Nibbles)
-  case class From(key: Nibbles)
+  case class StreamFrom(key: Nibbles)
 
   given emptyNodeStore: NodeStore[Id] =
     Kleisli { (_: MerkleHash) => EitherT.rightT[Id, String](None) }
@@ -54,34 +52,36 @@ class MerkleTrieTest extends HedgehogSuite:
   var merkleTrieState: MerkleTrieState = MerkleTrieState.empty
 
   val genByteVector = Gen.bytes(Range.linear(0, 64)).map(ByteVector.view)
-  def commandGet: CommandIO[State] = new Command[State, Get, Option[ByteVector]]:
+  def commandGet: CommandIO[State] =
+    new Command[State, Get, Option[ByteVector]]:
 
-    override def gen(s: State): Option[Gen[Get]] = Some(
-      (s.current.keys.toList match
-        case Nil => genByteVector
-        case h :: t =>
-          Gen.frequency1(
-            80 -> Gen.element(h, t),
-            20 -> genByteVector,
-          )
-      ).map(bytes => Get(bytes.toNibbles)),
-    )
-    override def execute(
-        env: Environment,
-        i: Get,
-    ): Either[String, Option[ByteVector]] =
-      val program = MerkleTrie.get[Id](i.key)
-      program.runA(merkleTrieState).value
+      override def gen(s: State): Option[Gen[Get]] = Some(
+        (s.current.keys.toList match
+          case Nil => genByteVector
+          case h :: t =>
+            Gen.frequency1(
+              80 -> Gen.element(h, t),
+              20 -> genByteVector,
+            )
+        ).map(bytes => Get(bytes.toNibbles)),
+      )
+      override def execute(
+          env: Environment,
+          i: Get,
+      ): Either[String, Option[ByteVector]] =
+        val program = MerkleTrie.get[Id](i.key)
+        program.runA(merkleTrieState).value
 
-    override def update(s: State, i: Get, o: Var[Option[ByteVector]]): State = s
+      override def update(s: State, i: Get, o: Var[Option[ByteVector]]): State =
+        s
 
-    override def ensure(
-        env: Environment,
-        s0: State,
-        s: State,
-        i: Get,
-        o: Option[ByteVector],
-    ): Result = s.current.get(i.key.bytes) ==== o
+      override def ensure(
+          env: Environment,
+          s0: State,
+          s: State,
+          i: Get,
+          o: Option[ByteVector],
+      ): Result = s.current.get(i.key.bytes) ==== o
 
   def commandPut: CommandIO[State] = new Command[State, Put, Unit]:
 
@@ -92,7 +92,7 @@ class MerkleTrieTest extends HedgehogSuite:
       yield Put(key.toNibbles, value))
 
     override def execute(env: Environment, i: Put): Either[String, Unit] =
-  //    println(s"===> execute: $i")
+      //    println(s"===> execute: $i")
 
       val program = MerkleTrie.put[Id](i.key, i.value)
       program.runS(merkleTrieState).value.map { (newState: MerkleTrieState) =>
@@ -101,7 +101,7 @@ class MerkleTrieTest extends HedgehogSuite:
 
     override def update(s: State, i: Put, o: Var[Unit]): State =
 
-  //    println(s"===> update: ${s.current}")
+      //    println(s"===> update: ${s.current}")
       val current1  = s.current + ((i.key.bytes -> i.value))
       val stateRoot = merkleTrieState.root
       val hashLog1  = s.hashLog + ((current1    -> stateRoot))
@@ -115,12 +115,12 @@ class MerkleTrieTest extends HedgehogSuite:
         o: Unit,
     ): Result = Result.all(
       List(
-  //      s0.hashLog.get(s.current).fold(Result.success) {
-  //        (rootOption: Option[MerkleRoot[K, V]]) =>
-  //          if s.hashLog.get(s.current) != Some(rootOption) then
-  //            println(s"===> current: ${s.current}")
-  //          s.hashLog.get(s.current) ==== Some(rootOption)
-  //      },
+        //      s0.hashLog.get(s.current).fold(Result.success) {
+        //        (rootOption: Option[MerkleRoot[K, V]]) =>
+        //          if s.hashLog.get(s.current) != Some(rootOption) then
+        //            println(s"===> current: ${s.current}")
+        //          s.hashLog.get(s.current) ==== Some(rootOption)
+        //      },
         merkleTrieState.root.fold(Result.success) { (root: MerkleRoot) =>
           val result = merkleTrieState.diff.get(root).nonEmpty
           if result == false then
@@ -170,9 +170,9 @@ class MerkleTrieTest extends HedgehogSuite:
     )
 
   type S = Stream[EitherT[Id, String, *], (Nibbles, ByteVector)]
-  def commandFrom: CommandIO[State] = new Command[State, From, S]:
+  def commandStreamFrom: CommandIO[State] = new Command[State, StreamFrom, S]:
 
-    override def gen(s: State): Option[Gen[From]] = Some(
+    override def gen(s: State): Option[Gen[StreamFrom]] = Some(
       (s.current.keys.toList match
         case Nil => genByteVector
         case h :: t =>
@@ -180,19 +180,19 @@ class MerkleTrieTest extends HedgehogSuite:
             80 -> Gen.element(h, t),
             20 -> genByteVector,
           )
-      ).map(bytes => From(bytes.toNibbles)),
+      ).map(bytes => StreamFrom(bytes.toNibbles)),
     )
-    override def execute(env: Environment, i: From): Either[String, S] =
-      val program = MerkleTrie.from[Id](i.key)
+    override def execute(env: Environment, i: StreamFrom): Either[String, S] =
+      val program = MerkleTrie.streamFrom[Id](i.key)
       program.runA(merkleTrieState).value
 
-    override def update(s: State, i: From, o: Var[S]): State = s
+    override def update(s: State, i: StreamFrom, o: Var[S]): State = s
 
     override def ensure(
         env: Environment,
         s0: State,
         s: State,
-        i: From,
+        i: StreamFrom,
         o: S,
     ): Result =
       val toId = new FunctionK[EitherT[Id, String, *], Id]:
@@ -336,8 +336,9 @@ class MerkleTrieTest extends HedgehogSuite:
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
       val put00        = MerkleTrie.put[Id](hex"00".toNibbles, ByteVector.empty)
-      val put0000      = MerkleTrie.put[Id](hex"0000".toNibbles, ByteVector.empty)
-      val putEmpty = MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
+      val put0000 = MerkleTrie.put[Id](hex"0000".toNibbles, ByteVector.empty)
+      val putEmpty =
+        MerkleTrie.put[Id](ByteVector.empty.toNibbles, ByteVector.empty)
       val getEmpty = MerkleTrie.get[Id](ByteVector.empty.toNibbles)
 
       val program = for
@@ -365,10 +366,10 @@ class MerkleTrieTest extends HedgehogSuite:
   test("put 0700 -> put 07 -> put 10 -> get empty") {
     withMunitAssertions { assertions =>
       val initialState = MerkleTrieState.empty
-      val put0700      = MerkleTrie.put[Id](hex"0700".toNibbles, ByteVector.empty)
-      val put07        = MerkleTrie.put[Id](hex"07".toNibbles, ByteVector.empty)
-      val put10        = MerkleTrie.put[Id](hex"10".toNibbles, ByteVector.empty)
-      val getEmpty     = MerkleTrie.get[Id](ByteVector.empty.toNibbles)
+      val put0700  = MerkleTrie.put[Id](hex"0700".toNibbles, ByteVector.empty)
+      val put07    = MerkleTrie.put[Id](hex"07".toNibbles, ByteVector.empty)
+      val put10    = MerkleTrie.put[Id](hex"10".toNibbles, ByteVector.empty)
+      val getEmpty = MerkleTrie.get[Id](ByteVector.empty.toNibbles)
 
       val program = for
         _     <- put0700
@@ -536,7 +537,7 @@ class MerkleTrieTest extends HedgehogSuite:
 //        .flatMap: stream =>
 //          stream.compile.toList
 //        .value
-//      
+//
 //      resultIO.unsafeRunSync()(using IORuntime.global)
 //      val result = resultIO.unsafeRunSync()(using IORuntime.global)
 //
@@ -548,6 +549,6 @@ class MerkleTrieTest extends HedgehogSuite:
     sequential(
       range = Range.linear(1, 100),
       initial = State.empty,
-      commands = List(commandGet, commandPut, commandRemove, commandFrom),
+      commands = List(commandGet, commandPut, commandRemove, commandStreamFrom),
       cleanup = () => merkleTrieState = MerkleTrieState.empty,
     )

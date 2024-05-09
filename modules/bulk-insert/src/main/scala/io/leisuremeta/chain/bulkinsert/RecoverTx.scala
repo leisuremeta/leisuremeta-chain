@@ -318,7 +318,7 @@ object RecoverTx:
               txWithResult = TransactionWithResult(Signed(sig, ef))(None)
               txHash       = txWithResult.toHash
               inputTxHashes <- PlayNommState[F].token.nftBalance
-                .from((sig.account, ef.tokenId).toBytes)
+                .streamFrom((sig.account, ef.tokenId).toBytes)
                 .flatMapF: stream =>
                   stream.map(_._1._3).compile.toList
                 .mapK:

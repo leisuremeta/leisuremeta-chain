@@ -38,7 +38,7 @@ object PlayNommDAppAgenda:
       for
         agendaTx <- StateT.liftF(getSuggestSimpleAgendaTx(vsa.agendaTxHash))
         fungibleBalanceStream <- PlayNommState[F].token.fungibleBalance
-          .from((sig.account, agendaTx.votingToken).toBytes)
+          .streamFrom((sig.account, agendaTx.votingToken).toBytes)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to get fungible balance stream of ${sig.account} ${agendaTx.votingToken}"
@@ -53,7 +53,7 @@ object PlayNommDAppAgenda:
               s"Fail to get fungible balance txs of ${sig.account} ${agendaTx.votingToken}"
         freeBalance <- PlayNommDAppToken.getFungibleBalanceTotalAmounts(fungibleBalanceTxs.toSet, sig.account)
         entrustBalanceStream <- PlayNommState[F].token.entrustFungibleBalance
-          .from(sig.account.toBytes)
+          .streamFrom(sig.account.toBytes)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to get entrust balance stream of ${sig.account} ${agendaTx.votingToken}"

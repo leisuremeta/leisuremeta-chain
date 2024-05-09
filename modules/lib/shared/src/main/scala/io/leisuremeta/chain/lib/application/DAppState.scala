@@ -20,7 +20,7 @@ trait DAppState[F[_], K, V]:
   def get(k: K): StateT[EitherT[F, String, *], MerkleTrieState, Option[V]]
   def put(k: K, v: V): StateT[EitherT[F, String, *], MerkleTrieState, Unit]
   def remove(k: K): StateT[EitherT[F, String, *], MerkleTrieState, Boolean]
-  def from(
+  def streamFrom(
       bytes: ByteVector,
   ): StateT[EitherT[F, String, *], MerkleTrieState, Stream[
     EitherT[F, String, *],
@@ -72,12 +72,12 @@ object DAppState:
 //          .map { _ => scribe.info(s"state $name put($k, $v)") }
       def remove(k: K): StateT[ETFS, MerkleTrieState, Boolean] =
         MerkleTrie.remove[F]((nameBytes ++ k.toBytes).toNibbles)
-      def from(
+      def streamFrom(
           prefixBytes: ByteVector,
       ): StateT[ETFS, MerkleTrieState, Stream[ETFS, (K, V)]] =
         val prefixNibbles = (nameBytes ++ prefixBytes).toNibbles
         MerkleTrie
-          .from(prefixNibbles)
+          .streamFrom(prefixNibbles)
           .map: binaryStream =>
             binaryStream
               .takeWhile(_._1.value.startsWith(prefixNibbles.value))
