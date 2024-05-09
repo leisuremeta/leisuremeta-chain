@@ -1,6 +1,9 @@
 package io.leisuremeta.chain.lib
 package application
 
+object DAppState
+
+/*
 import cats.Monad
 import cats.data.{EitherT, StateT}
 import cats.syntax.either.catsSyntaxEither
@@ -93,3 +96,4 @@ object DAppState:
               }
           }
 
+*/

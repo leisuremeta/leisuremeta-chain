@@ -9,7 +9,6 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto.*
 import eu.timepit.refined.collection.Size
 import eu.timepit.refined.generic.Equal
-import eu.timepit.refined.numeric.Divisible
 import eu.timepit.refined.refineV
 import scodec.bits.{BitVector, ByteVector}
 
@@ -17,11 +16,10 @@ import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
 import datatype.{BigNat, UInt256}
 import crypto.Hash
 import failure.DecodingFailure
-import util.refined.bitVector.given
 
 sealed trait MerkleTrieNode:
 
-  def prefix: MerkleTrieNode.Prefix
+  def prefix: Nibbles
 
   def getChildren: Option[MerkleTrieNode.Children] = this match
     case MerkleTrieNode.Leaf(_, _)                     => None
@@ -33,7 +31,7 @@ sealed trait MerkleTrieNode:
     case MerkleTrieNode.Branch(_, _)                => None
     case MerkleTrieNode.BranchWithData(_, _, value) => Some(value)
 
-  def setPrefix(prefix: MerkleTrieNode.Prefix): MerkleTrieNode =
+  def setPrefix(prefix: Nibbles): MerkleTrieNode =
     this match
       case MerkleTrieNode.Leaf(_, value) => MerkleTrieNode.Leaf(prefix, value)
       case MerkleTrieNode.Branch(_, children) =>
@@ -68,36 +66,32 @@ sealed trait MerkleTrieNode:
 
 object MerkleTrieNode:
 
-  final case class Leaf(prefix: Prefix, value: ByteVector)
+  final case class Leaf(prefix: Nibbles, value: ByteVector)
       extends MerkleTrieNode
-  final case class Branch(prefix: Prefix, children: Children)
+  final case class Branch(prefix: Nibbles, children: Children)
       extends MerkleTrieNode
   final case class BranchWithData(
-      prefix: Prefix,
+      prefix: Nibbles,
       children: Children,
       value: ByteVector,
   ) extends MerkleTrieNode
 
-  def leaf(prefix: Prefix, value: ByteVector): MerkleTrieNode =
+  def leaf(prefix: Nibbles, value: ByteVector): MerkleTrieNode =
     Leaf(prefix, value)
 
   def branch(
-      prefix: Prefix,
+      prefix: Nibbles,
       children: Children,
   ): MerkleTrieNode = Branch(prefix, children)
 
   def branchWithData(
-      prefix: Prefix,
+      prefix: Nibbles,
       children: Children,
       value: ByteVector,
   ): MerkleTrieNode = BranchWithData(prefix, children, value)
 
   type MerkleHash = Hash.Value[MerkleTrieNode]
   type MerkleRoot = MerkleHash
-
-  type Prefix = BitVector Refined PrefixCondition
-
-  type PrefixCondition = Size[Divisible[4L]]
 
   type Children = Vector[Option[MerkleHash]] Refined ChildrenCondition
 
@@ -145,25 +139,6 @@ object MerkleTrieNode:
     encoded
 
   given merkleTrieNodeDecoder: ByteDecoder[MerkleTrieNode] =
-    val prefixDecoder: ByteDecoder[MerkleTrieNode.Prefix] =
-      val unrefinedPrefixDecoder = for
-        prefixNibbleSize <- ByteDecoder[BigNat]
-        prefixNibbleSizeLong = prefixNibbleSize.toBigInt.toLong
-        prefix <- ByteDecoder.fromFixedSizeBytes(
-          (prefixNibbleSizeLong + 1) / 2,
-        ) { prefixBytes =>
-          val padSize = prefixNibbleSizeLong * 4 - prefixBytes.size * 8
-          val prefixBits =
-            if padSize > 0 then prefixBytes.bits.padLeft(padSize)
-            else prefixBytes.bits
-          prefixBits.take(prefixNibbleSizeLong * 4)
-        }
-      yield prefix
-
-      unrefinedPrefixDecoder.emap(prefix =>
-        refineV[PrefixCondition](prefix).left.map(DecodingFailure(_)),
-      )
-
     val childrenDecoder: ByteDecoder[MerkleTrieNode.Children] =
       ByteDecoder
         .fromFixedSizeBytes(2)(_.bits)
@@ -211,17 +186,17 @@ object MerkleTrieNode:
       .flatMap {
         case 1 =>
           for
-            prefix <- prefixDecoder
+            prefix <- nibblesByteDecoder
             value  <- valueDecoder
           yield Leaf(prefix, value)
         case 2 =>
           for
-            prefix   <- prefixDecoder
+            prefix   <- nibblesByteDecoder
             children <- childrenDecoder
           yield Branch(prefix, children)
         case 3 =>
           for
-            prefix   <- prefixDecoder
+            prefix   <- nibblesByteDecoder
             children <- childrenDecoder
             value    <- valueDecoder
           yield BranchWithData(prefix, children, value)

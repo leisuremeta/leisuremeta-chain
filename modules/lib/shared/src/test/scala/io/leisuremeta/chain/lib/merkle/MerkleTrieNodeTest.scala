@@ -10,18 +10,17 @@ import hedgehog.munit.HedgehogSuite
 import codec.byte.{ByteDecoder, ByteEncoder, DecodeResult}
 import crypto.Hash
 import datatype.UInt256
-import util.refined.bitVector.given
 
 class MerkleTrieNodeTest extends HedgehogSuite:
 
-  def genPrefix: Gen[MerkleTrieNode.Prefix] = for
-    prefixByteArray <- Gen.bytes(Range.linear(0, 64))
-    prefixBytes = ByteVector.view(prefixByteArray)
-    prefixBits <- Gen.boolean.map {
-      case true  => prefixBytes.bits
-      case false => prefixBytes.bits.dropRight(4)
-    }
-  yield refineV[MerkleTrieNode.PrefixCondition](prefixBits).toOption.get
+  val genPrefix: Gen[Nibbles] = for
+    bytes <- Gen.bytes(Range.linear(0, 64))
+    byteVector = ByteVector.view(bytes)
+    bits <- Gen.element1(
+      byteVector.bits,
+      byteVector.bits.drop(4),
+    )
+  yield bits.assumeNibble
 
   def genChildren: Gen[MerkleTrieNode.Children] = Gen
     .list[Option[MerkleTrieNode.MerkleHash]](
@@ -59,15 +58,7 @@ class MerkleTrieNodeTest extends HedgehogSuite:
     value    <- genValue
   yield MerkleTrieNode.BranchWithData(prefix, children, value)
 
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def genMerkleTrieNode: Gen[MerkleTrieNode] = for
-    prefixByteArray <- Gen.bytes(Range.linear(0, 64))
-    prefixBytes = ByteVector.view(prefixByteArray)
-    prefixBits <- Gen.boolean.map {
-      case true  => prefixBytes.bits
-      case false => prefixBytes.bits.dropRight(4)
-    }
-    prefix = refineV[MerkleTrieNode.PrefixCondition](prefixBits).toOption.get
     node <- Gen.choice1(
       genLeaf,
       genBranch,
@@ -75,7 +66,7 @@ class MerkleTrieNodeTest extends HedgehogSuite:
     )
   yield node
 
-  property("roundtrip of MerkleTrieNode byte codec") {
+  property("roundtrip of MerkleTrieNode byte codec"):
     for node <- genMerkleTrieNode.forAll
     yield
       val encoded =
@@ -93,4 +84,3 @@ class MerkleTrieNodeTest extends HedgehogSuite:
           println(s"=== error: ${error.msg}")
           println(s"=== encoded: $encoded")
           Result.failure
-  }
