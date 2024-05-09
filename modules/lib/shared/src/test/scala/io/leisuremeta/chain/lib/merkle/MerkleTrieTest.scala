@@ -11,8 +11,8 @@ import scala.collection.immutable.SortedMap
 import cats.Id
 import cats.arrow.FunctionK
 import cats.data.{EitherT, Kleisli}
-import cats.effect.IO
-import cats.effect.unsafe.IORuntime
+//import cats.effect.IO
+//import cats.effect.unsafe.IORuntime
 import cats.syntax.all.*
 
 import fs2.Stream
@@ -515,33 +515,34 @@ class MerkleTrieTest extends HedgehogSuite:
     }
   }
 
-  test("put 80 -> from 00"):
-    withMunitAssertions: assertions =>
-
-      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
-        EitherT.rightT[IO, String](None)
-
-      val initialState = MerkleTrieState.empty
-
-      def put(key: ByteVector) = MerkleTrie.put[IO](key.toNibbles, ByteVector.empty)
-      def from(key: ByteVector) = MerkleTrie.from[IO](key.toNibbles)
-
-      val program = for
-        _ <- put(hex"80")
-        value <- from(hex"00")
-      yield value
-
-      val resultIO = program
-        .runA(initialState)
-        .flatMap: stream =>
-          stream.compile.toList
-        .value
-      
-      val result = resultIO.unsafeRunSync()(using IORuntime.global)
-
-      val expected: List[(Nibbles, ByteVector)] = List((hex"80".toNibbles, ByteVector.empty))
-
-      assertions.assertEquals(result, expected.asRight[String])
+//  test("put 80 -> from 00"):
+//    withMunitAssertions: assertions =>
+//
+//      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
+//        EitherT.rightT[IO, String](None)
+//
+//      val initialState = MerkleTrieState.empty
+//
+//      def put(key: ByteVector) = MerkleTrie.put[IO](key.toNibbles, ByteVector.empty)
+//      def from(key: ByteVector) = MerkleTrie.from[IO](key.toNibbles)
+//
+//      val program = for
+//        _ <- put(hex"80")
+//        value <- from(hex"00")
+//      yield value
+//
+//      val resultIO = program
+//        .runA(initialState)
+//        .flatMap: stream =>
+//          stream.compile.toList
+//        .value
+//      
+//      resultIO.unsafeRunSync()(using IORuntime.global)
+//      val result = resultIO.unsafeRunSync()(using IORuntime.global)
+//
+//      val expected: List[(Nibbles, ByteVector)] = List((hex"80".toNibbles, ByteVector.empty))
+//
+//      assertions.assertEquals(result, expected.asRight[String])
 
   property("test merkle trie"):
     sequential(

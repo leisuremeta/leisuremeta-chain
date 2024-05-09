@@ -110,11 +110,13 @@ val Dependencies = new {
 
   lazy val lib = Seq(
     libraryDependencies ++= Seq(
+      "org.typelevel"      %%% "cats-effect"         % V.catsEffect,
       "io.circe"           %%% "circe-generic"       % V.circe,
       "io.circe"           %%% "circe-parser"        % V.circe,
       "io.circe"           %%% "circe-refined"       % V.circe,
       "eu.timepit"         %%% "refined"             % V.refined,
       "io.github.iltotore" %%% "iron"                % V.iron,
+      "io.github.iltotore" %%% "iron-circe"          % V.iron,
       "org.scodec"         %%% "scodec-bits"         % V.scodecBits,
       "org.typelevel"      %%% "shapeless3-typeable" % V.shapeless,
       "co.fs2"             %%% "fs2-core"            % V.fs2,

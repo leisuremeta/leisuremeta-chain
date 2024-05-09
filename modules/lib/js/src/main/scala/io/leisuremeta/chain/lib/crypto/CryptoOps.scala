@@ -4,7 +4,7 @@ package crypto
 import scala.scalajs.js.JSConverters.*
 import scala.scalajs.js.typedarray.Uint8Array
 
-import eu.timepit.refined.refineV
+import io.github.iltotore.iron.*
 import scodec.bits.ByteVector
 import typings.bnJs.bnJsStrings.hex
 import typings.elliptic.mod.{ec as EC}
@@ -41,7 +41,7 @@ object CryptoOps:
       case other     => Left[String, Int](s"Expected double but received: $other")
     for
       recoveryParam <- recoveryParamEither
-      v             <- refineV[Signature.HeaderRange](27 + recoveryParam)
+      v             <- (27 + recoveryParam).refineEither[Signature.HeaderRange]
       r <- UInt256.from(BigInt(jsSig.r.toString_hex(hex), 16)).left.map(_.msg)
       s <- UInt256.from(BigInt(jsSig.s.toString_hex(hex), 16)).left.map(_.msg)
     yield Signature(v, r, s)

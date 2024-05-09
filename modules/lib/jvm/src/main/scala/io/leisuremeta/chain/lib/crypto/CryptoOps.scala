@@ -10,7 +10,7 @@ import cats.Eq
 import cats.syntax.either.given
 import cats.syntax.eq.given
 
-import eu.timepit.refined.refineV
+import io.github.iltotore.iron.*
 import org.bouncycastle.asn1.x9.{X9ECParameters, X9IntegerConverter}
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.ec.CustomNamedCurves
@@ -109,14 +109,14 @@ object CryptoOps:
             Some(keyPair.publicKey)
         .toRight:
           "Could not construct a recoverable key. The credentials might not be valid."
-      v <- refineV[Signature.HeaderRange](recId + 27)
+      v <- (recId + 27).refineEither[Signature.HeaderRange]
     yield Signature(v, r256, s256)
 
   def recover(
       signature: Signature,
       hashArray: Array[Byte],
   ): Either[String, PublicKey] =
-    val header = signature.v.value & 0xff
+    val header = signature.v & 0xff
     val recId  = header - 27
     recoverFromSignature(recId, signature.r, signature.s, hashArray)
       .toRight("Could not recover public key from signature")
