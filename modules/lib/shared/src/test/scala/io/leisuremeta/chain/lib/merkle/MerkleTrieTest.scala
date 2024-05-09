@@ -531,12 +531,13 @@ class MerkleTrieTest extends HedgehogSuite:
         value <- from(hex"00")
       yield value
 
-
-      val result = program.runA(initialState)
+      val resultIO = program
+        .runA(initialState)
         .flatMap: stream =>
           stream.compile.toList
         .value
-        .unsafeRunSync()(using IORuntime.global)
+      
+      val result = resultIO.unsafeRunSync()(using IORuntime.global)
 
       val expected: List[(Nibbles, ByteVector)] = List((hex"80".toNibbles, ByteVector.empty))
 

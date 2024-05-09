@@ -1,7 +1,7 @@
 package io.leisuremeta.chain.lib
 package merkle
 
-import eu.timepit.refined.refineV
+import io.github.iltotore.iron.assume
 import scodec.bits.ByteVector
 
 import hedgehog.*
@@ -33,10 +33,9 @@ class MerkleTrieNodeTest extends HedgehogSuite:
         },
       ),
       Range.singleton(16),
-    )
-    .map((list) =>
-      refineV[MerkleTrieNode.ChildrenCondition](list.toVector).toOption.get,
-    )
+    ) 
+    .map: (list) =>
+      list.toVector.assume[MerkleTrieNode.ChildrenCondition]
 
   def genValue: Gen[ByteVector] =
     Gen.sized(size => Gen.bytes(Range.linear(0, size.value.abs)),
