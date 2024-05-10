@@ -29,10 +29,11 @@ object SummaryService:
       case None => SummaryModel()
     
   def get[F[_]: Async](n: Int): EitherT[F, Either[String, String], Option[SummaryModel]] =
-    for
-      summary <- SummaryRepository.get(n, 1).leftMap(Left(_))
-      model = summary.map(_.headOption.toM)
-    yield model
+    SummaryRepository.get(n, 1)
+      .map: res =>
+        res.map(_.headOption.toM)
+      .leftFlatMap: _ =>
+        EitherT.pure[F, Either[String ,String]](Some(SummaryModel()))
 
   def getBoard[F[_]: Async]: EitherT[F, Either[String, String], Option[SummaryBoard]] =
     for 
@@ -55,5 +56,5 @@ object SummaryService:
       summary <- SummaryRepository.get(0, 144 * 5).leftMap(Left(_))
       model = summary.map(_.map(_.toM
       ))
-      chart = SummaryChart(model.get)
+      chart = SummaryChart(model.getOrElse(Seq()))
     yield chart

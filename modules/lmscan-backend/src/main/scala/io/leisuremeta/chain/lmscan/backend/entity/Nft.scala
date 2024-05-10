@@ -11,11 +11,3 @@ final case class Nft(
     createdAt: Long,
     tokenId: String,
 )
-
-// final case class NftActivity(
-//     txHash: String,
-//     action: String,
-//     fromAddr: String,
-//     toAddr: String,
-//     createdAt: Long,
-// )

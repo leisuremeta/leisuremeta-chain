@@ -1,23 +1,13 @@
 package io.leisuremeta.chain.lmscan
 package backend
 
-//import cats.Monad
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.effect.std.Dispatcher
-//import cats.syntax.either.*
-//import cats.syntax.functor.toFunctorOps
-
 import com.linecorp.armeria.server.Server
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerInterpreter
-
-//import sttp.model.StatusCode
 import sttp.tapir.*
-//import sttp.tapir.EndpointIO
-//import sttp.tapir.json.circe.*
-//import sttp.tapir.generic.auto.{*, given}
-
 import common.ExploreApi
 import common.model.PageNavigation
 import io.leisuremeta.chain.lmscan.backend.service.*
@@ -26,6 +16,7 @@ import com.linecorp.armeria.server.HttpService;
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
+import sttp.tapir.server.interceptor.log.DefaultServerLog
 
 object BackendMain extends IOApp:
 
@@ -40,8 +31,8 @@ object BackendMain extends IOApp:
         TransactionService
           .getPageByFilter[F](pageInfo, accountAddr, blockHash, subType)
           .leftMap:
-          case Right(msg) => Right(ExploreApi.BadRequest(msg))
-          case Left(msg) => Left(ExploreApi.ServerError(msg))
+            case Right(msg) => Right(ExploreApi.BadRequest(msg))
+            case Left(msg) => Left(ExploreApi.ServerError(msg))
         .value
     }
 
@@ -155,6 +146,16 @@ object BackendMain extends IOApp:
         .value
     }
 
+  def keywordSearch[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getKeywordSearchResult.serverLogic:
+      (keyword: String) =>
+        SearchService
+          .getKeywordSearch(keyword)
+          .leftMap:
+            case Right(msg) => Right(ExploreApi.BadRequest(msg))
+            case Left(msg) => Left(ExploreApi.ServerError(msg))
+          .value
+
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       txPaging[F],
@@ -169,31 +170,50 @@ object BackendMain extends IOApp:
       nftOwnerInfo[F],
       summaryMain[F],
       summaryChart[F],
+      keywordSearch[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.fromAutoCloseable:
+        def log[F[_]: Async](
+            level: scribe.Level,
+          )(msg: String, exOpt: Option[Throwable])(using
+            mdc: scribe.mdc.MDC,
+          ): F[Unit] =
+            Async[F].delay(exOpt match
+              case None     => scribe.log(level, mdc, msg)
+              case Some(ex) => scribe.log(level, mdc, msg, ex),
+          )
+        val serverLog = DefaultServerLog(
+          doLogWhenReceived = log(scribe.Level.Info)(_, None),
+          doLogWhenHandled  = log(scribe.Level.Info),
+          doLogAllDecodeFailures = log(scribe.Level.Error),
+          doLogExceptions = (msg: String, ex: Throwable) => Async[F].delay(scribe.error(msg, ex)),
+          noLog = Async[F].pure(()),
+        )
         Async[F].fromCompletableFuture:
+          val options = ArmeriaCatsServerOptions
+            .customiseInterceptors(dispatcher)
+            .corsInterceptor(Some {
+              CORSInterceptor
+                .customOrThrow[F](CORSConfig.default)
+            })
+            .serverLog(serverLog)
+            .options
+          
+          val tapirService = ArmeriaCatsServerInterpreter[F](options)
+            .toService(explorerEndpoints[F])
+          val server = Server.builder
+            .annotatedService(tapirService)
+            .http(8081)
+            .maxRequestLength(128 * 1024 * 1024)
+            .requestTimeout(java.time.Duration.ofMinutes(2))
+            .service(tapirService)
+            .build
           Async[F].delay:
-            val options = ArmeriaCatsServerOptions
-              .customiseInterceptors(dispatcher)
-              .corsInterceptor(Some {
-                CORSInterceptor
-                  .customOrThrow[F](CORSConfig.default)
-              })
-              .options
-            
-            val tapirService = ArmeriaCatsServerInterpreter[F](options)
-              .toService(explorerEndpoints[F])
-            val server = Server.builder
-              .annotatedService(tapirService)
-              .http(8081)
-              .maxRequestLength(128 * 1024 * 1024)
-              .requestTimeout(java.time.Duration.ofMinutes(6))
-              .service(tapirService)
-              .build
+            scribe.info("server start / port: 8081")
             server.start().thenApply(_ => server)
     yield server
 

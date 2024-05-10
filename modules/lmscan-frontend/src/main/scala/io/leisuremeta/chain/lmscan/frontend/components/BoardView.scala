@@ -54,8 +54,8 @@ object BoardView:
         span("24H"),
         span(cls := s"${if nu.gteq(t, y) then "pos" else "neg"}")(f(diff))
       )
-    case (Some(v), _) => div(span("24H"), span(v.toString))
-    case (_, Some(v)) => div(span("24H"), span(v.toString))
+    case (Some(v), _) => div(span("24H"), span(f(v)))
+    case (_, Some(v)) => div(span("24H"), span(f(v)))
     case _ => div(span("24H"))
 
   def accPan(summary: SummaryBoard, v: SummaryChart) =
@@ -67,6 +67,7 @@ object BoardView:
     )
 
   def normalize(xs: List[Double]): List[Double] =
+    if xs.isEmpty then return xs
     val max = xs.max
     val min = xs.min
     val d = max - min
@@ -113,7 +114,7 @@ object BoardView:
   def totalBlock(summary: SummaryBoard, v: SummaryChart) =
     div(cls := "board-comp")(
       span("Total Blocks"),
-      span(f(summary.today.blockNumber.get)),
+      span(f(summary.today.blockNumber.getOrElse(0L))),
       drawDiff(summary.today.blockNumber, summary.yesterday.blockNumber, f),
       makeChart(v.list.map(vv => vv.blockNumber.getOrElse(0L).toDouble).reverse.take(144).toList, x, y),
     )

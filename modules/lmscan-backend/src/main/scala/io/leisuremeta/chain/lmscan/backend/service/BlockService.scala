@@ -37,21 +37,37 @@ object BlockService:
   
   def getByNumber[F[_]: Async](
       number: Long,
-  ): EitherT[F, Either[String, String], Option[Block]] =
-    BlockRepository.getByNumber(number).leftMap(Left(_))
+      p: Int = 1,
+  ): EitherT[F, Either[String, String], Option[BlockDetail]] =
+    for
+      block <- BlockRepository.getByNumber(number).leftMap(Left(_))
+      txPage <- TransactionService.getPageByBlock(
+        block.map(_.hash).getOrElse(""),
+        PageNavigation(p - 1, 20),
+      )
+      blockInfo = block.map: bl =>
+        BlockDetail(
+          Some(bl.hash),
+          Some(bl.parentHash),
+          Some(bl.number),
+          Some(bl.eventTime),
+          Some(bl.txCount),
+          txPage.totalCount,
+          txPage.totalPages,
+          txPage.payload,
+        )
+    yield blockInfo
 
   def getDetail[F[_]: Async](
       hash: String,
       p: Int,
   ): EitherT[F, Either[String, String], Option[BlockDetail]] =
-    
     for
       block <- get(hash)
       txPage <- TransactionService.getPageByBlock(
         hash,
         PageNavigation(p - 1, 20),
       )
-
       blockInfo = block.map: bl =>
         BlockDetail(
           Some(bl.hash),

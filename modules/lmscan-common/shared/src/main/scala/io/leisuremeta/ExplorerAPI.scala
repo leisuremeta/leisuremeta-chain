@@ -141,3 +141,8 @@ object ExploreApi:
     .in("prod")
     .in("chain")
     .out(jsonBody[Option[String]])
+
+  val getKeywordSearchResult = baseEndpoint.get
+    .in("search")
+    .in(path[String]("keyword"))
+    .out(jsonBody[SearchResult])

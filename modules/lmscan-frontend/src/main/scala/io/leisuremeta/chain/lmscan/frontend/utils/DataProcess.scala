@@ -17,15 +17,7 @@ object Parse:
   given Decoder[SummaryChart] = deriveDecoder[SummaryChart]
   given Decoder[NftInfoModel] = deriveDecoder[NftInfoModel]
   given Decoder[BlockInfo] = deriveDecoder[BlockInfo]
-  given Decoder[TxInfo] = deriveDecoder[TxInfo]
-  given Decoder[TxDetail] = deriveDecoder[TxDetail]
-  given Decoder[TransferHist] = deriveDecoder[TransferHist]
-  given Decoder[BlockDetail] = deriveDecoder[BlockDetail]
-  given Decoder[AccountDetail] = deriveDecoder[AccountDetail]
   given Decoder[AccountInfo] = deriveDecoder[AccountInfo]
-  given Decoder[NftDetail] = deriveDecoder[NftDetail]
-  given Decoder[NftFileModel] = deriveDecoder[NftFileModel]
-  given Decoder[NftActivity] = deriveDecoder[NftActivity]
   given Decoder[NftSeasonModel] = deriveDecoder[NftSeasonModel]
   given a: Decoder[PageResponse[AccountInfo]] = deriveDecoder[PageResponse[AccountInfo]]
   given b: Decoder[PageResponse[BlockInfo]] = deriveDecoder[PageResponse[BlockInfo]]
@@ -33,6 +25,19 @@ object Parse:
   given d: Decoder[PageResponse[NftInfoModel]] = deriveDecoder[PageResponse[NftInfoModel]]
   given e: Decoder[PageResponse[NftSeasonModel]] = deriveDecoder[PageResponse[NftSeasonModel]]
     
+  def searchResponse(): Response => Msg = response =>
+    response.status match
+      case Status(400, _) => ErrorMsg
+      case Status(500, _) => ErrorMsg
+      case _ => searchResult(response)
+
+  def searchResult(response: Response): Msg = decode[SearchResult](response.body) match
+    case Right(SearchResult.acc(x)) => GlobalSearchResult(AccDetailModel().set(x))
+    case Right(SearchResult.tx(x)) => GlobalSearchResult(TxDetailModel(txDetail = x))
+    case Right(SearchResult.blc(x)) => GlobalSearchResult(BlcDetailModel().set(x))
+    case Right(SearchResult.nft(x)) => GlobalSearchResult(NftDetailModel(nftDetail = x))
+    case _ => ErrorMsg
+
   def onResponse(model: ApiModel): Response => Msg = response =>
     response.status match
       case Status(400, _) => ErrorMsg
@@ -103,12 +108,11 @@ object DataProcess:
         Request.get(s"${base}summary/main"),
         Decoder[Msg](Parse.onResponse(SummaryBoard()), onError)
       )
-  def globalSearch(v: String) = 
-    val msg = v.length match
-      case 25 => NftDetailModel(nftDetail = NftDetail(nftFile = Some(NftFileModel(tokenId = Some(v)))))
-      case 64 => TxDetailModel(txDetail = TxDetail(hash = Some(v)))
-      case _ => AccDetailModel(accDetail = AccountDetail(address = Some(v)))
-    ToPage(msg)
+  def globalSearch(v: String): Cmd[IO, Msg] = 
+    Http.send(
+      Request.get(s"${base}search/${v}"),
+      Decoder[Msg](Parse.searchResponse(), onError)
+    )
 
   def getLocal(key: String): Cmd[IO, Msg] =
     LocalStorage.getItem(key):
