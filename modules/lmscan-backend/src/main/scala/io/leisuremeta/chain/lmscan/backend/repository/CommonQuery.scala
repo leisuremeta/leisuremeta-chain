@@ -65,7 +65,7 @@ trait CommonQuery:
             .fromFuture(Async[F].delay {
               ctx.run(query)
             })
-          res = if detail.isEmpty then Right(None) else Right(Some(detail))
+          res = if detail.isEmpty then Left("Can't found match data") else Right(Some(detail))
         yield res
       } {
         case e: SQLException =>
@@ -84,7 +84,7 @@ trait CommonQuery:
             .fromFuture(Async[F].delay {
               ctx.run(query)
             })
-          res = if detail.isEmpty then Right(None) else Right(detail.headOption)
+          res = if detail.isEmpty then Left("Can't found match data") else Right(detail.headOption)
         yield res
       } {
         case e: SQLException =>

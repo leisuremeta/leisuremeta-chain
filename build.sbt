@@ -166,18 +166,7 @@ val Dependencies = new {
       "org.scodec"                  %%% "scodec-bits"           % V.scodecBits,
       "co.fs2"                      %%% "fs2-core"              % V.fs2,
       "io.getquill"                  %% "quill-jasync-postgres" % V.quill,
-    ),
-  )
-
-  lazy val lmscanCommonJVM = Seq(
-    libraryDependencies ++= Seq(
-      "com.outr" %% "scribe-slf4j" % V.scribe,
-    ),
-  )
-
-  lazy val lmscanCommonJS = Seq(
-    libraryDependencies ++= Seq(
-      "com.outr" %%% "scribe" % V.scribe,
+      "com.outr"                     %% "scribe"                % V.scribe,
     ),
   )
 
@@ -191,14 +180,8 @@ val Dependencies = new {
   lazy val lmscanBackend = Seq(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
-      "org.typelevel"                 %% "cats-effect"          % V.catsEffect,
-      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"     % V.tapir,
-      "com.softwaremill.sttp.tapir"   %% "tapir-core"           % V.tapir,
-      "com.outr"                      %% "scribe-slf4j"         % V.scribe,
-      "com.outr"                      %% "scribe-cats"          % V.scribe,
       "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
       "com.typesafe"             % "config"          % V.typesafeConfig,
-      "com.outr"                %% "scribe-slf4j"    % V.scribe,
       "org.postgresql"           % "postgresql"      % V.postgres,
       "com.opentable.components" % "otj-pg-embedded" % V.pgEmbedded,
     ),
@@ -440,16 +423,12 @@ lazy val lmscanCommon = crossProject(JSPlatform, JVMPlatform)
   .in(file("modules/lmscan-common"))
   .settings(Dependencies.lmscanCommon)
   .settings(Dependencies.tests)
-  .jvmSettings(Dependencies.lmscanCommonJVM)
   .jvmSettings(
     scalacOptions ++= Seq(
       "-Xmax-inlines:64",
     ),
-  )
-  .jvmSettings(
     Test / fork := true,
   )
-  .jsSettings(Dependencies.lmscanCommonJS)
   .jsSettings(
     useYarn := true,
     scalaJSLinkerConfig ~= {
@@ -503,6 +482,8 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
       case x if x `contains` "scala-asm.properties" =>
         MergeStrategy.first
       case x if x `contains` "compiler.properties" =>
+        MergeStrategy.first
+      case x if x `contains` "native/lib/libnetty-unix-common.a" =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>

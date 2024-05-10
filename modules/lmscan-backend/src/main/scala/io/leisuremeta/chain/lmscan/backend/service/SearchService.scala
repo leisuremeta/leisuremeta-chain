@@ -11,23 +11,27 @@ object SearchService:
       case None => hashSearch(keyword)
 
   def numSearch[F[_]: Async](n: Long): EitherT[F, Either[String, String], SearchResult] =
-    for
-      nft <- NftService.getNftDetail(n.toString)
-      blc <- BlockService.getByNumber(n)
-      res = (nft, blc) match
-        case (Some(d), _) if d.nftFile.isDefined => SearchResult.nft(d)
-        case (_, Some(d)) => SearchResult.blc(d)
-        case _ => SearchResult.empty
-    yield res
+    NftService.getNftDetail(n.toString)
+      .flatMap: d =>
+        EitherT.pure[F, Either[String, String]](SearchResult.nft(d.get))
+      .leftFlatMap: _ =>
+        for
+          blc <- BlockService.getByNumber(n)
+        yield SearchResult.blc(blc.get)
+      .leftFlatMap: _ => 
+        EitherT.pure[F, Either[String, String]](SearchResult.empty)
 
   def hashSearch[F[_]: Async](keyword: String): EitherT[F, Either[String, String], SearchResult] =
-    for
-      tx <- TransactionService.getDetail(keyword)
-      blc <- BlockService.getDetail(keyword, 1)
-      acc <- AccountService.get(keyword, 1)
-      res = (tx, blc, acc) match
-        case (Some(d), _, _) if d.json.isDefined => SearchResult.tx(d)
-        case (_, Some(d), _) if d.number.isDefined => SearchResult.blc(d)
-        case (_, _, Some(d)) if d.totalCount > 0 => SearchResult.acc(d)
-        case _ => SearchResult.empty
-    yield res
+    TransactionService.getDetail(keyword)
+      .flatMap: d =>
+        EitherT.pure[F, Either[String, String]](SearchResult.tx(d.get))
+      .leftFlatMap: _ =>
+        for
+          blc <- BlockService.getDetail(keyword, 1)
+        yield SearchResult.blc(blc.get)
+      .leftFlatMap: _ =>
+        for
+          acc <- AccountService.get(keyword, 1)
+        yield  SearchResult.acc(acc.get)
+      .leftFlatMap: _ => 
+        EitherT.pure[F, Either[String, String]](SearchResult.empty)

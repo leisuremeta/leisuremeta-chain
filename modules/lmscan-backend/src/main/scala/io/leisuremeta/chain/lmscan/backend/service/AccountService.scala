@@ -18,13 +18,16 @@ object AccountService:
       address: String,
       p: Int,
   ): EitherT[F, Either[String, String], Option[AccountDetail]] =
-    for
-      account <- AccountRepository.get(address).leftMap:
-        e => Left(e)
-      txPage <- TransactionService.getPageByAccount(
+    val balRes = AccountRepository.get(address)
+      .leftFlatMap: _ =>
+        EitherT.pure[F, Either[String, String]](None)
+    val txPageRes = TransactionService.getPageByAccount(
         address,
         PageNavigation(p - 1, 20),
       )
+    for
+      account <- balRes
+      txPage <- txPageRes
       summary <- SummaryRepository.get().leftMap(Left(_))
       price = summary match
         case Some(s) => BigDecimal(s.head.lmPrice)

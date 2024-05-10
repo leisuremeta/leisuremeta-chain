@@ -16,6 +16,7 @@ import com.linecorp.armeria.server.HttpService;
 import sttp.tapir.server.armeria.cats.ArmeriaCatsServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import sttp.tapir.server.interceptor.cors.CORSConfig
+import sttp.tapir.server.interceptor.log.DefaultServerLog
 
 object BackendMain extends IOApp:
 
@@ -176,25 +177,43 @@ object BackendMain extends IOApp:
     for
       dispatcher <- Dispatcher.parallel[F]
       server <- Resource.fromAutoCloseable:
+        def log[F[_]: Async](
+            level: scribe.Level,
+          )(msg: String, exOpt: Option[Throwable])(using
+            mdc: scribe.mdc.MDC,
+          ): F[Unit] =
+            Async[F].delay(exOpt match
+              case None     => scribe.log(level, mdc, msg)
+              case Some(ex) => scribe.log(level, mdc, msg, ex),
+          )
+        val serverLog = DefaultServerLog(
+          doLogWhenReceived = log(scribe.Level.Info)(_, None),
+          doLogWhenHandled  = log(scribe.Level.Info),
+          doLogAllDecodeFailures = log(scribe.Level.Error),
+          doLogExceptions = (msg: String, ex: Throwable) => Async[F].delay(scribe.error(msg, ex)),
+          noLog = Async[F].pure(()),
+        )
         Async[F].fromCompletableFuture:
+          val options = ArmeriaCatsServerOptions
+            .customiseInterceptors(dispatcher)
+            .corsInterceptor(Some {
+              CORSInterceptor
+                .customOrThrow[F](CORSConfig.default)
+            })
+            .serverLog(serverLog)
+            .options
+          
+          val tapirService = ArmeriaCatsServerInterpreter[F](options)
+            .toService(explorerEndpoints[F])
+          val server = Server.builder
+            .annotatedService(tapirService)
+            .http(8081)
+            .maxRequestLength(128 * 1024 * 1024)
+            .requestTimeout(java.time.Duration.ofMinutes(2))
+            .service(tapirService)
+            .build
           Async[F].delay:
-            val options = ArmeriaCatsServerOptions
-              .customiseInterceptors(dispatcher)
-              .corsInterceptor(Some {
-                CORSInterceptor
-                  .customOrThrow[F](CORSConfig.default)
-              })
-              .options
-            
-            val tapirService = ArmeriaCatsServerInterpreter[F](options)
-              .toService(explorerEndpoints[F])
-            val server = Server.builder
-              .annotatedService(tapirService)
-              .http(8081)
-              .maxRequestLength(128 * 1024 * 1024)
-              .requestTimeout(java.time.Duration.ofMinutes(6))
-              .service(tapirService)
-              .build
+            scribe.info("server start / port: 8081")
             server.start().thenApply(_ => server)
     yield server
 
