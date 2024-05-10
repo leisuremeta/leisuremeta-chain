@@ -3,7 +3,6 @@ package merkle
 
 import cats.Monad
 import cats.data.{EitherT, Kleisli, OptionT, StateT}
-import cats.syntax.either.given
 import cats.syntax.eq.given
 import cats.syntax.traverse.given
 
@@ -248,76 +247,57 @@ object MerkleTrie:
   def remove[F[_]: Monad: NodeStore](
       key: Nibbles,
   ): StateT[EitherT[F, String, *], MerkleTrieState, Boolean] =
+    type ErrorOrF[A] = EitherT[F, String, A]
     StateT: (state: MerkleTrieState) =>
-      val RightFalse = EitherT.pure[F, String]((state, false))
-      getNodeAndStateRoot[F](state).flatMap:
-        case None => RightFalse
-        case Some((node, root)) =>
-          node match
-            case MerkleTrieNode.Leaf(prefix, _) if prefix === key =>
-              val state1 =
-                state.copy(root = None, diff = state.diff.remove(root, node))
-              EitherT.rightT[F, String]((state1, true))
-            case MerkleTrieNode.Leaf(_, _) => RightFalse
+      val optionT = OptionT(getNodeAndStateRoot[F](state)).flatMap:
+        case ((node, root)) => node match
+          case MerkleTrieNode.Leaf(prefix, _) =>
+            OptionT.when(prefix === key):
+              state.copy(root = None, diff = state.diff.remove(root, node))
+          case MerkleTrieNode.BranchWithData(prefix, children, _) if prefix === key =>
+            val branch1: MerkleTrieNode = MerkleTrieNode.Branch(prefix, children)
+            val branch1Hash = branch1.toHash
 
-            case MerkleTrieNode.BranchWithData(prefix, children, value)
-                if prefix === key =>
-              val branch1: MerkleTrieNode =
-                MerkleTrieNode.Branch(prefix, children)
-              val branch1Hash = branch1.toHash
-
-              val state1 = state.copy(
+            OptionT.pure[ErrorOrF]:
+              state.copy(
                 root = Some(branch1Hash),
                 diff = state.diff.remove(root, node).add(branch1Hash, branch1),
               )
-
-              EitherT.rightT[F, String]((state1, true))
-            case _ =>
-              key
-                .stripPrefix(node.prefix)
-                .fold(RightFalse): stripped =>
-                  stripped.unCons.fold(RightFalse): (index1, key1) =>
-                    EitherT
-                      .fromOption(node.getChildren, s"No children for $node")
-                      .flatMap: children =>
-                        children(index1).fold(RightFalse): childHash =>
-                          remove[F](key1)
-                            .run(state.copy(root = Some(childHash)))
-                            .subflatMap:
-                              case (_, false) =>
-                                ((state, false)).asRight[String]
-                              case (childState, true)
-                                  if childState.root.isEmpty
-                                    && children.count(_.nonEmpty) <= 1
-                                    && node.getValue.isEmpty =>
-                                val childState1 = childState.copy(
-                                  root = None,
-                                  diff = childState.diff.remove(root, node),
-                                )
-                                ((childState1, true)).asRight[String]
-                              case (childState, true) =>
-                                val children1 = children
-                                  .updateChild(index1, childState.root)
-                                val branch = node.getValue match
-                                  case None =>
-                                    MerkleTrieNode.branch(
-                                      node.prefix,
-                                      children1,
-                                    )
-                                  case Some(value) =>
-                                    MerkleTrieNode.branchWithData(
-                                      node.prefix,
-                                      children1,
-                                      value,
-                                    )
-                                val branchHash = branch.toHash
-                                val childState1 = childState.copy(
-                                  root = Some(branchHash),
-                                  diff = childState.diff
-                                    .remove(root, node)
-                                    .add(branchHash, branch),
-                                )
-                                (childState1, true).asRight[String]
+          case _ =>
+              for
+                stripped <- OptionT.fromOption[ErrorOrF]:
+                  key.stripPrefix(node.prefix)
+                (index1, key1) <- OptionT.fromOption[ErrorOrF]:
+                  stripped.unCons
+                children <- OptionT.fromOption[ErrorOrF]:
+                  node.getChildren
+                childHash <- OptionT.fromOption[ErrorOrF]:
+                  children(index1)
+                childStateAndResult <- OptionT.liftF:
+                  remove[F](key1.assumeNibbles).run:
+                    state.copy(root = Some(childHash))
+                (childState, result) = childStateAndResult
+                state1 <- OptionT.when[ErrorOrF, MerkleTrieState](result):
+                  val needToRemoveSelf = childState.root.isEmpty
+                      && children.count(_.nonEmpty) <= 1
+                      && node.getValue.isEmpty
+                  if needToRemoveSelf then
+                    childState.copy(
+                      root = None,
+                      diff = childState.diff.remove(root, node),
+                    )
+                  else
+                    val children1 = children.updateChild(index1, childState.root)
+                    val branch = node.setChildren(children1)
+                    val branchHash = branch.toHash
+                    childState.copy(
+                      root = Some(branchHash),
+                      diff = childState.diff
+                        .remove(root, node)
+                        .add(branchHash, branch),
+                    )
+              yield state1
+      optionT.value.map(_.fold((state, false))((_, true)))
 
   type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
 
