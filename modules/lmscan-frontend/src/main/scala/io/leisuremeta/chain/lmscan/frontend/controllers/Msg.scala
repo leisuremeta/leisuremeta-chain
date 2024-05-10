@@ -14,6 +14,7 @@ case object NoneMsg extends Msg
 case class GlobalInput(s: String) extends GlobalMsg
 case class UpdateTime(t: js.Date) extends GlobalMsg
 case object GlobalSearch extends Msg
+case class GlobalSearchResult(v: Model) extends Msg
 case object ListSearch extends Msg
 case object Init extends Msg
 

@@ -56,5 +56,5 @@ object SummaryService:
       summary <- SummaryRepository.get(0, 144 * 5).leftMap(Left(_))
       model = summary.map(_.map(_.toM
       ))
-      chart = SummaryChart(model.get)
+      chart = SummaryChart(model.getOrElse(Seq()))
     yield chart

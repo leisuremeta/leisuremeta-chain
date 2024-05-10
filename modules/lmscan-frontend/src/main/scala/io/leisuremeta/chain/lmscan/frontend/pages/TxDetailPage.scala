@@ -65,14 +65,14 @@ final case class TxDetailModel(
     def url = s"/tx/${txDetail.hash.get}"
     def update: Msg => (Model, Cmd[IO, Msg]) = TxDetailPage.update(this)
     def getTxr: Option[TransactionWithResult] =
-      val res = for
+      for
         json <- txDetail.json
         tx <- decode[TransactionWithResult](json).toOption
       yield tx
-      res
     def getInfo: (String, String, String) =
       extension (a: Transaction)
         def splitTx = a.toString.split("\\(").head
+      println(s"${decode[TransactionWithResult](txDetail.json.getOrElse(""))}")
       this.getTxr match
         case Some(x) =>
           val acc = x.signedTx.sig.account.toString

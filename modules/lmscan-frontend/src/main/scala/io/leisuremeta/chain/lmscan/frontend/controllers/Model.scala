@@ -3,7 +3,6 @@ package frontend
 
 import common.model.*
 import tyrian._
-import tyrian.Html.div
 import cats.effect.IO
 import scalajs.js
 import io.circe.Decoder
@@ -34,13 +33,17 @@ trait PageModel extends Model with ApiModel:
 case class EmptyModel(
   global: GlobalModel = GlobalModel(),
 ) extends Model:
-  def view = div("")
+  def view = DefaultLayout.view(
+      this,
+      LoaderView.view
+    )
   def url = ""
   def update: Msg => (Model, Cmd[IO, Msg]) =
     case ToPage(model) => model.update(Init)
     case NavigateToUrl(url) => (this, Nav.loadUrl(url))
     case ErrorMsg => (ErrorModel(error = ""), Cmd.None)
-    case GlobalSearch => (this, Cmd.Emit(DataProcess.globalSearch(global.searchValue.toLowerCase)))
+    case GlobalSearch => (this, DataProcess.globalSearch(global.searchValue.toLowerCase))
+    case GlobalSearchResult(v) => (v, Nav.pushUrl(v.url))
     case _ => (this, Cmd.None)
 
 case class IssueInfo(date: String, n: Int)
