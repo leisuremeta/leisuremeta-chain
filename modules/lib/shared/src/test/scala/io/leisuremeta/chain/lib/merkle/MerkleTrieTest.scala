@@ -318,16 +318,16 @@ class MerkleTrieTest extends HedgehogSuite:
         value <- getEmpty
       yield assertions.assertEquals(value, Some(ByteVector.empty))
 
-//    val forPrint = for
-//      state1 <- putEmptyWithEmpty.runS(initialState)
-//      state2 <- put00_00.runS(state1)
-//      state3 <- getEmpty.runS(state2)
-//    yield
-//      Seq(state1, state2, state3).zipWithIndex.foreach{ (s, i) =>
-//        println(s"====== State #${i + 1} ======")
-//        println(s"root: ${s.root}")
-//        s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
-//      }
+//      for
+//        state1 <- putEmptyWithEmpty.runS(initialState)
+//        state2 <- put00_00.runS(state1)
+//        state3 <- getEmpty.runS(state2)
+//      yield
+//        Seq(state1, state2, state3).zipWithIndex.foreach: (s, i) =>
+//          println(s"====== State #${i + 1} ======")
+//          println(s"root: ${s.root}")
+//          s.diff.foreach{ (hash, node) => println(s" $hash: $node") }
+
       program.runA(initialState).value
     }
   }
