@@ -96,7 +96,7 @@ object MerkleTrieNode:
   type ChildrenCondition = Length[StrictEqual[16]]
 
   extension (c: Children)
-    def updated(i: Int, v: Option[MerkleHash]): Children = c.updated(i, v).assume
+    def updateChild(i: Int, v: Option[MerkleHash]): Children = c.updated(i, v).assume
   object Children:
     inline def empty: Children = Vector.fill(16)(Option.empty[MerkleHash]).assume
 

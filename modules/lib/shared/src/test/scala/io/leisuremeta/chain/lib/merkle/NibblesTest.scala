@@ -21,7 +21,7 @@ class NibblesTest extends HedgehogSuite:
         byteVector.bits,
         byteVector.bits.drop(4),
       )
-    yield bits.assumeNibble
+    yield bits.assumeNibbles
 
     nibblesGen.forAll.map: nibbles =>      
       val encoded = nibbles.toBytes

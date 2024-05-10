@@ -28,12 +28,15 @@ extension (nibbles: Nibbles)
   def value: BitVector  = nibbles
   def bytes: ByteVector = nibbles.bytes
   def nibbleSize: Long  = nibbles.size / 4L
-  def unCons: Option[(BitVector, Nibbles)] =
+  def unCons: Option[(Int, Nibbles)] =
     if nibbles.isEmpty then None
-    else Some(nibbles.value.take(4), nibbles.value.drop(4).assumeNibble)
+    else
+      val head = nibbles.value.take(4).toInt(signed = false)
+      val tail = nibbles.value.drop(4).assumeNibbles
+      Some((head, tail))
   def stripPrefix(prefix: Nibbles): Option[Nibbles] =
     if nibbles.startsWith(prefix) then
-      Some(nibbles.drop(prefix.size).assumeNibble)
+      Some(nibbles.drop(prefix.size).assumeNibbles)
     else None
 
   def <=(that: Nibbles): Boolean =
@@ -50,7 +53,7 @@ extension (nibbles: Nibbles)
 extension (bitVector: BitVector)
   def refineToNibble: Either[String, Nibbles] =
     bitVector.refineEither[Length[Multiple[4L]]]
-  def assumeNibble: Nibbles = bitVector.assume[Nibbles.NibbleCond]
+  def assumeNibbles: Nibbles = bitVector.assume[Nibbles.NibbleCond]
 
 extension (byteVector: ByteVector)
   def toNibbles: Nibbles = byteVector.bits.refineUnsafe[Length[Multiple[4L]]]

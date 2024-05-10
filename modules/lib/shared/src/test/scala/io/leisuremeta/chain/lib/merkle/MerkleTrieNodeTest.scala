@@ -20,7 +20,7 @@ class MerkleTrieNodeTest extends HedgehogSuite:
       byteVector.bits,
       byteVector.bits.drop(4),
     )
-  yield bits.assumeNibble
+  yield bits.assumeNibbles
 
   def genChildren: Gen[MerkleTrieNode.Children] = Gen
     .list[Option[MerkleTrieNode.MerkleHash]](

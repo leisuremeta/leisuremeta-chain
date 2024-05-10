@@ -12,7 +12,7 @@ import fs2.Stream
 import scodec.bits.{BitVector, ByteVector}
 
 import crypto.Hash.ops.*
-import MerkleTrieNode.{Children, ChildrenCondition, MerkleHash}
+import MerkleTrieNode.{Children, MerkleHash}
 
 object MerkleTrie:
 
@@ -37,9 +37,9 @@ object MerkleTrie:
                 node.getChildren,
               )
               nextRoot <- OptionT.fromOption[EitherT[F, String, *]]:
-                children(head.toInt(signed = false))
+                children(head)
               value <- OptionT:
-                get[F](remainder.assumeNibble).runA(
+                get[F](remainder.assumeNibbles).runA(
                   state.copy(root = Some(nextRoot)),
                 )
             yield value
@@ -65,212 +65,184 @@ object MerkleTrie:
         case Some((node, root)) =>
           val prefix0: Nibbles = node.prefix
 
-          node match
-            case MerkleTrieNode.Leaf(_, value0) =>
-              val (commonPrefix, remainder0, remainder1) =
-                getCommonPrefixNibbleAndRemainders(prefix0, key)
-              (remainder0.unCons, remainder1.unCons) match
-                case (None, None) =>
-                  if value0 === value then EitherT.rightT[F, String](state)
-                  else
-                    val leaf1 =
-                      MerkleTrieNode.leaf(prefix0, value)
-                    val leaf1Hash = leaf1.toHash
+          def putLeaf(value0: ByteVector): EitherT[F, String, MerkleTrieState] =
+            val (commonPrefix, remainder0, remainder1) =
+              getCommonPrefixNibbleAndRemainders(prefix0, key)
+            (remainder0.unCons, remainder1.unCons) match
+              case (None, None) =>
+                if value0 === value then EitherT.rightT[F, String](state)
+                else
+                  val leaf1     = MerkleTrieNode.leaf(prefix0, value)
+                  val leaf1Hash = leaf1.toHash
+                  EitherT.rightT[F, String]:
+                    state.copy(
+                      root = Some(leaf1Hash),
+                      diff = state.diff
+                        .remove(root, node)
+                        .add(leaf1Hash, leaf1),
+                    )
+              case (None, Some((index10, prefix10))) =>
+                val leaf1 = MerkleTrieNode.leaf(prefix10.assumeNibbles, value)
+                val leaf1Hash = leaf1.toHash
+                val children: Children = Children.empty
+                  .updateChild(index10, Some(leaf1Hash))
+                val branch = MerkleTrieNode.branchWithData(
+                  node.prefix,
+                  children,
+                  value0,
+                )
+                val branchHash = branch.toHash
+                EitherT.rightT[F, String]:
+                  state.copy(
+                    root = Some(branchHash),
+                    diff = state.diff
+                      .remove(root, node)
+                      .add(branchHash, branch)
+                      .add(leaf1Hash, leaf1),
+                  )
+              case (Some((index00, prefix00)), None) =>
+                val leaf0 = MerkleTrieNode.leaf(prefix00.assumeNibbles, value0)
+                val leaf0Hash = leaf0.toHash
+                val children: Children = Children.empty
+                  .updateChild(index00, Some(leaf0Hash))
+                val branch = MerkleTrieNode.branchWithData(
+                  commonPrefix,
+                  children,
+                  value,
+                )
+                val branchHash = branch.toHash
+                EitherT.rightT[F, String]:
+                  state.copy(
+                    root = Some(branchHash),
+                    diff = state.diff
+                      .remove(root, node)
+                      .add(branchHash, branch)
+                      .add(leaf0Hash, leaf0),
+                  )
+              case (Some((index00, prefix00)), Some((index10, prefix10))) =>
+                val leaf0 = MerkleTrieNode.leaf(prefix00.assumeNibbles, value0)
+                val leaf0Hash = leaf0.toHash
+                val leaf1 = MerkleTrieNode.leaf(prefix10.assumeNibbles, value)
+                val leaf1Hash = leaf1.toHash
+                val children: Children = Children.empty
+                  .updateChild(index00, Some(leaf0Hash))
+                  .updateChild(index10, Some(leaf1Hash))
+                val branch = MerkleTrieNode.branch(
+                  commonPrefix,
+                  children,
+                )
+                val branchHash = branch.toHash
+                EitherT.rightT[F, String]:
+                  state.copy(
+                    root = Some(branchHash),
+                    diff = state.diff
+                      .remove(root, node)
+                      .add(branchHash, branch)
+                      .add(leaf0Hash, leaf0)
+                      .add(leaf1Hash, leaf1),
+                  )
+          def putNode(
+              children: MerkleTrieNode.Children,
+          ): EitherT[F, String, MerkleTrieState] =
+            val (commonPrefix, remainder0, remainder1) =
+              getCommonPrefixNibbleAndRemainders(prefix0, key)
+            (remainder0.unCons, remainder1.unCons) match
+              case (None, None) =>
+                node.getValue match
+                  case Some(nodeValue) if nodeValue === value =>
+                    EitherT.rightT[F, String](state)
+                  case _ =>
+                    val branch1     = node.setValue(value)
+                    val branch1Hash = branch1.toHash
                     EitherT.rightT[F, String]:
                       state.copy(
-                        root = Some(leaf1Hash),
+                        root = Some(branch1Hash),
                         diff = state.diff
                           .remove(root, node)
+                          .add(branch1Hash, branch1),
+                      )
+              case (None, Some((index10, prefix10))) =>
+                children(index10) match
+                  case None =>
+                    val leaf1 =
+                      MerkleTrieNode.leaf(prefix10.assumeNibbles, value)
+                    val leaf1Hash = leaf1.toHash
+                    val children1 =
+                      children.updateChild(index10, Some(leaf1Hash))
+                    val branch1     = node.setChildren(children1)
+                    val branch1Hash = branch1.toHash
+                    EitherT.rightT[F, String]:
+                      state.copy(
+                        root = Some(branch1Hash),
+                        diff = state.diff
+                          .remove(root, node)
+                          .add(branch1Hash, branch1)
                           .add(leaf1Hash, leaf1),
                       )
-                case (None, Some((index10, prefix10))) =>
-                  val leaf1 =
-                    MerkleTrieNode.leaf(prefix10.assumeNibble, value)
-                  val leaf1Hash = leaf1.toHash
-                  val children: Children = Children.empty
-                    .updated(index10.toInt(signed = false), Some(leaf1Hash))
-                    .assume
-                  val branch = MerkleTrieNode.branchWithData(
-                    node.prefix,
-                    children,
-                    value0,
-                  )
-                  val branchHash = branch.toHash
-                  EitherT.rightT[F, String]:
-                    state.copy(
-                      root = Some(branchHash),
-                      diff = state.diff
-                        .remove(root, node)
-                        .add(branchHash, branch)
-                        .add(leaf1Hash, leaf1),
-                    )
-                case (Some((index00, prefix00)), None) =>
-                  val leaf0 =
-                    MerkleTrieNode.leaf(prefix00.assumeNibble, value0)
-                  val leaf0Hash = leaf0.toHash
-                  val children: Children = Children.empty
-                    .updated(index00.toInt(signed = false), Some(leaf0Hash))
-                    .assume
-                  val branch = MerkleTrieNode.branchWithData(
-                    commonPrefix,
-                    children,
-                    value,
-                  )
-                  val branchHash = branch.toHash
-                  EitherT.rightT[F, String]:
-                    state.copy(
-                      root = Some(branchHash),
-                      diff = state.diff
-                        .remove(root, node)
-                        .add(branchHash, branch)
-                        .add(leaf0Hash, leaf0),
-                    )
-                case (Some((index00, prefix00)), Some((index10, prefix10))) =>
-                  val leaf0 =
-                    MerkleTrieNode.leaf(prefix00.assumeNibble, value0)
-                  val leaf0Hash = leaf0.toHash
-                  val leaf1 =
-                    MerkleTrieNode.leaf(prefix10.assumeNibble, value)
-                  val leaf1Hash = leaf1.toHash
-                  val children: Children = Children.empty
-                    .updated(index00.toInt(signed = false), Some(leaf0Hash))
-                    .updated(index10.toInt(signed = false), Some(leaf1Hash))
-                    .assume
-                  val branch = MerkleTrieNode.branch(
-                    commonPrefix,
-                    children,
-                  )
-                  val branchHash = branch.toHash
-                  EitherT.rightT[F, String]:
-                    state.copy(
-                      root = Some(branchHash),
-                      diff = state.diff
-                        .remove(root, node)
-                        .add(branchHash, branch)
-                        .add(leaf0Hash, leaf0)
-                        .add(leaf1Hash, leaf1),
-                    )
-            case _ =>
-              EitherT
-                .fromOption[F](
-                  node.getChildren,
-                  s"Node has no children: $node",
+                  case Some(childHash) =>
+                    put[F](prefix10.assumeNibbles, value)
+                      .runS(state.copy(root = Some(childHash)))
+                      .map: childState =>
+//                      println(s"======> Child state: $childState")
+                        val children1 = children
+                          .updateChild(index10, childState.root)
+                        val branch1     = node.setChildren(children1)
+                        val branch1Hash = branch1.toHash
+                        childState.copy(
+                          root = Some(branch1Hash),
+                          diff = childState.diff
+                            .remove(root, node)
+                            .add(branch1Hash, branch1),
+                        )
+              case (Some((index00, prefix00)), None) =>
+                val child0     = node.setPrefix(prefix00.assumeNibbles)
+                val child0Hash = child0.toHash
+                val children1 = MerkleTrieNode.Children.empty
+                  .updateChild(index00, Some(child0Hash))
+                val branch1 = MerkleTrieNode.branchWithData(
+                  commonPrefix,
+                  children1,
+                  value,
                 )
-                .flatMap: children =>
-                  val (commonPrefix, remainder0, remainder1) =
-                    getCommonPrefixNibbleAndRemainders(prefix0, key)
-                  (remainder0.unCons, remainder1.unCons) match
-                    case (None, None) =>
-                      node.getValue match
-                        case Some(nodeValue) if nodeValue === value =>
-                          EitherT.rightT[F, String](state)
-                        case _ =>
-                          val branch1     = node.setValue(value)
-                          val branch1Hash = branch1.toHash
-                          EitherT.rightT[F, String]:
-                            state.copy(
-                              root = Some(branch1Hash),
-                              diff = state.diff
-                                .remove(root, node)
-                                .add(branch1Hash, branch1),
-                            )
-                    case (None, Some((index10, prefix10))) =>
-                      children(index10.toInt(signed = false)) match
-                        case None =>
-                          val leaf1 =
-                            MerkleTrieNode.leaf(prefix10.assumeNibble, value)
-                          val leaf1Hash = leaf1.toHash
-                          val children1 = children
-                            .updated(
-                              index10.toInt(signed = false),
-                              Some(leaf1Hash),
-                            )
-                            .assume[ChildrenCondition]
-                          val branch1     = node.setChildren(children1)
-                          val branch1Hash = branch1.toHash
-                          EitherT.rightT[F, String]:
-                            state.copy(
-                              root = Some(branch1Hash),
-                              diff = state.diff
-                                .remove(root, node)
-                                .add(branch1Hash, branch1)
-                                .add(leaf1Hash, leaf1),
-                            )
-                        case Some(childHash) =>
-                          put[F](prefix10.assumeNibble, value)
-                            .runS(state.copy(root = Some(childHash)))
-                            .map: childState =>
-//                                println(s"======> Child state: $childState")
-                              val children1 = children
-                                .updated(
-                                  index10.toInt(signed = false),
-                                  childState.root,
-                                )
-                                .assume[ChildrenCondition]
-                              val branch1     = node.setChildren(children1)
-                              val branch1Hash = branch1.toHash
-                              childState.copy(
-                                root = Some(branch1Hash),
-                                diff = childState.diff
-                                  .remove(root, node)
-                                  .add(branch1Hash, branch1),
-                              )
-                    case (Some((index00, prefix00)), None) =>
-                      val child0     = node.setPrefix(prefix00.assumeNibble)
-                      val child0Hash = child0.toHash
-                      val children1 = MerkleTrieNode.Children.empty
-                        .updated(
-                          index00.toInt(signed = false),
-                          Some(child0Hash),
-                        )
-                        .assume[ChildrenCondition]
-                      val branch1 = MerkleTrieNode.branchWithData(
-                        commonPrefix,
-                        children1,
-                        value,
-                      )
-                      val branch1Hash = branch1.toHash
-                      EitherT.rightT[F, String]:
-                        state.copy(
-                          root = Some(branch1Hash),
-                          diff = state.diff
-                            .remove(root, node)
-                            .add(branch1Hash, branch1)
-                            .add(child0Hash, child0),
-                        )
-                    case (
-                          Some((index00, prefix00)),
-                          Some((index10, prefix10)),
-                        ) =>
-                      val child0     = node.setPrefix(prefix00.assumeNibble)
-                      val child0Hash = child0.toHash
-                      val child1 =
-                        MerkleTrieNode.leaf(prefix10.assumeNibble, value)
-                      val child1Hash = child1.toHash
-                      val children1 = Children.empty
-                        .updated(
-                          index00.toInt(signed = false),
-                          Some(child0Hash),
-                        )
-                        .updated(
-                          index10.toInt(signed = false),
-                          Some(child1Hash),
-                        )
-                        .assume[ChildrenCondition]
-                      val branch1 = MerkleTrieNode.branch(
-                        commonPrefix,
-                        children1,
-                      )
-                      val branch1Hash = branch1.toHash
-                      EitherT.rightT[F, String]:
-                        state.copy(
-                          root = Some(branch1Hash),
-                          diff = state.diff
-                            .remove(root, node)
-                            .add(branch1Hash, branch1)
-                            .add(child0Hash, child0)
-                            .add(child1Hash, child1),
-                        )
+                val branch1Hash = branch1.toHash
+                EitherT.rightT[F, String]:
+                  state.copy(
+                    root = Some(branch1Hash),
+                    diff = state.diff
+                      .remove(root, node)
+                      .add(branch1Hash, branch1)
+                      .add(child0Hash, child0),
+                  )
+              case (Some((index00, prefix00)), Some((index10, prefix10))) =>
+                val child0     = node.setPrefix(prefix00.assumeNibbles)
+                val child0Hash = child0.toHash
+                val child1 = MerkleTrieNode.leaf(prefix10.assumeNibbles, value)
+                val child1Hash = child1.toHash
+                val children1 = Children.empty
+                  .updateChild(index00, Some(child0Hash))
+                  .updateChild(index10, Some(child1Hash))
+                val branch1 = MerkleTrieNode.branch(
+                  commonPrefix,
+                  children1,
+                )
+                val branch1Hash = branch1.toHash
+                EitherT.rightT[F, String]:
+                  state.copy(
+                    root = Some(branch1Hash),
+                    diff = state.diff
+                      .remove(root, node)
+                      .add(branch1Hash, branch1)
+                      .add(child0Hash, child0)
+                      .add(child1Hash, child1),
+                  )
+
+          node match
+            case MerkleTrieNode.Leaf(_, value0) =>
+              putLeaf(value0)
+            case MerkleTrieNode.Branch(_, children) =>
+              putNode(children)
+            case MerkleTrieNode.BranchWithData(_, children, _) =>
+              putNode(children)
 
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def remove[F[_]: Monad: NodeStore](
@@ -308,49 +280,44 @@ object MerkleTrie:
                     EitherT
                       .fromOption(node.getChildren, s"No children for $node")
                       .flatMap: children =>
-                        children(index1.toInt(signed = false))
-                          .fold(RightFalse): childHash =>
-                            remove[F](key1)
-                              .run(state.copy(root = Some(childHash)))
-                              .subflatMap:
-                                case (_, false) =>
-                                  ((state, false)).asRight[String]
-                                case (childState, true)
-                                    if childState.root.isEmpty
-                                      && children.count(_.nonEmpty) <= 1
-                                      && node.getValue.isEmpty =>
-                                  val childState1 = childState.copy(
-                                    root = None,
-                                    diff = childState.diff.remove(root, node),
-                                  )
-                                  ((childState1, true)).asRight[String]
-                                case (childState, true) =>
-                                  val children1 = children
-                                    .updated(
-                                      index1.toInt(signed = false),
-                                      childState.root,
+                        children(index1).fold(RightFalse): childHash =>
+                          remove[F](key1)
+                            .run(state.copy(root = Some(childHash)))
+                            .subflatMap:
+                              case (_, false) =>
+                                ((state, false)).asRight[String]
+                              case (childState, true)
+                                  if childState.root.isEmpty
+                                    && children.count(_.nonEmpty) <= 1
+                                    && node.getValue.isEmpty =>
+                                val childState1 = childState.copy(
+                                  root = None,
+                                  diff = childState.diff.remove(root, node),
+                                )
+                                ((childState1, true)).asRight[String]
+                              case (childState, true) =>
+                                val children1 = children
+                                  .updateChild(index1, childState.root)
+                                val branch = node.getValue match
+                                  case None =>
+                                    MerkleTrieNode.branch(
+                                      node.prefix,
+                                      children1,
                                     )
-                                    .assume[ChildrenCondition]
-                                  val branch = node.getValue match
-                                    case None =>
-                                      MerkleTrieNode.branch(
-                                        node.prefix,
-                                        children1,
-                                      )
-                                    case Some(value) =>
-                                      MerkleTrieNode.branchWithData(
-                                        node.prefix,
-                                        children1,
-                                        value,
-                                      )
-                                  val branchHash = branch.toHash
-                                  val childState1 = childState.copy(
-                                    root = Some(branchHash),
-                                    diff = childState.diff
-                                      .remove(root, node)
-                                      .add(branchHash, branch),
-                                  )
-                                  (childState1, true).asRight[String]
+                                  case Some(value) =>
+                                    MerkleTrieNode.branchWithData(
+                                      node.prefix,
+                                      children1,
+                                      value,
+                                    )
+                                val branchHash = branch.toHash
+                                val childState1 = childState.copy(
+                                  root = Some(branchHash),
+                                  diff = childState.diff
+                                    .remove(root, node)
+                                    .add(branchHash, branch),
+                                )
+                                (childState1, true).asRight[String]
 
   type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
 
@@ -381,7 +348,7 @@ object MerkleTrie:
                     _.map: (key, a) =>
                       val key1 = prefix.value
                         ++ BitVector.fromInt(hashWithIndex._2, 4) ++ key.value
-                      (key1.assumeNibble, a)
+                      (key1.assumeNibbles, a)
 
               def flatten(enums: List[ByteStream[F]]): ByteStream[F] =
                 enums.foldLeft[ByteStream[F]](Stream.empty)(_ ++ _)
@@ -398,7 +365,7 @@ object MerkleTrie:
                       case Some(bytes) =>
                         Stream.eval(EitherT.pure((prefix, bytes)))
                     children.toList.zipWithIndex
-                      .traverse(runFrom(BitVector.empty.assumeNibble))
+                      .traverse(runFrom(BitVector.empty.assumeNibbles))
                       .map(flatten)
                       .map(initialValue ++ _)
                   else if prefix.value.nonEmpty &&
@@ -419,9 +386,9 @@ object MerkleTrie:
                       case Nil => EitherT.rightT[F, String](Stream.empty)
                       case x :: xs =>
                         for
-                          headList <- runFrom(key1.assumeNibble)(x)
+                          headList <- runFrom(key1.assumeNibbles)(x)
                           tailList <- xs.traverse:
-                            runFrom(BitVector.empty.assumeNibble)
+                            runFrom(BitVector.empty.assumeNibbles)
                         yield headList ++ flatten(tailList)
 
   def getNodeAndStateRoot[F[_]: Monad](state: MerkleTrieState)(using
@@ -455,9 +422,9 @@ object MerkleTrie:
     val (commonPrefix, remainder1) =
       nibbles1.value splitAt nextPrefixBitSize
     (
-      commonPrefix.assumeNibble,
-      remainder0.assumeNibble,
-      remainder1.assumeNibble,
+      commonPrefix.assumeNibbles,
+      remainder0.assumeNibbles,
+      remainder1.assumeNibbles,
     )
 
 end MerkleTrie
