@@ -516,8 +516,11 @@ class MerkleTrieTest extends HedgehogSuite:
     }
   }
 
-//  test("put 80 -> from 00"):
+//  test("put 80 -> streamFrom 00"):
 //    withMunitAssertions: assertions =>
+//
+//      import cats.effect.IO
+//      import cats.effect.unsafe.IORuntime
 //
 //      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
 //        EitherT.rightT[IO, String](None)
@@ -525,11 +528,11 @@ class MerkleTrieTest extends HedgehogSuite:
 //      val initialState = MerkleTrieState.empty
 //
 //      def put(key: ByteVector) = MerkleTrie.put[IO](key.toNibbles, ByteVector.empty)
-//      def from(key: ByteVector) = MerkleTrie.from[IO](key.toNibbles)
+//      def streamFrom(key: ByteVector) = MerkleTrie.streamFrom[IO](key.toNibbles)
 //
 //      val program = for
 //        _ <- put(hex"80")
-//        value <- from(hex"00")
+//        value <- streamFrom(hex"00")
 //      yield value
 //
 //      val resultIO = program

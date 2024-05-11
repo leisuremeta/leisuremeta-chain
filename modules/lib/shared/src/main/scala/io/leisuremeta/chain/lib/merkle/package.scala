@@ -23,6 +23,7 @@ opaque type Nibbles = BitVector :| Nibbles.NibbleCond
 
 object Nibbles:
   type NibbleCond = Length[Multiple[4L]]
+  val empty: Nibbles = BitVector.empty.assumeNibbles
 
 extension (nibbles: Nibbles)
   def value: BitVector  = nibbles
