@@ -45,6 +45,7 @@ class MerkleTrieTest extends HedgehogSuite:
   case class Put(key: Nibbles, value: ByteVector)
   case class Remove(key: Nibbles)
   case class StreamFrom(key: Nibbles)
+  case class ReverseStreamFrom(key: Nibbles)
 
   given emptyNodeStore: NodeStore[Id] =
     Kleisli { (_: MerkleHash) => EitherT.rightT[Id, String](None) }
@@ -101,10 +102,12 @@ class MerkleTrieTest extends HedgehogSuite:
 
     override def update(s: State, i: Put, o: Var[Unit]): State =
 
-      //    println(s"===> update: ${s.current}")
+//      println(s"===> Command Put (${i}) update: ${s.current}")
       val current1  = s.current + ((i.key.bytes -> i.value))
       val stateRoot = merkleTrieState.root
       val hashLog1  = s.hashLog + ((current1    -> stateRoot))
+
+//      println(s"===> After Command Put(${i}) update: ${current1}")
       State(current1, hashLog1)
 
     override def ensure(
@@ -209,6 +212,57 @@ class MerkleTrieTest extends HedgehogSuite:
         .translate[EitherT[Id, String, *], Id](toId)
         .compile
         .toList
+
+  def commandReverseStreamFrom: CommandIO[State] =
+    new Command[State, ReverseStreamFrom, S]:
+
+      override def gen(s: State): Option[Gen[ReverseStreamFrom]] = Some(
+        (s.current.keys.toList match
+          case Nil => genByteVector
+          case h :: t =>
+            Gen.frequency1(
+              80 -> Gen.element(h, t),
+              20 -> genByteVector,
+            )
+        ).map(bytes => ReverseStreamFrom(bytes.toNibbles)),
+      )
+      override def execute(
+          env: Environment,
+          i: ReverseStreamFrom,
+      ): Either[String, S] =
+        val program = MerkleTrie.reverseStreamFrom[Id](Some(i.key))
+        program.runA(merkleTrieState).value
+
+      override def update(s: State, i: ReverseStreamFrom, o: Var[S]): State = s
+
+      override def ensure(
+          env: Environment,
+          s0: State,
+          s: State,
+          i: ReverseStreamFrom,
+          o: S,
+      ): Result =
+        val toId = new FunctionK[EitherT[Id, String, *], Id]:
+          override def apply[A](fa: EitherT[Id, String, A]): Id[A] =
+            fa.value.toOption.get
+
+        val expected = s.current
+          .filter(_._1 <= i.key.bytes)
+          .takeRight(10)
+          .toList
+          .reverse
+          .map: (k, v) =>
+            (k.bits, v)
+
+//        println(s"===> ReverseStreamFrom: ${i.key.bytes}")
+//        println(s"===> current: ${s.current}")
+//        println(s"===> expected: $expected")
+
+        expected ==== o
+          .take(10)
+          .translate[EitherT[Id, String, *], Id](toId)
+          .compile
+          .toList
 
   test("put same key value twice expect not to change state") {
     withMunitAssertions { assertions =>
@@ -548,10 +602,244 @@ class MerkleTrieTest extends HedgehogSuite:
 //
 //      assertions.assertEquals(result, expected.asRight[String])
 
+//  test("put empty -> put 00 -> reverseStreamFrom 00"):
+//    withMunitAssertions: assertions =>
+//
+//      import cats.effect.IO
+//      import cats.effect.unsafe.IORuntime
+//
+//      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
+//        EitherT.rightT[IO, String](None)
+//
+//      val initialState = MerkleTrieState.empty
+//
+//      def put(key: Nibbles) = MerkleTrie.put[IO](key, ByteVector.empty)
+//      def reverseStreamFrom(key: Nibbles) =
+//        MerkleTrie.reverseStreamFrom[IO](key)
+//
+//      val program = for
+//        _     <- put(Nibbles.empty)
+//        _     <- put(hex"00".toNibbles)
+//        value <- reverseStreamFrom(hex"00".toNibbles)
+//      yield value
+//
+////      val forPrint = for
+////        (state1, _)     <- put(Nibbles.empty).run(initialState)
+////        (state2, _)     <- put(hex"00".toNibbles).run(state1)
+////        (state3, value) <- reverseStreamFrom(hex"00".toNibbles).run(state2)
+////        resultList      <- value.compile.toList
+////      yield
+////        Seq(state1, state2, state3).zipWithIndex.foreach: (s, i) =>
+////          println(s"====== State #${i + 1} ======")
+////          println(s"root: ${s.root}")
+////          s.diff.foreach { (hash, node) => println(s" $hash: $node") }
+////        println(s"========")
+////        println(s"result: ${resultList}")
+////
+////        value
+////
+////      forPrint
+////        .flatMap(_.compile.toList)
+////        .value
+////        .unsafeRunSync()(using IORuntime.global)
+//
+//      val resultIO = program
+//        .runA(initialState)
+//        .flatMap: stream =>
+//          stream.compile.toList
+//        .value
+//
+//      resultIO.unsafeRunSync()(using IORuntime.global)
+//      val result = resultIO.unsafeRunSync()(using IORuntime.global)
+//
+//      val expected: List[(Nibbles, ByteVector)] = List(
+//        (hex"00".toNibbles, ByteVector.empty),
+//        (Nibbles.empty, ByteVector.empty),
+//      )
+//
+//      assertions.assertEquals(result, expected.asRight[String])
+
+//  test("put empty -> put 10 -> reverseStreamFrom 10"):
+//    withMunitAssertions: assertions =>
+//
+//      import cats.effect.IO
+//      import cats.effect.unsafe.IORuntime
+//
+//      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
+//        EitherT.rightT[IO, String](None)
+//
+//      val initialState = MerkleTrieState.empty
+//
+//      def put(key: Nibbles) = MerkleTrie.put[IO](key, ByteVector.empty)
+//      def reverseStreamFrom(key: Nibbles) =
+//        MerkleTrie.reverseStreamFrom[IO](key)
+//
+//      val program = for
+//        _     <- put(Nibbles.empty)
+//        _     <- put(hex"10".toNibbles)
+//        value <- reverseStreamFrom(hex"10".toNibbles)
+//      yield value
+//
+////      val forPrint = for
+////        (state1, _)     <- put(Nibbles.empty).run(initialState)
+////        (state2, _)     <- put(hex"10".toNibbles).run(state1)
+////        (state3, value) <- reverseStreamFrom(hex"10".toNibbles).run(state2)
+////        resultList      <- value.compile.toList
+////      yield
+////        Seq(state1, state2, state3).zipWithIndex.foreach: (s, i) =>
+////          println(s"====== State #${i + 1} ======")
+////          println(s"root: ${s.root}")
+////          s.diff.foreach { (hash, node) => println(s" $hash: $node") }
+////        println(s"========")
+////        println(s"result: ${resultList}")
+////
+////        value
+////
+////      forPrint
+////        .flatMap(_.compile.toList)
+////        .value
+////        .unsafeRunSync()(using IORuntime.global)
+//
+//      val resultIO = program
+//        .runA(initialState)
+//        .flatMap: stream =>
+//          stream.compile.toList
+//        .value
+//
+//      resultIO.unsafeRunSync()(using IORuntime.global)
+//      val result = resultIO.unsafeRunSync()(using IORuntime.global)
+//
+//      val expected: List[(Nibbles, ByteVector)] = List(
+//        (hex"10".toNibbles, ByteVector.empty),
+//        (Nibbles.empty, ByteVector.empty),
+//      )
+//
+//      assertions.assertEquals(result, expected.asRight[String])
+
+//  test("put empty -> put 00 -> reverseStreamFrom 10"):
+//    withMunitAssertions: assertions =>
+//
+//      import cats.effect.IO
+//      import cats.effect.unsafe.IORuntime
+//
+//      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
+//        EitherT.rightT[IO, String](None)
+//
+//      val initialState = MerkleTrieState.empty
+//
+//      def put(key: Nibbles) = MerkleTrie.put[IO](key, ByteVector.empty)
+//      def reverseStreamFrom(key: Nibbles) =
+//        MerkleTrie.reverseStreamFrom[IO](Some(key))
+//
+//      val program = for
+//        _     <- put(Nibbles.empty)
+//        _     <- put(hex"00".toNibbles)
+//        value <- reverseStreamFrom(hex"10".toNibbles)
+//      yield value
+//
+////      val forPrint = for
+////        (state1, _)     <- put(Nibbles.empty).run(initialState)
+////        (state2, _)     <- put(hex"00".toNibbles).run(state1)
+////        (state3, value) <- reverseStreamFrom(hex"10".toNibbles).run(state2)
+////        resultList      <- value.compile.toList
+////      yield
+////        Seq(state1, state2, state3).zipWithIndex.foreach: (s, i) =>
+////          println(s"====== State #${i + 1} ======")
+////          println(s"root: ${s.root}")
+////          s.diff.foreach { (hash, node) => println(s" $hash: $node") }
+////        println(s"========")
+////        println(s"result: ${resultList}")
+////
+////        value
+////
+////      forPrint
+////        .flatMap(_.compile.toList)
+////        .value
+////        .unsafeRunSync()(using IORuntime.global)
+//
+//      val resultIO = program
+//        .runA(initialState)
+//        .flatMap: stream =>
+//          stream.compile.toList
+//        .value
+//
+//      resultIO.unsafeRunSync()(using IORuntime.global)
+//      val result = resultIO.unsafeRunSync()(using IORuntime.global)
+//
+//      val expected: List[(Nibbles, ByteVector)] = List(
+//        (hex"00".toNibbles, ByteVector.empty),
+//        (Nibbles.empty, ByteVector.empty),
+//      )
+//
+//      assertions.assertEquals(result, expected.asRight[String])
+
+//  test("put 10 -> put 1100 -> reverseStreamFrom 20"):
+//    withMunitAssertions: assertions =>
+//
+//      import cats.effect.IO
+//      import cats.effect.unsafe.IORuntime
+//
+//      given emptyNodeStore: NodeStore[IO] = Kleisli: (_: MerkleHash) =>
+//        EitherT.rightT[IO, String](None)
+//
+//      val initialState = MerkleTrieState.empty
+//
+//      def put(key: Nibbles) = MerkleTrie.put[IO](key, ByteVector.empty)
+//      def reverseStreamFrom(key: Nibbles) =
+//        MerkleTrie.reverseStreamFrom[IO](Some(key))
+//
+//      val program = for
+//        _     <- put(hex"10".toNibbles)
+//        _     <- put(hex"1100".toNibbles)
+//        value <- reverseStreamFrom(hex"20".toNibbles)
+//      yield value
+//
+////      val forPrint = for
+////        (state1, _)     <- put(hex"10".toNibbles).run(initialState)
+////        (state2, _)     <- put(hex"1100".toNibbles).run(state1)
+////        (state3, value) <- reverseStreamFrom(hex"20".toNibbles).run(state2)
+////        resultList      <- value.compile.toList
+////      yield
+////        Seq(state1, state2, state3).zipWithIndex.foreach: (s, i) =>
+////          println(s"====== State #${i + 1} ======")
+////          println(s"root: ${s.root}")
+////          s.diff.foreach { (hash, node) => println(s" $hash: $node") }
+////        println(s"========")
+////        println(s"result: ${resultList}")
+////
+////        value
+////
+////      forPrint
+////        .flatMap(_.compile.toList)
+////        .value
+////        .unsafeRunSync()(using IORuntime.global)
+//
+//      val resultIO = program
+//        .runA(initialState)
+//        .flatMap: stream =>
+//          stream.compile.toList
+//        .value
+//
+//      resultIO.unsafeRunSync()(using IORuntime.global)
+//      val result = resultIO.unsafeRunSync()(using IORuntime.global)
+//
+//      val expected: List[(Nibbles, ByteVector)] = List(
+//        (hex"1100".toNibbles, ByteVector.empty),
+//        (hex"10".toNibbles, ByteVector.empty),
+//      )
+//
+//      assertions.assertEquals(result, expected.asRight[String])
+
   property("test merkle trie"):
     sequential(
       range = Range.linear(1, 100),
       initial = State.empty,
-      commands = List(commandGet, commandPut, commandRemove, commandStreamFrom),
+      commands = List(
+        commandGet,
+        commandPut,
+        commandRemove,
+        commandStreamFrom,
+        commandReverseStreamFrom,
+      ),
       cleanup = () => merkleTrieState = MerkleTrieState.empty,
     )
