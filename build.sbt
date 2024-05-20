@@ -29,7 +29,7 @@ val V = new {
   val scribe          = "3.13.4"
   val hedgehog        = "0.10.1"
   val organiseImports = "0.6.0"
-  val munitCatsEffect = "2.0.0-M3"
+  val munitCatsEffect = "2.0.0-RC1"
 
   val tyrian = "0.9.0"
 
