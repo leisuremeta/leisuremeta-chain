@@ -88,7 +88,7 @@ class PlayNommDAppTest extends CatsEffectSuite:
         case Right(state)  => IO.pure(state)
         case Left(failure) => IO.raiseError(new Exception(failure.toString))
 
-  test("PlayNommDApp should create account"):
+  test("Account is added to group"):
     val program = for
       findOption <- PlayNommState[IO].group.groupAccount.get((mintGroup, alice))
     yield findOption.nonEmpty
@@ -97,3 +97,16 @@ class PlayNommDAppTest extends CatsEffectSuite:
       state <- fixture
       result <- program.runA(state).value
     yield assertEquals(result, Right(true))
+
+//  test(""):
+//    val txs: Seq[Transaction] = IndexedSeq(
+//    )
+//
+//    val program = for
+//      _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
+//    yield ???
+//
+//    for
+//      state <- fixture
+//      result <- program.runA(state).value
+//    yield assertEquals(result, Right(???))
