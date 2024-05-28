@@ -50,7 +50,6 @@ object PlayNommState:
 
   type TxHash = Hash.Value[TransactionWithResult]
 
-  type SnapshotId = BigNat
   type BalanceAmount = BigNat
 
   case class Token[F[_]](
@@ -77,15 +76,15 @@ object PlayNommState:
       snapshotState: DAppState[F, TokenDefinitionId, SnapshotState],
       fungibleSnapshot: DAppState[
         F,
-        (AccountM, TokenDefinitionId, SnapshotId),
+        (AccountM, TokenDefinitionId, SnapshotState.SnapshotId),
         Map[TxHash, BalanceAmount]
       ],
       nftSnapshot: DAppState[
         F,
-        (AccountM, TokenDefinitionId, SnapshotId),
+        (AccountM, TokenDefinitionId, SnapshotState.SnapshotId),
         Set[TokenId],
       ],
-      totalSupplySnapshot: DAppState[F, TokenDefinitionId, BalanceTotal],
+      totalSupplySnapshot: DAppState[F, TokenDefinitionId, BalanceAmount],
   )
 
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
