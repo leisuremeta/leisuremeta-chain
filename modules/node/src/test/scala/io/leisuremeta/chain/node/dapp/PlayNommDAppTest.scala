@@ -3,6 +3,7 @@ package node
 package dapp
 
 import api.model.*
+import api.model.token.*
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
@@ -42,11 +43,13 @@ class PlayNommDAppTest extends CatsEffectSuite:
       16,
     )
 
-  val alicePKS = PublicKeySummary.fromPublicKeyHash(aliceKey.publicKey.toHash)
-  val alice    = Account(Utf8.unsafeFrom("alice"))
-  val bob      = Account(Utf8.unsafeFrom("bob"))
-  val carol    = Account(Utf8.unsafeFrom("carol"))
+  val alicePKS  = PublicKeySummary.fromPublicKeyHash(aliceKey.publicKey.toHash)
+  val alice     = Account(Utf8.unsafeFrom("alice"))
+  val bob       = Account(Utf8.unsafeFrom("bob"))
+  val carol     = Account(Utf8.unsafeFrom("carol"))
+  val networkId = NetworkId(BigNat.unsafeFromLong(2021L))
   val mintGroup = GroupId(Utf8.unsafeFrom("mint-group"))
+  val testToken = TokenDefinitionId(Utf8.unsafeFrom("test-token"))
 
   def sign(account: Account, key: KeyPair)(tx: Transaction): Signed.Tx =
     key.sign(tx).map(sig => Signed(AccountSignature(sig, account), tx)) match
@@ -58,24 +61,33 @@ class PlayNommDAppTest extends CatsEffectSuite:
   val fixture: IO[MerkleTrieState] =
     val txs: Seq[Transaction] = IndexedSeq(
       Transaction.AccountTx.CreateAccount(
-        networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+        networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:01:00.00Z"),
         account = alice,
         ethAddress = None,
         guardian = None,
       ),
       Transaction.GroupTx.CreateGroup(
-        networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+        networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:02:00.00Z"),
         groupId = mintGroup,
         name = Utf8.unsafeFrom("Mint Group"),
         coordinator = alice,
       ),
       Transaction.GroupTx.AddAccounts(
-        networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+        networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:03:00.00Z"),
-        groupId = GroupId(Utf8.unsafeFrom("mint-group")),
+        groupId = mintGroup,
         accounts = Set(alice),
+      ),
+      Transaction.TokenTx.DefineToken(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:04:00.00Z"),
+        definitionId = testToken,
+        name = Utf8.unsafeFrom("Test Token"),
+        symbol = Some(Utf8.unsafeFrom("TST")),
+        minterGroup = Some(mintGroup),
+        nftInfo = None,
       ),
     )
 
@@ -89,24 +101,43 @@ class PlayNommDAppTest extends CatsEffectSuite:
         case Left(failure) => IO.raiseError(new Exception(failure.toString))
 
   test("Account is added to group"):
-    val program = for
-      findOption <- PlayNommState[IO].group.groupAccount.get((mintGroup, alice))
-    yield findOption.nonEmpty
+    val program =
+      for findOption <- PlayNommState[IO].group.groupAccount
+          .get((mintGroup, alice))
+      yield findOption.nonEmpty
 
     for
-      state <- fixture
+      state  <- fixture
       result <- program.runA(state).value
     yield assertEquals(result, Right(true))
 
-//  test(""):
-//    val txs: Seq[Transaction] = IndexedSeq(
-//    )
-//
-//    val program = for
-//      _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
-//    yield ???
-//
-//    for
-//      state <- fixture
-//      result <- program.runA(state).value
-//    yield assertEquals(result, Right(???))
+  test("Snapshot is created successfully"):
+
+    val txs = Seq(
+      Transaction.TokenTx.CreateSnapshot(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+        definitionId = testToken,
+        memo = Some(Utf8.unsafeFrom("Snapshot #0")),
+      ),
+    )
+
+    val program = for
+      _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
+      snapshotStateOption <- PlayNommState[IO].token.snapshotState
+        .get(testToken)
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get snapshot state"
+    yield snapshotStateOption
+
+    for
+      state  <- fixture
+      result <- program.runA(state).value
+      snapshotStateOption <- IO.fromEither:
+        result.leftMap(failure => new Exception(failure.msg))
+    yield assertEquals(
+      snapshotStateOption.map(_.snapshotId),
+      Some(SnapshotState.SnapshotId.Zero),
+    )
+

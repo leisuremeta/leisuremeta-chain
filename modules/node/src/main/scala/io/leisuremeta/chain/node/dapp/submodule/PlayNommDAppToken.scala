@@ -17,6 +17,7 @@ import api.model.{
 }
 import api.model.TransactionWithResult.ops.*
 import api.model.token.*
+import api.model.token.SnapshotState.SnapshotId.*
 import lib.crypto.Hash
 import lib.crypto.Hash.ops.*
 import lib.datatype.BigNat
@@ -498,6 +499,44 @@ object PlayNommDAppToken:
           yield ()
       yield txWithResult
 
+    case cs: Transaction.TokenTx.CreateSnapshot =>
+      for
+        _              <- PlayNommDAppAccount.verifySignature(sig, tx)
+        tokenDefOption <- getTokenDefinitionOption(cs.definitionId)
+        tokenDef <- fromOption(
+          tokenDefOption,
+          s"Token ${cs.definitionId} is not defined",
+        )
+        adminGroupId <- fromOption(
+          tokenDef.adminGroup,
+          s"No admin group in token ${cs.definitionId}",
+        )
+        _ <- PlayNommState[F].group.groupAccount
+          .get((adminGroupId, sig.account))
+          .mapK:
+            PlayNommDAppFailure.mapExternal:
+              s"Not in admin group ${adminGroupId} of ${sig.account}"
+        snapshotStateOption <- PlayNommState[F].token.snapshotState
+          .get(cs.definitionId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to get snapshot state of ${cs.definitionId}"
+        txWithResult = TransactionWithResult(Signed(sig, cs))(None)
+        snapshotId = snapshotStateOption.fold(SnapshotState.SnapshotId.Zero):
+          _.snapshotId.increase
+        snapshotState = SnapshotState(
+          snapshotId = snapshotId,
+          createdAt = cs.createdAt,
+          txHash = txWithResult.toHash.toSignedTxHash,
+          memo = cs.memo,
+        )
+        _ <- PlayNommState[F].token.snapshotState
+          .put(cs.definitionId, snapshotState)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to put snapshot state of ${cs.definitionId}"
+      yield txWithResult
+
   def getTokenDefinitionOption[F[_]: Monad: PlayNommState](
       definitionId: TokenDefinitionId,
   ): StateT[EitherT[F, PlayNommDAppFailure, *], MerkleTrieState, Option[
@@ -682,9 +721,9 @@ object PlayNommDAppToken:
             case nb: Transaction.NftBalance =>
               EitherT.pure:
                 nb match
-                  case mn: Transaction.TokenTx.MintNFT     => mn.tokenId
+                  case mn: Transaction.TokenTx.MintNFT          => mn.tokenId
                   case mnm: Transaction.TokenTx.MintNFTWithMemo => mnm.tokenId
-                  case tn: Transaction.TokenTx.TransferNFT => tn.tokenId
+                  case tn: Transaction.TokenTx.TransferNFT      => tn.tokenId
                   case den: Transaction.TokenTx.DisposeEntrustedNFT =>
                     den.tokenId
             case _ =>
