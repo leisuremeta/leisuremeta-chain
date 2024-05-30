@@ -4,6 +4,7 @@ package dapp
 
 import api.model.*
 import api.model.token.*
+import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
 import lib.crypto.Sign.ops.*
@@ -14,7 +15,7 @@ import lib.merkle.MerkleTrieState
 import repository.TransactionRepository
 import store.KeyValueStore
 
-import cats.data.{EitherT, Kleisli}
+import cats.data.{EitherT, Kleisli, StateT}
 import cats.effect.IO
 import cats.syntax.all.*
 import munit.CatsEffectSuite
@@ -141,3 +142,128 @@ class PlayNommDAppTest extends CatsEffectSuite:
       Some(SnapshotState.SnapshotId.Zero),
     )
 
+  test("Minting and snapshotting reflects in fungible snapshot balance"):
+
+    val txs = Seq(
+      Transaction.TokenTx.MintFungibleToken(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+        definitionId = testToken,
+        outputs = Map(
+          alice -> BigNat.unsafeFromLong(100L),
+        ),
+      ),
+      Transaction.TokenTx.CreateSnapshot(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
+        definitionId = testToken,
+        memo = Some(Utf8.unsafeFrom("Snapshot #1")),
+      ),
+    )
+
+    val program = for
+      _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
+      snapshotStream <- PlayNommState[IO].token.fungibleSnapshot
+        .reverseStreamFrom((alice, testToken).toBytes, None)
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get fungible snapshot stream"
+      snapshotHeadList <- StateT
+        .liftF:
+          snapshotStream.head.compile.toList
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get snapshot stream head"
+      totalAmountSnapshotStream <- PlayNommState[IO].token.totalSupplySnapshot
+        .reverseStreamFrom(testToken.toBytes, None)
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get total supply snapshot stream"
+      totalAmountSnapshotHeadList <- StateT
+        .liftF:
+          totalAmountSnapshotStream.head.compile.toList
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get total amount snapshot stream head"
+    yield (
+      snapshotHeadList.headOption.map(_._2),
+      totalAmountSnapshotHeadList.headOption.map(_._2),
+    )
+
+    for
+      state  <- fixture
+      result <- program.runA(state).value
+      snapshotStateTuple <- IO.fromEither:
+        result.leftMap(failure => new Exception(failure.msg))
+      (snapshotStateOption, totalAmountOption) = snapshotStateTuple
+      snapShotSum = snapshotStateOption.map(_.values.map(_.toBigInt).sum)
+      totalAmount = totalAmountOption.map(_.toBigInt)
+    yield 
+      assertEquals(snapShotSum, Some(BigInt(100L)))
+      assertEquals(totalAmount, Some(BigInt(100L)))
+
+  test("mint -> snapshot -> snapshot reflects last mint amount"):
+
+    val txs = Seq(
+      Transaction.TokenTx.MintFungibleToken(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+        definitionId = testToken,
+        outputs = Map(
+          alice -> BigNat.unsafeFromLong(100L),
+        ),
+      ),
+      Transaction.TokenTx.CreateSnapshot(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
+        definitionId = testToken,
+        memo = Some(Utf8.unsafeFrom("Snapshot #1")),
+      ),
+      Transaction.TokenTx.CreateSnapshot(
+        networkId = networkId,
+        createdAt = java.time.Instant.parse("2023-01-11T19:07:00.00Z"),
+        definitionId = testToken,
+        memo = Some(Utf8.unsafeFrom("Snapshot #2")),
+      ),
+    )
+
+    val program = for
+      _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
+      snapshotStream <- PlayNommState[IO].token.fungibleSnapshot
+        .reverseStreamFrom((alice, testToken).toBytes, None)
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get fungible snapshot stream"
+      snapshotHeadList <- StateT
+        .liftF:
+          snapshotStream.head.compile.toList
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get snapshot stream head"
+      totalAmountSnapshotStream <- PlayNommState[IO].token.totalSupplySnapshot
+        .reverseStreamFrom(testToken.toBytes, None)
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get total supply snapshot stream"
+      totalAmountSnapshotHeadList <- StateT
+        .liftF:
+          totalAmountSnapshotStream.head.compile.toList
+        .mapK:
+          PlayNommDAppFailure.mapExternal:
+            "Failed to get total amount snapshot stream head"
+    yield (
+      snapshotHeadList.headOption.map(_._2),
+      totalAmountSnapshotHeadList.headOption.map(_._2),
+    )
+
+    for
+      state  <- fixture
+      result <- program.runA(state).value
+      snapshotStateTuple <- IO.fromEither:
+        result.leftMap(failure => new Exception(failure.msg))
+      (snapshotStateOption, totalAmountOption) = snapshotStateTuple
+      snapShotSum = snapshotStateOption.map(_.values.map(_.toBigInt).sum)
+      totalAmount = totalAmountOption.map(_.toBigInt)
+    yield
+      assertEquals(snapShotSum, Some(BigInt(100L)))
+      assertEquals(totalAmount, Some(BigInt(100L)))

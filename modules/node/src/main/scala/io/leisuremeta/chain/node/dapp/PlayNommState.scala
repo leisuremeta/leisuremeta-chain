@@ -77,14 +77,18 @@ object PlayNommState:
       fungibleSnapshot: DAppState[
         F,
         (AccountM, TokenDefinitionId, SnapshotState.SnapshotId),
-        Map[TxHash, BalanceAmount]
+        Map[TxHash, BalanceAmount],
       ],
       nftSnapshot: DAppState[
         F,
         (AccountM, TokenDefinitionId, SnapshotState.SnapshotId),
         Set[TokenId],
       ],
-      totalSupplySnapshot: DAppState[F, TokenDefinitionId, BalanceAmount],
+      totalSupplySnapshot: DAppState[
+        F,
+        (TokenDefinitionId, SnapshotState.SnapshotId),
+        BalanceAmount,
+      ],
   )
 
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
