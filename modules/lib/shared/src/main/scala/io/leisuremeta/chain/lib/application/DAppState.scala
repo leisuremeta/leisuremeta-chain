@@ -26,7 +26,8 @@ trait DAppState[F[_], K, V]:
       bytes: ByteVector,
   ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]]
   def reverseStreamFrom(
-      bytes: ByteVector,
+      keyPrefix: ByteVector,
+      keySuffix: Option[ByteVector],
   ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]]
 
 object DAppState:
@@ -91,11 +92,12 @@ object DAppState:
                   .leftMap(_.msg)
 
       def reverseStreamFrom(
-          prefixBytes: ByteVector,
+          keyPrefix: ByteVector,
+          keySuffix: Option[ByteVector],
       ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]] =
-        val prefixNibbles = (nameBytes ++ prefixBytes).toNibbles
+        val prefixNibbles = (nameBytes ++ keyPrefix).toNibbles
         MerkleTrie
-          .reverseStreamFrom(Some(prefixNibbles))
+          .reverseStreamFrom(prefixNibbles, keySuffix.map(_.toNibbles))
           .map: binaryStream =>
             binaryStream
               .evalMap: (kNibbles, vBytes) =>

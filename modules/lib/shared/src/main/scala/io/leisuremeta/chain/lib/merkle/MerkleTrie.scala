@@ -372,30 +372,33 @@ object MerkleTrie:
         .value
         .map(_.getOrElse(Stream.empty))
 
-  /**
-    * 
-    *
-    * @param keyOption if None, it will return the stream of all the key-value pairs in the trie
+  /** @param keyPrefix:
+    *   the key prefix to get the stream from. This prefix must be included.
+    * @param keySuffix:
+    *   optional key suffix. If this suffix is provided, the stream's key
+    *   iterates over values less than keyPrefix + keySuffix.
     * @return
+    *   the stream of values starting with the given key prefix.
     */
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def reverseStreamFrom[F[_]: Monad: NodeStore](
-      keyOption: Option[Nibbles],
+      keyPrefix: Nibbles,
+      keySuffix: Option[Nibbles],
   ): StateT[EitherT[F, String, *], MerkleTrieState, ByteStream[F]] =
     type ErrorOrF[A] = EitherT[F, String, A]
     StateT.inspectF: (state: MerkleTrieState) =>
-      scribe.debug(s"from: $keyOption, $state")
+      scribe.debug(s"from: ($keyPrefix, $keySuffix): $state")
       def reverseBranchStream(
           prefix: Nibbles,
           children: MerkleTrieNode.Children,
           value: Option[ByteVector],
       ): OptionT[ErrorOrF, ByteStream[F]] =
 
-        def reverseRunFrom(key: Option[Nibbles])(
+        def reverseRunFrom(keyPrefix: Nibbles, keySuffix: Option[Nibbles])(
             hashWithIndex: (Option[MerkleHash], Int),
         ): ErrorOrF[ByteStream[F]] =
 //          scribe.info(s"reverseRunFrom: $key, $hashWithIndex")
-          reverseStreamFrom(key)
+          reverseStreamFrom(keyPrefix, keySuffix)
             .runA(state.copy(root = hashWithIndex._1))
             .map: (byteStream: ByteStream[F]) =>
               byteStream.map: (key, a) =>
@@ -412,59 +415,95 @@ object MerkleTrie:
             Stream.eval(EitherT.pure((prefix, bytes)))
 
           children.toList.zipWithIndex.reverse
-            .traverse(reverseRunFrom(None))
+            .traverse(reverseRunFrom(Nibbles.empty, None))
             .map(flatten)
             .map(_ ++ lastValue)
 
 //        println(s"key: $key, prefix: $prefix, key > prefix : ${key > prefix}")
-        keyOption.fold(OptionT.liftF(reverseRunAll)): key =>
-          key.stripPrefix(prefix) match
-            case None =>
-              // key is not starting with prefix
-              OptionT.whenF(key > prefix):
-                // key is greater than prefix, so all of its value and children should be included
-                reverseRunAll
 
-            case Some(keyRemainder) =>
-              // key starts with prefix
-              keyRemainder.unCons match
-                case None =>
-                  // key is equal to prefix, so we need to include the value
-                  OptionT.fromOption[ErrorOrF]:
-                    value.map: bytes =>
-                      Stream.eval(EitherT.pure((prefix, bytes)))
-                case Some((index1, key1)) =>
-//                    println(s"==> index1: $index1, key1: $key1, children: $children")
-                  children.toList.zipWithIndex.take(index1 + 1).reverse match
-                    case Nil     => OptionT.none[ErrorOrF, ByteStream[F]]
-                    case x :: xs =>
-//                        println(s"==> children: x: $x, xs: $xs")
-                      OptionT.liftF:
-                        for
-                          headList <- reverseRunFrom(
-                            Some(key1.assumeNibbles),
-                          )(x)
-                          tailList <- xs.traverse: x =>
-//                              println(s"get Tail of $x")
-                            reverseRunFrom(None)(x)
-                          lastList <- EitherT.pure:
-                            value.fold(Stream.empty): bytes =>
-                              Stream.eval(
-                                EitherT.pure[F, String]((prefix, bytes)),
-                              )
-                        yield headList ++ flatten(tailList) ++ lastList
-
+        keyPrefix.stripPrefix(prefix) match
+          case None =>
+            prefix.stripPrefix(keyPrefix) match
+              case None => OptionT.none
+              case Some(prefixRemainder) =>
+                keySuffix.fold(OptionT.liftF(reverseRunAll)): keySuffix1 =>
+                  if prefixRemainder <= keySuffix1 then
+                    OptionT.liftF(reverseRunAll)
+                  else
+                    keySuffix1.stripPrefix(prefixRemainder) match
+                      case None => OptionT.none
+                      case Some(keySuffix2) =>
+                        keySuffix2.unCons match
+                          case None => OptionT.liftF(reverseRunAll)
+                          case Some((index1, key1)) =>
+                            val targetChildren = children.toList.zipWithIndex
+                              .take(index1 + 1)
+                              .reverse
+                            targetChildren match
+                              case Nil => OptionT.none
+                              case x :: xs =>
+                                OptionT.liftF:
+                                  for
+                                    headList <- reverseRunFrom(
+                                      Nibbles.empty,
+                                      Some(key1.assumeNibbles),
+                                    )(x)
+                                    tailList <- xs.traverse:
+                                      reverseRunFrom(Nibbles.empty, None)
+                                    lastList <- EitherT.pure[F, String]:
+                                      value.fold(Stream.empty): bytes =>
+                                        Stream.eval:
+                                          EitherT.pure[F, String]:
+                                            (prefix, bytes)
+                                  yield headList ++
+                                    flatten(tailList) ++
+                                    lastList
+          case Some(keyRemainder) =>
+            keyRemainder.unCons match
+              case None =>
+                keySuffix.fold(OptionT.liftF(reverseRunAll)): keySuffix1 =>
+                  keySuffix1.unCons match
+                    case None => OptionT.liftF(reverseRunAll)
+                    case Some((index1, key1)) =>
+                      val targetChildren = children.toList.zipWithIndex
+                        .take(index1 + 1)
+                        .reverse
+                      targetChildren match
+                        case Nil => OptionT.none
+                        case x :: xs =>
+                          OptionT.liftF:
+                            for
+                              headList <- reverseRunFrom(
+                                Nibbles.empty,
+                                Some(key1.assumeNibbles),
+                              )(x)
+                              tailList <- xs.traverse:
+                                reverseRunFrom(Nibbles.empty, None)
+                              lastList <- EitherT.pure[F, String]:
+                                value.fold(Stream.empty): bytes =>
+                                  Stream.eval:
+                                    EitherT.pure[F, String]:
+                                      (prefix, bytes)
+                            yield headList ++ flatten(tailList) ++ lastList
+              case Some((index1, key1)) =>
+                children.toList.zipWithIndex.take(index1 + 1).reverse match
+                  case Nil => OptionT.none
+                  case x :: xs =>
+                    OptionT.liftF:
+                      reverseRunFrom(key1.assumeNibbles, keySuffix)(x)
       OptionT(getNode[F](state))
         .flatMap:
           case MerkleTrieNode.Leaf(prefix, value) =>
-            keyOption match
-              case None =>
-                OptionT.pure:
-                  Stream.emit((prefix, value))
-              case Some(key) =>
-//                scribe.info(s"Leaf: $key >= $prefix: ${key >= prefix}")
-                OptionT.when(key >= prefix):
-                  Stream.emit((prefix, value))
+            prefix.stripPrefix(keyPrefix) match
+              case None => OptionT.none
+              case Some(prefixRemainder) =>
+                keySuffix match
+                  case None =>
+                    OptionT.pure:
+                      Stream.emit((prefix, value))
+                  case Some(suffix) =>
+                    OptionT.when(prefixRemainder <= suffix):
+                      Stream.emit((prefix, value))
           case MerkleTrieNode.Branch(prefix, children) =>
             reverseBranchStream(prefix, children, None)
           case MerkleTrieNode.BranchWithData(prefix, children, value) =>
