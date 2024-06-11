@@ -139,7 +139,7 @@ class PlayNommDAppTest extends CatsEffectSuite:
         result.leftMap(failure => new Exception(failure.msg))
     yield assertEquals(
       snapshotStateOption.map(_.snapshotId),
-      Some(SnapshotState.SnapshotId.Zero),
+      Some(SnapshotState.SnapshotId(BigNat.One)),
     )
 
   test("Minting and snapshotting reflects in fungible snapshot balance"):

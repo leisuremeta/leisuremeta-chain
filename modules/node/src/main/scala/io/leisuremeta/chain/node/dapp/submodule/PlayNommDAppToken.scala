@@ -528,11 +528,10 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to get snapshot state of ${cs.definitionId}"
+        lastSnapshotId = snapshotStateOption.fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
         txWithResult = TransactionWithResult(Signed(sig, cs))(None)
-        snapshotId = snapshotStateOption.fold(SnapshotState.SnapshotId.Zero):
-          _.snapshotId.increase
         snapshotState = SnapshotState(
-          snapshotId = snapshotId,
+          snapshotId = lastSnapshotId.increase,
           createdAt = cs.createdAt,
           txHash = txWithResult.toHash.toSignedTxHash,
           memo = cs.memo,
