@@ -347,7 +347,7 @@ object PlayNommDAppToken:
         _ <- addNftSnapshot[F](tn.output, tn.definitionId, tn.tokenId)
           .mapK:
             PlayNommDAppFailure.mapInternal:
-              s"Fail to add nft snapshot of ${tn.tokenId}"  
+              s"Fail to add nft snapshot of ${tn.tokenId}"
       yield txWithResult
 
     case bf: Transaction.TokenTx.BurnFungibleToken =>
@@ -382,16 +382,17 @@ object PlayNommDAppToken:
                 s"Fail to remove fungible snapshot of $inputTxHash"
         _ <-
           if outputAmount === BigNat.Zero then unit
-          else putBalance(sig.account, bf.definitionId, txWithResult.toHash) *>
-            addFungibleSnapshot(
-              sig.account,
-              bf.definitionId,
-              txWithResult.toHash,
-              outputAmount,
-            )
-              .mapK:
-                PlayNommDAppFailure.mapInternal:
-                  s"Fail to add fungible snapshot of ${sig.account}"
+          else
+            putBalance(sig.account, bf.definitionId, txWithResult.toHash) *>
+              addFungibleSnapshot(
+                sig.account,
+                bf.definitionId,
+                txWithResult.toHash,
+                outputAmount,
+              )
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to add fungible snapshot of ${sig.account}"
         totalAmount <- fromEitherInternal:
           BigNat.tryToSubtract(tokenDef.totalAmount, bf.amount)
         _ <- putTokenDefinition(
@@ -494,12 +495,20 @@ object PlayNommDAppToken:
               .mapK:
                 PlayNommDAppFailure.mapInternal:
                   s"Fail to remove entrust fungible balance of (${account}, ${sig.account}, ${de.definitionId}, ${txHash})"
-        _ <- de.outputs.toList.traverse: (account, _) =>
+              *> removeFungibleSnapshot[F](account, de.definitionId, txHash)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to remove fungible snapshot of $txHash"
+        _ <- de.outputs.toList.traverse: (account, amount) =>
           PlayNommState[F].token.fungibleBalance
             .put((account, de.definitionId, txHash), ())
             .mapK:
               PlayNommDAppFailure.mapInternal:
                 s"Fail to put fungible balance of (${account}, ${de.definitionId}, ${txHash})"
+            *> addFungibleSnapshot[F](account, de.definitionId, txHash, amount)
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to put fungible snapshot of $txHash"
       yield txWithResult
 
     case ef: Transaction.TokenTx.EntrustNFT =>
