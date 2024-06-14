@@ -59,6 +59,42 @@ class PlayNommDAppTest extends CatsEffectSuite:
 
   def signAlice = sign(alice, aliceKey)
 
+  def readFungibleSnapshotAndTotalSupplySnapshot(
+      account: Account,
+  ): StateT[
+    EitherT[IO, PlayNommDAppFailure, *],
+    MerkleTrieState,
+    (Option[BigNat], Option[BigNat]),
+  ] = for
+    snapshotStream <- PlayNommState[IO].token.fungibleSnapshot
+      .reverseStreamFrom((alice, testToken).toBytes, None)
+      .mapK:
+        PlayNommDAppFailure.mapExternal:
+          "Failed to get fungible snapshot stream"
+    snapshotHeadList <- StateT
+      .liftF:
+        snapshotStream.head.compile.toList
+      .mapK:
+        PlayNommDAppFailure.mapExternal:
+          "Failed to get snapshot stream head"
+    totalAmountSnapshotStream <- PlayNommState[IO].token.totalSupplySnapshot
+      .reverseStreamFrom(testToken.toBytes, None)
+      .mapK:
+        PlayNommDAppFailure.mapExternal:
+          "Failed to get total supply snapshot stream"
+    totalAmountSnapshotHeadList <- StateT
+      .liftF:
+        totalAmountSnapshotStream.head.compile.toList
+      .mapK:
+        PlayNommDAppFailure.mapExternal:
+          "Failed to get total amount snapshot stream head"
+  yield (
+    snapshotHeadList.headOption
+      .map(_._2)
+      .map(_.values.foldLeft(BigNat.Zero)(BigNat.add)),
+    totalAmountSnapshotHeadList.headOption.map(_._2),
+  )
+
   val fixture: IO[MerkleTrieState] =
     val txs: Seq[Transaction] = IndexedSeq(
       Transaction.AccountTx.CreateAccount(
@@ -163,32 +199,8 @@ class PlayNommDAppTest extends CatsEffectSuite:
 
     val program = for
       _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
-      snapshotStream <- PlayNommState[IO].token.fungibleSnapshot
-        .reverseStreamFrom((alice, testToken).toBytes, None)
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get fungible snapshot stream"
-      snapshotHeadList <- StateT
-        .liftF:
-          snapshotStream.head.compile.toList
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get snapshot stream head"
-      totalAmountSnapshotStream <- PlayNommState[IO].token.totalSupplySnapshot
-        .reverseStreamFrom(testToken.toBytes, None)
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get total supply snapshot stream"
-      totalAmountSnapshotHeadList <- StateT
-        .liftF:
-          totalAmountSnapshotStream.head.compile.toList
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get total amount snapshot stream head"
-    yield (
-      snapshotHeadList.headOption.map(_._2),
-      totalAmountSnapshotHeadList.headOption.map(_._2),
-    )
+      snapshotTuple <- readFungibleSnapshotAndTotalSupplySnapshot(alice)
+    yield snapshotTuple
 
     for
       state  <- fixture
@@ -196,9 +208,9 @@ class PlayNommDAppTest extends CatsEffectSuite:
       snapshotStateTuple <- IO.fromEither:
         result.leftMap(failure => new Exception(failure.msg))
       (snapshotStateOption, totalAmountOption) = snapshotStateTuple
-      snapShotSum = snapshotStateOption.map(_.values.map(_.toBigInt).sum)
+      snapShotSum = snapshotStateOption.map(_.toBigInt)
       totalAmount = totalAmountOption.map(_.toBigInt)
-    yield 
+    yield
       assertEquals(snapShotSum, Some(BigInt(100L)))
       assertEquals(totalAmount, Some(BigInt(100L)))
 
@@ -229,32 +241,8 @@ class PlayNommDAppTest extends CatsEffectSuite:
 
     val program = for
       _ <- txs.map(signAlice(_)).traverse(PlayNommDApp[IO](_))
-      snapshotStream <- PlayNommState[IO].token.fungibleSnapshot
-        .reverseStreamFrom((alice, testToken).toBytes, None)
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get fungible snapshot stream"
-      snapshotHeadList <- StateT
-        .liftF:
-          snapshotStream.head.compile.toList
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get snapshot stream head"
-      totalAmountSnapshotStream <- PlayNommState[IO].token.totalSupplySnapshot
-        .reverseStreamFrom(testToken.toBytes, None)
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get total supply snapshot stream"
-      totalAmountSnapshotHeadList <- StateT
-        .liftF:
-          totalAmountSnapshotStream.head.compile.toList
-        .mapK:
-          PlayNommDAppFailure.mapExternal:
-            "Failed to get total amount snapshot stream head"
-    yield (
-      snapshotHeadList.headOption.map(_._2),
-      totalAmountSnapshotHeadList.headOption.map(_._2),
-    )
+      snapshotTuple <- readFungibleSnapshotAndTotalSupplySnapshot(alice)
+    yield snapshotTuple
 
     for
       state  <- fixture
@@ -262,7 +250,7 @@ class PlayNommDAppTest extends CatsEffectSuite:
       snapshotStateTuple <- IO.fromEither:
         result.leftMap(failure => new Exception(failure.msg))
       (snapshotStateOption, totalAmountOption) = snapshotStateTuple
-      snapShotSum = snapshotStateOption.map(_.values.map(_.toBigInt).sum)
+      snapShotSum = snapshotStateOption.map(_.toBigInt)
       totalAmount = totalAmountOption.map(_.toBigInt)
     yield
       assertEquals(snapShotSum, Some(BigInt(100L)))
