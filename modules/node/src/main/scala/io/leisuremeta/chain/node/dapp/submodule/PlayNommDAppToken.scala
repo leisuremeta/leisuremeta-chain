@@ -440,6 +440,10 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to remove rarity state of ${tokenId}"
+        _ <- removeNftSnapshot[F](sig.account, bn.definitionId, tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft snapshot of ${tokenId}"
       yield txWithResult
 
     case ef: Transaction.TokenTx.EntrustFungibleToken =>
