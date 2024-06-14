@@ -553,12 +553,20 @@ object PlayNommDAppToken:
           isRemoveSuccessful,
           s"No Entrust NFT Balance: ${utxoKey}",
         )
+        _ <- removeNftSnapshot[F](fromAccount, de.definitionId, de.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft snapshot of ${de.tokenId}"
         newUtxoKey = (de.output.getOrElse(fromAccount), de.tokenId, txHash)
         _ <- PlayNommState[F].token.nftBalance
           .put(newUtxoKey, ())
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put nft balance of $newUtxoKey"
+        _ <- addNftSnapshot[F](de.output.getOrElse(fromAccount), de.definitionId, de.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to add nft snapshot of ${de.tokenId}"
         _ <- de.output.fold(unit): toAddress =>
           for
             nftStateOption <- PlayNommState[F].token.nftState
