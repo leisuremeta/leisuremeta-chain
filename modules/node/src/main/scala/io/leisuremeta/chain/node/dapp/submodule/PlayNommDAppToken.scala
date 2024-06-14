@@ -125,6 +125,10 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put token balance (${mn.output}, ${mn.tokenId}, $txHash)"
+        _ <- addNftSnapshot(mn.output, mn.tokenDefinitionId, mn.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to add nft snapshot of ${mn.tokenId}"
         weight = tokenDef.nftInfo.get.rarity
           .getOrElse(mn.rarity, BigNat.unsafeFromLong(2L))
         nftState = NftState(
@@ -177,6 +181,10 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put token balance (${mn.output}, ${mn.tokenId}, $txHash)"
+        _ <- addNftSnapshot(mn.output, mn.tokenDefinitionId, mn.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to add nft snapshot of ${mn.tokenId}"
         weight = tokenDef.nftInfo.get.rarity
           .getOrElse(mn.rarity, BigNat.unsafeFromLong(2L))
         nftState = NftState(
@@ -528,7 +536,8 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to get snapshot state of ${cs.definitionId}"
-        lastSnapshotId = snapshotStateOption.fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+        lastSnapshotId = snapshotStateOption
+          .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
         txWithResult = TransactionWithResult(Signed(sig, cs))(None)
         snapshotState = SnapshotState(
           snapshotId = lastSnapshotId.increase,
@@ -762,15 +771,13 @@ object PlayNommDAppToken:
                 EitherT.cond(
                   ef.to === account,
                   ef.amount,
-                  PlayNommDAppFailure.external(
+                  PlayNommDAppFailure.external:
                     s"Entrust fungible token tx $txWithResult is not for $account",
-                  ),
                 )
               case _ =>
                 EitherT.leftT:
-                  PlayNommDAppFailure.external(
-                    s"Tx $txWithResult is not an entrust fungible token transaction",
-                  )
+                  PlayNommDAppFailure.external:
+                    s"Tx $txWithResult is not an entrust fungible token transaction"
           yield ((txWithResult.signedTx.sig.account, txHash), amount)
         .map(_.toMap)
 
@@ -810,14 +817,15 @@ object PlayNommDAppToken:
   ): StateT[EitherT[F, String, *], MerkleTrieState, Unit] =
     for
       snapshotStateOption <- PlayNommState[F].token.snapshotState.get(defId)
-      snapshotId = snapshotStateOption.fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+      snapshotId = snapshotStateOption
+        .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
       stream <- PlayNommState[F].token.fungibleSnapshot
         .reverseStreamFrom((account, defId).toBytes, None)
       lastSnapshotOption <- StateT.liftF:
         stream.head.compile.toList.flatMap: list =>
           EitherT.pure(list.headOption)
-      lastSnapshot = lastSnapshotOption.fold(Map.empty[Hash.Value[TransactionWithResult], BigNat]):
-        case (_, snapshotMap) => snapshotMap
+      lastSnapshot = lastSnapshotOption
+        .fold(Map.empty[Hash.Value[TransactionWithResult], BigNat])(_._2)
       _ <- PlayNommState[F].token.fungibleSnapshot.put(
         (account, defId, snapshotId),
         lastSnapshot + (input -> amount),
@@ -830,7 +838,8 @@ object PlayNommDAppToken:
   ): StateT[EitherT[F, String, *], MerkleTrieState, Unit] =
     for
       snapshotStateOption <- PlayNommState[F].token.snapshotState.get(defId)
-      snapshotId = snapshotStateOption.fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+      snapshotId = snapshotStateOption
+        .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
       stream <- PlayNommState[F].token.totalSupplySnapshot
         .reverseStreamFrom(defId.toBytes, None)
       lastSnapshotOption <- StateT.liftF:
@@ -840,5 +849,27 @@ object PlayNommDAppToken:
       _ <- PlayNommState[F].token.totalSupplySnapshot.put(
         (defId, snapshotId),
         BigNat.add(lastSnapshot, amount),
+      )
+    yield ()
+
+  def addNftSnapshot[F[_]: Concurrent: PlayNommState](
+      account: Account,
+      defId: TokenDefinitionId,
+      tokenId: TokenId,
+  ): StateT[EitherT[F, String, *], MerkleTrieState, Unit] =
+    for
+      snapshotStateOption <- PlayNommState[F].token.snapshotState.get(defId)
+      snapshotId = snapshotStateOption
+        .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+      stream <- PlayNommState[F].token.nftSnapshot
+        .reverseStreamFrom((account, defId).toBytes, None)
+      lastSnapshotOption <- StateT.liftF:
+        stream.head.compile.toList.flatMap: list =>
+          EitherT.pure(list.headOption)
+      lastSnapshot = lastSnapshotOption
+        .fold(Set.empty[TokenId])(_._2)
+      _ <- PlayNommState[F].token.nftSnapshot.put(
+        (account, defId, snapshotId),
+        lastSnapshot + tokenId,
       )
     yield ()
