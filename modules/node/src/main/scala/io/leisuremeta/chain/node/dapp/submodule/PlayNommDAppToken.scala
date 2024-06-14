@@ -340,6 +340,14 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put nft state of ${tn.tokenId}"
+        _ <- removeNftSnapshot[F](sig.account, tn.definitionId, tn.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove nft snapshot of ${tn.tokenId}"
+        _ <- addNftSnapshot[F](tn.output, tn.definitionId, tn.tokenId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to add nft snapshot of ${tn.tokenId}"  
       yield txWithResult
 
     case bf: Transaction.TokenTx.BurnFungibleToken =>
@@ -938,5 +946,27 @@ object PlayNommDAppToken:
       _ <- PlayNommState[F].token.totalSupplySnapshot.put(
         (defId, snapshotId),
         remainder,
+      )
+    yield ()
+
+  def removeNftSnapshot[F[_]: Concurrent: PlayNommState](
+      account: Account,
+      defId: TokenDefinitionId,
+      tokenId: TokenId,
+  ): StateT[EitherT[F, String, *], MerkleTrieState, Unit] =
+    for
+      snapshotStateOption <- PlayNommState[F].token.snapshotState.get(defId)
+      snapshotId = snapshotStateOption
+        .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+      stream <- PlayNommState[F].token.nftSnapshot
+        .reverseStreamFrom((account, defId).toBytes, None)
+      lastSnapshotOption <- StateT.liftF:
+        stream.head.compile.toList.flatMap: list =>
+          EitherT.pure(list.headOption)
+      lastSnapshot = lastSnapshotOption
+        .fold(Set.empty[TokenId])(_._2)
+      _ <- PlayNommState[F].token.nftSnapshot.put(
+        (account, defId, snapshotId),
+        lastSnapshot - tokenId,
       )
     yield ()
