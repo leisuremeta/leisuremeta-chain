@@ -371,15 +371,37 @@ object PlayNommDAppToken:
           bf.inputs.map(_.toResultHashValue),
           bf.definitionId,
         )
+        _ <- bf.inputs.toList.traverse: inputTxHash =>
+          removeFungibleSnapshot(
+            sig.account,
+            bf.definitionId,
+            inputTxHash.toResultHashValue,
+          )
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to remove fungible snapshot of $inputTxHash"
         _ <-
           if outputAmount === BigNat.Zero then unit
-          else putBalance(sig.account, bf.definitionId, txWithResult.toHash)
+          else putBalance(sig.account, bf.definitionId, txWithResult.toHash) *>
+            addFungibleSnapshot(
+              sig.account,
+              bf.definitionId,
+              txWithResult.toHash,
+              outputAmount,
+            )
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to add fungible snapshot of ${sig.account}"
         totalAmount <- fromEitherInternal:
           BigNat.tryToSubtract(tokenDef.totalAmount, bf.amount)
         _ <- putTokenDefinition(
           bf.definitionId,
           tokenDef.copy(totalAmount = totalAmount),
         )
+        _ <- removeTotalSupplySnapshot(bf.definitionId, bf.amount)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove total supply snapshot of ${bf.definitionId}"
       yield txWithResult
 
     case bn: Transaction.TokenTx.BurnNFT =>
