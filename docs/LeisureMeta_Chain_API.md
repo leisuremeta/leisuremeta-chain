@@ -1381,6 +1381,7 @@
 | `GET`  | **/rewarded/ownership/{tokenID}** | 최근에 받은 토큰 소유보상 조회   |
 | `GET` | **/snapshot-state/{definitionID}** | 토큰정의 스냅샷 상태 조회 |
 | `GET` | **/snapshot-balance/ {Account}/{TokenDefinitionID}/{SnapshotID}** | 토큰 스냅샷 잔고 조회 |
+| `GET` | **/nft-snapshot-balance/ {Account}/{TokenDefinitionID}/{SnapshotID}** | NFT 스냅샷 잔고 조회 |
 
 
 
