@@ -1379,6 +1379,7 @@
 | `GET`  | **/rewarded/account/{account}**   | 최근에 받은 활동보상 조회        |
 | `GET`  | **/rewarded/token/{tokenID}**     | 최근에 받은 토큰보상 조회        |
 | `GET`  | **/rewarded/ownership/{tokenID}** | 최근에 받은 토큰 소유보상 조회   |
+| `GET` | **/snapshot-state/{definitionID}** | 토큰정의 스냅샷 상태 조회 |
 
 
 
