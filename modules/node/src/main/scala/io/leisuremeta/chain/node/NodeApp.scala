@@ -25,7 +25,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
-import api.model.token.{TokenDefinitionId, TokenId}
+import api.model.token.{SnapshotState, TokenDefinitionId, TokenId}
 import dapp.{PlayNommDAppFailure, PlayNommState}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
@@ -49,7 +49,7 @@ final case class NodeApp[F[_]
     */
 
 //  import java.time.Instant
-  import api.model.{Block, Signed}//, StateRoot}
+  import api.model.{Block, Signed} // , StateRoot}
   import lib.crypto.Hash
 //  import lib.datatype.{BigNat, UInt256}
 
@@ -289,18 +289,50 @@ final case class NodeApp[F[_]
         .value
     }
 
-  def getDaoServerEndpoint = 
+  def getDaoServerEndpoint =
     Api.getDaoEndpoint.serverLogic: (groupId: GroupId) =>
       StateReadService
         .getDaoInfo(groupId)
         .leftMap:
           case Right(msg) => Right(Api.BadRequest(msg))
-          case Left(msg) => Left(Api.ServerError(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
         .subflatMap:
           case Some(daoInfo) => Right(daoInfo)
           case None =>
             Left(Right(Api.NotFound(s"No DAO information of group $groupId")))
         .value
+
+  def getSnapshotStateServerEndpoint =
+    Api.getSnapshotStateEndpoint.serverLogic: (defId: TokenDefinitionId) =>
+      StateReadService
+        .getSnapshotState(defId)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        .subflatMap:
+          case Some(snapshotState) => Right(snapshotState)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot state of token $defId")))
+        .value
+
+  def getFungibleSnapshotBalanceServerEndpoint =
+    Api.getFungibleSnapshotBalanceEndpoint.serverLogic:
+      (account: Account, defId: TokenDefinitionId, snapshotId: SnapshotState.SnapshotId) =>
+        StateReadService
+          .getFungibleSnapshotBalance(account, defId, snapshotId)
+          .leftMap:
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          .value
+  def getNftSnapshotBalanceServerEndpoint =
+    Api.getNftSnapshotBalanceEndpoint.serverLogic:
+      (account: Account, defId: TokenDefinitionId, snapshotId: SnapshotState.SnapshotId) =>
+        StateReadService
+          .getNftSnapshotBalance(account, defId, snapshotId)
+          .leftMap:
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          .value
 
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
@@ -371,6 +403,9 @@ final case class NodeApp[F[_]
     getOwnershipSnapshotMapServerEndpoint,
     getOwnershipRewardedServerEndpoint,
     getDaoServerEndpoint,
+    getSnapshotStateServerEndpoint,
+    getFungibleSnapshotBalanceServerEndpoint,
+    getNftSnapshotBalanceServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )

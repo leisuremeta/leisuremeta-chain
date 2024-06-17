@@ -10,7 +10,7 @@ import api.model.account.*
 import api.model.token.*
 import api.model.reward.*
 import lib.crypto.Hash
-import lib.datatype.Utf8
+import lib.datatype.{BigNat, Utf8}
 import lib.merkle.MerkleTrie.NodeStore
 import lib.application.DAppState
 import java.time.Instant
@@ -50,6 +50,8 @@ object PlayNommState:
 
   type TxHash = Hash.Value[TransactionWithResult]
 
+  type BalanceAmount = BigNat
+
   case class Token[F[_]](
       definition: DAppState[F, TokenDefinitionId, TokenDefinition],
       fungibleBalance: DAppState[
@@ -70,6 +72,22 @@ object PlayNommState:
         F,
         (AccountM, AccountM, TokenId, TxHash),
         Unit,
+      ],
+      snapshotState: DAppState[F, TokenDefinitionId, SnapshotState],
+      fungibleSnapshot: DAppState[
+        F,
+        (AccountM, TokenDefinitionId, SnapshotState.SnapshotId),
+        Map[TxHash, BalanceAmount],
+      ],
+      nftSnapshot: DAppState[
+        F,
+        (AccountM, TokenDefinitionId, SnapshotState.SnapshotId),
+        Set[TokenId],
+      ],
+      totalSupplySnapshot: DAppState[
+        F,
+        (TokenDefinitionId, SnapshotState.SnapshotId),
+        BalanceAmount,
       ],
   )
 
@@ -100,6 +118,10 @@ object PlayNommState:
         entrustFungibleBalance =
           playNommState.ofName("entrust-fungible-balance"),
         entrustNftBalance = playNommState.ofName("entrust-nft-balance"),
+        snapshotState = playNommState.ofName("snapshot-state"),
+        fungibleSnapshot = playNommState.ofName("fungible-snapshot"),
+        nftSnapshot = playNommState.ofName("nft-snapshot"),
+        totalSupplySnapshot = playNommState.ofName("total-supply-snapshot"),
       )
 
       val reward: Reward[F] = Reward[F](

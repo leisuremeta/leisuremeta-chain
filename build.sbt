@@ -252,6 +252,7 @@ lazy val root = (project in file("."))
 lazy val node = (project in file("modules/node"))
   .settings(Dependencies.node)
   .settings(Dependencies.tests)
+  .settings(Dependencies.catsEffectTests)
   .settings(
     name := "leisuremeta-chain-node",
     assemblyMergeStrategy := {

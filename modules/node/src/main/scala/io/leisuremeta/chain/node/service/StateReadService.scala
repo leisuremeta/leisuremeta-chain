@@ -3,7 +3,7 @@ package node
 package service
 
 import cats.Monad
-import cats.data.EitherT
+import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.eq.given
 import cats.syntax.either.*
@@ -38,7 +38,7 @@ import api.model.reward.{
   OwnershipSnapshot,
   OwnershipRewardLog,
 }
-import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.*
 import dapp.PlayNommState
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -684,3 +684,63 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       infoOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield infoOption
+
+  def getSnapshotState[F[_]: Monad: BlockRepository: PlayNommState](
+      defId: TokenDefinitionId,
+  ): EitherT[F, Either[String, String], Option[SnapshotState]] =
+    val program = PlayNommState[F].token.snapshotState.get(defId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      stateOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield stateOption
+
+  def getFungibleSnapshotBalance[F[_]: Concurrent: BlockRepository: PlayNommState](
+      account: Account,
+      defId: TokenDefinitionId,
+      snapshotId: SnapshotState.SnapshotId,
+  ): EitherT[
+    F,
+    Either[String, String],
+    Map[Hash.Value[TransactionWithResult], BigNat],
+  ] =
+    val program = PlayNommState[F].token.fungibleSnapshot
+      .reverseStreamFrom((account, defId).toBytes, Some(snapshotId.toBytes))
+      .flatMap: stream =>
+        StateT.liftF:
+          stream.head.compile.toList.map:
+            case Nil => Map.empty
+            case (k, v) :: _ => v
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      balanceMap <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield balanceMap
+
+  def getNftSnapshotBalance[F[_]: Concurrent: BlockRepository: PlayNommState](
+      account: Account,
+      defId: TokenDefinitionId,
+      snapshotId: SnapshotState.SnapshotId,
+  ): EitherT[F, Either[String, String], Set[TokenId]] =
+    val program = PlayNommState[F].token.nftSnapshot
+      .reverseStreamFrom((account, defId).toBytes, Some(snapshotId.toBytes))
+      .flatMap: stream =>
+        StateT.liftF:
+          stream.head.compile.toList.map:
+            case Nil => Set.empty
+            case (_, tokens) :: _ => tokens
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      balanceTokens <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield balanceTokens
