@@ -324,6 +324,15 @@ final case class NodeApp[F[_]
             case Right(msg) => Right(Api.BadRequest(msg))
             case Left(msg)  => Left(Api.ServerError(msg))
           .value
+  def getNftSnapshotBalanceServerEndpoint =
+    Api.getNftSnapshotBalanceEndpoint.serverLogic:
+      (account: Account, defId: TokenDefinitionId, snapshotId: SnapshotState.SnapshotId) =>
+        StateReadService
+          .getNftSnapshotBalance(account, defId, snapshotId)
+          .leftMap:
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          .value
 
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
@@ -396,6 +405,7 @@ final case class NodeApp[F[_]
     getDaoServerEndpoint,
     getSnapshotStateServerEndpoint,
     getFungibleSnapshotBalanceServerEndpoint,
+    getNftSnapshotBalanceServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )
