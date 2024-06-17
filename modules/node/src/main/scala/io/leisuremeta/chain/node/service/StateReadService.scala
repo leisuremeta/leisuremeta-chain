@@ -38,7 +38,7 @@ import api.model.reward.{
   OwnershipSnapshot,
   OwnershipRewardLog,
 }
-import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.*
 import dapp.PlayNommState
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
@@ -684,3 +684,17 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       infoOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield infoOption
+
+  def getSnapshotState[F[_]: Monad: BlockRepository: PlayNommState](
+      defId: TokenDefinitionId,
+  ): EitherT[F, Either[String, String], Option[SnapshotState]] =
+    val program = PlayNommState[F].token.snapshotState.get(defId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      stateOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield stateOption

@@ -302,6 +302,19 @@ final case class NodeApp[F[_]
             Left(Right(Api.NotFound(s"No DAO information of group $groupId")))
         .value
 
+  def getSnapshotStateServerEndpoint =
+    Api.getSnapshotStateEndpoint.serverLogic: (defId: TokenDefinitionId) =>
+      StateReadService
+        .getSnapshotState(defId)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg) => Left(Api.ServerError(msg))
+        .subflatMap:
+          case Some(snapshotState) => Right(snapshotState)
+          case None =>
+            Left(Right(Api.NotFound(s"No snapshot state of token $defId")))
+        .value
+
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
