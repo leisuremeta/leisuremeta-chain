@@ -43,6 +43,7 @@ import api.model.reward.{
   OwnershipSnapshot,
   OwnershipRewardLog,
 }
+import io.leisuremeta.chain.api.model.token.SnapshotState
 
 object LeisureMetaChainApi:
 
@@ -265,8 +266,15 @@ object LeisureMetaChainApi:
       .in("dao" / path[GroupId])
       .out(jsonBody[DaoInfo])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getSnapshotStateEndpoint =
+    baseEndpoint.get
+      .in("snapshot-state" / path[TokenDefinitionId])
+      .out(jsonBody[SnapshotState])
+
   enum Movable:
     case Free, Locked
+
   object Movable:
     @SuppressWarnings(Array("org.wartremover.warts.ToString"))
     given Codec[String, Movable, TextPlain] = Codec.string.mapDecode {
