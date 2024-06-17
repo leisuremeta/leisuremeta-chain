@@ -3,7 +3,7 @@ package node
 package service
 
 import cats.Monad
-import cats.data.EitherT
+import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.eq.given
 import cats.syntax.either.*
@@ -698,3 +698,28 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       stateOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield stateOption
+
+  def getFungibleSnapshotBalance[F[_]: Concurrent: BlockRepository: PlayNommState](
+      account: Account,
+      defId: TokenDefinitionId,
+      snapshotId: SnapshotState.SnapshotId,
+  ): EitherT[
+    F,
+    Either[String, String],
+    Map[Hash.Value[TransactionWithResult], BigNat],
+  ] =
+    val program = PlayNommState[F].token.fungibleSnapshot
+      .reverseStreamFrom((account, defId).toBytes, Some(snapshotId.toBytes))
+      .flatMap: stream =>
+        StateT.liftF:
+          stream.head.compile.toList.map:
+            case Nil => Map.empty
+            case (k, v) :: _ => v
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      balanceMap <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield balanceMap

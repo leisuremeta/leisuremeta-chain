@@ -287,7 +287,7 @@ object LeisureMetaChainApi:
           / path[Account]
           / path[TokenDefinitionId]
           / path[SnapshotState.SnapshotId]
-      .out(jsonBody[Map[TxHash, BigNat]])
+      .out(jsonBody[Map[Hash.Value[TransactionWithResult], BigNat]])
 
   enum Movable:
     case Free, Locked
