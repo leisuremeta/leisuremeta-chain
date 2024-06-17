@@ -5,7 +5,8 @@ package token
 import java.time.Instant
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
-import sttp.tapir.Schema
+import sttp.tapir.{Codec, DecodeResult, Schema}
+import sttp.tapir.CodecFormat.TextPlain
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.{BigNat, Utf8}
@@ -22,11 +23,15 @@ object SnapshotState:
   object SnapshotId:
     def apply(value: BigNat): SnapshotId = value
 
-    given snapshotIdByteEncoder: ByteEncoder[SnapshotId] = BigNat.bignatByteEncoder
-    given snapshotIdByteDecoder: ByteDecoder[SnapshotId] = BigNat.bignatByteDecoder
+    given snapshotIdByteEncoder: ByteEncoder[SnapshotId] =
+      BigNat.bignatByteEncoder
+    given snapshotIdByteDecoder: ByteDecoder[SnapshotId] =
+      BigNat.bignatByteDecoder
 
-    given snapshotIdCirceDecoder: Decoder[SnapshotId] = BigNat.bignatCirceDecoder
-    given snapshotIdCirceEncoder: Encoder[SnapshotId] = BigNat.bignatCirceEncoder
+    given snapshotIdCirceDecoder: Decoder[SnapshotId] =
+      BigNat.bignatCirceDecoder
+    given snapshotIdCirceEncoder: Encoder[SnapshotId] =
+      BigNat.bignatCirceEncoder
 
     given schema: Schema[SnapshotId] = Schema.schemaForBigInt
       .map[BigNat]: (bigint: BigInt) =>
@@ -34,8 +39,17 @@ object SnapshotState:
       .apply: (bignat: BigNat) =>
         bignat.toBigInt
 
+    given tapirCodec: Codec[String, SnapshotId, TextPlain] =
+      Codec.string
+        .mapDecode: (s: String) =>
+          BigNat.fromBigInt(BigInt(s)) match
+            case Right(bignat) => DecodeResult.Value(bignat)
+            case Left(msg)     => DecodeResult.Error(s, new Exception(msg))
+        .apply: (bignat: BigNat) =>
+          bignat.toBigInt.toString(10)
+
     val Zero: SnapshotId = BigNat.Zero
 
     extension (id: SnapshotId)
-      def inc: SnapshotId = increase
+      def inc: SnapshotId      = increase
       def increase: SnapshotId = BigNat.add(id, BigNat.One)

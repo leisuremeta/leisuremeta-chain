@@ -5,13 +5,13 @@ import java.time.Instant
 import java.util.Locale
 
 import io.circe.KeyEncoder
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import scodec.bits.ByteVector
 import sttp.model.StatusCode
-import sttp.tapir._
+import sttp.tapir.*
 import sttp.tapir.CodecFormat.TextPlain
-import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe._
+import sttp.tapir.generic.auto.*
+import sttp.tapir.json.circe.*
 
 import lib.crypto.{Hash, Signature}
 import lib.datatype.{BigNat, UInt256, UInt256BigInt, UInt256Bytes, Utf8}
@@ -36,14 +36,21 @@ import api.model.api_model.{
   RewardInfo,
   TxInfo,
 }
-import api.model.token.{NftState, TokenDefinition, TokenDefinitionId, TokenId}
+import api.model.token.{
+  NftState,
+  SnapshotState,
+  TokenDefinition,
+  TokenDefinitionId,
+  TokenId,
+}
 import api.model.reward.{
   ActivitySnapshot,
   DaoInfo,
   OwnershipSnapshot,
   OwnershipRewardLog,
 }
-import io.leisuremeta.chain.api.model.token.SnapshotState
+import api.model.token.SnapshotState.*
+import io.leisuremeta.chain.api.model.Signed.TxHash
 
 object LeisureMetaChainApi:
 
@@ -271,6 +278,16 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("snapshot-state" / path[TokenDefinitionId])
       .out(jsonBody[SnapshotState])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getFunglbleSnapshotBalanceEndpoint =
+    baseEndpoint.get
+      .in:
+        "snapshot-balance"
+          / path[Account]
+          / path[TokenDefinitionId]
+          / path[SnapshotState.SnapshotId]
+      .out(jsonBody[Map[TxHash, BigNat]])
 
   enum Movable:
     case Free, Locked
