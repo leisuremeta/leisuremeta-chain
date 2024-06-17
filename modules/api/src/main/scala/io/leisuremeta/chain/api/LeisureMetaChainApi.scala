@@ -289,6 +289,16 @@ object LeisureMetaChainApi:
           / path[SnapshotState.SnapshotId]
       .out(jsonBody[Map[Hash.Value[TransactionWithResult], BigNat]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getNftSnapshotBalanceEndpoint =
+    baseEndpoint.get
+      .in:
+        "nft-snapshot-balance"
+          / path[Account]
+          / path[TokenDefinitionId]
+          / path[SnapshotState.SnapshotId]
+      .out(jsonBody[Set[TokenId]])
+
   enum Movable:
     case Free, Locked
 
