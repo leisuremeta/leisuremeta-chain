@@ -316,7 +316,7 @@ final case class NodeApp[F[_]
         .value
 
   def getFungibleSnapshotBalanceServerEndpoint =
-    Api.getFunglbleSnapshotBalanceEndpoint.serverLogic:
+    Api.getFungibleSnapshotBalanceEndpoint.serverLogic:
       (account: Account, defId: TokenDefinitionId, snapshotId: SnapshotState.SnapshotId) =>
         StateReadService
           .getFungibleSnapshotBalance(account, defId, snapshotId)
@@ -395,6 +395,7 @@ final case class NodeApp[F[_]
     getOwnershipRewardedServerEndpoint,
     getDaoServerEndpoint,
     getSnapshotStateServerEndpoint,
+    getFungibleSnapshotBalanceServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )

@@ -280,7 +280,7 @@ object LeisureMetaChainApi:
       .out(jsonBody[SnapshotState])
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val getFunglbleSnapshotBalanceEndpoint =
+  val getFungibleSnapshotBalanceEndpoint =
     baseEndpoint.get
       .in:
         "snapshot-balance"
