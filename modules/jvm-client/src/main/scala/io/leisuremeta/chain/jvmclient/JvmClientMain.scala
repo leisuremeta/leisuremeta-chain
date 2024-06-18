@@ -72,9 +72,18 @@ object JvmClientMain extends IOApp:
       accounts = Set(alice),
 //      memo = None,
     ),
-    Transaction.TokenTx.DefineTokenWithPrecision(
+    Transaction.TokenTx.DefineToken(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
       createdAt = java.time.Instant.parse("2023-01-11T19:04:00.00Z"),
+      definitionId = TokenDefinitionId(Utf8.unsafeFrom("LM")),
+      name = Utf8.unsafeFrom("LeisureMeta"),
+      symbol = Some(Utf8.unsafeFrom("LM")),
+      minterGroup = Some(GroupId(Utf8.unsafeFrom("mint-group"))),
+      nftInfo = None,
+    ),
+    Transaction.TokenTx.DefineTokenWithPrecision(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
       definitionId = TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
       name = Utf8.unsafeFrom("NFT with precision"),
       symbol = Some(Utf8.unsafeFrom("NFTWP")),
@@ -104,7 +113,7 @@ object JvmClientMain extends IOApp:
     ),
     Transaction.TokenTx.MintNFT(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-      createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+      createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
       tokenDefinitionId =
         TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
       tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
@@ -123,7 +132,7 @@ object JvmClientMain extends IOApp:
     ),
     Transaction.TokenTx.MintNFTWithMemo(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-      createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
+      createdAt = java.time.Instant.parse("2023-01-11T19:07:00.00Z"),
       tokenDefinitionId =
         TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
       tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
@@ -142,7 +151,7 @@ object JvmClientMain extends IOApp:
     ),
     Transaction.TokenTx.UpdateNFT(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
-      createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
+      createdAt = java.time.Instant.parse("2023-01-11T19:08:00.00Z"),
       tokenDefinitionId =
         TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
       tokenId = TokenId(Utf8.unsafeFrom("2022061710000513118")),
