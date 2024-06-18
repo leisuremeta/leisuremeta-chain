@@ -343,6 +343,7 @@ lazy val archive = (project in file("modules/archive"))
   .settings(Dependencies.tests)
   .settings(
     name := "leisuremeta-chain-archive",
+    Compile / run / fork := true,
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
@@ -358,12 +359,17 @@ lazy val bulkInsert = (project in file("modules/bulk-insert"))
   .dependsOn(node)
   .settings(
     name := "leisuremeta-chain-bulk-insert",
+    Compile / run / fork := true,
     excludeDependencies ++= Seq(
       "org.scala-lang.modules" % "scala-collection-compat_2.13",
       "org.scala-lang.modules" % "scala-java8-compat_2.13",
     ),
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
+        MergeStrategy.first
+      case PathList("META-INF", "native", "lib", xs @ _*) =>
+        MergeStrategy.first
+      case PathList("reactor", "core", "scheduler", xs @ _*) =>
         MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>
