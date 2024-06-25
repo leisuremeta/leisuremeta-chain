@@ -9,6 +9,7 @@ import api.model.{Account as AccountM}
 import api.model.account.*
 import api.model.token.*
 import api.model.reward.*
+import api.model.voting.*
 import lib.crypto.Hash
 import lib.datatype.{BigNat, Utf8}
 import lib.merkle.MerkleTrie.NodeStore
@@ -20,6 +21,7 @@ trait PlayNommState[F[_]]:
   def group: PlayNommState.Group[F]
   def token: PlayNommState.Token[F]
   def reward: PlayNommState.Reward[F]
+  def voting: PlayNommState.Voting[F]
 
 object PlayNommState:
 
@@ -91,6 +93,12 @@ object PlayNommState:
       ],
   )
 
+  case class Voting[F[_]](
+    proposal: DAppState[F, ProposalId, Proposal],
+    votes: DAppState[F, (ProposalId, AccountM), (Utf8, BigNat)],
+    counting: DAppState[F, ProposalId, Map[Utf8, BigNat]],
+  )
+
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
     scribe.info(s"Building PlayNommState... ")
 
@@ -134,4 +142,10 @@ object PlayNommState:
         accountRewarded = playNommState.ofName("account-rewarded"),
         tokenRewarded = playNommState.ofName("token-rewarded"),
         ownershipRewarded = playNommState.ofName("ownership-rewarded"),
+      )
+
+      val voting: Voting[F] = Voting[F](
+        proposal = playNommState.ofName("proposal"),
+        votes = playNommState.ofName("votes"),
+        counting = playNommState.ofName("counting"),
       )

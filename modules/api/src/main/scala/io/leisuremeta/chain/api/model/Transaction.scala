@@ -10,7 +10,7 @@ import scodec.bits.ByteVector
 import account.EthAddress
 //import agenda.AgendaId
 import reward.DaoActivity
-import vote.{ProposalId, VoteType}
+import voting.{ProposalId, VoteType}
 import lib.crypto.{Hash, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.codec.byte.ByteEncoder.ops.*

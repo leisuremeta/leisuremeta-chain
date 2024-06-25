@@ -1,5 +1,5 @@
 package io.leisuremeta.chain
-package api.model.vote
+package api.model.voting
 
 import cats.Eq
 import io.circe.{Decoder, Encoder}
