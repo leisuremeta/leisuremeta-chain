@@ -143,6 +143,7 @@ object TransactionService:
             case tx: Transaction.TokenTx   => "Token"
             case tx: Transaction.RewardTx  => "Reward"
             case tx: Transaction.AgendaTx  => "Agenda"
+            case tx: Transaction.VotingTx  => "Voting"
 
           TxInfo(
             txHash = txHash,

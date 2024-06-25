@@ -25,3 +25,5 @@ object PlayNommDApp:
         PlayNommDAppReward(rewardTx, signedTx.sig)
       case agendaTx: Transaction.AgendaTx =>
         PlayNommDAppAgenda(agendaTx, signedTx.sig)
+      case votingTx: Transaction.VotingTx =>
+        PlayNommDAppVoting(votingTx, signedTx.sig)
