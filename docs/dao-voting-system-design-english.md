@@ -103,7 +103,8 @@ POST /tx
         "2": "Reject"
       },
       "quorum": 100, // Minimum participation (number of NFTs)
-      "passThreshold": 0.51 // Approval threshold (51%)
+      "passThresholdNumer": 51, // Approval threshold numerator(51%)
+      "passThresholdDemon": 100, // Approval threshold denominator(100%)
     }
   }
 }
