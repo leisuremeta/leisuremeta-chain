@@ -546,8 +546,10 @@ object Transaction:
       "proposalId": "PROPOSAL-2023-002",
       "title": "Approval for New NFT Collection Launch",
       "description": "Voting for approval of a new NFT collection proposed by the community",
-      "votingTokens": ["NFT-COLLECTION-001"],
-      "snapshotId": 12346,
+      "votingPower": {
+        "NFT-COLLECTION-001": 12347,
+        "NFT-COLLECTION-002": 12348
+      },
       "voteStart": "2023-06-22T00:00:00Z",
       "voteEnd": "2023-06-29T23:59:59Z",
       "voteType": "NFT_BASED",
@@ -566,8 +568,7 @@ object Transaction:
         proposalId: ProposalId,
         title: Utf8,
         description: Utf8,
-        votingTokens: Set[TokenDefinitionId],
-        snapshotId: BigNat,
+        votingPower: Map[TokenDefinitionId, BigNat],
         voteStart: Instant,
         voteEnd: Instant,
         voteType: VoteType,

@@ -63,8 +63,9 @@ POST /tx
       "proposalId": "PROPOSAL-2023-001",
       "title": "Community Fund Usage Proposal",
       "description": "Fund allocation for Creator Support Program",
-      "votingTokens": ["LM"],
-      "snapshotId": 12345,
+      "votingPower": {
+        "LM": 12345
+      },
       "voteStart": "2023-06-22T00:00:00Z",
       "voteEnd": "2023-06-29T23:59:59Z",
       "voteType": "TOKEN_WEIGHTED",
@@ -93,8 +94,10 @@ POST /tx
       "proposalId": "PROPOSAL-2023-002",
       "title": "Approval for New NFT Collection Launch",
       "description": "Voting for approval of a new NFT collection proposed by the community",
-      "votingTokens": ["NFT-COLLECTION-001"],
-      "snapshotId": 12346,
+      "votingPower": {
+        "NFT-COLLECTION-001": 12347,
+        "NFT-COLLECTION-002": 12348
+      },
       "voteStart": "2023-06-22T00:00:00Z",
       "voteEnd": "2023-06-29T23:59:59Z",
       "voteType": "NFT_BASED",
