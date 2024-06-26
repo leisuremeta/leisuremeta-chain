@@ -54,6 +54,7 @@ object PlayNommDAppVoting:
           quorum = cp.quorum,
           passThresholdNumer = cp.passThresholdNumer,
           passThresholdDenom = cp.passThresholdDenom,
+          isActive = true,
         )
         _ <- PlayNommState[F].voting.proposal
           .put(cp.proposalId, proposal)
@@ -78,15 +79,29 @@ object PlayNommDAppVoting:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get proposal: ${cv.proposalId}"
-        proposal <- fromOption(proposalOption, s"Proposal not found: ${cv.proposalId}")
+        proposal <- fromOption(
+          proposalOption,
+          s"Proposal not found: ${cv.proposalId}",
+        )
+        _ <- checkExternal(
+          proposal.voteStart.compareTo(cv.createdAt) <= 0 &&
+            cv.createdAt.compareTo(proposal.voteEnd) <= 0,
+          s"Vote outside of voting period: ${cv.proposalId} ${sig.account}",
+        )
+        _ <- checkExternal(
+          proposal.isActive,
+          s"Proposal not active: ${cv.proposalId}",
+        )
         amountSeq <- proposal.voteType match
           case VoteType.ONE_PERSON_ONE_VOTE =>
             pure(Seq(BigNat.One))
           case VoteType.TOKEN_WEIGHTED =>
             proposal.votingPower.toSeq.traverse: (defId, snapshotId) =>
-              for
-                balance <- PlayNommState[F].token.fungibleSnapshot
-                  .reverseStreamFrom((sig.account, defId).toBytes, Some(snapshotId.toBytes))
+              for balance <- PlayNommState[F].token.fungibleSnapshot
+                  .reverseStreamFrom(
+                    (sig.account, defId).toBytes,
+                    Some(snapshotId.toBytes),
+                  )
                   .mapK:
                     PlayNommDAppFailure.mapInternal:
                       s"Failed to get balance stream of: ${sig.account} ${defId}"
@@ -94,7 +109,7 @@ object PlayNommDAppVoting:
                     StateT.liftF:
                       stream.head.compile.toList
                         .map:
-                          case Nil => Map.empty
+                          case Nil         => Map.empty
                           case (k, v) :: _ => v
                         .leftMap: msg =>
                           PlayNommDAppFailure.internal:
@@ -102,9 +117,11 @@ object PlayNommDAppVoting:
               yield balance.values.foldLeft(BigNat.Zero)(BigNat.add)
           case VoteType.NFT_BASED =>
             proposal.votingPower.toSeq.traverse: (defId, snapshotId) =>
-              for
-                count <- PlayNommState[F].token.nftSnapshot
-                  .reverseStreamFrom((sig.account, defId).toBytes, Some(snapshotId.toBytes))
+              for count <- PlayNommState[F].token.nftSnapshot
+                  .reverseStreamFrom(
+                    (sig.account, defId).toBytes,
+                    Some(snapshotId.toBytes),
+                  )
                   .mapK:
                     PlayNommDAppFailure.mapInternal:
                       s"Failed to get balance stream of: ${sig.account} ${defId}"
@@ -129,13 +146,32 @@ object PlayNommDAppVoting:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get counting: ${cv.proposalId}"
         originalMap = originalMapOption.getOrElse(Map.empty)
-        newMap = originalMap.updated(cv.selectedOption, powerSum)
+        newMap      = originalMap.updated(cv.selectedOption, powerSum)
         _ <- PlayNommState[F].voting.counting
           .put(cv.proposalId, newMap)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to save counting: ${cv.proposalId}"
       yield TransactionWithResult(Signed(sig, cv))(None)
-      
+
     case tv: Transaction.VotingTx.TallyVotes =>
-      ???
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        proposalOption <- PlayNommState[F].voting.proposal
+          .get(tv.proposalId)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get proposal: ${tv.proposalId}"
+        proposal <- fromOption(
+          proposalOption,
+          s"Proposal not found: ${tv.proposalId}",
+        )
+        _ <- proposal.votingPower.toList.traverse: (defId, _) =>
+          PlayNommDAppToken.checkMinterAndGetTokenDefinition(sig.account, defId)
+        newProposal = proposal.copy(isActive = false)
+        _ <- PlayNommState[F].voting.proposal
+          .put(tv.proposalId, newProposal)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to save proposal: ${tv.proposalId}"
+      yield TransactionWithResult(Signed(sig, tv))(None)

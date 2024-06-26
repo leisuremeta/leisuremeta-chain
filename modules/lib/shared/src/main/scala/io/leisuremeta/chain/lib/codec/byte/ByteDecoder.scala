@@ -135,6 +135,9 @@ object ByteDecoder:
 
   given byteDecoder: ByteDecoder[Byte] = fromFixedSizeBytes(1)(_.toByte())
 
+  given booleanDecoder: ByteDecoder[Boolean] = fromFixedSizeBytes(1): bytes =>
+    bytes.head =!= 0x00.toByte
+
   given longDecoder: ByteDecoder[Long] = fromFixedSizeBytes(8)(_.toLong())
 
   given instantDecoder: ByteDecoder[Instant] =

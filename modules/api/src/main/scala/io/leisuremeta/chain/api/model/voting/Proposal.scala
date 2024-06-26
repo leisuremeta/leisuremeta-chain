@@ -19,4 +19,5 @@ final case class Proposal(
     quorum: BigNat,
     passThresholdNumer: BigNat,
     passThresholdDenom: BigNat,
+    isActive: Boolean,
 )
