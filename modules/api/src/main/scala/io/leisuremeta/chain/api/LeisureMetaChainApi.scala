@@ -49,6 +49,7 @@ import api.model.reward.{
   OwnershipSnapshot,
   OwnershipRewardLog,
 }
+import api.model.voting.{ProposalId, Proposal}
 import api.model.token.SnapshotState.*
 import io.leisuremeta.chain.api.model.Signed.TxHash
 
@@ -299,6 +300,24 @@ object LeisureMetaChainApi:
           / path[SnapshotState.SnapshotId]
       .out(jsonBody[Set[TokenId]])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getVoteProposalEndpoint =
+    baseEndpoint.get
+      .in("vote" / "proposal" / path[ProposalId])
+      .out(jsonBody[Proposal])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getAccountVotesEndpoint =
+    baseEndpoint.get
+      .in("vote" / "account" / path[ProposalId] / path[Account])
+      .out(jsonBody[(Utf8, BigNat)])
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getVoteCountEndpoint =
+    baseEndpoint.get
+      .in("vote" / "count" / path[ProposalId])
+      .out(jsonBody[Map[Utf8, BigNat]])
+      
   enum Movable:
     case Free, Locked
 

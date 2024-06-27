@@ -3,7 +3,8 @@ package api.model.voting
 
 import cats.Eq
 import io.circe.{Decoder, Encoder}
-import sttp.tapir.Schema
+import sttp.tapir.{Codec, DecodeResult, Schema}
+import sttp.tapir.CodecFormat.TextPlain
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.datatype.Utf8
@@ -26,3 +27,12 @@ object ProposalId:
   given eq: Eq[ProposalId] = Eq.fromUniversalEquals
 
   given schema: Schema[ProposalId] = Schema.string
+
+  given bignatCodec: Codec[String, ProposalId, TextPlain] =
+    Codec.string
+      .mapDecode: (s: String) =>
+        Utf8.from(s) match
+          case Left(e)  => DecodeResult.Error(s, e)
+          case Right(v) => DecodeResult.Value(ProposalId(v))
+      .apply: (b: ProposalId) =>
+        b.value.value
