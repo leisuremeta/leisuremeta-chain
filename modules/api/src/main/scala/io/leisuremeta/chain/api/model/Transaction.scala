@@ -10,6 +10,7 @@ import scodec.bits.ByteVector
 import account.EthAddress
 //import agenda.AgendaId
 import reward.DaoActivity
+import voting.{ProposalId, VoteType}
 import lib.crypto.{Hash, Recover, Sign}
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
 import lib.codec.byte.ByteEncoder.ops.*
@@ -344,10 +345,10 @@ object Transaction:
         with NftBalance
 
     final case class CreateSnapshot(
-      networkId: NetworkId,
-      createdAt: Instant,
-      definitionId: TokenDefinitionId,
-      memo: Option[Utf8],
+        networkId: NetworkId,
+        createdAt: Instant,
+        definitionId: TokenDefinitionId,
+        memo: Option[Utf8],
     ) extends TokenTx
 
     given txByteDecoder: ByteDecoder[TokenTx] = ByteDecoder[BigNat].flatMap {
@@ -536,6 +537,92 @@ object Transaction:
 
   end AgendaTx
 
+  sealed trait VotingTx extends Transaction
+  object VotingTx:
+    /*
+    "CreateVoteProposal": {
+      "networkId": 2021,
+      "createdAt": "2023-06-21T18:01:00Z",
+      "proposalId": "PROPOSAL-2023-002",
+      "title": "Approval for New NFT Collection Launch",
+      "description": "Voting for approval of a new NFT collection proposed by the community",
+      "votingPower": {
+        "NFT-COLLECTION-001": 12347,
+        "NFT-COLLECTION-002": 12348
+      },
+      "voteStart": "2023-06-22T00:00:00Z",
+      "voteEnd": "2023-06-29T23:59:59Z",
+      "voteType": "NFT_BASED",
+      "voteOptions": {
+        "1": "Approve",
+        "2": "Reject"
+      },
+      "quorum": 100, // Minimum participation (number of NFTs)
+      "passThresholdNumer": 51, // Approval threshold numerator(51%)
+      "passThresholdDemon": 100, // Approval threshold denominator(100%)
+    }
+     */
+    final case class CreateVoteProposal(
+        networkId: NetworkId,
+        createdAt: Instant,
+        proposalId: ProposalId,
+        title: Utf8,
+        description: Utf8,
+        votingPower: Map[TokenDefinitionId, BigNat],
+        voteStart: Instant,
+        voteEnd: Instant,
+        voteType: VoteType,
+        voteOptions: Map[Utf8, Utf8],
+        quorum: BigNat,
+        passThresholdNumer: BigNat,
+        passThresholdDenom: BigNat,
+    ) extends VotingTx
+
+    /*
+
+    "CastVote": {
+      "networkId": 2021,
+      "createdAt": "2023-06-23T10:30:00Z",
+      "proposalId": "PROPOSAL-2023-001",
+      "selectedOption": "1"
+    }
+
+     */
+    final case class CastVote(
+        networkId: NetworkId,
+        createdAt: Instant,
+        proposalId: ProposalId,
+        selectedOption: Utf8,
+    ) extends VotingTx
+
+    /*
+    "TallyVotes": {
+      "networkId": 2021,
+      "createdAt": "2023-06-30T00:01:00Z",
+      "proposalId": "PROPOSAL-2023-001"
+    }
+     */
+    final case class TallyVotes(
+        networkId: NetworkId,
+        createdAt: Instant,
+        proposalId: ProposalId,
+    ) extends VotingTx
+
+    given txByteDecoder: ByteDecoder[VotingTx] = ByteDecoder[BigNat].flatMap:
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[CreateVoteProposal].widen
+          case 1 => ByteDecoder[CastVote].widen
+          case 2 => ByteDecoder[TallyVotes].widen
+    given txByteEncoder: ByteEncoder[VotingTx] = (vtx: VotingTx) =>
+      vtx match
+        case tx: CreateVoteProposal => build(0)(tx)
+        case tx: CastVote           => build(1)(tx)
+        case tx: TallyVotes         => build(2)(tx)
+    given txCirceDecoder: Decoder[VotingTx] = deriveDecoder
+    given txCirceEncoder: Encoder[VotingTx] = deriveEncoder
+  end VotingTx
+
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
       BigNat.unsafeFromLong(discriminator),
@@ -549,8 +636,9 @@ object Transaction:
         case 2 => ByteDecoder[TokenTx].widen
         case 3 => ByteDecoder[RewardTx].widen
         case 4 => ByteDecoder[AgendaTx].widen
+        case 5 => ByteDecoder[VotingTx].widen
   }
-  
+
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
       case tx: AccountTx => build(0)(tx)
@@ -558,6 +646,7 @@ object Transaction:
       case tx: TokenTx   => build(2)(tx)
       case tx: RewardTx  => build(3)(tx)
       case tx: AgendaTx  => build(4)(tx)
+      case tx: VotingTx  => build(5)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 
