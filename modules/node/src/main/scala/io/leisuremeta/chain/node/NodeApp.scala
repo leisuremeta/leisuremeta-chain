@@ -26,6 +26,7 @@ import api.model.{
 }
 import api.model.account.EthAddress
 import api.model.token.{SnapshotState, TokenDefinitionId, TokenId}
+import api.model.voting.ProposalId
 import dapp.{PlayNommDAppFailure, PlayNommState}
 import lib.crypto.{CryptoOps, KeyPair}
 import lib.crypto.Hash.ops.*
@@ -334,6 +335,41 @@ final case class NodeApp[F[_]
             case Left(msg)  => Left(Api.ServerError(msg))
           .value
 
+  def getVoteProposalServerEndpoint =
+    Api.getVoteProposalEndpoint.serverLogic: (proposalId: ProposalId) =>
+      StateReadService
+        .getVoteProposal(proposalId)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        .subflatMap:
+          case Some(proposal) => Right(proposal)
+          case None =>
+            Left(Right(Api.NotFound(s"No proposal of vote $proposalId")))
+        .value
+
+  def getAccountVotesServerEndpoint =
+    Api.getAccountVotesEndpoint.serverLogic: (proposalId: ProposalId, account: Account) =>
+      StateReadService
+        .getAccountVotes(proposalId, account)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        .subflatMap:
+          case Some(proposal) => Right(proposal)
+          case None =>
+            Left(Right(Api.NotFound(s"No vote of $proposalId by $account")))
+        .value
+
+  def getVoteCountServerEndpoint =
+    Api.getVoteCountEndpoint.serverLogic: (proposalId: ProposalId) =>
+      StateReadService
+        .getVoteCount(proposalId)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        .value
+
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -406,6 +442,8 @@ final case class NodeApp[F[_]
     getSnapshotStateServerEndpoint,
     getFungibleSnapshotBalanceServerEndpoint,
     getNftSnapshotBalanceServerEndpoint,
+    getVoteProposalServerEndpoint,
+    getAccountVotesServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )

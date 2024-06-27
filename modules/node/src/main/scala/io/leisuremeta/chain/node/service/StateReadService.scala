@@ -39,10 +39,11 @@ import api.model.reward.{
   OwnershipRewardLog,
 }
 import api.model.token.*
+import api.model.voting.*
 import dapp.PlayNommState
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash
-import lib.datatype.BigNat
+import lib.datatype.{BigNat, Utf8}
 import lib.merkle.MerkleTrieState
 import repository.{BlockRepository, TransactionRepository}
 
@@ -744,3 +745,46 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       balanceTokens <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield balanceTokens
+
+  def getVoteProposal[F[_]: Concurrent: BlockRepository: PlayNommState](
+      proposalId: ProposalId,
+  ): EitherT[F, Either[String, String], Option[Proposal]] =
+    val program = PlayNommState[F].voting.proposal.get(proposalId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      proposalOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield proposalOption
+
+  def getAccountVotes[F[_]: Concurrent: BlockRepository: PlayNommState](
+      proposalId: ProposalId,
+      voter: Account,
+  ): EitherT[F, Either[String, String], Option[(Utf8, BigNat)]] =
+    val program = PlayNommState[F].voting.votes.get((proposalId, voter))
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      voteOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield voteOption
+
+  def getVoteCount[F[_]: Concurrent: BlockRepository: PlayNommState](
+      proposalId: ProposalId,
+  ): EitherT[F, Either[String, String], Map[Utf8, BigNat]] =
+    val program = PlayNommState[F].voting.counting.get(proposalId)
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      countOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield countOption.getOrElse(Map.empty)
