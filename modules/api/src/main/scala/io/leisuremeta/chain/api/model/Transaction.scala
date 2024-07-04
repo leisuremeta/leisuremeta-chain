@@ -7,7 +7,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
 import scodec.bits.ByteVector
 
-import account.EthAddress
+import account.{EthAddress, ExternalChain, ExternalChainAddress}
 //import agenda.AgendaId
 import reward.DaoActivity
 import voting.{ProposalId, VoteType}
@@ -75,6 +75,15 @@ object Transaction:
 //        memo: Option[Utf8],
     ) extends AccountTx
 
+    final case class CreateAccountWithExternalChainAddresses(
+        networkId: NetworkId,
+        createdAt: Instant,
+        account: Account,
+        externalChainAddresses: Map[ExternalChain, ExternalChainAddress],
+        guardian: Option[Account],
+        memo: Option[Utf8],
+    ) extends AccountTx
+
     final case class UpdateAccount(
         networkId: NetworkId,
         createdAt: Instant,
@@ -82,6 +91,15 @@ object Transaction:
         ethAddress: Option[EthAddress],
         guardian: Option[Account],
 //        memo: Option[Utf8],
+    ) extends AccountTx
+
+    final case class UpdateAccountWithExternalChainAddresses(
+        networkId: NetworkId,
+        createdAt: Instant,
+        account: Account,
+        externalChainAddresses: Map[ExternalChain, ExternalChainAddress],
+        guardian: Option[Account],
+        memo: Option[Utf8],
     ) extends AccountTx
 
     final case class AddPublicKeySummaries(
@@ -117,6 +135,8 @@ object Transaction:
           case 2 => ByteDecoder[AddPublicKeySummaries].widen
 //          case 3 => ByteDecoder[RemovePublicKeySummaries].widen
 //          case 4 => ByteDecoder[RemoveAccount].widen
+          case 5 => ByteDecoder[CreateAccountWithExternalChainAddresses].widen
+          case 6 => ByteDecoder[UpdateAccountWithExternalChainAddresses].widen
     }
     given txByteEncoder: ByteEncoder[AccountTx] = (atx: AccountTx) =>
       atx match
@@ -125,6 +145,8 @@ object Transaction:
         case tx: AddPublicKeySummaries => build(2)(tx)
 //        case tx: RemovePublicKeySummaries => build(3)(tx)
 //        case tx: RemoveAccount            => build(4)(tx)
+        case tx: CreateAccountWithExternalChainAddresses => build(5)(tx)
+        case tx: UpdateAccountWithExternalChainAddresses => build(6)(tx)
 
     given txCirceDecoder: Decoder[AccountTx] = deriveDecoder
     given txCirceEncoder: Encoder[AccountTx] = deriveEncoder

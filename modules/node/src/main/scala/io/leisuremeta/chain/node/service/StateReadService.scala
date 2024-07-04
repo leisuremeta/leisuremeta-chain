@@ -24,7 +24,7 @@ import api.model.{
   Transaction,
   TransactionWithResult,
 }
-import api.model.account.EthAddress
+import api.model.account.{EthAddress, ExternalChain, ExternalChainAddress}
 import api.model.api_model.{
   AccountInfo,
   ActivityInfo,
@@ -74,13 +74,17 @@ object StateReadService:
     keyList <- keyListEither match
       case Left(err)      => Concurrent[F].raiseError(new Exception(err))
       case Right(keyList) => Concurrent[F].pure(keyList)
-  yield accountStateOption.map(accountData =>
+  yield accountStateOption.map: accountData =>
     AccountInfo(
-      accountData.ethAddress,
-      accountData.guardian,
-      keyList.toMap,
-    ),
-  )
+      externalChainAddresses = accountData.externalChainAddresses,
+      ethAddress = accountData.externalChainAddresses
+        .get(ExternalChain.ETH)
+        .map: address =>
+          EthAddress(address.utf8),
+      guardian = accountData.guardian,
+      memo = accountData.memo,
+      publicKeySummaries = keyList.toMap,
+    )
 
   def getEthAccount[F[_]: Concurrent: BlockRepository: PlayNommState](
       ethAddress: EthAddress,
@@ -92,8 +96,8 @@ object StateReadService:
         Concurrent[F].raiseError(new Exception("No best header"))
       case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
     merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
-    ethStateEither <- PlayNommState[F].account.eth
-      .get(ethAddress)
+    ethStateEither <- PlayNommState[F].account.externalChainAddresses
+      .get((ExternalChain.ETH, ExternalChainAddress(ethAddress.utf8)))
       .runA(merkleState)
       .value
     ethStateOption <- ethStateEither match
@@ -700,7 +704,8 @@ object StateReadService:
       stateOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield stateOption
 
-  def getFungibleSnapshotBalance[F[_]: Concurrent: BlockRepository: PlayNommState](
+  def getFungibleSnapshotBalance[F[_]
+    : Concurrent: BlockRepository: PlayNommState](
       account: Account,
       defId: TokenDefinitionId,
       snapshotId: SnapshotState.SnapshotId,
@@ -714,7 +719,7 @@ object StateReadService:
       .flatMap: stream =>
         StateT.liftF:
           stream.head.compile.toList.map:
-            case Nil => Map.empty
+            case Nil         => Map.empty
             case (k, v) :: _ => v
     for
       bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
@@ -735,7 +740,7 @@ object StateReadService:
       .flatMap: stream =>
         StateT.liftF:
           stream.head.compile.toList.map:
-            case Nil => Set.empty
+            case Nil              => Set.empty
             case (_, tokens) :: _ => tokens
     for
       bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>

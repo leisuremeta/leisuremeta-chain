@@ -31,3 +31,4 @@ object EthAddress:
       case Left(e) => DecodeResult.Error(s, e)
       case Right(a) => DecodeResult.Value(EthAddress(a))
   }(_.utf8.value)
+

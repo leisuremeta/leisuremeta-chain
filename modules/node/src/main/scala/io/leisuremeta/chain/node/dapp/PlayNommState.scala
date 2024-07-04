@@ -30,7 +30,7 @@ object PlayNommState:
   case class Account[F[_]](
       name: DAppState[F, AccountM, AccountData],
       key: DAppState[F, (AccountM, PublicKeySummary), PublicKeySummary.Info],
-      eth: DAppState[F, EthAddress, AccountM],
+      externalChainAddresses: DAppState[F, (ExternalChain, ExternalChainAddress), AccountM],
   )
 
   case class Reward[F[_]](
@@ -94,9 +94,9 @@ object PlayNommState:
   )
 
   case class Voting[F[_]](
-    proposal: DAppState[F, ProposalId, Proposal],
-    votes: DAppState[F, (ProposalId, AccountM), (Utf8, BigNat)],
-    counting: DAppState[F, ProposalId, Map[Utf8, BigNat]],
+      proposal: DAppState[F, ProposalId, Proposal],
+      votes: DAppState[F, (ProposalId, AccountM), (Utf8, BigNat)],
+      counting: DAppState[F, ProposalId, Map[Utf8, BigNat]],
   )
 
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
@@ -108,7 +108,7 @@ object PlayNommState:
       val account: Account[F] = Account[F](
         name = playNommState.ofName("name"),
         key = playNommState.ofName("key"),
-        eth = playNommState.ofName("eth"),
+        externalChainAddresses = playNommState.ofName("pca"),
       )
 
       val group: Group[F] = Group[F](
