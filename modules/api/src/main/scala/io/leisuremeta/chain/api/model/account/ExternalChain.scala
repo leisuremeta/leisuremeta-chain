@@ -24,18 +24,18 @@ object ExternalChain :
       case _ => None
 
   given Decoder[ExternalChain] = Decoder.decodeString.emap:
-    fromAbbr(_).toRight("Invalid public chain")
+    fromAbbr(_).toRight("Unknown public chain")
 
-  given Encoder[ExternalChain] = Encoder.encodeString.contramap(_.name)
+  given Encoder[ExternalChain] = Encoder.encodeString.contramap(_.abbr)
 
   given KeyDecoder[ExternalChain] = KeyDecoder.instance(fromAbbr(_))
-  given KeyEncoder[ExternalChain] = KeyEncoder.encodeKeyString.contramap(_.name)
+  given KeyEncoder[ExternalChain] = KeyEncoder.encodeKeyString.contramap(_.abbr)
 
   given ByteDecoder[ExternalChain] = BigNat.bignatByteDecoder.emap: (bn: BigNat) =>
     bn.toBigInt.toInt match
       case 0 => ExternalChain.ETH.asRight[DecodingFailure]
       case 1 => ExternalChain.SOL.asRight[DecodingFailure]
-      case _ => DecodingFailure("Invalid public chain").asLeft[ExternalChain]
+      case _ => DecodingFailure("Unknown public chain").asLeft[ExternalChain]
   given ByteEncoder[ExternalChain] = BigNat.bignatByteEncoder.contramap:
     case ExternalChain.ETH => BigNat.Zero
     case ExternalChain.SOL => BigNat.One

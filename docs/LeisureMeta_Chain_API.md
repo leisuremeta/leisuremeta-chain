@@ -197,8 +197,49 @@
   ```json
   ["822380e575e482e829fc9f45ffd0f99f4f0987ccbec0c0a5de5fd640f42a9100"]
   ```
+
+* CreateAccountWithExternalChainAddresses 외부 블록체인 주소를 가진 계정 생성
+  * > 사용자 서명
+  * Fields
+    * account: Account 계정 이름
+    * externalChainAddresses: 외부 블록체인 주소. 현재는 `eth`, `sol` 두 가지 지원.
+    * guardian: *(optional)* Account
+      * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
+    * memo: *(optional)* 메모
+    
+  * Example (private key `b229e76b742616db3ac2c5c2418f44063fcc5fcc52a08e05d4285bdb31acba06` 으로 서명한 예시)
   
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 28,
+          "r" : "2f7a53986a387961047566ab8d31fcdbbe6cc96529cdbfccb68fb268700f2bdf",
+          "s" : "56f993f2cca6a5f7410e04a5aa849c7698f1e0966d98b90638d7472cd9eb3210"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "AccountTx" : {
+          "CreateAccountWithExternalChainAddresses" : {
+            "networkId" : 2021,
+            "createdAt" : "2023-01-11T19:01:30Z",
+            "account" : "bob",
+            "externalChainAddresses" : {
+              "eth" : "99f681d29754aeee1426ef991b745a4f662e620c"
+            },
+            "guardian" : "alice",
+            "memo" : null
+          }
+        }
+      }
+    }
+  ```
   
+  ```json
+  ["d795dc9205ec5ecb3097fe0ca0326e6597c6ecae497a0876b8cc3737d823264a"]
+  ```
   
 * UpdateAccount 계정 생성
   * > 사용자 서명 혹은 Guardian 서명
@@ -239,7 +280,51 @@
   ```json
   ["7730dadeff5be3bfd63fdec8853d6301a5ec0e3b8c815a4d7e0ba20e8c52517d"]
   ```
+
+
+* UpdateAccountWithExternalChainAddresses 계정 생성
+  * > 사용자 서명 혹은 Guardian 서명
+  * Fields
+    * account: Account 계정 이름
+    * externalChainAddresses: 외부 블록체인 주소. 현재는 `eth`, `sol` 두 가지 지원.
+    * guardian: *(optional)* Account
+      * 계정에 공개키를 추가할 수 있는 권한을 가진 계정 지정. 일반적으로는 `playnomm`
+    * memo: *(optional)* 메모
+
+  * Example
   
+  ```json
+  [
+    {
+      "sig" : {
+        "sig" : {
+          "v" : 27,
+          "r" : "bf7dfb91669233e120a07707084f2b9879d9620cd297096f862d52d53fe9988d",
+          "s" : "10d652ba45a81ad572aeae6c25ffd2e6339e8f049d379ae24d5a947f531d5d65"
+        },
+        "account" : "alice"
+      },
+      "value" : {
+        "AccountTx" : {
+          "UpdateAccountWithExternalChainAddresses" : {
+            "networkId" : 2021,
+            "createdAt" : "2023-01-11T19:01:40Z",
+            "account" : "bob",
+            "externalChainAddresses" : {
+              "eth" : "99f681d29754aeee1426ef991b745a4f662e620c"
+            },
+            "guardian" : "alice",
+            "memo" : "bob updated"
+          }
+        }
+      }
+    }
+  ]
+  ```
+  
+  ```json
+  ["a0e28414a97b3fabb49cf3b77757219b8e1a7205ba3cc4f5e618019b36bc38c3"]
+  ```
   
   
 * AddPublicKeySummaries 계정에 사용할 공개키요약 추가

@@ -12,6 +12,7 @@ import sttp.client3.armeria.cats.ArmeriaCatsBackend
 
 //import api.LeisureMetaChainApi
 import api.model.*
+import api.model.account.*
 //import api.model.reward.*
 import api.model.token.*
 //import api.model.TransactionWithResult.ops.*
@@ -56,6 +57,30 @@ object JvmClientMain extends IOApp:
       ethAddress = None,
       guardian = None,
 //      memo = None,
+    ),
+    Transaction.AccountTx.CreateAccountWithExternalChainAddresses(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:01:30.00Z"),
+      account = bob,
+      externalChainAddresses = Map(
+        ExternalChain.ETH -> ExternalChainAddress(
+          Utf8.unsafeFrom(alicePKS.toBytes.toHex),
+        ),
+      ),
+      guardian = Some(alice),
+      memo = None,
+    ),
+    Transaction.AccountTx.UpdateAccountWithExternalChainAddresses(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:01:40.00Z"),
+      account = bob,
+      externalChainAddresses = Map(
+        ExternalChain.ETH -> ExternalChainAddress(
+          Utf8.unsafeFrom(alicePKS.toBytes.toHex),
+        ),
+      ),
+      guardian = Some(alice),
+      memo = Some(Utf8.unsafeFrom("bob updated")),
     ),
     Transaction.GroupTx.CreateGroup(
       networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
