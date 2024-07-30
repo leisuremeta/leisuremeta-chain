@@ -36,11 +36,6 @@ object TxDetailTableCommon:
       ParseHtml.fromAccHash(Some(outputs._1.toString())),
       ParseHtml.fromBal(Some(BigDecimal(outputs._2.toString))),
     )
-
-  val r = """.*\/collections\/(.*)\/.*\/.*\.json""".r
-  def getCollectionNameFromUrl(url: String) = 
-    r.replaceFirstIn(url, "$1")
-
   
   def getNFromId(id: String) =
     id.drop(16).dropWhile(c => !c.isDigit || c == '0').prepended('#')
@@ -72,7 +67,7 @@ object TxDetailTableCommon:
     case nft: MintNFT => 
       div(cls := "detail table-container")(
         rowCustom("Token ID", ParseHtml.fromTokenId(nft.tokenId.toString)),
-        row("Collection Name", getCollectionNameFromUrl(nft.dataUrl.toString)),
+        row("Collection Name", nft.collectionName),
         row("No", getNFromId(nft.tokenId.toString)),
         rowCustom("Data URI", a(href := nft.dataUrl.toString, target := "_blank")(nft.dataUrl.toString)),
         row("Content Hash", nft.contentHash.toHex),
@@ -81,7 +76,7 @@ object TxDetailTableCommon:
     case nft: MintNFTWithMemo => 
       div(cls := "detail table-container")(
         rowCustom("Token ID", ParseHtml.fromTokenId(nft.tokenId.toString)),
-        row("Collection Name", getCollectionNameFromUrl(nft.dataUrl.toString)),
+        row("Collection Name", nft.collectionName),
         row("No", getNFromId(nft.tokenId.toString)),
         rowCustom("Data URI", a(href := nft.dataUrl.toString, target := "_blank")(nft.dataUrl.toString)),
         row("Content Hash", nft.contentHash.toHex),
