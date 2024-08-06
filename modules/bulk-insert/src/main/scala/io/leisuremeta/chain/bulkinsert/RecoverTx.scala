@@ -15,6 +15,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.TransactionWithResult.ops.*
+import api.model.account.{ExternalChain, ExternalChainAddress}
 import lib.codec.byte.ByteEncoder.ops.*
 import lib.crypto.Hash.ops.*
 import lib.datatype.{BigNat, Utf8}
@@ -44,48 +45,53 @@ object RecoverTx:
         tx match
           case ca: Transaction.AccountTx.CreateAccount =>
             val program = for
+              accountInfoOption <- PlayNommDAppAccount.getAccountInfo(ca.account)
+              _ <- checkExternal(
+                accountInfoOption.isEmpty,
+                s"${ca.account} already exists",
+              )
+              _ <- checkExternal(
+                sig.account == ca.account ||
+                  Some(sig.account) == ca.guardian,
+                s"Signer ${sig.account} is neither ${ca.account} nor its guardian",
+              )
+              initialPKS <- PlayNommDAppAccount.getPKS(sig, ca)
+              keyInfo = PublicKeySummary.Info(
+                addedAt = ca.createdAt,
+                description =
+                  Utf8.unsafeFrom(s"automatically added at account creation"),
+                expiresAt = Some(ca.createdAt.plus(40, ChronoUnit.DAYS)),
+              )
               _ <-
-                if signedTx.sig.account === ca.account then
-                  for
-                    initialPKS <- PlayNommDAppAccount.getPKS(signedTx.sig, ca)
-                    keyInfo = PublicKeySummary.Info(
-                      addedAt = ca.createdAt,
-                      description = Utf8
-                        .unsafeFrom(s"automatically added at account creation"),
-                      expiresAt = Some(ca.createdAt.plus(40, ChronoUnit.DAYS)),
-                    )
-                    _ <- PlayNommState[F].account.key
-                      .put((ca.account, initialPKS), keyInfo)
-                      .mapK(PlayNommDAppFailure.mapInternal {
-                        s"Fail to put account key ${ca.account}"
-                      })
-                  yield ()
+                if Option(sig.account) === ca.guardian then unit
                 else
-                  StateT.empty[EitherT[
-                    F,
-                    PlayNommDAppFailure,
-                    *,
-                  ], MerkleTrieState, Unit]
+                  PlayNommState[F].account.key
+                    .put((ca.account, initialPKS), keyInfo)
+                    .mapK:
+                      PlayNommDAppFailure.mapInternal:
+                        s"Fail to put account key ${ca.account}"
               accountData = AccountData(
                 guardian = ca.guardian,
-                ethAddress = ca.ethAddress,
+                externalChainAddresses = ca.ethAddress.fold(Map.empty): ethAddress =>
+                  Map(ExternalChain.ETH -> ExternalChainAddress(ethAddress.utf8)),
                 lastChecked = ca.createdAt,
+                memo = None,
               )
               _ <- PlayNommState[F].account.name
                 .put(ca.account, accountData)
-                .mapK(PlayNommDAppFailure.mapInternal {
-                  s"Fail to put account ${ca.account}"
-                })
-              _ <- ca.ethAddress
-                .fold(
-                  StateT.empty[EitherT[F, String, *], MerkleTrieState, Unit],
-                ): ethAddress =>
-                  PlayNommState[F].account.eth.put(ethAddress, ca.account)
                 .mapK:
-                  PlayNommDAppFailure.mapInternal(
-                    s"Fail to update eth address ${ca.ethAddress}",
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put account ${ca.account}"
+              _ <- ca.ethAddress.fold(unit): ethAddress =>
+                PlayNommState[F].account.externalChainAddresses
+                  .put(
+                    (ExternalChain.ETH, ExternalChainAddress(ethAddress.utf8)),
+                    ca.account,
                   )
-            yield TransactionWithResult(signedTx)(None)
+                  .mapK:
+                    PlayNommDAppFailure.mapInternal:
+                      s"Fail to update eth address ${ca.ethAddress}"
+            yield TransactionWithResult(Signed(sig, ca))(None)
 
             program
               .run(ms)
@@ -96,9 +102,8 @@ object RecoverTx:
 
           case ua: Transaction.AccountTx.UpdateAccount =>
             val program = for
-              accountDataOption <- PlayNommDAppAccount.getAccountInfo(
-                ua.account,
-              )
+              _                 <- PlayNommDAppAccount.verifySignature(sig, ua)
+              accountDataOption <- PlayNommDAppAccount.getAccountInfo(ua.account)
               accountData <- fromOption(
                 accountDataOption,
                 s"${ua.account} does not exists",
@@ -108,24 +113,27 @@ object RecoverTx:
                   Some(sig.account) == accountData.guardian,
                 s"Signer ${sig.account} is neither ${ua.account} nor its guardian",
               )
+              accountData1 = accountData.copy(
+                guardian = ua.guardian,
+                externalChainAddresses = ua.ethAddress.fold(Map.empty): ethAddress =>
+                  Map(ExternalChain.ETH -> ExternalChainAddress(ethAddress.utf8)),
+                lastChecked = ua.createdAt,
+                memo = None,
+              )
               _ <- PlayNommState[F].account.name
-                .put(
-                  ua.account,
-                  accountData
-                    .copy(guardian = ua.guardian, ethAddress = ua.ethAddress),
-                )
-                .mapK(PlayNommDAppFailure.mapInternal {
-                  s"Fail to put account ${ua.account}"
-                })
-              _ <- ua.ethAddress
-                .fold(
-                  StateT.empty[EitherT[F, String, *], MerkleTrieState, Unit],
-                ): ethAddress =>
-                  PlayNommState[F].account.eth.put(ethAddress, ua.account)
+                .put(ua.account, accountData1)
                 .mapK:
-                  PlayNommDAppFailure.mapInternal(
-                    s"Fail to update eth address ${ua.ethAddress}",
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put account ${ua.account}"
+              _ <- ua.ethAddress.fold(unit): ethAddress =>
+                PlayNommState[F].account.externalChainAddresses
+                  .put(
+                    (ExternalChain.ETH, ExternalChainAddress(ethAddress.utf8)),
+                    ua.account,
                   )
+                  .mapK:
+                    PlayNommDAppFailure.mapInternal:
+                      s"Fail to update eth address ${ua.ethAddress}"
             yield TransactionWithResult(Signed(sig, ua))(None)
 
             program
