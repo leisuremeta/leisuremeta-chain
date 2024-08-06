@@ -347,6 +347,8 @@ lazy val archive = (project in file("modules/archive"))
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
+      case PathList("META-INF", "native", "lib", xs @ _*) =>
+        MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
