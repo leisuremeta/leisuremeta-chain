@@ -102,7 +102,6 @@ object RecoverTx:
 
           case ua: Transaction.AccountTx.UpdateAccount =>
             val program = for
-              _                 <- PlayNommDAppAccount.verifySignature(sig, ua)
               accountDataOption <- PlayNommDAppAccount.getAccountInfo(ua.account)
               accountData <- fromOption(
                 accountDataOption,
