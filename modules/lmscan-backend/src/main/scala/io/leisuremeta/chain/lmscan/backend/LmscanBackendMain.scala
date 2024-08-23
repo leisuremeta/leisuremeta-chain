@@ -24,12 +24,9 @@ object BackendMain extends IOApp:
     ExploreApi.getTxPageEndPoint.serverLogic {
       (
           pageInfo,
-          accountAddr,
-          blockHash,
-          subType,
       ) =>
         TransactionService
-          .getPageByFilter[F](pageInfo, accountAddr, blockHash, subType)
+          .getPage[F](pageInfo)
           .leftMap:
             case Right(msg) => Right(ExploreApi.BadRequest(msg))
             case Left(msg) => Left(ExploreApi.ServerError(msg))

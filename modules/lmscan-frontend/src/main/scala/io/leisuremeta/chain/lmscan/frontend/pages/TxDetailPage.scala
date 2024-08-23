@@ -72,7 +72,6 @@ final case class TxDetailModel(
     def getInfo: (String, String, String) =
       extension (a: Transaction)
         def splitTx = a.toString.split("\\(").head
-      println(s"${decode[TransactionWithResult](txDetail.json.getOrElse(""))}")
       this.getTxr match
         case Some(x) =>
           val acc = x.signedTx.sig.account.toString
@@ -82,5 +81,6 @@ final case class TxDetailModel(
             case tx: Transaction.GroupTx => ("TokenTx", tx.splitTx)
             case tx: Transaction.RewardTx => ("TokenTx", tx.splitTx)
             case tx: Transaction.AgendaTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.VotingTx => ("TokenTx", tx.splitTx)
           (acc, tt, st)
         case None => ("", "", "")

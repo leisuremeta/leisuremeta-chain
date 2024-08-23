@@ -9,7 +9,9 @@ import common.model._
 object TxPage:
   def update(model: TxModel): Msg => (Model, Cmd[IO, Msg]) =
     case Init => (model, DataProcess.getData(model))
-    case RefreshData => (model, DataProcess.getData(model))
+    case RefreshData => 
+      if (model.page == 1) then (model, DataProcess.getData(model))
+      else (model, Cmd.None)
     case UpdateTxs(v) => (model.copy(data = Some(v)), Nav.pushUrl(model.url))
     case UpdateSearch(v) => (model.copy(searchPage = v), Cmd.None)
     case ListSearch => (TxModel(page = model.searchPage), Cmd.emit(Init))
@@ -36,3 +38,4 @@ final case class TxModel(
     def view: Html[Msg] = TxPage.view(this)
     def url = s"/txs/$page"
     def update: Msg => (Model, Cmd[IO, Msg]) = TxPage.update(this)
+    

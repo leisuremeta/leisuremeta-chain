@@ -27,15 +27,10 @@ object Footer:
               cls := "icon-leisuremetaverse"
             )("LeisureMetaverse"),
             a(
-              href := "https://m.playnomm.com/",
-              target :="_blank",
-              cls := "icon-playnomm"
-            )("playNomm"),
-            a(
               href := "https://www.ilikelm.com/",
               target :="_blank",
               cls := "icon-lm-nova"
-            )("LM NOVA"),
+            )("ILIKELM"),
           )
         ),
         dl(

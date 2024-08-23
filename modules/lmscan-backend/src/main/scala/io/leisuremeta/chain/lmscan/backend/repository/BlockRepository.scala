@@ -12,18 +12,29 @@ object BlockRepository extends CommonQuery:
   import ctx.*
   def getPage[F[_]: Async](
       pageNavInfo: PageNavigation,
+      cnt: Long,
   ): EitherT[F, String, Seq[Block]] =
     def pagedQuery =
-      quote { (pageNavInfo: PageNavigation) =>
-        val offset         = sizePerRequest * pageNavInfo.pageNo
-        val sizePerRequest = pageNavInfo.sizePerRequest
+      quote { (offset: Long, sizePerRequest: Int) =>
 
         query[Block]
+          .filter(t => t.number <= offset)
           .sortBy(t => t.number)(Ord.desc)
-          .drop(offset)
           .take(sizePerRequest)
       }
-    seqQuery(pagedQuery(lift(pageNavInfo)))
+
+    val sizePerRequest = pageNavInfo.sizePerRequest
+    val offset         = sizePerRequest * pageNavInfo.pageNo
+    seqQuery(pagedQuery(lift(cnt - offset), lift(sizePerRequest)))
+
+  def getLast[F[_]: Async](): EitherT[F, String, Option[Block]] =
+    inline def q =
+      quote { () =>
+        query[Block]
+          .sortBy(t => t.number)(Ord.desc)
+          .take(1)
+      }
+    optionQuery(q())
 
   def get[F[_]: Async](
       hash: String,

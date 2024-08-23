@@ -53,11 +53,6 @@ object ExploreApi:
     .in(
       sttp.tapir.EndpointInput.derived[PageNavigation],
     )
-    .in(
-      query[Option[String]]("accountAddr")
-        .and(query[Option[String]]("blockHash"))
-        .and(query[Option[String]]("subtype")),
-    )
     .out(jsonBody[PageResponse[TxInfo]])
 
   val getTxDetailEndPoint = baseEndpoint.get

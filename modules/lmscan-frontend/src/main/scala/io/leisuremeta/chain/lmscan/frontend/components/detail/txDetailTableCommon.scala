@@ -50,6 +50,7 @@ object TxDetailTableCommon:
         case tx: Transaction.GroupTx => groupView(tx)
         case tx: Transaction.RewardTx => rewardView(tx)
         case t: Transaction.AgendaTx => agendaView(t, tx.result)
+        case _ => List()
     yield res
     result.getOrElse(List(div(""))).prepended(div(cls := "page-title")("Transaction Values"))
 
@@ -67,7 +68,7 @@ object TxDetailTableCommon:
     case nft: MintNFT => 
       div(cls := "detail table-container")(
         rowCustom("Token ID", ParseHtml.fromTokenId(nft.tokenId.toString)),
-        row("Collection Name", nft.collectionName),
+        // row("Collection Name", nft.collectionName),
         row("No", getNFromId(nft.tokenId.toString)),
         rowCustom("Data URI", a(href := nft.dataUrl.toString, target := "_blank")(nft.dataUrl.toString)),
         row("Content Hash", nft.contentHash.toHex),
@@ -76,7 +77,7 @@ object TxDetailTableCommon:
     case nft: MintNFTWithMemo => 
       div(cls := "detail table-container")(
         rowCustom("Token ID", ParseHtml.fromTokenId(nft.tokenId.toString)),
-        row("Collection Name", nft.collectionName),
+        // row("Collection Name", nft.collectionName),
         row("No", getNFromId(nft.tokenId.toString)),
         rowCustom("Data URI", a(href := nft.dataUrl.toString, target := "_blank")(nft.dataUrl.toString)),
         row("Content Hash", nft.contentHash.toHex),
@@ -131,9 +132,11 @@ object TxDetailTableCommon:
       ) ::
       div(cls := "detail table-container")(
         rowInputHead ::
-        tx.inputs.zipWithIndex
-          .map((a, i) => rowInputBody(a, i))
+        tx.inputs
+          .zipWithIndex
           .toList
+          .sortBy(_._2)
+          .map((a, i) => rowInputBody(a, i))
       ) ::
       div(cls := "detail table-container")(
         rowTriOutput("Value") ::
@@ -169,6 +172,7 @@ object TxDetailTableCommon:
       div(cls := "detail table-container")(
         row("Ammount", tx.amount.toString),
       ) :: List()
+    case _ => List()
 
   def accountView(tx: AccountTx) = tx match
     case tx: CreateAccount =>
@@ -198,6 +202,7 @@ object TxDetailTableCommon:
         ),
         row("PublicKey Summary", tx.summaries.keys.head.toBytes.toHex),
       ) :: List()
+    case _ => List()
 
   def groupView(tx: GroupTx) = tx match
     case tx: CreateGroup =>
