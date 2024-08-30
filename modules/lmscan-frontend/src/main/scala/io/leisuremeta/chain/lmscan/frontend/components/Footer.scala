@@ -31,6 +31,11 @@ object Footer:
               target :="_blank",
               cls := "icon-lm-nova"
             )("ILIKELM"),
+            a(
+              href := "https://www.themoonent.com/",
+              target :="_blank",
+              cls := "icon-tme"
+            )("THE MOON ENTERTAINMENT"),
           )
         ),
         dl(
