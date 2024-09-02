@@ -9,6 +9,7 @@ final case class NftSeason(
     creator: String,
     rarity: String,
     dataUrl: String,
+    collection: String,
 ):
   def toModel: NftSeasonModel =
     NftSeasonModel(
@@ -18,4 +19,5 @@ final case class NftSeason(
       Some(creator),
       Some(rarity),
       Some(dataUrl),
+      Some(collection),
     )

@@ -76,7 +76,7 @@ object Body:
         )(
           gen.cell(
             Cell.NftDetail(v, v.nftName),
-            Cell.Any(v.getCollection),
+            Cell.PlainStr(v.collection),
             Cell.NftDetail(v, v.tokenId),
             Cell.PlainStr(v.creator),
             Cell.PlainStr(v.rarity),

@@ -28,17 +28,16 @@ object TransactionRepository extends CommonQuery:
   ): EitherT[F, String, Seq[Tx]] =
 
     inline def pagedQuery =
-      quote { (pageNavInfo: PageNavigation) =>
-        val sizePerRequest = pageNavInfo.sizePerRequest
-        val offset         = sizePerRequest * pageNavInfo.pageNo
-
+      quote { (offset: Int, sizePerRequest: Int) =>
         query[Tx]
           .sortBy(t => (t.blockNumber, t.eventTime))(Ord(Ord.desc, Ord.desc))
           .drop(offset)
           .take(sizePerRequest)
       }
 
-    seqQuery(pagedQuery(lift(pageNavInfo)))
+    val sizePerRequest = pageNavInfo.sizePerRequest
+    val offset         = sizePerRequest * pageNavInfo.pageNo
+    seqQuery(pagedQuery(lift(offset), lift(sizePerRequest)))
 
   def get[F[_]: Async](
       hash: String,
@@ -67,12 +66,12 @@ object TransactionRepository extends CommonQuery:
           .join(
             query[AccountMapper]
               .filter(t => t.address == lift(addr))
+              .sortBy(_.eventTime)(Ord.desc)
               .drop(offset)
               .take(sizePerRequest)
           )
           .on((tx, mapper) => tx.hash == mapper.hash)
           .map((tx, _) => tx)
-          .sortBy(t => t.eventTime)(Ord.desc)
       }
 
     val res = for

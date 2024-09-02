@@ -32,7 +32,7 @@ object NftInfoRepository extends CommonQuery:
         query[NftFile]
           .join(query[CollectionInfo].filter(s => s.season == season))
           .on((n, c) => n.tokenDefId == c.tokenDefId)
-          .map((n, _) => 
+          .map((n, c) => 
             NftSeason(
               n.nftName,
               n.tokenId,
@@ -40,6 +40,7 @@ object NftInfoRepository extends CommonQuery:
               n.creator,
               n.rarity,
               n.dataUrl,
+              c.collectionName,
             ) 
           )
           .sortBy(s => s.tokenId)(Ord.asc)

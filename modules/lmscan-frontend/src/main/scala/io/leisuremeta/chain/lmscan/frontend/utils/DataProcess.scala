@@ -74,7 +74,7 @@ object DataProcess:
       case m: NftTokenModel => s"${base}nft/${m.id}?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
       case _: AccModel => s"${base}account/list?pageNo=${model.page - 1}&sizePerRequest=${model.size}"
     Http.send(
-      Request.get(url).withTimeout(10.seconds),
+      Request.get(url).withTimeout(20.seconds),
       Decoder[Msg](Parse.onResponse(model), onError)
     )
   def getData(detail: TxDetail): Cmd[IO, Msg] =

@@ -35,7 +35,7 @@ object TransactionService:
       summaryOpt <- SummaryService.get(0)
       page <- TransactionRepository.getPage(pageNavInfo).leftMap(Left(_))
       summary = summaryOpt.getOrElse(SummaryModel())
-      cnt = summary.totalTxSize.getOrElse(0L)
+      cnt = Math.min(summary.totalTxSize.getOrElse(0L), 100000L)
       txInfo = convertToInfo(page)
     yield PageResponse.from(cnt, pageNavInfo.sizePerRequest, txInfo)
 
