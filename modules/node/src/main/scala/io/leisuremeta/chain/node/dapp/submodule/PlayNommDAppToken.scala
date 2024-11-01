@@ -563,7 +563,11 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to put nft balance of $newUtxoKey"
-        _ <- addNftSnapshot[F](de.output.getOrElse(fromAccount), de.definitionId, de.tokenId)
+        _ <- addNftSnapshot[F](
+          de.output.getOrElse(fromAccount),
+          de.definitionId,
+          de.tokenId,
+        )
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to add nft snapshot of ${de.tokenId}"
@@ -587,42 +591,45 @@ object PlayNommDAppToken:
           yield ()
       yield txWithResult
 
-    case cs: Transaction.TokenTx.CreateSnapshot =>
+    case cs: Transaction.TokenTx.CreateSnapshots =>
       for
-        _              <- PlayNommDAppAccount.verifySignature(sig, tx)
-        tokenDefOption <- getTokenDefinitionOption(cs.definitionId)
-        tokenDef <- fromOption(
-          tokenDefOption,
-          s"Token ${cs.definitionId} is not defined",
-        )
-        adminGroupId <- fromOption(
-          tokenDef.adminGroup,
-          s"No admin group in token ${cs.definitionId}",
-        )
-        _ <- PlayNommState[F].group.groupAccount
-          .get((adminGroupId, sig.account))
-          .mapK:
-            PlayNommDAppFailure.mapExternal:
-              s"Not in admin group ${adminGroupId} of ${sig.account}"
-        snapshotStateOption <- PlayNommState[F].token.snapshotState
-          .get(cs.definitionId)
-          .mapK:
-            PlayNommDAppFailure.mapInternal:
-              s"Fail to get snapshot state of ${cs.definitionId}"
-        lastSnapshotId = snapshotStateOption
-          .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         txWithResult = TransactionWithResult(Signed(sig, cs))(None)
-        snapshotState = SnapshotState(
-          snapshotId = lastSnapshotId.increase,
-          createdAt = cs.createdAt,
-          txHash = txWithResult.toHash.toSignedTxHash,
-          memo = cs.memo,
-        )
-        _ <- PlayNommState[F].token.snapshotState
-          .put(cs.definitionId, snapshotState)
-          .mapK:
-            PlayNommDAppFailure.mapInternal:
-              s"Fail to put snapshot state of ${cs.definitionId}"
+        _ <- cs.definitionIds.toList.traverse: definitionId =>
+          for
+            tokenDefOption <- getTokenDefinitionOption(definitionId)
+            tokenDef <- fromOption(
+              tokenDefOption,
+              s"Token ${definitionId} is not defined",
+            )
+            adminGroupId <- fromOption(
+              tokenDef.adminGroup,
+              s"No admin group in token ${definitionId}",
+            )
+            _ <- PlayNommState[F].group.groupAccount
+              .get((adminGroupId, sig.account))
+              .mapK:
+                PlayNommDAppFailure.mapExternal:
+                  s"Not in admin group ${adminGroupId} of ${sig.account}"
+            snapshotStateOption <- PlayNommState[F].token.snapshotState
+              .get(definitionId)
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to get snapshot state of ${definitionId}"
+            lastSnapshotId = snapshotStateOption
+              .fold(SnapshotState.SnapshotId.Zero)(_.snapshotId)
+            snapshotState = SnapshotState(
+              snapshotId = lastSnapshotId.increase,
+              createdAt = cs.createdAt,
+              txHash = txWithResult.toHash.toSignedTxHash,
+              memo = cs.memo,
+            )
+            _ <- PlayNommState[F].token.snapshotState
+              .put(definitionId, snapshotState)
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to put snapshot state of ${definitionId}"
+          yield ()
       yield txWithResult
 
   def getTokenDefinitionOption[F[_]: Monad: PlayNommState](

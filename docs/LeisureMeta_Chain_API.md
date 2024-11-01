@@ -1093,8 +1093,49 @@
     ["83c783f31b95cc4a713a921ec1df0725c6675b999ba6285a70c1f777615e4281"]
     ```
 
-    
+* CreateSnapshots
 
+  * > MinterGroup에 속한 Account의 서명
+
+  * Fields
+    * definitionID(string)
+    * tokenID(string)
+    * definitionIds: Set[TokenDefinitionId]
+    * *(optional)* Memo(string)
+
+  * Example
+
+    ```json
+    [
+      {
+        "sig" : {
+          "sig" : {
+            "v" : 27,
+            "r" : "2a771418871b3fcfa43a0b00821fce6d9ecec40a1cf2c5ebff4489377c7d0f01",
+            "s" : "640b2af02ee4a713d22d2e16e0acd2c61ee1195aa16254cc6481a926d772d866"
+          },
+          "account" : "alice"
+        },
+        "value" : {
+          "TokenTx" : {
+            "CreateSnapshots" : {
+              "networkId" : 2021,
+              "createdAt" : "2023-01-11T19:09:00Z",
+              "definitionIds" : [
+                "LM",
+                "nft-with-precision"
+              ],
+              "memo" : "Snapshot for NFT"
+            }
+          }
+        }
+      }
+    ]
+    ```
+
+    ```json
+    ["e9fecfafd40e655ac761730bcbb9be524f39370ffa9a272f875275d6cdc50818"]
+    ```
 
 ### Reward
 

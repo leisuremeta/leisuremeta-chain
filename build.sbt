@@ -385,6 +385,7 @@ lazy val jvmClient = (project in file("modules/jvm-client"))
   .dependsOn(node)
   .settings(
     name := "leisuremeta-chain-jvm-client",
+    Compile / run / fork := true,
   )
 
 lazy val api = crossProject(JSPlatform, JVMPlatform)

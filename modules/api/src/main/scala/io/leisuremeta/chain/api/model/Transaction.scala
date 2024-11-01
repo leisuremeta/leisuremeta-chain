@@ -366,10 +366,10 @@ object Transaction:
     ) extends TokenTx
         with NftBalance
 
-    final case class CreateSnapshot(
+    final case class CreateSnapshots(
         networkId: NetworkId,
         createdAt: Instant,
-        definitionId: TokenDefinitionId,
+        definitionIds: Set[TokenDefinitionId],
         memo: Option[Utf8],
     ) extends TokenTx
 
@@ -390,7 +390,7 @@ object Transaction:
           case 12 => ByteDecoder[DefineTokenWithPrecision].widen
           case 13 => ByteDecoder[UpdateNFT].widen
           case 14 => ByteDecoder[MintNFTWithMemo].widen
-          case 15 => ByteDecoder[CreateSnapshot].widen
+          case 15 => ByteDecoder[CreateSnapshots].widen
     }
 
     given txByteEncoder: ByteEncoder[TokenTx] = (ttx: TokenTx) =>
@@ -409,7 +409,7 @@ object Transaction:
         case tx: DefineTokenWithPrecision      => build(12)(tx)
         case tx: UpdateNFT                     => build(13)(tx)
         case tx: MintNFTWithMemo               => build(14)(tx)
-        case tx: CreateSnapshot                => build(15)(tx)
+        case tx: CreateSnapshots               => build(15)(tx)
 
     given txCirceDecoder: Decoder[TokenTx] = deriveDecoder
     given txCirceEncoder: Encoder[TokenTx] = deriveEncoder

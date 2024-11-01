@@ -193,6 +193,15 @@ object JvmClientMain extends IOApp:
       output = alice,
       memo = Some(Utf8.unsafeFrom("Test Updating NFT #2022061710000513118")),
     ),
+    Transaction.TokenTx.CreateSnapshots(
+      networkId = NetworkId(BigNat.unsafeFromLong(2021L)),
+      createdAt = java.time.Instant.parse("2023-01-11T19:09:00.00Z"),
+      definitionIds = Set(
+        TokenDefinitionId(Utf8.unsafeFrom("LM")),
+        TokenDefinitionId(Utf8.unsafeFrom("nft-with-precision")),
+      ),
+      memo = Some(Utf8.unsafeFrom("Snapshot for NFT")),
+    ),
   )
 
   override def run(args: List[String]): IO[ExitCode] =
