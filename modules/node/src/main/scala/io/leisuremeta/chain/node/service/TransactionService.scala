@@ -22,11 +22,7 @@ import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
 import lib.merkle.*
 import lib.merkle.MerkleTrie.NodeStore
-import repository.{
-  BlockRepository,
-  StateRepository,
-  TransactionRepository,
-}
+import repository.{BlockRepository, StateRepository, TransactionRepository}
 
 object TransactionService:
   def submit[F[_]
@@ -138,12 +134,13 @@ object TransactionService:
           )
         yield
           val txType: String = tx.signedTx.value match
-            case tx: Transaction.AccountTx => "Account"
-            case tx: Transaction.GroupTx   => "Group"
-            case tx: Transaction.TokenTx   => "Token"
-            case tx: Transaction.RewardTx  => "Reward"
-            case tx: Transaction.AgendaTx  => "Agenda"
-            case tx: Transaction.VotingTx  => "Voting"
+            case tx: Transaction.AccountTx    => "Account"
+            case tx: Transaction.GroupTx      => "Group"
+            case tx: Transaction.TokenTx      => "Token"
+            case tx: Transaction.RewardTx     => "Reward"
+            case tx: Transaction.AgendaTx     => "Agenda"
+            case tx: Transaction.VotingTx     => "Voting"
+            case tx: Transaction.CreatorDaoTx => "CreatorDao"
 
           TxInfo(
             txHash = txHash,

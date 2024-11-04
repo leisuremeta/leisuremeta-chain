@@ -9,6 +9,7 @@ import scodec.bits.ByteVector
 
 import account.{EthAddress, ExternalChain, ExternalChainAddress}
 //import agenda.AgendaId
+import creator_dao.CreatorDaoId
 import reward.DaoActivity
 import voting.{ProposalId, VoteType}
 import lib.crypto.{Hash, Recover, Sign}
@@ -645,6 +646,58 @@ object Transaction:
     given txCirceEncoder: Encoder[VotingTx] = deriveEncoder
   end VotingTx
 
+  sealed trait CreatorDaoTx extends Transaction
+  object CreatorDaoTx:
+    /*
+    {
+  "sig": {
+    "NamedSignature": {
+      "name": "founder",
+      "sig": {
+        "v": 27,
+        "r": "62d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+        "s": "2d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+      }
+    }
+  },
+  "value": {
+    "CreatorDaoTx": {
+      "CreateCreatorDao": {
+        "networkId": 102,
+        "createdAt": "2024-03-15T09:28:41.339Z",
+        "id": "dao_001",
+        "name": "Art Creators DAO",
+        "description": "A DAO for digital art creators",
+        "founder": "creator001",
+        "coordinator": "playnomm"
+      }
+    }
+  }
+}
+    */
+    final case class CreateCreatorDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        name: Utf8,
+        description: Utf8,
+        founder: Account,
+        coordinator: Account,
+    ) extends CreatorDaoTx
+
+
+    given txByteDecoder: ByteDecoder[CreatorDaoTx] = ByteDecoder[BigNat].flatMap:
+      bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[CreateCreatorDao].widen
+    given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
+      cdtx match
+        case tx: CreateCreatorDao => build(0)(tx)
+    given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
+    given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
+
+  end CreatorDaoTx
+
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
     ByteEncoder[BigNat].encode(
       BigNat.unsafeFromLong(discriminator),
@@ -659,6 +712,7 @@ object Transaction:
         case 3 => ByteDecoder[RewardTx].widen
         case 4 => ByteDecoder[AgendaTx].widen
         case 5 => ByteDecoder[VotingTx].widen
+        case 6 => ByteDecoder[CreatorDaoTx].widen
   }
 
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
@@ -669,6 +723,7 @@ object Transaction:
       case tx: RewardTx  => build(3)(tx)
       case tx: AgendaTx  => build(4)(tx)
       case tx: VotingTx  => build(5)(tx)
+      case tx: CreatorDaoTx => build(6)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 
