@@ -719,17 +719,49 @@ object Transaction:
         name: Utf8,
         description: Utf8,
     ) extends CreatorDaoTx
+/*
+```json
+{
+  "sig": {
+    "NamedSignature": {
+      "name": "founder",
+      "sig": {
+        "v": 27,
+        "r": "82d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+        "s": "4d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+      }
+    }
+  },
+  "value": {
+    "CreatorDaoTx": {
+      "DisbandCreatorDao": {
+        "networkId": 102,
+        "createdAt": "2024-03-15T11:28:41.339Z",
+        "id": "dao_001"
+      }
+    }
+  }
+}
+```
+*/
 
+    final case class DisbandCreatorDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+    ) extends CreatorDaoTx
 
     given txByteDecoder: ByteDecoder[CreatorDaoTx] = ByteDecoder[BigNat].flatMap:
       bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[CreateCreatorDao].widen
           case 1 => ByteDecoder[UpdateCreatorDao].widen
+          case 2 => ByteDecoder[DisbandCreatorDao].widen
     given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
       cdtx match
         case tx: CreateCreatorDao => build(0)(tx)
         case tx: UpdateCreatorDao => build(1)(tx)
+        case tx: DisbandCreatorDao => build(2)(tx)
     given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
     given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
 

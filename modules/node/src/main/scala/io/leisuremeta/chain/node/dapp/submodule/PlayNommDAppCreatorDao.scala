@@ -95,3 +95,28 @@ object PlayNommDAppCreatorDao:
             PlayNommDAppFailure.mapInternal:
               s"Failed to put CreatorDao with id ${ud.id}"
       yield TransactionWithResult(Signed(sig, ud))(None)
+
+    case dd: Transaction.CreatorDaoTx.DisbandCreatorDao =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        daoInfoOption <- PlayNommState[F].creatorDao.dao
+          .get(dd.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get CreatorDao with id ${dd.id}"
+        daoInfo <- fromOption(
+          daoInfoOption,
+          s"CreatorDao with id ${dd.id} does not exist",
+        )
+        founderOrCoordinator =
+          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+        _ <- checkExternal(
+          founderOrCoordinator,
+          s"Account ${sig.account} is not authorized to disband DAO ${dd.id}",
+        )
+        _ <- PlayNommState[F].creatorDao.dao
+          .remove(dd.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to remove CreatorDao with id ${dd.id}"
+      yield TransactionWithResult(Signed(sig, dd))(None)
