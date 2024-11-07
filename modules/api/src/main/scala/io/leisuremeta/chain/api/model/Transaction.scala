@@ -751,17 +751,26 @@ object Transaction:
         id: CreatorDaoId,
     ) extends CreatorDaoTx
 
+    final case class ReplaceCoordinator(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        newCoordinator: Account,
+    ) extends CreatorDaoTx
+
     given txByteDecoder: ByteDecoder[CreatorDaoTx] = ByteDecoder[BigNat].flatMap:
       bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[CreateCreatorDao].widen
           case 1 => ByteDecoder[UpdateCreatorDao].widen
           case 2 => ByteDecoder[DisbandCreatorDao].widen
+          case 3 => ByteDecoder[ReplaceCoordinator].widen
     given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
       cdtx match
         case tx: CreateCreatorDao => build(0)(tx)
         case tx: UpdateCreatorDao => build(1)(tx)
         case tx: DisbandCreatorDao => build(2)(tx)
+        case tx: ReplaceCoordinator => build(3)(tx)
     given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
     given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
 

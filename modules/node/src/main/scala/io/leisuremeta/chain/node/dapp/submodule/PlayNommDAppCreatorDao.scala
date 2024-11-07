@@ -120,3 +120,28 @@ object PlayNommDAppCreatorDao:
             PlayNommDAppFailure.mapInternal:
               s"Failed to remove CreatorDao with id ${dd.id}"
       yield TransactionWithResult(Signed(sig, dd))(None)
+
+    case rc: Transaction.CreatorDaoTx.ReplaceCoordinator =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        daoInfoOption <- PlayNommState[F].creatorDao.dao
+          .get(rc.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get CreatorDao with id ${rc.id}"
+        daoInfo <- fromOption(
+          daoInfoOption,
+          s"CreatorDao with id ${rc.id} does not exist",
+        )
+        isCurrentCoordinator = sig.account === daoInfo.coordinator
+        _ <- checkExternal(
+          isCurrentCoordinator,
+          s"Only the current Coordinator can replace the Coordinator for DAO ${rc.id}",
+        )
+        updatedDaoInfo = daoInfo.copy(coordinator = rc.newCoordinator)
+        _ <- PlayNommState[F].creatorDao.dao
+          .put(rc.id, updatedDaoInfo)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to put CreatorDao with id ${rc.id}"
+      yield TransactionWithResult(Signed(sig, rc))(None)
