@@ -102,7 +102,7 @@ object PlayNommState:
   )
 
   case class CreatorDao[F[_]](
-      dao: DAppState[F, CreatorDaoId, CreatorDaoInfo],
+      dao: DAppState[F, CreatorDaoId, CreatorDaoData],
       daoModerators: DAppState[F, (CreatorDaoId, AccountM), Unit],
       daoMembers: DAppState[F, (CreatorDaoId, AccountM), Unit],
   )

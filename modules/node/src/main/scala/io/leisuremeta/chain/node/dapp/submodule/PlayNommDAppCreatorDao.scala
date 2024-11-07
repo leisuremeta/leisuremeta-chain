@@ -32,16 +32,16 @@ object PlayNommDAppCreatorDao:
     case cd: Transaction.CreatorDaoTx.CreateCreatorDao =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(cd.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${cd.id}"
         _ <- checkExternal(
-          daoInfoOption.isEmpty,
+          daoDataOption.isEmpty,
           s"CreatorDao with id ${cd.id} already exists",
         )
-        daoInfo = CreatorDaoInfo(
+        daoData = CreatorDaoData(
           id = cd.id,
           name = cd.name,
           description = cd.description,
@@ -49,7 +49,7 @@ object PlayNommDAppCreatorDao:
           coordinator = cd.coordinator,
         )
         _ <- PlayNommState[F].creatorDao.dao
-          .put(cd.id, daoInfo)
+          .put(cd.id, daoData)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to put CreatorDao with id ${cd.id}"
@@ -58,17 +58,17 @@ object PlayNommDAppCreatorDao:
     case ud: Transaction.CreatorDaoTx.UpdateCreatorDao =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(ud.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${ud.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${ud.id} does not exist",
         )
         founderOrCoordinator =
-          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+          sig.account === daoData.founder || sig.account === daoData.coordinator
         hasAuth <-
           if founderOrCoordinator then pure(true)
           else isModerator(ud.id, sig.account)
@@ -76,12 +76,12 @@ object PlayNommDAppCreatorDao:
           hasAuth,
           s"Account ${sig.account} is not authorized to update CreatorDao with id ${ud.id}",
         )
-        daoInfo1 = daoInfo.copy(
+        daoData1 = daoData.copy(
           name = ud.name,
           description = ud.description,
         )
         _ <- PlayNommState[F].creatorDao.dao
-          .put(ud.id, daoInfo1)
+          .put(ud.id, daoData1)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to put CreatorDao with id ${ud.id}"
@@ -90,17 +90,17 @@ object PlayNommDAppCreatorDao:
     case dd: Transaction.CreatorDaoTx.DisbandCreatorDao =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(dd.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${dd.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${dd.id} does not exist",
         )
         founderOrCoordinator =
-          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+          sig.account === daoData.founder || sig.account === daoData.coordinator
         _ <- checkExternal(
           founderOrCoordinator,
           s"Account ${sig.account} is not authorized to disband DAO ${dd.id}",
@@ -115,23 +115,23 @@ object PlayNommDAppCreatorDao:
     case rc: Transaction.CreatorDaoTx.ReplaceCoordinator =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(rc.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${rc.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${rc.id} does not exist",
         )
-        isCurrentCoordinator = sig.account === daoInfo.coordinator
+        isCurrentCoordinator = sig.account === daoData.coordinator
         _ <- checkExternal(
           isCurrentCoordinator,
           s"Only the current Coordinator can replace the Coordinator for DAO ${rc.id}",
         )
-        updatedDaoInfo = daoInfo.copy(coordinator = rc.newCoordinator)
+        updatedDaoData = daoData.copy(coordinator = rc.newCoordinator)
         _ <- PlayNommState[F].creatorDao.dao
-          .put(rc.id, updatedDaoInfo)
+          .put(rc.id, updatedDaoData)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to put CreatorDao with id ${rc.id}"
@@ -140,17 +140,17 @@ object PlayNommDAppCreatorDao:
     case am: Transaction.CreatorDaoTx.AddMembers =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(am.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${am.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${am.id} does not exist",
         )
         founderOrCoordinator =
-          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+          sig.account === daoData.founder || sig.account === daoData.coordinator
         hasAuth <-
           if founderOrCoordinator then pure(true)
           else isModerator(am.id, sig.account)
@@ -169,17 +169,17 @@ object PlayNommDAppCreatorDao:
     case rm: Transaction.CreatorDaoTx.RemoveMembers =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(rm.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${rm.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${rm.id} does not exist",
         )
         founderOrCoordinator =
-          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+          sig.account === daoData.founder || sig.account === daoData.coordinator
         hasAuth <-
           if founderOrCoordinator then pure(true)
           else isModerator(rm.id, sig.account)
@@ -198,16 +198,16 @@ object PlayNommDAppCreatorDao:
     case pm: Transaction.CreatorDaoTx.PromoteModerators =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(pm.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${pm.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${pm.id} does not exist",
         )
-        hasPermission = daoInfo.founder == sig.account || daoInfo.coordinator == sig.account
+        hasPermission = daoData.founder == sig.account || daoData.coordinator == sig.account
         _ <- checkExternal(
           hasPermission,
           s"Account ${sig.account} does not have permission to promote moderators in DAO ${pm.id}",
@@ -223,16 +223,16 @@ object PlayNommDAppCreatorDao:
     case dm: Transaction.CreatorDaoTx.DemoteModerators =>
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
-        daoInfoOption <- PlayNommState[F].creatorDao.dao
+        daoDataOption <- PlayNommState[F].creatorDao.dao
           .get(dm.id)
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Failed to get CreatorDao with id ${dm.id}"
-        daoInfo <- fromOption(
-          daoInfoOption,
+        daoData <- fromOption(
+          daoDataOption,
           s"CreatorDao with id ${dm.id} does not exist",
         )
-        hasPermission = daoInfo.founder == sig.account || daoInfo.coordinator == sig.account
+        hasPermission = daoData.founder == sig.account || daoData.coordinator == sig.account
         _ <- checkExternal(
           hasPermission,
           s"Account ${sig.account} does not have permission to demote moderators in DAO ${dm.id}",
