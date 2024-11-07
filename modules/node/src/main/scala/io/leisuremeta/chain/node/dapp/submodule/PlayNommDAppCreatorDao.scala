@@ -5,8 +5,10 @@ package submodule
 
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
+import cats.syntax.all.*
 
 import api.model.{
+  Account,
   AccountSignature,
   Signed,
   Transaction,
@@ -51,3 +53,45 @@ object PlayNommDAppCreatorDao:
             PlayNommDAppFailure.mapInternal:
               s"Failed to put CreatorDao with id ${cd.id}"
       yield TransactionWithResult(Signed(sig, cd))(None)
+
+    case ud: Transaction.CreatorDaoTx.UpdateCreatorDao =>
+      def isModerator(account: Account): StateT[
+        EitherT[F, PlayNommDAppFailure, *],
+        MerkleTrieState,
+        Boolean,
+      ] = PlayNommState[F].creatorDao.daoModerators
+        .get((ud.id, sig.account))
+        .map(_.isDefined)
+        .mapK:
+          PlayNommDAppFailure.mapInternal:
+            s"Failed to get CreatorDaoModerator with id ${ud.id} and account ${sig.account}"
+
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        daoInfoOption <- PlayNommState[F].creatorDao.dao
+          .get(ud.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get CreatorDao with id ${ud.id}"
+        daoInfo <- fromOption(
+          daoInfoOption,
+          s"CreatorDao with id ${ud.id} does not exist",
+        )
+        founderOrCoordinator =
+          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+        hasAuth <-
+          if founderOrCoordinator then pure(true) else isModerator(sig.account)
+        _ <- checkExternal(
+          hasAuth,
+          s"Account ${sig.account} is not authorized to update CreatorDao with id ${ud.id}",
+        )
+        daoInfo1 = daoInfo.copy(
+          name = ud.name,
+          description = ud.description,
+        )
+        _ <- PlayNommState[F].creatorDao.dao
+          .put(ud.id, daoInfo1)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to put CreatorDao with id ${ud.id}"
+      yield TransactionWithResult(Signed(sig, ud))(None)

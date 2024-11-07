@@ -685,25 +685,63 @@ object Transaction:
         coordinator: Account,
     ) extends CreatorDaoTx
 
+/*
+```json
+{
+  "sig": {
+    "NamedSignature": {
+      "name": "moderator",
+      "sig": {
+        "v": 27,
+        "r": "72d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+        "s": "3d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+      }
+    }
+  },
+  "value": {
+    "CreatorDaoTx": {
+      "UpdateCreatorDao": {
+        "networkId": 102,
+        "createdAt": "2024-03-15T10:28:41.339Z",
+        "id": "dao_001",
+        "name": "Digital Art Creators DAO",
+        "description": "A DAO for digital art creators and collectors"
+      }
+    }
+  }
+}
+```
+*/
+    final case class UpdateCreatorDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        name: Utf8,
+        description: Utf8,
+    ) extends CreatorDaoTx
+
 
     given txByteDecoder: ByteDecoder[CreatorDaoTx] = ByteDecoder[BigNat].flatMap:
       bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[CreateCreatorDao].widen
+          case 1 => ByteDecoder[UpdateCreatorDao].widen
     given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
       cdtx match
         case tx: CreateCreatorDao => build(0)(tx)
+        case tx: UpdateCreatorDao => build(1)(tx)
     given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
     given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
 
   end CreatorDaoTx
 
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
-    ByteEncoder[BigNat].encode(
-      BigNat.unsafeFromLong(discriminator),
-    ) ++ ByteEncoder[A].encode(tx)
+    ByteEncoder[BigNat]
+      .encode:
+        BigNat.unsafeFromLong(discriminator)
+      ++ ByteEncoder[A].encode(tx)
 
-  given txByteDecoder: ByteDecoder[Transaction] = ByteDecoder[BigNat].flatMap {
+  given txByteDecoder: ByteDecoder[Transaction] = ByteDecoder[BigNat].flatMap:
     bignat =>
       bignat.toBigInt.toInt match
         case 0 => ByteDecoder[AccountTx].widen
@@ -713,7 +751,6 @@ object Transaction:
         case 4 => ByteDecoder[AgendaTx].widen
         case 5 => ByteDecoder[VotingTx].widen
         case 6 => ByteDecoder[CreatorDaoTx].widen
-  }
 
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
