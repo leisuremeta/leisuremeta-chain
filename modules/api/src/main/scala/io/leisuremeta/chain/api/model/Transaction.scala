@@ -772,6 +772,13 @@ object Transaction:
         members: Set[Account],
     ) extends CreatorDaoTx
 
+    final case class PromoteModerators(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
     given txByteDecoder: ByteDecoder[CreatorDaoTx] =
       ByteDecoder[BigNat].flatMap: bignat =>
         bignat.toBigInt.toInt match
@@ -781,6 +788,7 @@ object Transaction:
           case 3 => ByteDecoder[ReplaceCoordinator].widen
           case 4 => ByteDecoder[AddMembers].widen
           case 5 => ByteDecoder[RemoveMembers].widen
+          case 6 => ByteDecoder[PromoteModerators].widen
     given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
       cdtx match
         case tx: CreateCreatorDao   => build(0)(tx)
@@ -789,6 +797,7 @@ object Transaction:
         case tx: ReplaceCoordinator => build(3)(tx)
         case tx: AddMembers         => build(4)(tx)
         case tx: RemoveMembers      => build(5)(tx)
+        case tx: PromoteModerators  => build(6)(tx)
     given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
     given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
 

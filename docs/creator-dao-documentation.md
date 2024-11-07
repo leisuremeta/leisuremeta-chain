@@ -264,34 +264,6 @@ Founder나 Coordinator가 Moderator를 일반 멤버로 강등시킬 수 있다.
 }
 ```
 
-### ApplyCreatorDao (가입신청)
-DAO에 가입하고 싶은 사용자가 신청할 수 있다.
-
-```json
-{
-  "sig": {
-    "NamedSignature": {
-      "name": "applicant",
-      "sig": {
-        "v": 27,
-        "r": "e2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "ad546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
-  },
-  "value": {
-    "CreatorDaoTx": {
-      "ApplyCreatorDao": {
-        "networkId": 102,
-        "createdAt": "2024-03-15T17:28:41.339Z",
-        "id": "dao_001",
-        "account": "user004"
-      }
-    }
-  }
-}
-```
-
 ## 공통 사항
 - 모든 트랜잭션에는 networkId와 createdAt을 포함한다.
 - 서명은 NamedSignature 형식을 사용하고, 권한에 맞는 이름을 포함한다.
