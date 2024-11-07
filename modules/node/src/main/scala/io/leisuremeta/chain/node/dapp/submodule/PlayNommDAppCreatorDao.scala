@@ -220,6 +220,31 @@ object PlayNommDAppCreatorDao:
                 s"Failed to put CreatorDaoModerator with id ${pm.id} and member ${member}"
       yield TransactionWithResult(Signed(sig, pm))(None)
 
+    case dm: Transaction.CreatorDaoTx.DemoteModerators =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        daoInfoOption <- PlayNommState[F].creatorDao.dao
+          .get(dm.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get CreatorDao with id ${dm.id}"
+        daoInfo <- fromOption(
+          daoInfoOption,
+          s"CreatorDao with id ${dm.id} does not exist",
+        )
+        hasPermission = daoInfo.founder == sig.account || daoInfo.coordinator == sig.account
+        _ <- checkExternal(
+          hasPermission,
+          s"Account ${sig.account} does not have permission to demote moderators in DAO ${dm.id}",
+        )
+        _ <- dm.members.toSeq.traverse: member =>
+          PlayNommState[F].creatorDao.daoModerators
+            .remove((dm.id, member))
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Failed to remove CreatorDaoModerator with id ${dm.id} and member ${member}"
+      yield TransactionWithResult(Signed(sig, dm))(None)
+
 def isModerator[F[_]: Functor: PlayNommState](id: CreatorDaoId, account: Account): StateT[
   EitherT[F, PlayNommDAppFailure, *],
   MerkleTrieState,
