@@ -3,6 +3,7 @@ package node
 package dapp
 package submodule
 
+import cats.Functor
 import cats.data.{EitherT, StateT}
 import cats.effect.Concurrent
 import cats.syntax.all.*
@@ -55,17 +56,6 @@ object PlayNommDAppCreatorDao:
       yield TransactionWithResult(Signed(sig, cd))(None)
 
     case ud: Transaction.CreatorDaoTx.UpdateCreatorDao =>
-      def isModerator(account: Account): StateT[
-        EitherT[F, PlayNommDAppFailure, *],
-        MerkleTrieState,
-        Boolean,
-      ] = PlayNommState[F].creatorDao.daoModerators
-        .get((ud.id, sig.account))
-        .map(_.isDefined)
-        .mapK:
-          PlayNommDAppFailure.mapInternal:
-            s"Failed to get CreatorDaoModerator with id ${ud.id} and account ${sig.account}"
-
       for
         _ <- PlayNommDAppAccount.verifySignature(sig, tx)
         daoInfoOption <- PlayNommState[F].creatorDao.dao
@@ -80,7 +70,8 @@ object PlayNommDAppCreatorDao:
         founderOrCoordinator =
           sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
         hasAuth <-
-          if founderOrCoordinator then pure(true) else isModerator(sig.account)
+          if founderOrCoordinator then pure(true)
+          else isModerator(ud.id, sig.account)
         _ <- checkExternal(
           hasAuth,
           s"Account ${sig.account} is not authorized to update CreatorDao with id ${ud.id}",
@@ -145,3 +136,72 @@ object PlayNommDAppCreatorDao:
             PlayNommDAppFailure.mapInternal:
               s"Failed to put CreatorDao with id ${rc.id}"
       yield TransactionWithResult(Signed(sig, rc))(None)
+
+    case am: Transaction.CreatorDaoTx.AddMembers =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        daoInfoOption <- PlayNommState[F].creatorDao.dao
+          .get(am.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get CreatorDao with id ${am.id}"
+        daoInfo <- fromOption(
+          daoInfoOption,
+          s"CreatorDao with id ${am.id} does not exist",
+        )
+        founderOrCoordinator =
+          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+        hasAuth <-
+          if founderOrCoordinator then pure(true)
+          else isModerator(am.id, sig.account)
+        _ <- checkExternal(
+          hasAuth,
+          s"Account ${sig.account} is not authorized to add members to DAO ${am.id}",
+        )
+        _ <- am.members.toSeq.traverse: member =>
+          PlayNommState[F].creatorDao.daoMembers
+            .put((am.id, member), ())
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Failed to put CreatorDaoMember with id ${am.id} and member ${member}"
+      yield TransactionWithResult(Signed(sig, am))(None)
+
+    case rm: Transaction.CreatorDaoTx.RemoveMembers =>
+      for
+        _ <- PlayNommDAppAccount.verifySignature(sig, tx)
+        daoInfoOption <- PlayNommState[F].creatorDao.dao
+          .get(rm.id)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Failed to get CreatorDao with id ${rm.id}"
+        daoInfo <- fromOption(
+          daoInfoOption,
+          s"CreatorDao with id ${rm.id} does not exist",
+        )
+        founderOrCoordinator =
+          sig.account === daoInfo.founder || sig.account === daoInfo.coordinator
+        hasAuth <-
+          if founderOrCoordinator then pure(true)
+          else isModerator(rm.id, sig.account)
+        _ <- checkExternal(
+          hasAuth,
+          s"Account ${sig.account} is not authorized to remove members from DAO ${rm.id}",
+        )
+        _ <- rm.members.toSeq.traverse: member =>
+          PlayNommState[F].creatorDao.daoMembers
+            .remove((rm.id, member))
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Failed to remove CreatorDaoMember with id ${rm.id} and member ${member}"
+      yield TransactionWithResult(Signed(sig, rm))(None)
+
+def isModerator[F[_]: Functor: PlayNommState](id: CreatorDaoId, account: Account): StateT[
+  EitherT[F, PlayNommDAppFailure, *],
+  MerkleTrieState,
+  Boolean,
+] = PlayNommState[F].creatorDao.daoModerators
+  .get((id, account))
+  .map(_.isDefined)
+  .mapK:
+    PlayNommDAppFailure.mapInternal:
+      s"Failed to get CreatorDaoModerator with id ${id} and account ${account}"

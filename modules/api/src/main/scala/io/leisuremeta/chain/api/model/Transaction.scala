@@ -674,7 +674,7 @@ object Transaction:
     }
   }
 }
-    */
+     */
     final case class CreateCreatorDao(
         networkId: NetworkId,
         createdAt: Instant,
@@ -685,7 +685,7 @@ object Transaction:
         coordinator: Account,
     ) extends CreatorDaoTx
 
-/*
+    /*
 ```json
 {
   "sig": {
@@ -711,7 +711,7 @@ object Transaction:
   }
 }
 ```
-*/
+     */
     final case class UpdateCreatorDao(
         networkId: NetworkId,
         createdAt: Instant,
@@ -719,7 +719,7 @@ object Transaction:
         name: Utf8,
         description: Utf8,
     ) extends CreatorDaoTx
-/*
+    /*
 ```json
 {
   "sig": {
@@ -743,7 +743,7 @@ object Transaction:
   }
 }
 ```
-*/
+     */
 
     final case class DisbandCreatorDao(
         networkId: NetworkId,
@@ -758,28 +758,44 @@ object Transaction:
         newCoordinator: Account,
     ) extends CreatorDaoTx
 
-    given txByteDecoder: ByteDecoder[CreatorDaoTx] = ByteDecoder[BigNat].flatMap:
-      bignat =>
+    final case class AddMembers(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
+    final case class RemoveMembers(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
+    given txByteDecoder: ByteDecoder[CreatorDaoTx] =
+      ByteDecoder[BigNat].flatMap: bignat =>
         bignat.toBigInt.toInt match
           case 0 => ByteDecoder[CreateCreatorDao].widen
           case 1 => ByteDecoder[UpdateCreatorDao].widen
           case 2 => ByteDecoder[DisbandCreatorDao].widen
           case 3 => ByteDecoder[ReplaceCoordinator].widen
+          case 4 => ByteDecoder[AddMembers].widen
+          case 5 => ByteDecoder[RemoveMembers].widen
     given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
       cdtx match
-        case tx: CreateCreatorDao => build(0)(tx)
-        case tx: UpdateCreatorDao => build(1)(tx)
-        case tx: DisbandCreatorDao => build(2)(tx)
+        case tx: CreateCreatorDao   => build(0)(tx)
+        case tx: UpdateCreatorDao   => build(1)(tx)
+        case tx: DisbandCreatorDao  => build(2)(tx)
         case tx: ReplaceCoordinator => build(3)(tx)
+        case tx: AddMembers         => build(4)(tx)
+        case tx: RemoveMembers      => build(5)(tx)
     given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
     given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
 
   end CreatorDaoTx
 
   private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
-    ByteEncoder[BigNat]
-      .encode:
-        BigNat.unsafeFromLong(discriminator)
+    ByteEncoder[BigNat].encode(BigNat.unsafeFromLong(discriminator))
       ++ ByteEncoder[A].encode(tx)
 
   given txByteDecoder: ByteDecoder[Transaction] = ByteDecoder[BigNat].flatMap:
@@ -795,12 +811,12 @@ object Transaction:
 
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
-      case tx: AccountTx => build(0)(tx)
-      case tx: GroupTx   => build(1)(tx)
-      case tx: TokenTx   => build(2)(tx)
-      case tx: RewardTx  => build(3)(tx)
-      case tx: AgendaTx  => build(4)(tx)
-      case tx: VotingTx  => build(5)(tx)
+      case tx: AccountTx    => build(0)(tx)
+      case tx: GroupTx      => build(1)(tx)
+      case tx: TokenTx      => build(2)(tx)
+      case tx: RewardTx     => build(3)(tx)
+      case tx: AgendaTx     => build(4)(tx)
+      case tx: VotingTx     => build(5)(tx)
       case tx: CreatorDaoTx => build(6)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
