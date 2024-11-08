@@ -29,9 +29,11 @@ import api.model.api_model.{
   AccountInfo,
   ActivityInfo,
   BalanceInfo,
+  CreatorDaoInfo,
   GroupInfo,
   NftBalanceInfo,
 }
+import api.model.creator_dao.CreatorDaoId
 import api.model.reward.{
   ActivitySnapshot,
   DaoInfo,
@@ -793,3 +795,36 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       countOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield countOption.getOrElse(Map.empty)
+
+  def getCreatorDaoInfo[F[_]: Concurrent: BlockRepository: PlayNommState](
+      daoId: CreatorDaoId,
+  ): EitherT[F, Either[String, String], Option[CreatorDaoInfo]] =
+    val program = for
+      daoInfoOption <- PlayNommState[F].creatorDao.dao.get(daoId)
+      moderatorList <- PlayNommState[F].creatorDao.daoModerators
+        .streamFrom(daoId.toBytes)
+        .flatMap: stream =>
+          StateT.liftF:
+            stream
+              .map(_._1._2)
+              .compile
+              .toList
+    yield daoInfoOption.map: daoInfo =>
+      CreatorDaoInfo(
+        id = daoId,
+        name = daoInfo.name,
+        description = daoInfo.description,
+        founder = daoInfo.founder,
+        coordinator = daoInfo.coordinator,
+        moderators = moderatorList.toSet,
+      )
+
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      daoInfoOption <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield daoInfoOption
+      

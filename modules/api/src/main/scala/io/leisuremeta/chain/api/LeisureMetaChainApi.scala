@@ -31,11 +31,13 @@ import api.model.api_model.{
   ActivityInfo,
   BalanceInfo,
   BlockInfo,
+  CreatorDaoInfo,
   GroupInfo,
   NftBalanceInfo,
   RewardInfo,
   TxInfo,
 }
+import api.model.creator_dao.CreatorDaoId
 import api.model.token.{
   NftState,
   SnapshotState,
@@ -317,7 +319,13 @@ object LeisureMetaChainApi:
     baseEndpoint.get
       .in("vote" / "count" / path[ProposalId])
       .out(jsonBody[Map[Utf8, BigNat]])
-      
+
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getCreatorDaoInfoEndpoint =
+    baseEndpoint.get
+      .in("creator-dao" / path[CreatorDaoId])
+      .out(jsonBody[CreatorDaoInfo])
+
   enum Movable:
     case Free, Locked
 

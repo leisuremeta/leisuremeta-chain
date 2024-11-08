@@ -25,6 +25,7 @@ import api.model.{
   TransactionWithResult,
 }
 import api.model.account.EthAddress
+import api.model.creator_dao.CreatorDaoId
 import api.model.token.{SnapshotState, TokenDefinitionId, TokenId}
 import api.model.voting.ProposalId
 import dapp.{PlayNommDAppFailure, PlayNommState}
@@ -370,6 +371,19 @@ final case class NodeApp[F[_]
           case Left(msg)  => Left(Api.ServerError(msg))
         .value
 
+  def getCreatorDaoInfoServerEndpoint =
+    Api.getCreatorDaoInfoEndpoint.serverLogic: (daoId: CreatorDaoId) =>
+      StateReadService
+        .getCreatorDaoInfo(daoId)
+        .leftMap:
+          case Right(msg) => Right(Api.BadRequest(msg))
+          case Left(msg)  => Left(Api.ServerError(msg))
+        .subflatMap:
+          case Some(daoInfo) => Right(daoInfo)
+          case None =>
+            Left(Right(Api.NotFound(s"No creator DAO information of $daoId")))
+        .value
+
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
       scribe.info(s"received postTx request: $txs")
@@ -444,6 +458,7 @@ final case class NodeApp[F[_]
     getNftSnapshotBalanceServerEndpoint,
     getVoteProposalServerEndpoint,
     getAccountVotesServerEndpoint,
+    getCreatorDaoInfoServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )
