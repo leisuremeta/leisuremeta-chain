@@ -43,14 +43,12 @@ Founder나 Coordinator가 새로운 DAO를 만든다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "founder",
-      "sig": {
-        "v": 27,
-        "r": "62d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "2d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
+    "sig": {
+      "v": 27,
+      "r": "62d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "2d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
     }
+    "account": "founder",
   },
   "value": {
     "CreatorDaoTx": {
@@ -74,14 +72,12 @@ Moderator 이상 권한을 가진 사용자가 DAO 정보를 수정한다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "moderator",
-      "sig": {
-        "v": 27,
-        "r": "72d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "3d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
+    "sig": {
+      "v": 27,
+      "r": "72d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "3d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+    },
+    "account": "moderator"
   },
   "value": {
     "CreatorDaoTx": {
@@ -103,14 +99,12 @@ Founder나 Coordinator만 DAO를 해산할 수 있다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "founder",
-      "sig": {
-        "v": 27,
-        "r": "82d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "4d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
+    "sig": {
+      "v": 27,
+      "r": "82d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "4d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+    },
+    "account": "founder"
   },
   "value": {
     "CreatorDaoTx": {
@@ -130,14 +124,12 @@ Founder나 Coordinator만 DAO를 해산할 수 있다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "coordinator",
-      "sig": {
-        "v": 27,
-        "r": "92d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "5d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
+    "sig": {
+      "v": 27,
+      "r": "92d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "5d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+    },
+    "account": "coordinator"
   },
   "value": {
     "CreatorDaoTx": {
@@ -158,14 +150,12 @@ Moderator 이상 권한을 가진 사용자가 새로운 멤버를 추가할 수
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "moderator",
-      "sig": {
-        "v": 27,
-        "r": "a2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "6d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
+    "sig": {
+      "v": 27,
+      "r": "a2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "6d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+    },
+    "account": "moderator"
   },
   "value": {
     "CreatorDaoTx": {
@@ -186,13 +176,12 @@ Moderator 이상 권한을 가진 사용자가 멤버를 제외할 수 있다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "moderator",
       "sig": {
         "v": 27,
         "r": "b2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
         "s": "7d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
+      },
+      "account": "moderator",
     }
   },
   "value": {
@@ -214,14 +203,12 @@ Founder나 Coordinator가 일반 멤버를 Moderator로 승급시킬 수 있다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "founder",
-      "sig": {
-        "v": 27,
-        "r": "c2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "8d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
+    "sig": {
+      "v": 27,
+      "r": "d2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "9d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+    },
+    "account": "founder"
   },
   "value": {
     "CreatorDaoTx": {
@@ -242,14 +229,12 @@ Founder나 Coordinator가 Moderator를 일반 멤버로 강등시킬 수 있다.
 ```json
 {
   "sig": {
-    "NamedSignature": {
-      "name": "founder",
-      "sig": {
-        "v": 27,
-        "r": "d2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
-        "s": "9d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
-      }
-    }
+    "sig": {
+      "v": 27,
+      "r": "d2d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+      "s": "9d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+    },
+    "account": "founder"
   },
   "value": {
     "CreatorDaoTx": {
