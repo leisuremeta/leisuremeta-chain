@@ -27,3 +27,5 @@ object PlayNommDApp:
         PlayNommDAppAgenda(agendaTx, signedTx.sig)
       case votingTx: Transaction.VotingTx =>
         PlayNommDAppVoting(votingTx, signedTx.sig)
+      case creatorDaoTx: Transaction.CreatorDaoTx =>
+        PlayNommDAppCreatorDao(creatorDaoTx, signedTx.sig)

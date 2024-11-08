@@ -9,6 +9,7 @@ import scodec.bits.ByteVector
 
 import account.{EthAddress, ExternalChain, ExternalChainAddress}
 //import agenda.AgendaId
+import creator_dao.CreatorDaoId
 import reward.DaoActivity
 import voting.{ProposalId, VoteType}
 import lib.crypto.{Hash, Recover, Sign}
@@ -645,12 +646,177 @@ object Transaction:
     given txCirceEncoder: Encoder[VotingTx] = deriveEncoder
   end VotingTx
 
-  private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
-    ByteEncoder[BigNat].encode(
-      BigNat.unsafeFromLong(discriminator),
-    ) ++ ByteEncoder[A].encode(tx)
+  sealed trait CreatorDaoTx extends Transaction
+  object CreatorDaoTx:
+    /*
+    {
+  "sig": {
+    "NamedSignature": {
+      "name": "founder",
+      "sig": {
+        "v": 27,
+        "r": "62d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+        "s": "2d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+      }
+    }
+  },
+  "value": {
+    "CreatorDaoTx": {
+      "CreateCreatorDao": {
+        "networkId": 102,
+        "createdAt": "2024-03-15T09:28:41.339Z",
+        "id": "dao_001",
+        "name": "Art Creators DAO",
+        "description": "A DAO for digital art creators",
+        "founder": "creator001",
+        "coordinator": "playnomm"
+      }
+    }
+  }
+}
+     */
+    final case class CreateCreatorDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        name: Utf8,
+        description: Utf8,
+        founder: Account,
+        coordinator: Account,
+    ) extends CreatorDaoTx
 
-  given txByteDecoder: ByteDecoder[Transaction] = ByteDecoder[BigNat].flatMap {
+    /*
+```json
+{
+  "sig": {
+    "NamedSignature": {
+      "name": "moderator",
+      "sig": {
+        "v": 27,
+        "r": "72d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+        "s": "3d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+      }
+    }
+  },
+  "value": {
+    "CreatorDaoTx": {
+      "UpdateCreatorDao": {
+        "networkId": 102,
+        "createdAt": "2024-03-15T10:28:41.339Z",
+        "id": "dao_001",
+        "name": "Digital Art Creators DAO",
+        "description": "A DAO for digital art creators and collectors"
+      }
+    }
+  }
+}
+```
+     */
+    final case class UpdateCreatorDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        name: Utf8,
+        description: Utf8,
+    ) extends CreatorDaoTx
+    /*
+```json
+{
+  "sig": {
+    "NamedSignature": {
+      "name": "founder",
+      "sig": {
+        "v": 27,
+        "r": "82d7c7ddf8bea783b8ed59906b2f5db00b9e53031d6407933d7c4a80c7157f35",
+        "s": "4d546c7d0f0fdf058e5bdf74b39cb2d3db34aa1dcdd6b2a76ea6504655b12b0f"
+      }
+    }
+  },
+  "value": {
+    "CreatorDaoTx": {
+      "DisbandCreatorDao": {
+        "networkId": 102,
+        "createdAt": "2024-03-15T11:28:41.339Z",
+        "id": "dao_001"
+      }
+    }
+  }
+}
+```
+     */
+
+    final case class DisbandCreatorDao(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+    ) extends CreatorDaoTx
+
+    final case class ReplaceCoordinator(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        newCoordinator: Account,
+    ) extends CreatorDaoTx
+
+    final case class AddMembers(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
+    final case class RemoveMembers(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
+    final case class PromoteModerators(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
+    final case class DemoteModerators(
+        networkId: NetworkId,
+        createdAt: Instant,
+        id: CreatorDaoId,
+        members: Set[Account],
+    ) extends CreatorDaoTx
+
+    given txByteDecoder: ByteDecoder[CreatorDaoTx] =
+      ByteDecoder[BigNat].flatMap: bignat =>
+        bignat.toBigInt.toInt match
+          case 0 => ByteDecoder[CreateCreatorDao].widen
+          case 1 => ByteDecoder[UpdateCreatorDao].widen
+          case 2 => ByteDecoder[DisbandCreatorDao].widen
+          case 3 => ByteDecoder[ReplaceCoordinator].widen
+          case 4 => ByteDecoder[AddMembers].widen
+          case 5 => ByteDecoder[RemoveMembers].widen
+          case 6 => ByteDecoder[PromoteModerators].widen
+          case 7 => ByteDecoder[DemoteModerators].widen
+    given txByteEncoder: ByteEncoder[CreatorDaoTx] = (cdtx: CreatorDaoTx) =>
+      cdtx match
+        case tx: CreateCreatorDao   => build(0)(tx)
+        case tx: UpdateCreatorDao   => build(1)(tx)
+        case tx: DisbandCreatorDao  => build(2)(tx)
+        case tx: ReplaceCoordinator => build(3)(tx)
+        case tx: AddMembers         => build(4)(tx)
+        case tx: RemoveMembers      => build(5)(tx)
+        case tx: PromoteModerators  => build(6)(tx)
+        case tx: DemoteModerators   => build(7)(tx)
+    given txCirceDecoder: Decoder[CreatorDaoTx] = deriveDecoder
+    given txCirceEncoder: Encoder[CreatorDaoTx] = deriveEncoder
+
+  end CreatorDaoTx
+
+  private def build[A: ByteEncoder](discriminator: Long)(tx: A): ByteVector =
+    ByteEncoder[BigNat].encode(BigNat.unsafeFromLong(discriminator))
+      ++ ByteEncoder[A].encode(tx)
+
+  given txByteDecoder: ByteDecoder[Transaction] = ByteDecoder[BigNat].flatMap:
     bignat =>
       bignat.toBigInt.toInt match
         case 0 => ByteDecoder[AccountTx].widen
@@ -659,16 +825,17 @@ object Transaction:
         case 3 => ByteDecoder[RewardTx].widen
         case 4 => ByteDecoder[AgendaTx].widen
         case 5 => ByteDecoder[VotingTx].widen
-  }
+        case 6 => ByteDecoder[CreatorDaoTx].widen
 
   given txByteEncoder: ByteEncoder[Transaction] = (tx: Transaction) =>
     tx match
-      case tx: AccountTx => build(0)(tx)
-      case tx: GroupTx   => build(1)(tx)
-      case tx: TokenTx   => build(2)(tx)
-      case tx: RewardTx  => build(3)(tx)
-      case tx: AgendaTx  => build(4)(tx)
-      case tx: VotingTx  => build(5)(tx)
+      case tx: AccountTx    => build(0)(tx)
+      case tx: GroupTx      => build(1)(tx)
+      case tx: TokenTx      => build(2)(tx)
+      case tx: RewardTx     => build(3)(tx)
+      case tx: AgendaTx     => build(4)(tx)
+      case tx: VotingTx     => build(5)(tx)
+      case tx: CreatorDaoTx => build(6)(tx)
 
   given txHash: Hash[Transaction] = Hash.build
 

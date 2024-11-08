@@ -10,6 +10,7 @@ import api.model.account.*
 import api.model.token.*
 import api.model.reward.*
 import api.model.voting.*
+import api.model.creator_dao.*
 import lib.crypto.Hash
 import lib.datatype.{BigNat, Utf8}
 import lib.merkle.MerkleTrie.NodeStore
@@ -22,6 +23,7 @@ trait PlayNommState[F[_]]:
   def token: PlayNommState.Token[F]
   def reward: PlayNommState.Reward[F]
   def voting: PlayNommState.Voting[F]
+  def creatorDao: PlayNommState.CreatorDao[F]
 
 object PlayNommState:
 
@@ -99,6 +101,12 @@ object PlayNommState:
       counting: DAppState[F, ProposalId, Map[Utf8, BigNat]],
   )
 
+  case class CreatorDao[F[_]](
+      dao: DAppState[F, CreatorDaoId, CreatorDaoData],
+      daoModerators: DAppState[F, (CreatorDaoId, AccountM), Unit],
+      daoMembers: DAppState[F, (CreatorDaoId, AccountM), Unit],
+  )
+
   def build[F[_]: Monad: NodeStore]: PlayNommState[F] =
     scribe.info(s"Building PlayNommState... ")
 
@@ -148,4 +156,10 @@ object PlayNommState:
         proposal = playNommState.ofName("proposal"),
         votes = playNommState.ofName("votes"),
         counting = playNommState.ofName("counting"),
+      )
+
+      val creatorDao: CreatorDao[F] = CreatorDao[F](
+        dao = playNommState.ofName("creator-dao"),
+        daoModerators = playNommState.ofName("dao-moderators"),
+        daoMembers = playNommState.ofName("dao-members"),
       )
