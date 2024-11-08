@@ -115,6 +115,26 @@
     * OwnershipShapshot
     * ExecuteReward TxHash
 
+`GET`  **/creator-dao/{daoID}** 특정 크리에이터 DAO 정보 조회
+
+* Response: CreatorDaoInfo 크리에이터 DAO 정보
+  * CreatorDaoInfo
+    * id: CreatorDaoId
+    * name: Utf8
+    * description: Utf8
+    * founder: Account
+    * coordinator: Account
+    * moderators: Set[Account]
+
+`GET`  **/creator-dao/{daoID}/member** 특정 크리에이터 DAO의 멤버 목록 조회
+
+> `param` *(optional)* from(Account): 기준 계정
+>
+> `param` *(optional)* limit: 갯수 제한. 기본값 100
+>
+
+* Response: Seq[Account] 회원 목록
+
 `POST` **/tx** 트랜잭션 제출
 
 * 아래의 트랜잭션 목록 참조
