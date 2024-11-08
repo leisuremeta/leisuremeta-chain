@@ -326,6 +326,18 @@ object LeisureMetaChainApi:
       .in("creator-dao" / path[CreatorDaoId])
       .out(jsonBody[CreatorDaoInfo])
 
+  
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  val getCreatorDaoMemberEndpoint =
+    baseEndpoint.get
+      .in:
+        "creator-dao"
+          / path[CreatorDaoId]
+          / "member"
+          .and(query[Option[Account]]("from"))
+          .and(query[Option[Int]]("limit"))
+      .out(jsonBody[Seq[Account]])
+
   enum Movable:
     case Free, Locked
 

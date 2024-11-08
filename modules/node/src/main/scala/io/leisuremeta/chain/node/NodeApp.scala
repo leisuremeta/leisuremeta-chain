@@ -319,7 +319,11 @@ final case class NodeApp[F[_]
 
   def getFungibleSnapshotBalanceServerEndpoint =
     Api.getFungibleSnapshotBalanceEndpoint.serverLogic:
-      (account: Account, defId: TokenDefinitionId, snapshotId: SnapshotState.SnapshotId) =>
+      (
+          account: Account,
+          defId: TokenDefinitionId,
+          snapshotId: SnapshotState.SnapshotId,
+      ) =>
         StateReadService
           .getFungibleSnapshotBalance(account, defId, snapshotId)
           .leftMap:
@@ -328,7 +332,11 @@ final case class NodeApp[F[_]
           .value
   def getNftSnapshotBalanceServerEndpoint =
     Api.getNftSnapshotBalanceEndpoint.serverLogic:
-      (account: Account, defId: TokenDefinitionId, snapshotId: SnapshotState.SnapshotId) =>
+      (
+          account: Account,
+          defId: TokenDefinitionId,
+          snapshotId: SnapshotState.SnapshotId,
+      ) =>
         StateReadService
           .getNftSnapshotBalance(account, defId, snapshotId)
           .leftMap:
@@ -350,17 +358,18 @@ final case class NodeApp[F[_]
         .value
 
   def getAccountVotesServerEndpoint =
-    Api.getAccountVotesEndpoint.serverLogic: (proposalId: ProposalId, account: Account) =>
-      StateReadService
-        .getAccountVotes(proposalId, account)
-        .leftMap:
-          case Right(msg) => Right(Api.BadRequest(msg))
-          case Left(msg)  => Left(Api.ServerError(msg))
-        .subflatMap:
-          case Some(proposal) => Right(proposal)
-          case None =>
-            Left(Right(Api.NotFound(s"No vote of $proposalId by $account")))
-        .value
+    Api.getAccountVotesEndpoint.serverLogic:
+      (proposalId: ProposalId, account: Account) =>
+        StateReadService
+          .getAccountVotes(proposalId, account)
+          .leftMap:
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          .subflatMap:
+            case Some(proposal) => Right(proposal)
+            case None =>
+              Left(Right(Api.NotFound(s"No vote of $proposalId by $account")))
+          .value
 
   def getVoteCountServerEndpoint =
     Api.getVoteCountEndpoint.serverLogic: (proposalId: ProposalId) =>
@@ -383,6 +392,16 @@ final case class NodeApp[F[_]
           case None =>
             Left(Right(Api.NotFound(s"No creator DAO information of $daoId")))
         .value
+
+  def getCreatorDaoMemberServerEndpoint =
+    Api.getCreatorDaoMemberEndpoint.serverLogic:
+      (daoId: CreatorDaoId, from: Option[Account], limit: Option[Int]) =>
+        StateReadService
+          .getCreatorDaoMember(daoId, from, limit.getOrElse(100))
+          .leftMap:
+            case Right(msg) => Right(Api.BadRequest(msg))
+            case Left(msg)  => Left(Api.ServerError(msg))
+          .value
 
   def postTxServerEndpoint(semaphore: Semaphore[F]) =
     Api.postTxEndpoint.serverLogic { (txs: Seq[Signed.Tx]) =>
@@ -459,6 +478,7 @@ final case class NodeApp[F[_]
     getVoteProposalServerEndpoint,
     getAccountVotesServerEndpoint,
     getCreatorDaoInfoServerEndpoint,
+    getCreatorDaoMemberServerEndpoint,
     postTxServerEndpoint(semaphore),
     postTxHashServerEndpoint,
   )

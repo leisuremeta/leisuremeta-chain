@@ -827,4 +827,26 @@ object StateReadService:
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       daoInfoOption <- program.runA(merkleState).leftMap(_.asLeft[String])
     yield daoInfoOption
-      
+    
+  def getCreatorDaoMember[F[_]: Concurrent: BlockRepository: PlayNommState](
+      daoId: CreatorDaoId,
+      from: Option[Account],
+      limit: Int,
+  ): EitherT[F, Either[String, String], Seq[Account]] =
+    val program = PlayNommState[F].creatorDao.daoMembers
+      .streamFrom(daoId.toBytes ++ from.fold(ByteVector.empty)(_.toBytes))
+      .flatMap: stream =>
+        StateT.liftF:
+          stream
+            .map(_._1._2)
+            .limit(limit)
+            .compile
+            .toList
+    for
+      bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
+        Left(e.msg)
+      bestHeader <- EitherT
+        .fromOption[F](bestHeaderOption, Left("No best header"))
+      merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      memberList <- program.runA(merkleState).leftMap(_.asLeft[String])
+    yield memberList
