@@ -151,10 +151,10 @@ class PlayNommDAppTest extends CatsEffectSuite:
   test("Snapshot is created successfully"):
 
     val txs = Seq(
-      Transaction.TokenTx.CreateSnapshot(
+      Transaction.TokenTx.CreateSnapshots(
         networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:05:00.00Z"),
-        definitionId = testToken,
+        definitionIds = Set(testToken),
         memo = Some(Utf8.unsafeFrom("Snapshot #0")),
       ),
     )
@@ -189,10 +189,10 @@ class PlayNommDAppTest extends CatsEffectSuite:
           alice -> BigNat.unsafeFromLong(100L),
         ),
       ),
-      Transaction.TokenTx.CreateSnapshot(
+      Transaction.TokenTx.CreateSnapshots(
         networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
-        definitionId = testToken,
+        definitionIds = Set(testToken),
         memo = Some(Utf8.unsafeFrom("Snapshot #1")),
       ),
     )
@@ -225,16 +225,16 @@ class PlayNommDAppTest extends CatsEffectSuite:
           alice -> BigNat.unsafeFromLong(100L),
         ),
       ),
-      Transaction.TokenTx.CreateSnapshot(
+      Transaction.TokenTx.CreateSnapshots(
         networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:06:00.00Z"),
-        definitionId = testToken,
+        definitionIds = Set(testToken),
         memo = Some(Utf8.unsafeFrom("Snapshot #1")),
       ),
-      Transaction.TokenTx.CreateSnapshot(
+      Transaction.TokenTx.CreateSnapshots(
         networkId = networkId,
         createdAt = java.time.Instant.parse("2023-01-11T19:07:00.00Z"),
-        definitionId = testToken,
+        definitionIds = Set(testToken),
         memo = Some(Utf8.unsafeFrom("Snapshot #2")),
       ),
     )
