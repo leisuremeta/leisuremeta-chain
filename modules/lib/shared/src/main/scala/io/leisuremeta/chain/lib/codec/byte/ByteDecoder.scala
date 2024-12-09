@@ -119,7 +119,7 @@ object ByteDecoder:
         case (front, back) => DecodeResult(f(front), back)
       ,
       DecodingFailure(
-        s"Too shord bytes to decode ${classTag[T]}; required $size bytes, but receiced ${bytes.size} bytes: $bytes",
+        s"Too short bytes to decode ${classTag[T]}; required $size bytes, but receiced ${bytes.size} bytes: $bytes",
       ),
     )
 

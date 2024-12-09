@@ -68,7 +68,7 @@ object StateReadService:
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(accountStateOption) => Concurrent[F].pure(accountStateOption)
     keyListEither <- PlayNommState[F].account.key
-      .streamFrom(account.toBytes)
+      .streamWithPrefix(account.toBytes)
       .runA(merkleState)
       .flatMap(_.compile.toList)
       .map(_.map { case ((_, pks), info) => (pks, info) })
@@ -125,7 +125,7 @@ object StateReadService:
       case Left(err) => Concurrent[F].raiseError(new Exception(err))
       case Right(groupDataOption) => Concurrent[F].pure(groupDataOption)
     accountListEither <- PlayNommState[F].group.groupAccount
-      .streamFrom(groupId.toBytes)
+      .streamWithPrefix(groupId.toBytes)
       .runA(merkleState)
       .flatMap(_.compile.toList)
       .map(_.map(_._1._2))
@@ -176,7 +176,7 @@ object StateReadService:
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       balanceListEither <- PlayNommState[F].token.fungibleBalance
-        .streamFrom(account.toBytes)
+        .streamWithPrefix(account.toBytes)
         .runA(merkleState)
         .flatMap: stream =>
           stream
@@ -294,7 +294,7 @@ object StateReadService:
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
       balanceListEither <- PlayNommState[F].token.entrustFungibleBalance
-        .streamFrom(account.toBytes)
+        .streamWithPrefix(account.toBytes)
         .runA(merkleState)
         .flatMap: stream =>
           stream
@@ -390,7 +390,7 @@ object StateReadService:
       mts: MerkleTrieState,
   ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- PlayNommState[F].token.nftBalance
-      .streamFrom(account.toBytes)
+      .streamWithPrefix(account.toBytes)
       .runA(mts)
       .flatMap: stream =>
         stream
@@ -457,7 +457,7 @@ object StateReadService:
       mts: MerkleTrieState,
   ): F[Map[TokenId, NftBalanceInfo]] = for
     balanceListEither <- PlayNommState[F].token.entrustNftBalance
-      .streamFrom(account.toBytes)
+      .streamWithPrefix(account.toBytes)
       .runA(mts)
       .flatMap: stream =>
         stream
@@ -521,7 +521,7 @@ object StateReadService:
     bestHeader <- EitherT.fromOption[F](bestHeaderOption, "No best header")
     merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
     tokenIdList <- PlayNommState[F].token.rarityState
-      .streamFrom(tokenDefinitionId.toBytes)
+      .streamWithPrefix(tokenDefinitionId.toBytes)
       .runA(merkleState)
       .flatMap(stream => stream.map(_._1._3).compile.toList)
     ownerOptionList <- tokenIdList.traverse: (tokenId: TokenId) =>
@@ -537,7 +537,7 @@ object StateReadService:
   ): EitherT[F, Either[String, String], Seq[ActivityInfo]] =
 
     val program = PlayNommState[F].reward.accountActivity
-      .streamFrom(account.toBytes)
+      .streamWithPrefix(account.toBytes)
       .map: stream =>
         stream
           .takeWhile(_._1._1 === account)
@@ -569,7 +569,7 @@ object StateReadService:
   ): EitherT[F, Either[String, String], Seq[ActivityInfo]] =
 
     val program = PlayNommState[F].reward.tokenReceived
-      .streamFrom(tokenId.toBytes)
+      .streamWithPrefix(tokenId.toBytes)
       .map: stream =>
         stream
           .takeWhile(_._1._1 === tokenId)
@@ -647,7 +647,7 @@ object StateReadService:
   ): EitherT[F, Either[String, String], Map[TokenId, OwnershipSnapshot]] =
 
     val program = PlayNommState[F].reward.ownershipSnapshot
-      .streamFrom(from.fold(ByteVector.empty)(_.toBytes))
+      .streamWithPrefix(from.fold(ByteVector.empty)(_.toBytes))
 
     for
       bestHeaderOption <- BlockRepository[F].bestHeader.leftMap: e =>
@@ -802,7 +802,7 @@ object StateReadService:
     val program = for
       daoInfoOption <- PlayNommState[F].creatorDao.dao.get(daoId)
       moderatorList <- PlayNommState[F].creatorDao.daoModerators
-        .streamFrom(daoId.toBytes)
+        .streamWithPrefix(daoId.toBytes)
         .flatMap: stream =>
           StateT.liftF:
             stream

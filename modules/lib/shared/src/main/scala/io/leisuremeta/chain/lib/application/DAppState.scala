@@ -22,8 +22,11 @@ trait DAppState[F[_], K, V]:
   def get(k: K): StateT[ErrorOrF, MerkleTrieState, Option[V]]
   def put(k: K, v: V): StateT[ErrorOrF, MerkleTrieState, Unit]
   def remove(k: K): StateT[ErrorOrF, MerkleTrieState, Boolean]
+  def streamWithPrefix(
+      prefixBytes: ByteVector,
+  ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]]
   def streamFrom(
-      bytes: ByteVector,
+      keyBytes: ByteVector,
   ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]]
   def reverseStreamFrom(
       keyPrefix: ByteVector,
@@ -74,6 +77,22 @@ object DAppState:
       def remove(k: K): StateT[ErrorOrF, MerkleTrieState, Boolean] =
         MerkleTrie.remove[F]((nameBytes ++ k.toBytes).toNibbles)
       def streamFrom(
+          keyBytes: ByteVector,
+      ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]] =
+        MerkleTrie
+          .streamFrom(keyBytes.toNibbles)
+          .map: binaryStream =>
+            binaryStream
+              .takeWhile(_._1.value.startsWith(nameBytes.bits))
+              .evalMap: (kNibbles, vBytes) =>
+                EitherT
+                  .fromEither:
+                    for
+                      k <- kNibbles.bytes.drop(nameBytes.size).to[K]
+                      v <- vBytes.to[V]
+                    yield (k, v)
+                  .leftMap(_.msg)
+      def streamWithPrefix(
           prefixBytes: ByteVector,
       ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]] =
         val prefixNibbles = (nameBytes ++ prefixBytes).toNibbles
