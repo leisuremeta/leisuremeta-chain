@@ -297,6 +297,8 @@ lazy val ethGatewayDeposit = (project in file("modules/eth-gateway-deposit"))
       case x if x `contains` "okio.kotlin_module" => MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
+      case x if x `contains` "native/lib/libnetty-unix-common.a" =>
+        MergeStrategy.first
       case x if x `contains` "module-info.class" => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value

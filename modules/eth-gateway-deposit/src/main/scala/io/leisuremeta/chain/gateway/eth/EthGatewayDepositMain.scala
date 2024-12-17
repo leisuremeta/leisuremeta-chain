@@ -370,7 +370,7 @@ object EthGatewayDepositMain extends IOApp:
         lmEndpoint = conf.lmEndpoint,
         encryptedLmPrivate = conf.encryptedLmPrivate,
         ethContract = conf.ethLmContractAddress,
-        multisigContractAddress = conf.gatewayEthAddress,
+        multisigContractAddress = conf.ethMultisigContractAddress,
         exemptAddressSet = conf.depositExempts.map(_.toLowerCase(Locale.ENGLISH)).toSet,
         startBlockNumber = startBlockNumber,
         endBlockNumber = endBlockNumber,
