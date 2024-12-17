@@ -98,7 +98,7 @@ object CryptoOps:
     )
     val Array(r, sValue) = signer.generateSignature(transactionHash)
     val s =
-      if BigInt(sValue) > HalfCurveOrder then Curve.getN subtract sValue
+      if sValue.compareTo(HalfCurveOrder) > 0 then Curve.getN subtract sValue
       else sValue
     for
       r256 <- UInt256.from(BigInt(r)).leftMap(_.msg)
@@ -159,4 +159,4 @@ object CryptoOps:
     CurveParams.getN,
     CurveParams.getH,
   )
-  val HalfCurveOrder: BigInt = BigInt(CurveParams.getN) / 2
+  val HalfCurveOrder: BigInteger = CurveParams.getN.shiftRight(1)
