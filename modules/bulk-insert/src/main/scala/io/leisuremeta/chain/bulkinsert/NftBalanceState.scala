@@ -81,16 +81,36 @@ object NftBalanceState:
   ): IO[NftBalanceState] =
     val indexWithTxsStream = Stream
       .fromIterator[EitherT[IO, String, *]](source.getLines(), 1)
-      .zipWithIndex
-      .filterNot(_._1 === "[]")
-      .evalMap: (line, index) =>
-        EitherT
-          .fromEither[IO]:
-            decode[Seq[Signed.Tx]](line)
-          .leftMap: e =>
-            scribe.error(s"Error decoding line #$index: $line: $e")
-            e.getMessage()
-          .map(txs => (index, txs))
+      .evalMap: line =>
+        line.split("\t").toList match
+          case blockNumber :: txHash :: jsonString :: Nil =>
+            EitherT
+              .fromEither[IO]:
+                decode[Signed.Tx](jsonString)
+              .leftMap: e =>
+                scribe.error(s"Error decoding line #$blockNumber: $txHash: $jsonString: $e")
+                e.getMessage()
+              .map(tx => (BigInt(blockNumber).longValue, tx))
+          case _ =>
+            scribe.error(s"Error parsing line: $line")
+            EitherT.leftT[IO, (Long, Signed.Tx)](s"Error parsing line: $line")
+      .groupAdjacentBy(_._1)
+      .map:
+        case (blockNumber, chunk) =>
+          (blockNumber, chunk.toList.map(_._2))
+
+//    val indexWithTxsStream = Stream
+//      .fromIterator[EitherT[IO, String, *]](source.getLines(), 1)
+//      .zipWithIndex
+//      .filterNot(_._1 === "[]")
+//      .evalMap: (line, index) =>
+//        EitherT
+//          .fromEither[IO]:
+//            decode[Seq[Signed.Tx]](line)
+//          .leftMap: e =>
+//            scribe.error(s"Error decoding line #$index: $line: $e")
+//            e.getMessage()
+//          .map(txs => (index, txs))
 
     def logWrongTx(
         from: Account,

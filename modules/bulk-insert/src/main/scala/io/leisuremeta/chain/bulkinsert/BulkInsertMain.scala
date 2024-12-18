@@ -7,7 +7,6 @@ import cats.data.{EitherT, Kleisli}
 import cats.effect.{Async, ExitCode, IO, IOApp, Resource}
 import cats.syntax.all.*
 
-import com.typesafe.config.ConfigFactory
 import fs2.Stream
 import io.circe.parser.decode
 import scodec.bits.ByteVector
@@ -20,10 +19,9 @@ import lib.crypto.Sign.ops.*
 import lib.datatype.BigNat
 import lib.merkle.*
 import lib.merkle.MerkleTrie.NodeStore
-import node.{NodeConfig, NodeMain}
+import node.NodeConfig
 import node.dapp.{PlayNommDApp, PlayNommDAppFailure, PlayNommState}
 import node.repository.{BlockRepository, StateRepository, TransactionRepository}
-import node.repository.StateRepository.given
 import node.service.NodeInitializationService
 
 def bulkInsert[F[_]
@@ -56,29 +54,36 @@ def bulkInsert[F[_]
     .map:
       case (blockNumber, chunk) =>
         (blockNumber, chunk.toList.map(_._2))
-    
+  localKeyPair: KeyPair =
+    val privateKey = scala.sys.env
+      .get("LMNODE_PRIVATE_KEY")
+      .map(BigInt(_, 16))
+      .orElse(config.local.`private`)
+      .get
+    CryptoOps.fromPrivate(privateKey)
   stateStream = indexWithTxsStream.evalMapAccumulate((bestBlock, merkleState)):
     case ((previousBlock, ms), (blockNumber, txs)) =>
-      val localKeyPair: KeyPair =
-        val privateKey = scala.sys.env
-          .get("LMNODE_PRIVATE_KEY")
-          .map(BigInt(_, 16))
-          .orElse(config.local.`private`)
-          .get
-        CryptoOps.fromPrivate(privateKey)
-
       val program = for
         result <- Stream
           .fromIterator[EitherT[F, PlayNommDAppFailure, *]](txs.iterator, 1)
           .evalMapAccumulate(ms): (ms, tx) =>
 //            scribe.info(s"signer: ${tx.sig.account}")
 //            scribe.info(s"tx: ${tx.value}")
-            PlayNommDApp[F](tx)
-              .run(ms)
-              .map: (ms, txWithResult) =>
-                (ms, Option(txWithResult))
-              .recoverWith: e =>
-                RecoverTx(e, ms, tx)
+//            PlayNommDApp[F](tx)
+//              .run(ms)
+//              .map: (ms, txWithResult) =>
+//                (ms, Option(txWithResult))
+//              .recoverWith: _ =>
+//                RecoverTx(ms, tx)
+            RecoverTx(ms, tx)
+              .recoverWith: failure =>
+                PlayNommDApp[F](tx)
+                  .run(ms)
+                  .map: (ms, txWithResult) =>
+                    (ms, Option(txWithResult))
+                  .leftMap: failure2 =>
+                    scribe.info(s"Error: $failure")
+                    failure2
           .map: result =>
             if BigInt(blockNumber) % 100 === 0 then scribe.info(s"#$blockNumber: ${result._1.root}")
             result
@@ -105,9 +110,11 @@ def bulkInsert[F[_]
               .value
               .getOrElse(state)
         stateRoot1 = StateRoot(finalState.root)
-        now        = txs.map(_.value.createdAt).maxBy(_.getEpochSecond())
+        now        = (previousBlock.header.timestamp :: txs.map(_.value.createdAt))
+          .maxBy(_.getEpochSecond())
+        blockNumber = BigNat.add(previousBlock.header.number, BigNat.One)
         header = Block.Header(
-          number = BigNat.add(previousBlock.header.number, BigNat.One),
+          number = blockNumber,
           parentHash = previousBlock.toHash,
           stateRoot = stateRoot1,
           transactionsRoot = txState.root,
@@ -123,25 +130,41 @@ def bulkInsert[F[_]
           transactionHashes = txHashes.toSet.map(_.toSignedTxHash),
           votes = Set(sig),
         )
-        _ <- BlockRepository[F]
-          .put(block)
-          .leftMap: e =>
-            scribe.error(s"Fail to put block: $e")
-            PlayNommDAppFailure.internal(s"Fail to put block: ${e.msg}")
-        _ <- StateRepository[F]
-          .put(finalState)
-          .leftMap: e =>
-            scribe.error(s"Fail to put state: $e")
-            PlayNommDAppFailure.internal(s"Fail to put state: ${e.msg}")
+//        _ <- BlockRepository[F]
+//          .put(block)
+//          .leftMap: e =>
+//            scribe.error(s"Fail to put block: $e")
+//            PlayNommDAppFailure.internal(s"Fail to put block: ${e.msg}")
+        finalState1 <-
+          if blockNumber.toBigInt % 10000 === 0 then          
+            StateRepository[F]
+              .put(finalState)
+              .leftMap: e =>
+                scribe.error(s"Fail to put state: $e")
+                PlayNommDAppFailure.internal:
+                  s"Fail to put state: ${e.msg}"
+              .map: _ =>
+                MerkleTrieState.fromRootOption(finalState.root)
+          else EitherT.pure(finalState)
         _ <- txWithResults.traverse: txWithResult =>
           EitherT.liftF:
             TransactionRepository[F].put(txWithResult)
-      yield ((block, finalState), (blockNumber, txWithResults))
+      yield ((block, finalState1), (blockNumber, txWithResults))
 
-      program.leftMap: e =>
-        scribe.error(s"Error applying txs #$blockNumber: $txs: $e")
-        e.msg
+      program
+        .leftMap: e =>
+          scribe.error(s"Error applying txs #$blockNumber: $txs: $e")
+          e.msg
   result <- stateStream.last.compile.toList
+  finalState <- EitherT.fromOption[F](
+    result.headOption.flatten.map(_._1._2),
+    "Fail to get final state",
+  )
+  _ <- StateRepository[F]
+    .put(finalState)
+    .leftMap: e =>
+      scribe.error(s"Fail to put state: $e")
+      s"Fail to put state: ${e.msg}"
 yield
   scribe.info(s"Last: ${result.flatten}")
   ()
@@ -153,14 +176,15 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
 
 object BulkInsertMain extends IOApp:
 
-//  val offset: Long = 0L
-//  val offset: Long = 533358L
-//  val offset: Long = 527856L
-//  val offset: Long = 533359L
-//  val offset: Long = 534366L
-  val offset: Long = 551700L
+  val offset: Long = 0L
+//  val offset: Long = 560639L // 1394555L
   
   override def run(args: List[String]): IO[ExitCode] =
+
+    import com.typesafe.config.ConfigFactory
+    import node.NodeMain
+    import node.repository.StateRepository.given
+
     NodeConfig
       .load[IO](IO.blocking(ConfigFactory.load))
       .value
@@ -189,14 +213,15 @@ object BulkInsertMain extends IOApp:
           yield result
 
           program.use(IO.pure)
+
 //          fileResource[IO]("txs.archive")
 //            .use: source =>
 //              NftBalanceState.build(source).flatTap: state =>
-//                IO.pure(())
-//                  ()
+//                IO.pure:
+//                  state.free.foreach(println)
+//                  state.locked.foreach(println)
 //              FungibleBalanceState.build(source).flatTap: state =>
 //                IO.pure:
-//                  ()
 //                  state.free.foreach(println)
 //                  state.locked.foreach(println)
 //            .as(ExitCode.Success)
