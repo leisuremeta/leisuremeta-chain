@@ -79,8 +79,9 @@ object DAppState:
       def streamFrom(
           keyBytes: ByteVector,
       ): StateT[ErrorOrF, MerkleTrieState, Stream[ErrorOrF, (K, V)]] =
+        val prefixNibbles = (nameBytes ++ keyBytes).toNibbles
         MerkleTrie
-          .streamFrom(keyBytes.toNibbles)
+          .streamFrom(prefixNibbles)
           .map: binaryStream =>
             binaryStream
               .takeWhile(_._1.value.startsWith(nameBytes.bits))
