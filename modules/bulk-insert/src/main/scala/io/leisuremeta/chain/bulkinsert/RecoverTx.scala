@@ -567,7 +567,7 @@ object RecoverTx:
         val program = for
 //          _ <- PlayNommDAppAccount.verifySignature(sig, tx)
           inputTxHashes <- PlayNommState[F].token.nftBalance
-            .streamFrom((sig.account, ef.tokenId).toBytes)
+            .streamWithPrefix((sig.account, ef.tokenId).toBytes)
             .flatMapF: stream =>
               stream.map(_._1._3).compile.toList
             .mapK:
@@ -575,6 +575,7 @@ object RecoverTx:
                 s"Fail to get nft balance stream of (${sig.account}, ${ef.tokenId})"
           txWithResultOption <- inputTxHashes.headOption match
             case None =>
+//              scribe.info(s"No input tx hash found for ${sig.account} and ${ef.tokenId}")
               StateT.liftF:
                 EitherT.right:
                   InvalidTxLogger[F]
@@ -588,6 +589,7 @@ object RecoverTx:
                       )
                     .map(_ => None)
             case Some(inputTxHash) =>
+//              scribe.info(s"Input tx hash found for ${sig.account} and ${ef.tokenId}: $inputTxHash")
               val utxoKey = (sig.account, ef.tokenId, inputTxHash)
               for
                 isRemoveSuccessful <- PlayNommState[F].token.nftBalance
@@ -596,6 +598,7 @@ object RecoverTx:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to remove nft balance of $utxoKey"
                 _ <- StateT.liftF:
+//                  scribe.info(s"Is remove successful: $isRemoveSuccessful")
                   if !isRemoveSuccessful then
                     EitherT.right:
                       InvalidTxLogger[F].log:
@@ -613,7 +616,9 @@ object RecoverTx:
                   .mapK:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to put entrust nft balance of $newUtxoKey"
-              yield Some(txWithResult)
+              yield
+//                scribe.info(s"Succeed to recover EntrustNFT: $txWithResult")
+                Some(txWithResult)
         yield txWithResultOption
 
         program

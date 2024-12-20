@@ -39,7 +39,7 @@ def bulkInsert[F[_]
     .filterNot(_ === "[]")
     .zipWithIndex
     .evalMap: (line, index) =>
-      if index % 100L === 0L then scribe.info(s"Processing line #$index")
+      if index % 1000L === 0L then scribe.info(s"Processing line #$index")
       line.split("\t").toList match
         case blockNumber :: txHash :: jsonString :: Nil =>
           EitherT
@@ -187,7 +187,8 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
 object BulkInsertMain extends IOApp:
 
   val from = "1"
-  val until = "1405345"
+//  val until = "12751184"
+  val until =   "100000000"
   
   override def run(args: List[String]): IO[ExitCode] =
 
