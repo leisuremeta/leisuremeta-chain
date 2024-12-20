@@ -28,7 +28,8 @@ def bulkInsert[F[_]
   : Async: BlockRepository: TransactionRepository: StateRepository: PlayNommState: InvalidTxLogger](
     config: NodeConfig,
     source: Source,
-    offset: Long,
+    from: String,
+    until: String,
 ): EitherT[F, String, Unit] = for
   bestBlock <- NodeInitializationService
     .initialize[F](config.genesis.timestamp)
@@ -36,8 +37,9 @@ def bulkInsert[F[_]
   indexWithTxsStream = Stream
     .fromIterator[EitherT[F, String, *]](source.getLines(), 1)
     .filterNot(_ === "[]")
-    .drop(offset)
-    .evalMap: line =>
+    .zipWithIndex
+    .evalMap: (line, index) =>
+      if index % 100L === 0L then scribe.info(s"Processing line #$index")
       line.split("\t").toList match
         case blockNumber :: txHash :: jsonString :: Nil =>
           EitherT
@@ -51,6 +53,8 @@ def bulkInsert[F[_]
           scribe.error(s"Error parsing line: $line")
           EitherT.leftT[F, (String, Signed.Tx)](s"Error parsing line: $line")
     .groupAdjacentBy(_._1)
+    .dropWhile(_._1 =!= from)
+    .takeWhile(_._1 =!= until)
     .map:
       case (blockNumber, chunk) =>
         (blockNumber, chunk.toList.map(_._2))
@@ -92,6 +96,12 @@ def bulkInsert[F[_]
           .leftMap: e =>
             scribe.error(s"Error building txs #$blockNumber: $txs: $e")
             e
+          .leftSemiflatTap: e =>
+            StateRepository[F]
+              .put(ms)
+              .leftMap: f =>
+                scribe.error(s"Fail to put state: ${f.msg}")
+              .value
         (states, txWithResultOptions) = result.unzip
         finalState                    = states.last
         txWithResults                 = txWithResultOptions.flatten
@@ -130,11 +140,11 @@ def bulkInsert[F[_]
           transactionHashes = txHashes.toSet.map(_.toSignedTxHash),
           votes = Set(sig),
         )
-//        _ <- BlockRepository[F]
-//          .put(block)
-//          .leftMap: e =>
-//            scribe.error(s"Fail to put block: $e")
-//            PlayNommDAppFailure.internal(s"Fail to put block: ${e.msg}")
+        _ <- BlockRepository[F]
+          .put(block)
+          .leftMap: e =>
+            scribe.error(s"Fail to put block: $e")
+            PlayNommDAppFailure.internal(s"Fail to put block: ${e.msg}")
         finalState1 <-
           if blockNumber.toBigInt % 10000 === 0 then          
             StateRepository[F]
@@ -176,8 +186,8 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
 
 object BulkInsertMain extends IOApp:
 
-  val offset: Long = 0L
-//  val offset: Long = 560639L // 1394555L
+  val from = "1"
+  val until = "1405345"
   
   override def run(args: List[String]): IO[ExitCode] =
 
@@ -203,7 +213,7 @@ object BulkInsertMain extends IOApp:
               "invalid-txs.csv"
             result <- Resource.eval:
               given PlayNommState[IO] = PlayNommState.build[IO]
-              bulkInsert[IO](config, source, offset).value.map:
+              bulkInsert[IO](config, source, from, until).value.map:
                 case Left(err) =>
                   scribe.error(s"Error: $err")
                   ExitCode.Error
