@@ -41,3 +41,6 @@ Settings.scala
 # archive
 txs.archive
 txs1.archive
+
+# bulk-insert
+invalid-txs.csv
