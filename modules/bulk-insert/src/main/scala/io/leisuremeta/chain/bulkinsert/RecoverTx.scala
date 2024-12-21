@@ -228,15 +228,37 @@ object RecoverTx:
                       tx = tf,
                       createdAt = tf.createdAt,
                     )
+          _ <- tf.inputs.toList.traverse: inputTxHash =>
+            PlayNommDAppToken
+              .removeFungibleSnapshot(
+                sig.account,
+                tf.tokenDefinitionId,
+                inputTxHash.toResultHashValue,
+              )
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to remove fungible snapshot of $inputTxHash"
           _ <- tf.outputs.toSeq.traverse:
             case (account, _) =>
               PlayNommDAppToken.putBalance(
                 account,
                 tf.tokenDefinitionId,
                 txHash,
-              )
+              ) *>
+                PlayNommDAppToken
+                  .addFungibleSnapshot(
+                    account,
+                    tf.tokenDefinitionId,
+                    txHash,
+                    outputAmount,
+                  )
+                  .mapK:
+                    PlayNommDAppFailure.mapInternal:
+                      s"Fail to add fungible snapshot of $account"
+
           totalAmount <- fromEitherInternal:
-            val either = BigNat.fromBigInt(tokenDef.totalAmount.toBigInt - diffBigInt)
+            val either =
+              BigNat.fromBigInt(tokenDef.totalAmount.toBigInt - diffBigInt)
 //            if either.isLeft then
 //              scribe.info(s"Total Amount: \t${tokenDef.totalAmount}")
 //              scribe.info(s"DiffBigInt: \t$diffBigInt")
@@ -249,6 +271,23 @@ object RecoverTx:
             tf.tokenDefinitionId,
             tokenDef.copy(totalAmount = totalAmount),
           )
+          diffEither = BigNat.fromBigInt(diffBigInt)
+          _ <- diffEither match
+            case Right(diff) =>
+              PlayNommDAppToken
+                .removeTotalSupplySnapshot(tf.tokenDefinitionId, diff)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to remove total supply snapshot of ${tf.tokenDefinitionId}"
+            case Left(_) =>
+              PlayNommDAppToken
+                .addTotalSupplySnapshot(
+                  tf.tokenDefinitionId,
+                  BigNat.unsafeFromBigInt(diffBigInt.abs),
+                )
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to add total supply snapshot of ${tf.tokenDefinitionId}"
         yield txWithResult
 
         program
@@ -281,6 +320,11 @@ object RecoverTx:
             .mapK:
               PlayNommDAppFailure.mapInternal:
                 s"Fail to put token balance (${mn.output}, ${mn.tokenId}, $txHash)"
+          _ <- PlayNommDAppToken
+            .addNftSnapshot(mn.output, mn.tokenDefinitionId, mn.tokenId)
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to add nft snapshot of ${mn.tokenId}"
           rarity: Map[Rarity, BigNat] =
             val rarityMapOption: Option[Map[Rarity, BigNat]] = for
               tokenDef <- tokenDefOption
@@ -312,6 +356,11 @@ object RecoverTx:
             .mapK:
               PlayNommDAppFailure.mapInternal:
                 s"Fail to put nft state of ${mn.tokenId}"
+          _ <- PlayNommState[F].token.nftHistory
+            .put(txHash, nftState)
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to put nft history of ${mn.tokenId} of $txHash"
           _ <- PlayNommState[F].token.rarityState
             .put((mn.tokenDefinitionId, mn.rarity, mn.tokenId), ())
             .mapK:
@@ -394,7 +443,7 @@ object RecoverTx:
           )
           outputAmount <- fromEitherExternal:
             BigNat.tryToSubtract(inputAmount, bf.amount)
-          result       = Transaction.TokenTx.BurnFungibleTokenResult(outputAmount)
+          result = Transaction.TokenTx.BurnFungibleTokenResult(outputAmount)
           txWithResult = TransactionWithResult(Signed(sig, bf))(Some(result))
           txHash       = txWithResult.toHash
           _ <- removeInputUtxos(
@@ -403,24 +452,30 @@ object RecoverTx:
             bf.definitionId,
           )
           _ <- bf.inputs.toList.traverse: inputTxHash =>
-            PlayNommDAppToken.removeFungibleSnapshot(
-              sig.account,
-              bf.definitionId,
-              inputTxHash.toResultHashValue,
-            )
+            PlayNommDAppToken
+              .removeFungibleSnapshot(
+                sig.account,
+                bf.definitionId,
+                inputTxHash.toResultHashValue,
+              )
               .mapK:
                 PlayNommDAppFailure.mapInternal:
                   s"Fail to remove fungible snapshot of $inputTxHash"
           _ <-
             if outputAmount === BigNat.Zero then unit
             else
-              PlayNommDAppToken.putBalance(sig.account, bf.definitionId, txWithResult.toHash) *>
-                PlayNommDAppToken.addFungibleSnapshot(
-                  sig.account,
-                  bf.definitionId,
-                  txWithResult.toHash,
-                  outputAmount,
-                )
+              PlayNommDAppToken.putBalance(
+                sig.account,
+                bf.definitionId,
+                txWithResult.toHash,
+              ) *>
+                PlayNommDAppToken
+                  .addFungibleSnapshot(
+                    sig.account,
+                    bf.definitionId,
+                    txWithResult.toHash,
+                    outputAmount,
+                  )
                   .mapK:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to add fungible snapshot of ${sig.account}"
@@ -430,7 +485,8 @@ object RecoverTx:
             bf.definitionId,
             tokenDef.copy(totalAmount = totalAmount),
           )
-          _ <- PlayNommDAppToken.removeTotalSupplySnapshot(bf.definitionId, bf.amount)
+          _ <- PlayNommDAppToken
+            .removeTotalSupplySnapshot(bf.definitionId, bf.amount)
             .mapK:
               PlayNommDAppFailure.mapInternal:
                 s"Fail to remove total supply snapshot of ${bf.definitionId}"
@@ -487,6 +543,11 @@ object RecoverTx:
                   PlayNommDAppFailure.mapInternal:
                     s"Fail to remove rarity state of ${tokenId}"
             yield ()
+          _ <- PlayNommDAppToken
+            .removeNftSnapshot[F](sig.account, bn.definitionId, tokenId)
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to remove nft snapshot of ${tokenId}"
         yield txWithResult
 
         program
@@ -635,8 +696,8 @@ object RecoverTx:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to put entrust nft balance of $newUtxoKey"
               yield
-//                scribe.info(s"Succeed to recover EntrustNFT: $txWithResult")
-                Some(txWithResult)
+              //                scribe.info(s"Succeed to recover EntrustNFT: $txWithResult")
+              Some(txWithResult)
         yield txWithResultOption
 
         program
@@ -649,7 +710,10 @@ object RecoverTx:
 //          _        <- PlayNommDAppAccount.verifySignature(sig, tx)
           tokenDef <- PlayNommDAppToken.getTokenDefinition(de.definitionId)
           inputHashList = de.inputs.map(_.toResultHashValue)
-          inputMap <- PlayNommDAppToken.getEntrustedInputs(inputHashList, sig.account)
+          inputMap <- PlayNommDAppToken.getEntrustedInputs(
+            inputHashList,
+            sig.account,
+          )
           inputAmount  = inputMap.values.foldLeft(BigNat.Zero)(BigNat.add)
           outputAmount = de.outputs.values.foldLeft(BigNat.Zero)(BigNat.add)
 //          _ <- checkExternal(
@@ -666,7 +730,8 @@ object RecoverTx:
                 .mapK:
                   PlayNommDAppFailure.mapInternal:
                     s"Fail to remove entrust fungible balance of (${account}, ${sig.account}, ${de.definitionId}, ${txHash})"
-                *> PlayNommDAppToken.removeFungibleSnapshot[F](account, de.definitionId, txHash)
+                *> PlayNommDAppToken
+                  .removeFungibleSnapshot[F](account, de.definitionId, txHash)
                   .mapK:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to remove fungible snapshot of $txHash"
@@ -676,7 +741,13 @@ object RecoverTx:
               .mapK:
                 PlayNommDAppFailure.mapInternal:
                   s"Fail to put fungible balance of (${account}, ${de.definitionId}, ${txHash})"
-              *> PlayNommDAppToken.addFungibleSnapshot[F](account, de.definitionId, txHash, amount)
+              *> PlayNommDAppToken
+                .addFungibleSnapshot[F](
+                  account,
+                  de.definitionId,
+                  txHash,
+                  amount,
+                )
                 .mapK:
                   PlayNommDAppFailure.mapInternal:
                     s"Fail to put fungible snapshot of $txHash"
@@ -730,19 +801,33 @@ object RecoverTx:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to remove entrust nft balance of $utxoKey"
                 _ <-
-                  if isRemoveSuccessful then unit[F]
+                  if isRemoveSuccessful then
+                    PlayNommDAppToken
+                      .removeNftSnapshot[F](from, de.definitionId, de.tokenId)
+                      .mapK:
+                        PlayNommDAppFailure.mapInternal:
+                          s"Fail to remove nft snapshot of ${de.tokenId}"
                   else
-                    removePreviousNftBalance[F](de.tokenId, signedTx) *> StateT.liftF:
-                      EitherT.right:
-                        InvalidTxLogger[F].log:
-                          InvalidTx(
-                            signer = sig.account,
-                            reason = InvalidReason.BalanceNotExist,
-                            amountToBurn = BigNat.Zero,
-                            tx = de,
-                            wrongNftInput = Some(de.tokenId),
-                            createdAt = de.createdAt,
-                          )
+                    for
+                      _ <- removePreviousNftBalance[F](de.tokenId, signedTx)
+                      _ <- StateT
+                        .liftF:
+                          EitherT.right:
+                            InvalidTxLogger[F].log:
+                              InvalidTx(
+                                signer = sig.account,
+                                reason = InvalidReason.BalanceNotExist,
+                                amountToBurn = BigNat.Zero,
+                                tx = de,
+                                wrongNftInput = Some(de.tokenId),
+                                createdAt = de.createdAt,
+                              )
+                      _ <- PlayNommDAppToken
+                        .removeNftSnapshot[F](from, de.definitionId, de.tokenId)
+                        .mapK:
+                          PlayNommDAppFailure.mapInternal:
+                            s"Fail to remove nft snapshot of ${de.tokenId}"
+                    yield ()
                 toAccount  = de.output.getOrElse(from)
                 newUtxoKey = (toAccount, de.tokenId, txHash)
                 _ <- PlayNommState[F].token.nftBalance
@@ -750,6 +835,15 @@ object RecoverTx:
                   .mapK:
                     PlayNommDAppFailure.mapInternal:
                       s"Fail to put nft balance of $newUtxoKey"
+                _ <- PlayNommDAppToken
+                  .addNftSnapshot[F](
+                    de.output.getOrElse(from),
+                    de.definitionId,
+                    de.tokenId,
+                  )
+                  .mapK:
+                    PlayNommDAppFailure.mapInternal:
+                      s"Fail to add nft snapshot of ${de.tokenId}"
                 nftStateOption <- PlayNommState[F].token.nftState
                   .get(de.tokenId)
                   .mapK:
@@ -864,19 +958,56 @@ object RecoverTx:
                       tx = tf,
                       createdAt = tf.createdAt,
                     )
+          _ <- tf.inputs.toList.traverse: inputTxHash =>
+            PlayNommDAppToken
+              .removeFungibleSnapshot(
+                sig.account,
+                tf.tokenDefinitionId,
+                inputTxHash.toResultHashValue,
+              )
+              .mapK:
+                PlayNommDAppFailure.mapInternal:
+                  s"Fail to remove fungible snapshot of $inputTxHash"
           _ <- tf.outputs.toSeq.traverse:
             case (account, _) =>
               PlayNommDAppToken.putBalance(
                 account,
                 tf.tokenDefinitionId,
                 txHash,
-              )
+              ) *>
+                PlayNommDAppToken
+                  .addFungibleSnapshot(
+                    account,
+                    tf.tokenDefinitionId,
+                    txHash,
+                    outputAmount,
+                  )
+                  .mapK:
+                    PlayNommDAppFailure.mapInternal:
+                      s"Fail to add fungible snapshot of $account"
           totalAmount <- fromEitherInternal:
             BigNat.fromBigInt(tokenDef.totalAmount.toBigInt - diffBigInt)
           _ <- PlayNommDAppToken.putTokenDefinition(
             tf.tokenDefinitionId,
             tokenDef.copy(totalAmount = totalAmount),
           )
+          diffEither = BigNat.fromBigInt(diffBigInt)
+          _ <- diffEither match
+            case Right(diff) =>
+              PlayNommDAppToken
+                .removeTotalSupplySnapshot(tf.tokenDefinitionId, diff)
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to remove total supply snapshot of ${tf.tokenDefinitionId}"
+            case Left(_) =>
+              PlayNommDAppToken
+                .addTotalSupplySnapshot(
+                  tf.tokenDefinitionId,
+                  BigNat.unsafeFromBigInt(diffBigInt.abs),
+                )
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to add total supply snapshot of ${tf.tokenDefinitionId}"
         yield txWithResult
 
         program
