@@ -187,8 +187,10 @@ def fileResource[F[_]: Async](fileName: String): Resource[F, Source] =
 object BulkInsertMain extends IOApp:
 
   val from = "1"
-//  val until = "12751184"
+//  val from = "3513172"
+ 
   val until =   "100000000"
+//  val until = "3513173"
   
   override def run(args: List[String]): IO[ExitCode] =
 

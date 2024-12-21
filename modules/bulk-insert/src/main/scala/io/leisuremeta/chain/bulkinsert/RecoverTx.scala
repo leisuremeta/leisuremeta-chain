@@ -186,6 +186,7 @@ object RecoverTx:
           diffBigInt   = inputAmount.toBigInt - outputAmount.toBigInt
           _ <- StateT.liftF:
             if diffBigInt < 0 then
+//              scribe.info(s"DiffBigInt: $diffBigInt")
               EitherT.right:
                 InvalidTxLogger[F].log:
                   InvalidTx(
@@ -193,6 +194,7 @@ object RecoverTx:
                     reason = InvalidReason.OutputMoreThanInput,
                     amountToBurn = BigNat.unsafeFromBigInt(diffBigInt.abs),
                     tx = tf,
+                    createdAt = tf.createdAt,
                   )
             else EitherT.pure(())
           txWithResult = TransactionWithResult(Signed(sig, tf))(None)
@@ -217,12 +219,14 @@ object RecoverTx:
                         PlayNommDAppToken.tokenBalanceAmount(sig.account),
                       )
                     .foldLeft(BigNat.Zero)(BigNat.add)
+//                  scribe.info(s"Sum of Invalid Tx Inputs: $sum")
                   InvalidTxLogger[F].log:
                     InvalidTx(
                       signer = sig.account,
                       reason = InvalidReason.InputAlreadyUsed,
                       amountToBurn = sum,
                       tx = tf,
+                      createdAt = tf.createdAt,
                     )
           _ <- tf.outputs.toSeq.traverse:
             case (account, _) =>
@@ -232,7 +236,15 @@ object RecoverTx:
                 txHash,
               )
           totalAmount <- fromEitherInternal:
-            BigNat.fromBigInt(tokenDef.totalAmount.toBigInt - diffBigInt)
+            val either = BigNat.fromBigInt(tokenDef.totalAmount.toBigInt - diffBigInt)
+//            if either.isLeft then
+//              scribe.info(s"Total Amount: \t${tokenDef.totalAmount}")
+//              scribe.info(s"DiffBigInt: \t$diffBigInt")
+//              scribe.info(s"Input Amount: \t$inputAmount")
+//              scribe.info(s"Output Amount: \t$outputAmount")
+//              scribe.info(s"Diff: \t$diffBigInt")
+//              scribe.info(s"Either: \t$either")
+            either
           _ <- PlayNommDAppToken.putTokenDefinition(
             tf.tokenDefinitionId,
             tokenDef.copy(totalAmount = totalAmount),
@@ -340,6 +352,7 @@ object RecoverTx:
                       amountToBurn = BigNat.Zero,
                       tx = tn,
                       wrongNftInput = Some(tn.tokenId),
+                      createdAt = tn.createdAt,
                     )
           newUtxoKey = (tn.output, tn.tokenId, txHash)
           _ <- PlayNommState[F].token.nftBalance
@@ -454,6 +467,7 @@ object RecoverTx:
                       amountToBurn = BigNat.Zero,
                       tx = bn,
                       wrongNftInput = Some(tokenId),
+                      createdAt = bn.createdAt,
                     )
           nftStateOption <- PlayNommState[F].token.nftState
             .get(tokenId)
@@ -503,6 +517,7 @@ object RecoverTx:
                       reason = InvalidReason.OutputMoreThanInput,
                       amountToBurn = BigNat.unsafeFromBigInt(diffBigInt.abs),
                       tx = ef,
+                      createdAt = ef.createdAt,
                     )
                   .as(BigNat.Zero)
             else
@@ -541,6 +556,7 @@ object RecoverTx:
                       reason = InvalidReason.InputAlreadyUsed,
                       amountToBurn = sum,
                       tx = ef,
+                      createdAt = ef.createdAt,
                     )
           _ <- PlayNommState[F].token.entrustFungibleBalance
             .put((sig.account, ef.to, ef.definitionId, txHash), ())
@@ -586,6 +602,7 @@ object RecoverTx:
                         amountToBurn = BigNat.Zero,
                         tx = ef,
                         wrongNftInput = Some(ef.tokenId),
+                        createdAt = ef.createdAt,
                       )
                     .map(_ => None)
             case Some(inputTxHash) =>
@@ -608,6 +625,7 @@ object RecoverTx:
                           amountToBurn = BigNat.Zero,
                           tx = ef,
                           wrongNftInput = Some(ef.tokenId),
+                          createdAt = ef.createdAt,
                         )
                   else EitherT.pure(())
                 newUtxoKey = (sig.account, ef.to, ef.tokenId, txHash)
@@ -723,6 +741,7 @@ object RecoverTx:
                             amountToBurn = BigNat.Zero,
                             tx = de,
                             wrongNftInput = Some(de.tokenId),
+                            createdAt = de.createdAt,
                           )
                 toAccount  = de.output.getOrElse(from)
                 newUtxoKey = (toAccount, de.tokenId, txHash)
@@ -812,6 +831,7 @@ object RecoverTx:
                     reason = InvalidReason.OutputMoreThanInput,
                     amountToBurn = BigNat.unsafeFromBigInt(diffBigInt.abs),
                     tx = tf,
+                    createdAt = tf.createdAt,
                   )
             else EitherT.pure(())
           txWithResult = TransactionWithResult(Signed(sig, tf))(None)
@@ -842,6 +862,7 @@ object RecoverTx:
                       reason = InvalidReason.InputAlreadyUsed,
                       amountToBurn = sum,
                       tx = tf,
+                      createdAt = tf.createdAt,
                     )
           _ <- tf.outputs.toSeq.traverse:
             case (account, _) =>
@@ -921,6 +942,7 @@ object RecoverTx:
                   amountToBurn = BigNat.Zero,
                   tx = signedTx.value,
                   wrongNftInput = Some(tokenId),
+                  createdAt = signedTx.value.createdAt,
                 )
         yield ()
     yield ()

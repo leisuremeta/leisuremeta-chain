@@ -1,6 +1,8 @@
 package io.leisuremeta.chain
 package bulkinsert
 
+import java.time.Instant
+
 import cats.effect.{Async, Resource}
 import cats.effect.std.Console
 
@@ -15,6 +17,7 @@ final case class InvalidTx(
     amountToBurn: BigNat,
     tx: Transaction,
     wrongNftInput: Option[TokenId] = None,
+    createdAt: Instant,
     memo: String = "",
 ):
   def txType: String = tx.getClass.getSimpleName
@@ -44,9 +47,17 @@ object InvalidTxLogger:
           out.flush()
           out.close()
       .map: out =>
-        case InvalidTx(signer, reason, amountToBurn, tx, wrongNftInput, memo) =>
+        case InvalidTx(signer, reason, amountToBurn, tx, wrongNftInput, createdAt, memo) =>
           Async[F].delay:
-            out.println(
-              s"$signer,$reason,$amountToBurn,${tx.getClass.getSimpleName},${tx.toHash}, ${wrongNftInput}, $memo",
+            val fields = Seq(
+              createdAt,
+              tx.toHash.toUInt256Bytes.toHex,
+              tx.getClass.getSimpleName,
+              signer,
+              reason,
+              amountToBurn,
+              wrongNftInput,
+              memo,
             )
+            out.println(fields.mkString(","))
             out.flush()
