@@ -202,7 +202,7 @@ object StateReadService:
         case Right(balanceTxList) => Concurrent[F].pure(balanceTxList.flatten)
     yield balanceTxList
       .groupMapReduce(_._1): (_, txHash, txWithResult) =>
-        txWithResult.signedTx.value match
+        val info = txWithResult.signedTx.value match
           case fb: Transaction.FungibleBalance =>
             fb match
               case mf: Transaction.TokenTx.MintFungibleToken =>
@@ -275,6 +275,8 @@ object StateReadService:
                 )
 
           case _ => BalanceInfo(totalAmount = BigNat.Zero, unused = Map.empty)
+//        scribe.info(s"Amount of ${txHash.toUInt256Bytes.toHex}: ${info.totalAmount}")
+        info
       .apply: (a, b) =>
         BalanceInfo(
           totalAmount = BigNat.add(a.totalAmount, b.totalAmount),

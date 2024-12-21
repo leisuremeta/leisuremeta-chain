@@ -712,7 +712,10 @@ object PlayNommDAppToken:
               txOption,
               PlayNommDAppFailure.internal(s"There is no tx of $txHash"),
             )
-          yield tokenBalanceAmount(account)(txWithResult)
+          yield
+            val amount = tokenBalanceAmount(account)(txWithResult)
+//            scribe.info(s"Amount of ${txHash.toUInt256Bytes.toHex}: $amount")
+            amount
         .map { _.foldLeft(BigNat.Zero)(BigNat.add) }
 
   def removeInputUtxos[F[_]: Monad: PlayNommState](
@@ -751,9 +754,8 @@ object PlayNommDAppToken:
                 if txWithResult.signedTx.sig.account === account =>
               amount
             case _ =>
-              scribe.error(
-                s"Fail to get burn token result: $txWithResult",
-              )
+              scribe.error:
+                s"Fail to get burn token result: $txWithResult"
               BigNat.Zero
         case tt: Transaction.TokenTx.TransferFungibleToken =>
           tt.outputs.getOrElse(account, BigNat.Zero)
@@ -763,26 +765,18 @@ object PlayNommDAppToken:
               remainder
             case _ => BigNat.Zero
         case df: Transaction.TokenTx.DisposeEntrustedFungibleToken =>
-          df.outputs
-            .get(txWithResult.signedTx.sig.account)
-            .getOrElse(BigNat.Zero)
+          df.outputs.getOrElse(account, BigNat.Zero)
         case or: Transaction.RewardTx.OfferReward =>
-          or.outputs
-            .get(txWithResult.signedTx.sig.account)
-            .getOrElse(BigNat.Zero)
+          or.outputs.getOrElse(account, BigNat.Zero)
         case xr: Transaction.RewardTx.ExecuteReward =>
           txWithResult.result.fold(BigNat.Zero):
             case Transaction.RewardTx.ExecuteRewardResult(outputs) =>
-              outputs
-                .get(txWithResult.signedTx.sig.account)
-                .getOrElse(BigNat.Zero)
+              outputs.getOrElse(account, BigNat.Zero)
             case _ => BigNat.Zero
         case xo: Transaction.RewardTx.ExecuteOwnershipReward =>
           txWithResult.result.fold(BigNat.Zero):
             case Transaction.RewardTx.ExecuteOwnershipRewardResult(outputs) =>
-              outputs
-                .get(txWithResult.signedTx.sig.account)
-                .getOrElse(BigNat.Zero)
+              outputs.getOrElse(account, BigNat.Zero)
             case _ => BigNat.Zero
     case _ =>
       scribe.error(s"Not a fungible balance: $txWithResult")
