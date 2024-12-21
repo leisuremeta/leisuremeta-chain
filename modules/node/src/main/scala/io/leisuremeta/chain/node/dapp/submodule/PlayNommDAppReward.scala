@@ -76,17 +76,44 @@ object PlayNommDAppReward:
           or.inputs.map(_.toResultHashValue),
           or.tokenDefinitionId,
         )
+        _ <- or.inputs.toList.traverse: inputTxHash =>
+          PlayNommDAppToken
+            .removeFungibleSnapshot(
+              sig.account,
+              or.tokenDefinitionId,
+              inputTxHash.toResultHashValue,
+            )
+            .mapK:
+              PlayNommDAppFailure.mapInternal:
+                s"Fail to remove fungible snapshot of $inputTxHash"
         _ <- or.outputs.toSeq.traverse:
-          case (account, _) =>
-            PlayNommDAppToken.putBalance(account, or.tokenDefinitionId, txHash)
+          case (account, outputAmount) =>
+            for
+              _ <- PlayNommDAppToken
+                .putBalance(account, or.tokenDefinitionId, txHash)
+              _ <- PlayNommDAppToken
+                .addFungibleSnapshot(
+                  account,
+                  or.tokenDefinitionId,
+                  txHash,
+                  outputAmount,
+                )
+                .mapK:
+                  PlayNommDAppFailure.mapInternal:
+                    s"Fail to put fungible snapshot of $txHash"
+            yield ()               
         totalAmount <- fromEitherInternal:
           BigNat.tryToSubtract(tokenDef.totalAmount, diff)
         _ <- PlayNommDAppToken.putTokenDefinition(
           or.tokenDefinitionId,
           tokenDef.copy(totalAmount = totalAmount),
         )
+        - <- PlayNommDAppToken
+          .removeTotalSupplySnapshot(or.tokenDefinitionId, diff)
+          .mapK:
+            PlayNommDAppFailure.mapInternal:
+              s"Fail to remove total supply snapshot of ${or.tokenDefinitionId}"
       yield txWithResult
-
     case tx: Transaction.RewardTx.UpdateDao => ???
     case tx: Transaction.RewardTx.RecordActivity =>
       val txResult = TransactionWithResult(Signed(sig, tx), None)
