@@ -1017,11 +1017,11 @@ object RecoverTx:
           .leftMap: msg =>
             PlayNommDAppFailure.internal(s"Fail to recover error: $msg")
 
-      case ss: Transaction.AgendaTx.SuggestSimpleAgenda =>
-        EitherT.pure((ms, Some(TransactionWithResult(Signed(sig, ss))(None))))
-
-      case vs: Transaction.AgendaTx.VoteSimpleAgenda =>
-        EitherT.pure((ms, Some(TransactionWithResult(Signed(sig, vs))(None))))
+//      case ss: Transaction.AgendaTx.SuggestSimpleAgenda =>
+//        EitherT.pure((ms, Some(TransactionWithResult(Signed(sig, ss))(None))))
+//
+//      case vs: Transaction.AgendaTx.VoteSimpleAgenda =>
+//        EitherT.pure((ms, Some(TransactionWithResult(Signed(sig, vs))(None))))
 
       case _ =>
         PlayNommDApp[F](signedTx)
