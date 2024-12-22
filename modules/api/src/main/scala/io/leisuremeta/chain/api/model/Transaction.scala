@@ -528,7 +528,6 @@ object Transaction:
         voteStart: Instant,
         voteEnd: Instant,
         voteOptions: Map[Utf8, Utf8],
-        memo: Option[Utf8],
     ) extends AgendaTx
 
     final case class VoteSimpleAgenda(

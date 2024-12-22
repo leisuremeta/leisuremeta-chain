@@ -129,8 +129,8 @@ object PlayNommDAppToken:
           .mapK:
             PlayNommDAppFailure.mapInternal:
               s"Fail to add nft snapshot of ${mn.tokenId}"
-        weight = tokenDef.nftInfo.get.rarity
-          .getOrElse(mn.rarity, BigNat.unsafeFromLong(2L))
+        weight = tokenDef.nftInfo.flatMap(_.rarity.get(mn.rarity))
+          .getOrElse(BigNat.unsafeFromLong(2L))
         nftState = NftState(
           tokenId = mn.tokenId,
           tokenDefinitionId = mn.tokenDefinitionId,

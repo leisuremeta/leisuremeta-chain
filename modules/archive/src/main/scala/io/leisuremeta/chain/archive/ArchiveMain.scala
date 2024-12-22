@@ -43,8 +43,8 @@ final case class PHeader(
 object ArchiveMain extends IOApp:
 
 //  val baseUri = "http://test.chain.leisuremeta.io:8080"
-  val baseUri = "http://localhost:7080"
-//  val baseUri = "http://localhost:8080"
+//  val baseUri = "http://localhost:7080"
+  val baseUri = "http://localhost:8081"
 
   val archiveFileName = "txs1.archive"
 
@@ -112,7 +112,7 @@ object ArchiveMain extends IOApp:
 
   def loop[F[_]: Monad](
       backend: SttpBackend[F, Any],
-  )(next: Block.BlockHash, genesis: Block.BlockHash, count: Long)(
+  )(next: Block.BlockHash, genesis: Block.BlockHash, until: BigInt, count: Long)(
       run: (
           BigNat,
           Block.BlockHash,
@@ -120,14 +120,22 @@ object ArchiveMain extends IOApp:
       ) => EitherT[F, String, Unit],
   ): EitherT[F, String, Long] = for
     block <- getBlock[F](backend)(next)
-    _     <- EitherT.pure(scribe.info(s"block ${block.header.number}: $next"))
+    number = block.header.number.toBigInt
+    _     <- EitherT.pure(scribe.info(s"block ${number}: $next"))
+    _ <- EitherT.cond(
+      number > until,
+      (),
+      s"block number $number is greater than $until",
+    )
     _ <- run(block.header.number, next, block.transactionHashes).recover: msg =>
       scribe.error(s"error msg: $msg")
       ()
-    count1 <- loop[F](backend)(block.header.parentHash, genesis, count + 1)(run)
+    count1 <- loop[F](backend)(block.header.parentHash, genesis, until, count + 1)(run)
   yield count1
 
   def run(args: List[String]): IO[ExitCode] =
+    val until = BigInt("0")
+//    val until = BigInt("12751183")
     for _ <- ArmeriaCatsBackend
         .resource[IO]:
           SttpBackendOptions.Default.connectionTimeout(10.minutes)
@@ -138,6 +146,7 @@ object ArchiveMain extends IOApp:
             count <- loop[IO](backend)(
               status.bestHash,
               status.genesisHash,
+              until,
               0,
             ): (blockNumber, blockHash, txSet) =>
               txSet.toList

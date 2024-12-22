@@ -1,4 +1,3 @@
-import org.scalablytyped.converter.internal.scalajs.Dep
 val V = new {
   val Scala      = "3.4.1"
   val ScalaGroup = "3.4"
@@ -369,6 +368,10 @@ lazy val bulkInsert = (project in file("modules/bulk-insert"))
       "org.scala-lang.modules" % "scala-java8-compat_2.13",
     ),
     assemblyMergeStrategy := {
+      case PathList("reactor", "core", "scheduler", xs @ _*) =>
+        MergeStrategy.preferProject
+      case x if x `contains` "libnetty-unix-common.a" =>
+        MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case PathList("META-INF", "native", "lib", xs @ _*) =>
