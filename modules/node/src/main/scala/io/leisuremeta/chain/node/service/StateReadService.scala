@@ -175,6 +175,7 @@ object StateReadService:
           Concurrent[F].raiseError(new Exception("No best header"))
         case Right(Some(bestHeader)) => Concurrent[F].pure(bestHeader)
       merkleState = MerkleTrieState.fromRootOption(bestHeader.stateRoot.main)
+      time0 = System.nanoTime()
       balanceListEither <- PlayNommState[F].token.fungibleBalance
         .streamWithPrefix(account.toBytes)
         .runA(merkleState)
@@ -185,6 +186,8 @@ object StateReadService:
             .compile
             .toList
         .value
+      time1 = System.nanoTime()
+      _ = scribe.info(s"balanceList: ${(time1 - time0) / 1e6} ms")
       balanceList <- balanceListEither match
         case Left(err)          => Concurrent[F].raiseError(new Exception(err))
         case Right(balanceList) => Concurrent[F].pure(balanceList)

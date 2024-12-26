@@ -305,10 +305,14 @@ object MerkleTrie:
 
   type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
 
+//  @SuppressWarnings(Array("org.wartremover.warts.Var"))
+//  var count = 0L
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def streamFrom[F[_]: Monad: NodeStore](
       key: Nibbles,
   ): StateT[EitherT[F, String, *], MerkleTrieState, ByteStream[F]] =
+//    scribe.info(s"""#${count}\tstreamFrom: "${key.value.toHex}"""")
+//    count += 1L
     type ErrorOrF[A] = EitherT[F, String, A]
     StateT.inspectF: (state: MerkleTrieState) =>
       scribe.debug(s"from: $key, $state")
@@ -318,7 +322,6 @@ object MerkleTrie:
           children: MerkleTrieNode.Children,
           value: Option[ByteVector],
       ): OptionT[ErrorOrF, ByteStream[F]] =
-
         def runFrom(key: Nibbles)(
             hashWithIndex: (Option[MerkleHash], Int),
         ): ErrorOrF[ByteStream[F]] =
@@ -339,6 +342,7 @@ object MerkleTrie:
             Stream.eval(EitherT.pure((prefix, bytes)))
           OptionT.liftF:
             children.toList.zipWithIndex
+              .filter(_._1.nonEmpty)              
               .traverse(runFrom(Nibbles.empty))
               .map(flatten)
               .map(initialValue ++ _)
@@ -363,14 +367,22 @@ object MerkleTrie:
         .flatMap:
           case MerkleTrieNode.Leaf(prefix, value) =>
             scribe.debug(s"Leaf: $key <= $prefix: ${key <= prefix}")
+//            scribe.info(s"#$count\tLeaf: ${prefix.value.toHex}")
             OptionT.when(key <= prefix):
               Stream.emit((prefix, value))
           case MerkleTrieNode.Branch(prefix, children) =>
+//            scribe.info(s"#$count\tBranch: ${prefix.value.toHex}")
+//            scribe.info(s"Children Size: ${children.flatten.size}")
             branchStream(prefix, children, None)
           case MerkleTrieNode.BranchWithData(prefix, children, value) =>
+//            scribe.info(s"#$count\tBranch: ${prefix.value.toHex}")
+//            scribe.info(s"Children Size: ${children.flatten.size}")
             branchStream(prefix, children, Some(value))
         .value
-        .map(_.getOrElse(Stream.empty))
+        .map:
+          _.getOrElse:
+//            scribe.info(s"#${count}\tNo node found for key: ${key.value.toHex}")
+            Stream.empty
 
   /** @param keyPrefix:
     *   the key prefix to get the stream from. This prefix must be included.
