@@ -101,14 +101,19 @@ object DAppState:
           .streamFrom(prefixNibbles)
           .map: binaryStream =>
             binaryStream
-              .takeWhile(_._1.value.startsWith(prefixNibbles.value))
+              .takeWhile: (kNibbles, _) =>
+                val flag = kNibbles.value.startsWith(prefixNibbles.value)
+//                scribe.info(s"state $name streamWithPrefix(${prefixBytes.toHex}) ${kNibbles.value.toHex} $flag")
+                flag
               .evalMap: (kNibbles, vBytes) =>
                 EitherT
                   .fromEither:
                     for
                       k <- kNibbles.bytes.drop(nameBytes.size).to[K]
                       v <- vBytes.to[V]
-                    yield (k, v)
+                    yield
+//                      scribe.info(s"state $name streamWithPrefix($prefixBytes) $k -> $v")
+                      (k, v)
                   .leftMap(_.msg)
 
       def reverseStreamFrom(

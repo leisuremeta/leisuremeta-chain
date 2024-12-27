@@ -613,6 +613,50 @@ class MerkleTrieTest extends HedgehogSuite:
 
       assertions.assertEquals(result, expected.asRight[String])
 
+  test("put 80 -> put empty -> streamFrom 00"):
+    withMunitAssertions: assertions =>
+
+      def put(key: ByteVector) = MerkleTrie.put[SyncIO](key.toNibbles, ByteVector.empty)
+      def streamFrom(key: ByteVector) = MerkleTrie.streamFrom[SyncIO](key.toNibbles)
+
+      val program = for
+        _ <- put(hex"80")
+        _ <- put(ByteVector.empty)
+        value <- streamFrom(hex"01")
+      yield value
+
+//      val forPrint = for
+//        (state1, _)     <- put(hex"80").run(initialState)
+//        (state2, _)     <- put(ByteVector.empty).run(state1)
+//        (state3, value) <- streamFrom(hex"01").run(state2)
+//        resultList      <- value.compile.toList
+//      yield
+//        Seq(state1, state2, state3).zipWithIndex.foreach: (s, i) =>
+//          println(s"====== State #${i + 1} ======")
+//          println(s"root: ${s.root}")
+//          s.diff.foreach { (hash, node) => println(s" $hash: $node") }
+//        println(s"========")
+//        println(s"result: ${resultList}")
+//
+//        value
+//
+//      val result = forPrint
+//        .flatMap(_.compile.toList)
+//        .value
+//        .unsafeRunSync()
+
+      val resultIO = program
+        .runA(initialState)
+        .flatMap: stream =>
+          stream.compile.toList
+        .value
+
+      val result = resultIO.unsafeRunSync()
+
+      val expected: List[(Nibbles, ByteVector)] = List((hex"80".toNibbles, ByteVector.empty))
+
+      assertions.assertEquals(result, expected.asRight[String])
+
   test("put empty -> reverseStreamFrom (00, None)"):
     withMunitAssertions: assertions =>
 

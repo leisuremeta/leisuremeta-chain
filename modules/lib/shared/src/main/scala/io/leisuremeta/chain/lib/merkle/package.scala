@@ -24,6 +24,8 @@ opaque type Nibbles = BitVector :| Nibbles.NibbleCond
 object Nibbles:
   type NibbleCond = Length[Multiple[4L]]
   val empty: Nibbles = BitVector.empty.assumeNibbles
+  def combine(nibbles: Nibbles*): Nibbles =
+    nibbles.foldLeft(BitVector.empty)(_ ++ _.value).assumeNibbles
 
 extension (nibbles: Nibbles)
   def value: BitVector  = nibbles

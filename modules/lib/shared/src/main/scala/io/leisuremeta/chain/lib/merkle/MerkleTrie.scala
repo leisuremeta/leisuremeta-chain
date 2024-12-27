@@ -303,17 +303,30 @@ object MerkleTrie:
               yield state1
       optionT.value.map(_.fold((state, false))((_, true)))
 
-  type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
-
 //  @SuppressWarnings(Array("org.wartremover.warts.Var"))
 //  var count = 0L
+
+  @SuppressWarnings(Array("org.wartremover.warts.Overloading"))
+  def streamFrom[F[_]: Monad: NodeStore](
+      key: Nibbles,
+  ): StateT[EitherT[F, String, *], MerkleTrieState, Stream[
+    EitherT[F, String, *],
+    (Nibbles, ByteVector),
+  ]] =
+    streamFrom[F](key, key)
+
   @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   def streamFrom[F[_]: Monad: NodeStore](
       key: Nibbles,
-  ): StateT[EitherT[F, String, *], MerkleTrieState, ByteStream[F]] =
-//    scribe.info(s"""#${count}\tstreamFrom: "${key.value.toHex}"""")
-//    count += 1L
+      originalKey: Nibbles,
+  ): StateT[EitherT[F, String, *], MerkleTrieState, Stream[
+    EitherT[F, String, *],
+    (Nibbles, ByteVector),
+  ]] =
     type ErrorOrF[A] = EitherT[F, String, A]
+//    scribe.info(s"""#${count}\t streamFrom: "${key.value.toHex}", originalKey: "${originalKey.value.toHex}"""")
+//    scribe.info(s"""#${count}\t originalKey UTF8: "${originalKey.value.bytes.decodeUtf8}"""")
+//    count += 1L
     StateT.inspectF: (state: MerkleTrieState) =>
       scribe.debug(s"from: $key, $state")
 
@@ -321,31 +334,35 @@ object MerkleTrie:
           prefix: Nibbles,
           children: MerkleTrieNode.Children,
           value: Option[ByteVector],
-      ): OptionT[ErrorOrF, ByteStream[F]] =
+      ): OptionT[ErrorOrF, Stream[ErrorOrF, (Nibbles, ByteVector)]] =
         def runFrom(key: Nibbles)(
             hashWithIndex: (Option[MerkleHash], Int),
-        ): ErrorOrF[ByteStream[F]] =
-          streamFrom(key)
-            .runA(state.copy(root = hashWithIndex._1))
-            .map: (byteStream: ByteStream[F]) =>
-              byteStream.map: (key, a) =>
-                val key1 = prefix.value
-                  ++ BitVector.fromInt(hashWithIndex._2, 4) ++ key.value
-                (key1.assumeNibbles, a)
+        ): Stream[EitherT[F, String, *], (Nibbles, ByteVector)] =
+          Stream
+            .eval:
+              streamFrom(key, originalKey)
+                .runA(state.copy(root = hashWithIndex._1))
+            .flatten
+            .map: (key, a) =>
+              val indexNibble =
+                BitVector.fromInt(hashWithIndex._2, 4).assumeNibbles
+              val key1 = Nibbles.combine(prefix, indexNibble, key)
+              (key1, a)
 
-        def flatten(enums: List[ByteStream[F]]): ByteStream[F] =
-          enums.foldLeft[ByteStream[F]](Stream.empty)(_ ++ _)
-
+//        scribe.info(s"Branch: $key <= $prefix: ${key <= prefix}")
         if key <= prefix then
           // key is less than or equal to prefix, so all of its value and children should be included
-          val initialValue: ByteStream[F] = value.fold(Stream.empty): bytes =>
-            Stream.eval(EitherT.pure((prefix, bytes)))
+          val initialValue: Stream[ErrorOrF, (Nibbles, ByteVector)] =
+            value.fold(Stream.empty): bytes =>
+              Stream.eval(EitherT.pure((prefix, bytes)))
+          val tailStream = Stream
+            .emits:
+              children.toList.zipWithIndex.filter(_._1.nonEmpty)
+            .flatMap(runFrom(Nibbles.empty))
+
           OptionT.liftF:
-            children.toList.zipWithIndex
-              .filter(_._1.nonEmpty)              
-              .traverse(runFrom(Nibbles.empty))
-              .map(flatten)
-              .map(initialValue ++ _)
+            EitherT.rightT[F, String]:
+              initialValue ++ tailStream
         else
           for
             keyRemainder <- OptionT.fromOption[ErrorOrF]:
@@ -353,20 +370,24 @@ object MerkleTrie:
               key.stripPrefix(prefix)
             (index1, key1) <- OptionT.fromOption[ErrorOrF]:
               keyRemainder.unCons // keyRemainder is not empty here (key > prefix)
-            stream <- children.toList.zipWithIndex.drop(index1) match
-              case Nil => OptionT.none[ErrorOrF, ByteStream[F]]
-              case x :: xs =>
-                OptionT.liftF:
-                  for
-                    headList <- runFrom(key1.assumeNibbles)(x)
-                    tailList <- xs.traverse(runFrom(Nibbles.empty))
-                  yield headList ++ flatten(tailList)
+            targetChildrenWithIndex = children.toList.zipWithIndex.drop(index1)
+            stream <- OptionT.liftF:
+              EitherT.rightT[F, String]:
+                targetChildrenWithIndex match
+                  case Nil => Stream.empty
+                  case x :: xs =>
+                    val head =
+                      Stream.emit(x).flatMap(runFrom(key1.assumeNibbles))
+                    val tail = Stream
+                      .emits(xs.filter(_._1.nonEmpty))
+                      .flatMap(runFrom(Nibbles.empty))
+                    head ++ tail
           yield stream
 
       OptionT(getNode[F](state))
         .flatMap:
           case MerkleTrieNode.Leaf(prefix, value) =>
-            scribe.debug(s"Leaf: $key <= $prefix: ${key <= prefix}")
+//            scribe.info(s"Leaf: $key <= $prefix: ${key <= prefix}")
 //            scribe.info(s"#$count\tLeaf: ${prefix.value.toHex}")
             OptionT.when(key <= prefix):
               Stream.emit((prefix, value))
@@ -383,6 +404,8 @@ object MerkleTrie:
           _.getOrElse:
 //            scribe.info(s"#${count}\tNo node found for key: ${key.value.toHex}")
             Stream.empty
+
+  type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
 
   /** @param keyPrefix:
     *   the key prefix to get the stream from. This prefix must be included.
