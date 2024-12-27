@@ -4,10 +4,9 @@ package merkle
 import cats.Monad
 import cats.data.{EitherT, Kleisli, OptionT, StateT}
 import cats.syntax.eq.given
-import cats.syntax.traverse.given
 
-import io.github.iltotore.iron.*
 import fs2.Stream
+import io.github.iltotore.iron.*
 import scodec.bits.{BitVector, ByteVector}
 
 import crypto.Hash.ops.*
@@ -405,8 +404,6 @@ object MerkleTrie:
 //            scribe.info(s"#${count}\tNo node found for key: ${key.value.toHex}")
             Stream.empty
 
-  type ByteStream[F[_]] = Stream[EitherT[F, String, *], (Nibbles, ByteVector)]
-
   /** @param keyPrefix:
     *   the key prefix to get the stream from. This prefix must be included.
     * @param keySuffix:
@@ -419,113 +416,115 @@ object MerkleTrie:
   def reverseStreamFrom[F[_]: Monad: NodeStore](
       keyPrefix: Nibbles,
       keySuffix: Option[Nibbles],
-  ): StateT[EitherT[F, String, *], MerkleTrieState, ByteStream[F]] =
-    type ErrorOrF[A] = EitherT[F, String, A]
+  ): StateT[EitherT[F, String, *], MerkleTrieState, Stream[
+    EitherT[F, String, *],
+    (Nibbles, ByteVector),
+  ]] =
     StateT.inspectF: (state: MerkleTrieState) =>
       scribe.debug(s"from: ($keyPrefix, $keySuffix): $state")
       def reverseBranchStream(
           prefix: Nibbles,
           children: MerkleTrieNode.Children,
           value: Option[ByteVector],
-      ): OptionT[ErrorOrF, ByteStream[F]] =
+      ): OptionT[EitherT[F, String, *], Stream[
+        EitherT[F, String, *],
+        (Nibbles, ByteVector),
+      ]] =
 
         def reverseRunFrom(keyPrefix: Nibbles, keySuffix: Option[Nibbles])(
             hashWithIndex: (Option[MerkleHash], Int),
-        ): ErrorOrF[ByteStream[F]] =
+        ): Stream[EitherT[F, String, *], (Nibbles, ByteVector)] =
 //          scribe.info(s"reverseRunFrom: $key, $hashWithIndex")
-          reverseStreamFrom(keyPrefix, keySuffix)
-            .runA(state.copy(root = hashWithIndex._1))
-            .map: (byteStream: ByteStream[F]) =>
-              byteStream.map: (key, a) =>
-                val key1 = prefix.value
-                  ++ BitVector.fromInt(hashWithIndex._2, 4) ++ key.value
+          Stream
+            .eval:
+              reverseStreamFrom(keyPrefix, keySuffix)
+                .runA(state.copy(root = hashWithIndex._1))
+            .flatten
+            .map: (key, a) =>
+              val indexNibble =
+                BitVector.fromInt(hashWithIndex._2, 4).assumeNibbles
+              val key1 = Nibbles.combine(prefix, indexNibble, key)
+              (key1, a)
 
-                (key1.assumeNibbles, a)
+        def reverseRunAllOptionT =
+          val lastStream =
+            value.fold(Stream.empty): bytes =>
+              Stream.eval:
+                EitherT.rightT[F, String]:
+                  (prefix, bytes)
 
-        def flatten(enums: List[ByteStream[F]]): ByteStream[F] =
-          enums.foldLeft[ByteStream[F]](Stream.empty)(_ ++ _)
+          val initStream = Stream
+            .emits(children.toList.zipWithIndex.reverse)
+            .flatMap(reverseRunFrom(Nibbles.empty, None))
 
-        def reverseRunAll: ErrorOrF[ByteStream[F]] =
-          val lastValue: ByteStream[F] = value.fold(Stream.empty): bytes =>
-            Stream.eval(EitherT.pure((prefix, bytes)))
+          OptionT.liftF:
+            EitherT.rightT[F, String]:
+              initStream ++ lastStream
 
-          children.toList.zipWithIndex.reverse
-            .traverse(reverseRunFrom(Nibbles.empty, None))
-            .map(flatten)
-            .map(_ ++ lastValue)
+        def streamFromKeySuffix(
+            keySuffix: Nibbles,
+        ): OptionT[EitherT[F, String, *], Stream[
+          EitherT[F, String, *],
+          (Nibbles, ByteVector),
+        ]] = keySuffix.unCons match
+          case None => reverseRunAllOptionT
+          case Some((index1, key1)) =>
+            val targetChildren = children.toList.zipWithIndex
+              .take(index1 + 1)
+              .reverse
+            targetChildren match
+              case Nil =>
+                OptionT.none
+              case x :: xs =>
+                OptionT.liftF:
+                  EitherT.rightT[F, String]:
+                    val headStream = Stream
+                      .emit(x)
+                      .flatMap:
+                        reverseRunFrom(Nibbles.empty, Some(key1.assumeNibbles))
+                    val tailStream = Stream
+                      .emits(xs.filter(_._1.nonEmpty))
+                      .flatMap:
+                        reverseRunFrom(Nibbles.empty, None)
+                    val lastStream = value.fold(Stream.empty): bytes =>
+                      Stream.emit((prefix, bytes))
 
-//        println(s"key: $key, prefix: $prefix, key > prefix : ${key > prefix}")
+                    headStream ++ tailStream ++ lastStream
 
         keyPrefix.stripPrefix(prefix) match
+
+          // keyPrefix is not starting with prefix
           case None =>
             prefix.stripPrefix(keyPrefix) match
+
+              // prefix is not starting with keyPrefix so we don't need to include it
               case None => OptionT.none
+
+              // prefix is starting with keyPrefix so we need to include it
               case Some(prefixRemainder) =>
-                keySuffix.fold(OptionT.liftF(reverseRunAll)): keySuffix1 =>
-                  if prefixRemainder <= keySuffix1 then
-                    OptionT.liftF(reverseRunAll)
+                keySuffix.fold(reverseRunAllOptionT): keySuffix1 =>
+                  if prefixRemainder <= keySuffix1 then reverseRunAllOptionT
                   else
+                    // Here, keySuffix1 < prefixRemainder
                     keySuffix1.stripPrefix(prefixRemainder) match
                       case None => OptionT.none
                       case Some(keySuffix2) =>
-                        keySuffix2.unCons match
-                          case None => OptionT.liftF(reverseRunAll)
-                          case Some((index1, key1)) =>
-                            val targetChildren = children.toList.zipWithIndex
-                              .take(index1 + 1)
-                              .reverse
-                            targetChildren match
-                              case Nil => OptionT.none
-                              case x :: xs =>
-                                OptionT.liftF:
-                                  for
-                                    headList <- reverseRunFrom(
-                                      Nibbles.empty,
-                                      Some(key1.assumeNibbles),
-                                    )(x)
-                                    tailList <- xs.traverse:
-                                      reverseRunFrom(Nibbles.empty, None)
-                                    lastList <- EitherT.pure[F, String]:
-                                      value.fold(Stream.empty): bytes =>
-                                        Stream.eval:
-                                          EitherT.pure[F, String]:
-                                            (prefix, bytes)
-                                  yield headList ++
-                                    flatten(tailList) ++
-                                    lastList
+                        streamFromKeySuffix(keySuffix2.assumeNibbles)
           case Some(keyRemainder) =>
             keyRemainder.unCons match
               case None =>
-                keySuffix.fold(OptionT.liftF(reverseRunAll)): keySuffix1 =>
-                  keySuffix1.unCons match
-                    case None => OptionT.liftF(reverseRunAll)
-                    case Some((index1, key1)) =>
-                      val targetChildren = children.toList.zipWithIndex
-                        .take(index1 + 1)
-                        .reverse
-                      targetChildren match
-                        case Nil => OptionT.none
-                        case x :: xs =>
-                          OptionT.liftF:
-                            for
-                              headList <- reverseRunFrom(
-                                Nibbles.empty,
-                                Some(key1.assumeNibbles),
-                              )(x)
-                              tailList <- xs.traverse:
-                                reverseRunFrom(Nibbles.empty, None)
-                              lastList <- EitherT.pure[F, String]:
-                                value.fold(Stream.empty): bytes =>
-                                  Stream.eval:
-                                    EitherT.pure[F, String]:
-                                      (prefix, bytes)
-                            yield headList ++ flatten(tailList) ++ lastList
+                keySuffix.fold(reverseRunAllOptionT)(streamFromKeySuffix)
               case Some((index1, key1)) =>
                 children.toList.zipWithIndex.take(index1 + 1).reverse match
                   case Nil => OptionT.none
                   case x :: xs =>
                     OptionT.liftF:
-                      reverseRunFrom(key1.assumeNibbles, keySuffix)(x)
+                      EitherT.rightT[F, String]:
+                        Stream
+                          .emit(x)
+                          .flatMap:
+                            reverseRunFrom(key1.assumeNibbles, keySuffix)
+
       OptionT(getNode[F](state))
         .flatMap:
           case MerkleTrieNode.Leaf(prefix, value) =>
