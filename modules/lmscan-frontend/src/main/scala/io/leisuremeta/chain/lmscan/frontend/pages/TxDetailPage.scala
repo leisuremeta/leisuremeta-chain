@@ -82,5 +82,6 @@ final case class TxDetailModel(
             case tx: Transaction.RewardTx => ("TokenTx", tx.splitTx)
             case tx: Transaction.AgendaTx => ("TokenTx", tx.splitTx)
             case tx: Transaction.VotingTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.CreatorDaoTx => ("TokenTx", tx.splitTx)
           (acc, tt, st)
         case None => ("", "", "")
