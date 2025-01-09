@@ -14,6 +14,7 @@ import api.model.Transaction.GroupTx._
 import api.model.Transaction.RewardTx._
 import api.model.Transaction.AgendaTx._
 import api.model.Transaction.CreatorDaoTx._
+import api.model.Transaction.VotingTx._
 
 object TxDetailTableCommon:
   def row(head: String, value: String) = div(cls := "row")(span(head), span(value))
@@ -50,8 +51,8 @@ object TxDetailTableCommon:
         case t: Transaction.GroupTx => groupView(t)
         case t: Transaction.RewardTx => rewardView(t)
         case t: Transaction.AgendaTx => agendaView(t, tx.result)
+        case t: Transaction.VotingTx => votingView(t)
         case t: Transaction.CreatorDaoTx => creatorDaoView(t)
-        case _ => List()
     yield res
     result.getOrElse(List(div(""))).prepended(div(cls := "page-title")("Transaction Values"))
 
@@ -173,7 +174,10 @@ object TxDetailTableCommon:
       div(cls := "detail table-container")(
         row("Ammount", tx.amount.toString),
       ) :: List()
-    case _ => List()
+    case tx: CreateSnapshots =>
+      div(cls := "detail table-container")(
+        rowCustom("Definition ID", div(cls := "inner")(tx.definitionIds.map(di => span(di.toString)).toList)),
+      ) :: List()
 
   def accountView(tx: AccountTx) = tx match
     case tx: CreateAccount =>
@@ -271,6 +275,30 @@ object TxDetailTableCommon:
           ParseHtml.fromTxHash(tx.agendaTxHash.toUInt256Bytes.toHex),
         ),
         row("Selected Option", tx.selectedOption.toString),
+      ) :: List()
+
+  def votingView(tx: VotingTx) = tx match
+    case tx: CreateVoteProposal =>
+      div(cls := "detail table-container")(
+        row("Proposal ID", tx.proposalId.value.toString),
+        row("Title", tx.title.value),
+        row("Description", tx.description.value),
+        rowCustom("Vote Start", ParseHtml.fromDate(Some(tx.voteStart.getEpochSecond()))),
+        rowCustom("Vote End", ParseHtml.fromDate(Some(tx.voteEnd.getEpochSecond()))),
+        rowCustom("Vote Type", p(tx.voteType.name)),
+        rowCustom("Voting Power", div(cls := "inner")(tx.votingPower.keys.map(k => p(k.toString)).toList)),
+      ) ::
+      div(cls := "detail table-container")(
+        rowCustom("Voting Option", div(cls := "inner")(tx.voteOptions.map(a => row(a._1.toString, a._2.toString)).toList))
+      ) :: List()
+    case tx: CastVote =>
+      div(cls := "detail table-container")(
+        row("Proposal Id", tx.proposalId.value.toString),
+        row("Selected Option", tx.selectedOption.toString),
+      ) :: List()
+    case tx: TallyVotes =>
+      div(cls := "detail table-container")(
+        row("Proposal Id", tx.proposalId.value.toString),
       ) :: List()
 
   def creatorDaoView(tx: CreatorDaoTx) = tx match
