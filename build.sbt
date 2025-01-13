@@ -40,6 +40,7 @@ val V = new {
   val quill         = "4.8.0"
   val postgres      = "42.7.3"
   val flywayCore    = "9.22.3"
+  val sqlite        = "3.47.2.0"
 }
 
 val Dependencies = new {
@@ -190,7 +191,6 @@ val Dependencies = new {
     libraryDependencies ++= Seq(
       "com.outr"    %% "scribe-slf4j" % V.scribe,
       "com.typesafe" % "config"       % V.typesafeConfig,
-      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
       "io.circe"                      %% "circe-generic"        % V.circe,
       "io.circe"                      %% "circe-parser"         % V.circe,
       "io.circe"                      %% "circe-refined"        % V.circe,
@@ -198,10 +198,7 @@ val Dependencies = new {
       "org.typelevel" %% "cats-effect"           % V.catsEffect,
       "io.getquill"   %% "quill-jasync-postgres" % V.quill,
       "org.postgresql" % "postgresql"            % V.postgres,
-    ),
-    excludeDependencies ++= Seq(
-      // "org.scala-lang.modules" % "scala-compiler-2.13",
-      // "org.scala-lang.modules" % "scala-asm",
+      "org.xerial"     % "sqlite-jdbc"           % V.sqlite,
     ),
   )
 
@@ -244,7 +241,7 @@ lazy val root = (project in file("."))
     lmscanCommon.js,
     lmscanFrontend,
     lmscanBackend,
-//    lmscanAgent,
+    lmscanAgent,
     nodeProxy,
   )
 
@@ -520,6 +517,7 @@ lazy val lmscanBackend = (project in file("modules/lmscan-backend"))
 lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
   .settings(Dependencies.lmscanAgent)
   .settings(Dependencies.tests)
+  .settings(Dependencies.catsEffectTests)
   .settings(
     name := "leisuremeta-chain-lmscan-agent",
     assemblyMergeStrategy := {
