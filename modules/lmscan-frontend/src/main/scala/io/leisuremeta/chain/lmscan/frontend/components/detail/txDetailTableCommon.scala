@@ -3,16 +3,18 @@ package lmscan.frontend
 
 import tyrian.Html.*
 import tyrian.*
+import lib.datatype.BigNat
 import api.model._
-import api.model.Transaction.AccountTx.*
-import api.model.Transaction.TokenTx.*
-import api.model.Transaction.GroupTx.*
-import api.model.Transaction.RewardTx.*
-import api.model.Transaction.AgendaTx.*
-import api.model.token.*
-import io.leisuremeta.chain.lib.datatype.BigNat
-import io.leisuremeta.chain.api.model.Signed.TxHash
-import io.leisuremeta.chain.api.model.Transaction._
+import api.model.token._
+import api.model.Signed.TxHash
+import api.model.Transaction._
+import api.model.Transaction.AccountTx._
+import api.model.Transaction.TokenTx._
+import api.model.Transaction.GroupTx._
+import api.model.Transaction.RewardTx._
+import api.model.Transaction.AgendaTx._
+import api.model.Transaction.CreatorDaoTx._
+import api.model.Transaction.VotingTx._
 
 object TxDetailTableCommon:
   def row(head: String, value: String) = div(cls := "row")(span(head), span(value))
@@ -40,17 +42,17 @@ object TxDetailTableCommon:
   def getNFromId(id: String) =
     id.drop(16).dropWhile(c => !c.isDigit || c == '0').prepended('#')
     
-
   def view(data: Option[TransactionWithResult]) =
     val result = for
       tx <- data
       res = tx.signedTx.value match
-        case tx: Transaction.TokenTx => tokenView(tx)
-        case tx: Transaction.AccountTx => accountView(tx)
-        case tx: Transaction.GroupTx => groupView(tx)
-        case tx: Transaction.RewardTx => rewardView(tx)
+        case t: Transaction.TokenTx => tokenView(t)
+        case t: Transaction.AccountTx => accountView(t)
+        case t: Transaction.GroupTx => groupView(t)
+        case t: Transaction.RewardTx => rewardView(t)
         case t: Transaction.AgendaTx => agendaView(t, tx.result)
-        case _ => List()
+        case t: Transaction.VotingTx => votingView(t)
+        case t: Transaction.CreatorDaoTx => creatorDaoView(t)
     yield res
     result.getOrElse(List(div(""))).prepended(div(cls := "page-title")("Transaction Values"))
 
@@ -172,7 +174,10 @@ object TxDetailTableCommon:
       div(cls := "detail table-container")(
         row("Ammount", tx.amount.toString),
       ) :: List()
-    case _ => List()
+    case tx: CreateSnapshots =>
+      div(cls := "detail table-container")(
+        rowCustom("Definition ID", div(cls := "inner")(tx.definitionIds.map(di => span(di.toString)).toList)),
+      ) :: List()
 
   def accountView(tx: AccountTx) = tx match
     case tx: CreateAccount =>
@@ -247,10 +252,6 @@ object TxDetailTableCommon:
       div(cls := "detail table-container")(
         ""
       ) :: List()
-    // case tx: RecordActivity =>
-    // case tx: BuildSnapshot =>
-    // case tx: ExecuteOwnershipReward =>
-    // case tx: ExecuteReward =>
 
   def agendaView(tx: AgendaTx, result: Option[TransactionResult]) = tx match
     case tx: SuggestSimpleAgenda =>
@@ -274,12 +275,61 @@ object TxDetailTableCommon:
           ParseHtml.fromTxHash(tx.agendaTxHash.toUInt256Bytes.toHex),
         ),
         row("Selected Option", tx.selectedOption.toString),
-        // row(
-        //   "Voting Power",
-        //   result.map(d =>
-        //     d match
-        //       case d: VoteSimpleAgendaResult => d.votingAmount.toString
-        //       case _ => "",
-        //   ).getOrElse(""),
-        // ),
+      ) :: List()
+
+  def votingView(tx: VotingTx) = tx match
+    case tx: CreateVoteProposal =>
+      div(cls := "detail table-container")(
+        row("Proposal ID", tx.proposalId.value.toString),
+        row("Title", tx.title.value),
+        row("Description", tx.description.value),
+        rowCustom("Vote Start", ParseHtml.fromDate(Some(tx.voteStart.getEpochSecond()))),
+        rowCustom("Vote End", ParseHtml.fromDate(Some(tx.voteEnd.getEpochSecond()))),
+        rowCustom("Vote Type", p(tx.voteType.name)),
+        rowCustom("Voting Power", div(cls := "inner")(tx.votingPower.keys.map(k => p(k.toString)).toList)),
+      ) ::
+      div(cls := "detail table-container")(
+        rowCustom("Voting Option", div(cls := "inner")(tx.voteOptions.map(a => row(a._1.toString, a._2.toString)).toList))
+      ) :: List()
+    case tx: CastVote =>
+      div(cls := "detail table-container")(
+        row("Proposal Id", tx.proposalId.value.toString),
+        row("Selected Option", tx.selectedOption.toString),
+      ) :: List()
+    case tx: TallyVotes =>
+      div(cls := "detail table-container")(
+        row("Proposal Id", tx.proposalId.value.toString),
+      ) :: List()
+
+  def creatorDaoView(tx: CreatorDaoTx) = tx match
+    case tx: CreateCreatorDao =>
+      div(cls := "detail table-container")(
+        row("Name", tx.name.toString),
+        row("Description", tx.description.toString),
+      ) :: List()
+    case tx: UpdateCreatorDao =>
+      div(cls := "detail table-container")(
+        row("Name", tx.name.toString),
+        row("Description", tx.description.toString),
+      ) :: List()
+    case tx: DisbandCreatorDao => div("") :: List()
+    case tx: ReplaceCoordinator =>
+      div(cls := "detail table-container")(
+        row("New Coordinator", tx.newCoordinator.utf8.value),
+      ) :: List()
+    case tx: AddMembers =>
+      div(cls := "detail table-container")(
+        tx.members.map(a => row("New Member", a.utf8.value)).toList,
+      ) :: List()
+    case tx: RemoveMembers =>
+      div(cls := "detail table-container")(
+        tx.members.map(a => row("Remove Member", a.utf8.value)).toList,
+      ) :: List()
+    case tx: PromoteModerators =>
+      div(cls := "detail table-container")(
+        tx.members.map(a => row("Promote Member", a.utf8.value)).toList,
+      ) :: List()
+    case tx: DemoteModerators =>
+      div(cls := "detail table-container")(
+        tx.members.map(a => row("Demote Member", a.utf8.value)).toList,
       ) :: List()

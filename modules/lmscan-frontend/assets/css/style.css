@@ -212,6 +212,12 @@ nav {
   }
 }
 
+.inner {
+  display: flex;
+  flex-flow: column;
+  gap: var(--pad);
+}
+
 .nft-detail > img {
   border: 1px solid var(--lightest-pri);
   border-radius: var(--br);

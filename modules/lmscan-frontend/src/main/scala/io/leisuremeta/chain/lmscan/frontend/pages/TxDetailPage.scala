@@ -77,11 +77,11 @@ final case class TxDetailModel(
           val acc = x.signedTx.sig.account.toString
           val (tt, st) = x.signedTx.value match
             case tx: Transaction.TokenTx => ("TokenTx", tx.splitTx)
-            case tx: Transaction.AccountTx => ("TokenTx", tx.splitTx)
-            case tx: Transaction.GroupTx => ("TokenTx", tx.splitTx)
-            case tx: Transaction.RewardTx => ("TokenTx", tx.splitTx)
-            case tx: Transaction.AgendaTx => ("TokenTx", tx.splitTx)
-            case tx: Transaction.VotingTx => ("TokenTx", tx.splitTx)
-            case tx: Transaction.CreatorDaoTx => ("TokenTx", tx.splitTx)
+            case tx: Transaction.AccountTx => ("AccountTx", tx.splitTx)
+            case tx: Transaction.GroupTx => ("GroupTx", tx.splitTx)
+            case tx: Transaction.RewardTx => ("RewardTx", tx.splitTx)
+            case tx: Transaction.AgendaTx => ("AgendaTx", tx.splitTx)
+            case tx: Transaction.VotingTx => ("VotingTx", tx.splitTx)
+            case tx: Transaction.CreatorDaoTx => ("CreatorDaoTx", tx.splitTx)
           (acc, tt, st)
         case None => ("", "", "")
