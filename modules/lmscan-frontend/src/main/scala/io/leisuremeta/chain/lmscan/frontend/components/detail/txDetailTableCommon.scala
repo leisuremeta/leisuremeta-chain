@@ -304,32 +304,44 @@ object TxDetailTableCommon:
   def creatorDaoView(tx: CreatorDaoTx) = tx match
     case tx: CreateCreatorDao =>
       div(cls := "detail table-container")(
+        row("ID", tx.id.toString),
         row("Name", tx.name.toString),
         row("Description", tx.description.toString),
+        row("Founder", tx.founder.toString),
+        row("Coordinator", tx.coordinator.toString),
       ) :: List()
     case tx: UpdateCreatorDao =>
       div(cls := "detail table-container")(
+        row("ID", tx.id.toString),
         row("Name", tx.name.toString),
         row("Description", tx.description.toString),
       ) :: List()
-    case tx: DisbandCreatorDao => div("") :: List()
+    case tx: DisbandCreatorDao =>
+      div(cls := "detail table-container")(
+        row("ID", tx.id.toString),
+      ) :: List()
     case tx: ReplaceCoordinator =>
       div(cls := "detail table-container")(
+        row("ID", tx.id.toString),
         row("New Coordinator", tx.newCoordinator.utf8.value),
       ) :: List()
     case tx: AddMembers =>
       div(cls := "detail table-container")(
-        tx.members.map(a => row("New Member", a.utf8.value)).toList,
+        row("ID", tx.id.toString),
+        rowCustom("Members", div(cls := "inner")(tx.members.map(a => div(a.toString)).toList))
       ) :: List()
     case tx: RemoveMembers =>
       div(cls := "detail table-container")(
-        tx.members.map(a => row("Remove Member", a.utf8.value)).toList,
+        row("ID", tx.id.toString),
+        rowCustom("Members", div(cls := "inner")(tx.members.map(a => div(a.toString)).toList))
       ) :: List()
     case tx: PromoteModerators =>
       div(cls := "detail table-container")(
-        tx.members.map(a => row("Promote Member", a.utf8.value)).toList,
+        row("ID", tx.id.toString),
+        rowCustom("Members", div(cls := "inner")(tx.members.map(a => div(a.toString)).toList))
       ) :: List()
     case tx: DemoteModerators =>
       div(cls := "detail table-container")(
-        tx.members.map(a => row("Demote Member", a.utf8.value)).toList,
+        row("ID", tx.id.toString),
+        rowCustom("Members", div(cls := "inner")(tx.members.map(a => div(a.toString)).toList))
       ) :: List()
