@@ -54,9 +54,7 @@ object Body:
   def nfts = (payload: List[NftInfoModel]) =>
     payload
       .map(v =>
-        div(
-          cls := "row table-body",
-        )(
+        div(cls := "row table-body")(
           gen.cell(
             Cell.ImageS(v.thumbUrl),
             Cell.NftToken(v),
@@ -71,9 +69,7 @@ object Body:
   def nftToken = (payload: List[NftSeasonModel]) =>
     payload
       .map(v =>
-        div(
-          cls := "row table-body",
-        )(
+        div(cls := "row table-body")(
           gen.cell(
             Cell.NftDetail(v, v.nftName),
             Cell.PlainStr(v.collection),
@@ -87,9 +83,7 @@ object Body:
   def nft = (payload: List[NftActivity], g: GlobalModel) =>
     payload
       .map(v =>
-        div(
-          cls := "row table-body",
-        )(
+        div(cls := "row table-body")(
           gen.cell(
             Cell.TX_HASH(v.txHash),
             Cell.AGE(v.createdAt, g.current),
@@ -97,5 +91,21 @@ object Body:
             Cell.ACCOUNT_HASH(v.fromAddr),
             Cell.ACCOUNT_HASH(v.toAddr),
           ),
+        ),
+      )
+
+
+  def vds = (payload: List[NodeValidator.Validator]) =>
+    payload
+      .map(v =>
+        div(cls := "row table-body")(
+          span(
+            cls := s"cell acc-hash",
+            onClick(ToPage(VdDetailModel(address = v.address.getOrElse("")))),
+          )(
+            v.address.getOrElse(""),
+          ),
+          span(v.power.getOrElse(0.0).toString + "%"),
+          span(f"${v.cnt.getOrElse(0L)}%,d"),
         ),
       )

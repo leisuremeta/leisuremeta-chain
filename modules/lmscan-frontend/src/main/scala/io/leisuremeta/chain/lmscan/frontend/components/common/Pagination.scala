@@ -22,11 +22,6 @@ object Pagination:
       case Some(v) => v match
         case PageResponse(totalCount, totalPages, payload) => totalPages.toInt
 
-//    val btnFistPage = curPage match
-//      case x if (x <= 2)               => 1
-//      case x if (x >= (totalPage - 1)) => totalPage - 4
-//      case x                           => (curPage - 2)
-//    val btnLastPage = Math.min(totalPage + 1, btnFistPage + 5)
     def goTo(v: Int) = model match
       case _: BlcModel => ToPage(BlcModel(page = v))
       case _: TxModel => ToPage(TxModel(page = v))
@@ -35,6 +30,7 @@ object Pagination:
       case n: BlcDetailModel=> ToPage(n.copy(page = v))
       case n: AccDetailModel=> ToPage(n.copy(page = v))
       case n: NftTokenModel => ToPage(n.copy(page = v))
+      case n: VdDetailModel => ToPage(n.copy(page = v))
     def isDis(condition: Boolean) = if condition then "dis" else ""
     def toggleInput = TogglePageInput(!model.pageToggle)
 

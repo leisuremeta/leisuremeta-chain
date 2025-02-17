@@ -36,6 +36,10 @@ object LmscanFrontendApp extends TyrianIOApp[Msg, Model]:
         case s"/acc/$address" => 
           val p = loc.search.getOrElse("").split("=").last
           ToPage(AccDetailModel(accDetail = AccountDetail(address = Some(address)), page = p.toInt))
+        case s"/vds" => ToPage(VdModel())
+        case s"/vds/$address" => 
+          val p = loc.search.getOrElse("").split("=").last
+          ToPage(VdDetailModel(address = address, page = p.toInt))
         case "/" => ToPage(BaseModel())
         case "" => ToPage(BaseModel())
         case _   => ToPage(ErrorModel(error = ""))

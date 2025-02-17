@@ -56,6 +56,11 @@ object Parse:
       case (_: NftDetail, str) => UpdateModel(decode[NftDetail](str).getOrElse(NftDetail()))
       case (_: SummaryBoard, str) => SetLocal("board", str)
       case (_: SummaryChart, str) => SetLocal("chart", str)
+      case (_: NodeValidator.ValidatorList, str) => 
+        val res = decode[List[NodeValidator.Validator]](str).map(NodeValidator.ValidatorList(_))
+        UpdateModel(res.getOrElse(NodeValidator.ValidatorList()))
+      case (_: NodeValidator.ValidatorDetail, str) => 
+        UpdateModel(decode[NodeValidator.ValidatorDetail](str).getOrElse(NodeValidator.ValidatorDetail()))
       case (_, str) => ErrorMsg
       case (_, Left(json)) => ErrorMsg
 
@@ -96,6 +101,16 @@ object DataProcess:
     Http.send(
       Request.get(s"${base}nft/${model.tokenId.getOrElse("")}/detail").withTimeout(10.seconds),
       Decoder[Msg](Parse.onResponse(NftDetail()), onError)
+    )
+  def getData(model: VdModel): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}vds").withTimeout(10.seconds),
+      Decoder[Msg](Parse.onResponse(NodeValidator.ValidatorList()), onError)
+    )
+  def getData(model: VdDetailModel): Cmd[IO, Msg] =
+    Http.send(
+      Request.get(s"${base}vd/${model.address}?p=${model.page}").withTimeout(10.seconds),
+      Decoder[Msg](Parse.onResponse(NodeValidator.ValidatorDetail()), onError)
     )
   def getDataAll(key: String): Cmd[IO, Msg] = key match
     case "chart" =>

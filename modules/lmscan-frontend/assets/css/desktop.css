@@ -145,6 +145,9 @@ nav {
 .table-container.nft .row {
   grid-template-columns: 3fr 1fr 2fr 3fr 3fr;
 }
+.table-container.vds .row {
+  grid-template-columns: 5fr 3fr 4fr;
+}
 .table-title {
   display: flex;
   justify-content: space-between;

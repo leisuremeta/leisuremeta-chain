@@ -15,32 +15,17 @@ object V:
       case Some(value) => value
       case None        => default
 
-  def getOptionValuePipe[T](default: T)(field: Option[T]) =
-    field match
-      case Some(value) => value
-      case None        => default
-
   def plainStr(
       data: Option[String] | Option[Int] | Option[Double] | Option[Long],
-  ) =
-    getOptionValue(data, "-").toString()
-
-  def plainInt(data: Option[Int]) =
-    getOptionValue(data, 0).asInstanceOf[Int].toString
-
-  def plainLong(data: Option[Long]) =
-    getOptionValue(data, 0.toLong).asInstanceOf[Long].toString
-
-  def plainDouble(data: Option[Double]) =
-    getOptionValue(data, 0.toDouble).asInstanceOf[Double].toString
-
+  ) = 
+    data match
+      case Some(v) => v.toString
+      case None => "-"
+      
   def plainSeason(data: Option[String]) =
     data match
       case Some(v) => if("""\d+\.?\d*""".r.matches(v)) s"SEASON $v:" else s"$v:"
       case _ => ""
-
-  // def hash10(data: Option[Any]) =
-  //   getOptionValue(data, "-").toString().take(10) + "..."
 
   def rarity(data: Option[String]) =
     getOptionValue(data, "-") match

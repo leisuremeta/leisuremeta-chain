@@ -27,6 +27,24 @@ object BlockRepository extends CommonQuery:
     val offset         = sizePerRequest * pageNavInfo.pageNo
     seqQuery(pagedQuery(lift(cnt - offset), lift(sizePerRequest)))
 
+  def getPageByProposer[F[_]: Async](
+      pageNavInfo: PageNavigation,
+      cnt: Long,
+      addr: String,
+  ): EitherT[F, String, Seq[Block]] =
+    def pagedQuery =
+      quote { (offset: Long, sizePerRequest: Int, s: String) =>
+
+        query[Block]
+          .filter(t => t.proposer == s)
+          .filter(t => t.number <= offset)
+          .sortBy(t => t.number)(Ord.desc)
+          .take(sizePerRequest)
+      }
+
+    val sizePerRequest = pageNavInfo.sizePerRequest
+    seqQuery(pagedQuery(lift(cnt), lift(sizePerRequest), lift(addr)))
+
   def getLast[F[_]: Async](): EitherT[F, String, Option[Block]] =
     inline def q =
       quote { () =>
