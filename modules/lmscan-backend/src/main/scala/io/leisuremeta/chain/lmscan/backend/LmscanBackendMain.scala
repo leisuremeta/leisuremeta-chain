@@ -153,6 +153,26 @@ object BackendMain extends IOApp:
             case Left(msg) => Left(ExploreApi.ServerError(msg))
           .value
 
+  def valdatorPage[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getValidators.serverLogic:
+      _ =>
+        ValidatorService
+          .getPage()
+          .leftMap:
+            case Right(msg) => Right(ExploreApi.BadRequest(msg))
+            case Left(msg) => Left(ExploreApi.ServerError(msg))
+          .value
+
+  def valdatorDetail[F[_]: Async]: ServerEndpoint[Fs2Streams[F], F] =
+    ExploreApi.getValidator.serverLogic:
+      (address, p) =>
+        ValidatorService
+          .get(address, p.getOrElse(1))
+          .leftMap:
+            case Right(msg) => Right(ExploreApi.BadRequest(msg))
+            case Left(msg) => Left(ExploreApi.ServerError(msg))
+          .value
+
   def explorerEndpoints[F[_]: Async]: List[ServerEndpoint[Fs2Streams[F], F]] =
     List(
       txPaging[F],
@@ -168,6 +188,8 @@ object BackendMain extends IOApp:
       summaryMain[F],
       summaryChart[F],
       keywordSearch[F],
+      valdatorPage[F],
+      valdatorDetail[F],
     )
 
   def getServerResource[F[_]: Async]: Resource[F, Server] =

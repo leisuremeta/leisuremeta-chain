@@ -86,6 +86,15 @@ object Table:
         case None    => List(Head.nft, LoaderView.view)
         case Some(v) => Head.nft :: Body.nft(v.toList, model.global),
     )
+  def view(model: VdModel): Html[Msg] =
+    div(cls := "table-container vds")(
+      Head.vds :: Body.vds(model.payload)
+    )
+  def view(model: VdDetailModel): Html[Msg] =
+    div(cls := "table-container blc")(
+      Head.block ::
+      Body.blocks(model.blcs.payload.toList, model.global).appended(Pagination.view(model))
+    )
 
   def nft(list: Option[PageResponse[NftInfoModel]]) =
     div(

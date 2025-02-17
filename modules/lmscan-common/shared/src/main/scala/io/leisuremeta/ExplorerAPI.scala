@@ -141,3 +141,13 @@ object ExploreApi:
     .in("search")
     .in(path[String]("keyword"))
     .out(jsonBody[SearchResult])
+
+  val getValidators = baseEndpoint.get
+    .in("vds")
+    .out(jsonBody[Seq[NodeValidator.Validator]])
+
+  val getValidator = baseEndpoint.get
+    .in("vd")
+    .in(path[String])
+    .in(query[Option[Int]]("p"))
+    .out(jsonBody[Option[NodeValidator.ValidatorDetail]])

@@ -9,6 +9,7 @@ object NavBar:
   val tx = "Transactions"
   val acc = "Accounts"
   val nft = "NFTs"
+  val vd = "Validators"
   def view(model: Model): Html[Msg] =
     nav()(
       p(onClick(ToPage(BaseModel())))("LM SCAN")
@@ -19,6 +20,7 @@ object NavBar:
         (tx, ToPage(TxModel(page = 1))),
         (acc, ToPage(AccModel(page = 1))),
         (nft, ToPage(NftModel(page = 1))),
+        (vd, ToPage(VdModel())),
       ).map((name, msg) =>
         a(
           cls := isActive(name, model),
@@ -38,5 +40,6 @@ object NavBar:
     case _: NftModel if name == nft => "active"
     case _: NftTokenModel if name == nft => "active"
     case _: NftDetailModel if name == nft => "active"
+    case _: VdModel if name == vd => "active"
     case _ => ""
     

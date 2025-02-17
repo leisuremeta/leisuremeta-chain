@@ -12,7 +12,6 @@ object SummaryService:
   extension (s: Summary)
     def toM: SummaryModel = 
       SummaryModel(
-          Some(s.id),
           Some(s.lmPrice),
           Some(s.blockNumber),
           Some(s.totalAccounts),

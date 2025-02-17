@@ -100,7 +100,7 @@ enum Cell:
   case PlainInt(data: Option[Int])                              extends Cell
   case PlainLong(data: Option[Long])                            extends Cell
   case PlainStr(
-      data: Option[String] | Option[Int] | Option[Long],
+      data: Option[String] | Option[Int] | Option[Long] | Option[Double],
       css: String = "cell",
   )                      extends Cell
   case AAA(data: String) extends Cell
@@ -170,12 +170,12 @@ object gen:
       case Cell.PlainInt(data) =>
         div(cls := "cell")(
           span(
-          )(plainInt(data)),
+          )(plainStr(data)),
         )
       case Cell.PlainLong(data) =>
         div(cls := "cell")(
           span(
-          )(plainLong(data)),
+          )(plainStr(data)),
         )
       case Cell.Tx_VALUE(subType, value) =>
         div(
@@ -221,7 +221,6 @@ object gen:
               case Some(v) => timeAgo(v, cur)
               case _ => "-"
           )
-
       case Cell.DateS(data, css) =>
         data match
           case None => div()
@@ -241,7 +240,7 @@ object gen:
         div(cls := s"$css")(
             {
               val date = toDT(
-                plainLong(data).toInt, new js.Date
+                plainStr(data).toInt, new js.Date
               ) + " +UTC"
               date match
                 case x if x.contains("1970") => "-"
@@ -255,7 +254,7 @@ object gen:
             onClick(
               ToPage(BlcDetailModel(blcDetail = BlockDetail(hash = hash))),
             ),
-          )(plainLong(number))
+          )(plainStr(number))
 
       case Cell.NftToken(nftInfo) =>
         a(
