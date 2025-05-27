@@ -1,0 +1,21 @@
+scan = ""
+base = ""
+market {
+  key = "",
+  token = 1,
+}
+es {
+  key = "",
+  lm = "",
+  addrs = [
+    ""
+  ],
+}
+remote {
+  driver = "org.postgresql.Driver",
+  url = "jdbc:postgresql://URL",
+}
+local {
+  driver = "org.sqlite.JDBC",
+  url = "jdbc:sqlite:sample.db",
+}
