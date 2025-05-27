@@ -40,7 +40,9 @@ val V = new {
   val quill         = "4.8.0"
   val postgres      = "42.7.3"
   val flywayCore    = "9.22.3"
-  val sqlite        = "3.47.2.0"
+  val sqlite        = "3.48.0.0"
+  val doobieVersion = "1.0.0-RC5"
+  val hikari        = "6.2.1"
 }
 
 val Dependencies = new {
@@ -179,8 +181,8 @@ val Dependencies = new {
 
   lazy val lmscanBackend = Seq(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %% "tapir-armeria-server-cats" % V.tapir,
-      "com.softwaremill.sttp.client3" %% "armeria-backend-cats" % V.sttp,
+      "com.softwaremill.sttp.tapir"   %% "tapir-armeria-server-cats" % V.tapir,
+      "com.softwaremill.sttp.client3" %% "armeria-backend-cats"      % V.sttp,
       "com.typesafe"             % "config"          % V.typesafeConfig,
       "org.postgresql"           % "postgresql"      % V.postgres,
       "com.opentable.components" % "otj-pg-embedded" % V.pgEmbedded,
@@ -189,16 +191,16 @@ val Dependencies = new {
 
   lazy val lmscanAgent = Seq(
     libraryDependencies ++= Seq(
-      "com.outr"    %% "scribe-slf4j" % V.scribe,
-      "com.typesafe" % "config"       % V.typesafeConfig,
-      "io.circe"                      %% "circe-generic"        % V.circe,
-      "io.circe"                      %% "circe-parser"         % V.circe,
-      "io.circe"                      %% "circe-refined"        % V.circe,
-      "com.squareup.okhttp3" % "logging-interceptor" % V.okhttp3LoggingInterceptor,
-      "org.typelevel" %% "cats-effect"           % V.catsEffect,
-      "io.getquill"   %% "quill-jasync-postgres" % V.quill,
-      "org.postgresql" % "postgresql"            % V.postgres,
-      "org.xerial"     % "sqlite-jdbc"           % V.sqlite,
+      "com.outr"                      %% "scribe-file"     % V.scribe,
+      "org.slf4j"                      % "slf4j-nop"       % "2.0.17",
+      "org.xerial"                     % "sqlite-jdbc"     % V.sqlite,
+      "com.softwaremill.sttp.client3" %% "fs2"             % V.sttp,
+      "com.github.pureconfig"         %% "pureconfig-core" % V.pureconfig,
+      "org.tpolecat"                  %% "doobie-core"     % V.doobieVersion,
+      "org.tpolecat"                  %% "doobie-postgres" % V.doobieVersion,
+      "org.tpolecat"                  %% "doobie-specs2"   % V.doobieVersion,
+      "org.tpolecat"                  %% "doobie-hikari"   % V.doobieVersion,
+      "com.zaxxer"                     % "HikariCP"        % V.hikari,
     ),
   )
 
@@ -340,7 +342,7 @@ lazy val archive = (project in file("modules/archive"))
   .settings(Dependencies.archive)
   .settings(Dependencies.tests)
   .settings(
-    name := "leisuremeta-chain-archive",
+    name                 := "leisuremeta-chain-archive",
     Compile / run / fork := true,
     assemblyMergeStrategy := {
       case x if x `contains` "io.netty.versions.properties" =>
@@ -358,7 +360,7 @@ lazy val archive = (project in file("modules/archive"))
 lazy val bulkInsert = (project in file("modules/bulk-insert"))
   .dependsOn(node)
   .settings(
-    name := "leisuremeta-chain-bulk-insert",
+    name                 := "leisuremeta-chain-bulk-insert",
     Compile / run / fork := true,
     excludeDependencies ++= Seq(
       "org.scala-lang.modules" % "scala-collection-compat_2.13",
@@ -386,7 +388,7 @@ lazy val jvmClient = (project in file("modules/jvm-client"))
   .settings(Dependencies.jvmClient)
   .dependsOn(node)
   .settings(
-    name := "leisuremeta-chain-jvm-client",
+    name                 := "leisuremeta-chain-jvm-client",
     Compile / run / fork := true,
   )
 
@@ -519,10 +521,15 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
   .settings(Dependencies.tests)
   .settings(Dependencies.catsEffectTests)
   .settings(
+    Compile / run / fork := true,
+  )
+  .settings(
     name := "leisuremeta-chain-lmscan-agent",
     assemblyMergeStrategy := {
       case PathList("scala", "tools", "asm", xs @ _*) => MergeStrategy.first
       case PathList("io", "getquill", xs @ _*)        => MergeStrategy.first
+      case x if x `contains` "libnetty-unix-common.a" =>
+        MergeStrategy.first
       case x if x `contains` "io.netty.versions.properties" =>
         MergeStrategy.first
       case x if x `contains` "scala-asm.properties" =>
@@ -536,6 +543,7 @@ lazy val lmscanAgent = (project in file("modules/lmscan-agent"))
     },
   )
   .dependsOn(api.jvm)
+  .dependsOn(lmscanBackend)
 
 lazy val nodeProxy = (project in file("modules/node-proxy"))
   .settings(Dependencies.nodeProxy)
