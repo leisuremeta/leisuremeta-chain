@@ -92,7 +92,9 @@ object DataStoreApp:
           sEither <- client.getResult[NodeStatus](s"$base/status").value
           _ <- (x, sEither) match
             case (Right(blc), Right(status)) =>
-              storeBlockLoop(blc.getParent, status.genesisHash)
+              if blc.number != 0 then
+                storeBlockLoop(blc.getParent, status.genesisHash)
+              else Async[F].unit
             case (Left(s), Right(status)) =>
               storeBlockLoop(status.bestHash, status.genesisHash)
             case _ =>

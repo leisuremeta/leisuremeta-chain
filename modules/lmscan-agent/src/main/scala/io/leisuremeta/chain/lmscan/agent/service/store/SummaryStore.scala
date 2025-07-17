@@ -24,7 +24,7 @@ case class SummaryRepository[F[_]: MonadCancelThrow](xa: Transactor[F]):
         INSERT INTO summary (lm_price, total_balance, market_cap, cir_supply, block_number, total_accounts, total_tx_size, total_nft)
         VALUES($price, $balance, $cap, $supply, 
           (SELECT number FROM block ORDER BY number DESC LIMIT 1),
-          (SELECT count(1) FROM balance),
+          (SELECT count(1) FROM tx WHERE sub_type = 'CreateAccount' or sub_type = 'CreateAccountWithExternalChainAddresses'),
           (SELECT count(1) FROM tx),
           (SELECT count(1) FROM nft)
         )""".update.run
