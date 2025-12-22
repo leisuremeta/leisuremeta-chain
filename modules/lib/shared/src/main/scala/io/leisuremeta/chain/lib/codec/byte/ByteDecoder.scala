@@ -88,6 +88,7 @@ object ByteDecoder:
             loop(rest, remainder, value *: acc)
     loop(elems, bytes, EmptyTuple)
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   inline def summonAll[T <: Tuple]: List[ByteDecoder[?]] =
     inline erasedValue[T] match
       case _: EmptyTuple => Nil

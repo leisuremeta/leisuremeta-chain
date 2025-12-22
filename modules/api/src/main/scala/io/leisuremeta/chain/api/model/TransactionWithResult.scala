@@ -15,7 +15,7 @@ object TransactionWithResult:
       inline resultOption: Option[TransactionResult],
   ): TransactionWithResult =
 
-    def widenTx = signedTx.asInstanceOf[Signed.Tx]
+    def widenTx: Signed.Tx = Signed(signedTx.sig, signedTx.value)
 
     import scala.compiletime.*
 

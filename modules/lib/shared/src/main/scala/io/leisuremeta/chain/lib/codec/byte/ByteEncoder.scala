@@ -43,6 +43,7 @@ object ByteEncoder:
      case (aElem, encoder) => encoder.asInstanceOf[ByteEncoder[Any]].encode(aElem)
     }.foldLeft(ByteVector.empty)(_ ++ _)
 
+  @SuppressWarnings(Array("org.wartremover.warts.Recursion"))
   inline def summonAll[T <: Tuple]: List[ByteEncoder[?]] =
     inline erasedValue[T] match
       case _: EmptyTuple => Nil

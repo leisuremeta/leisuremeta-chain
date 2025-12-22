@@ -5,6 +5,7 @@ import scala.util.Try
 
 import cats.Eq
 import cats.syntax.either.*
+import cats.syntax.eq.catsSyntaxEq
 import io.circe.{Decoder, Encoder}
 
 import lib.codec.byte.{ByteDecoder, ByteEncoder}
@@ -20,8 +21,8 @@ object VoteType:
   given eq: Eq[VoteType]                = Eq.fromUniversalEquals
   given circeEncoder: Encoder[VoteType] = Encoder.encodeString.contramap(_.name)
   given circeDecoder: Decoder[VoteType] = Decoder.decodeString.emap: str =>
-    Try(VoteType.valueOf(str)).toEither.leftMap: err =>
-      s"VoteType $str is not valid: ${err.getMessage}"
+    VoteType.values.find(_.name === str).toRight:
+      s"VoteType $str is not valid"
   given byteEncoder: ByteEncoder[VoteType] =
     BigNat.bignatByteEncoder.contramap: voteType =>
       BigNat.unsafeFromBigInt(BigInt(voteType.ordinal))

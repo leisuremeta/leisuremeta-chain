@@ -1,5 +1,5 @@
 val V = new {
-  val Scala      = "3.4.1"
+  val Scala      = "3.4.3"
   val ScalaGroup = "3.4"
 
   val catsEffect = "3.5.4"
